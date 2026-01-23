@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Docked AI (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Docked AI (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
