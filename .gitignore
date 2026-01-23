@@ -1,0 +1,41 @@
+# Visual Studio
+.vs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio Code
+.vscode/
+
+# MSBuild
+*.VC.db
+*.VC.VC.opendb
+
+# NuGet
+NuGet.Config
+nuget.exe
+packages/
+
+# Output of 'dotnet ef migrations add'
+Migrations/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Icon?
