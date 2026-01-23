@@ -26,6 +26,10 @@ namespace Docked_AI
         public MainWindow()
         {
             InitializeComponent();
+            
+            // Enable the custom title bar
+            ExtendsContentIntoTitleBar = true;
+            SetTitleBar(CustomTitleBar);
         }
     }
 }
