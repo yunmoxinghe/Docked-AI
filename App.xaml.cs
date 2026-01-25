@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -15,6 +16,7 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using WinRT.Interop;
 
 
 
@@ -31,6 +33,7 @@ namespace Docked_AI
     {
         private Window? _window;
         private TrayIconManager? _trayIconManager;
+        private static Mutex? _mutex;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -47,11 +50,23 @@ namespace Docked_AI
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-
-
+            const string appName = "DockedAI_SingleInstance_Mutex";
+            _mutex = new Mutex(true, appName, out bool createdNew);
+            
+            if (!createdNew)
+            {
+                // Another instance is already running, bring it to the foreground
+                ActivateExistingInstance();
+                // Exit this instance
+                Environment.Exit(0);
+                return;
+            }
             
             // Initialize the tray icon manager
-            _trayIconManager = new TrayIconManager(null, () => Environment.Exit(0));
+            _trayIconManager = new TrayIconManager(null, () => {
+                _mutex?.ReleaseMutex();
+                Environment.Exit(0);
+            });
             _trayIconManager.Initialize();
             
             // Don't show the main window initially
@@ -82,7 +97,46 @@ namespace Docked_AI
         private void OnAppExit(object sender, object e)
         {
             _trayIconManager?.Dispose();
+            _mutex?.ReleaseMutex();
         }
+        
+        private void ActivateExistingInstance()
+        {
+            try
+            {
+                // Find all processes with the same executable name
+                var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+                var processes = System.Diagnostics.Process.GetProcessesByName(currentProcess.ProcessName);
+                
+                foreach (var process in processes)
+                {
+                    // Skip the current process
+                    if (process.Id != currentProcess.Id)
+                    {
+                        // Try to bring the other process's window to foreground
+                        if (!process.HasExited && process.MainWindowHandle != IntPtr.Zero)
+                        {
+                            ShowWindow(process.MainWindowHandle, SW_SHOWNORMAL);
+                            SetForegroundWindow(process.MainWindowHandle);
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // If activation fails, log the exception
+                System.Diagnostics.Debug.WriteLine($"Failed to activate existing instance: {ex.Message}");
+            }
+        }
+        
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+        
+        private const int SW_SHOWNORMAL = 1;
     
     }
 }
