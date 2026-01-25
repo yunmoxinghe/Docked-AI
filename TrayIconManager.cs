@@ -55,8 +55,14 @@ namespace Docked_AI
             
             _notifyIcon.ContextMenuStrip = contextMenu;
             
-            // Handle double-click to show main window
+            // Handle double-click and single-click to show main window
             _notifyIcon.DoubleClick += (sender, e) => ShowMainWindow();
+            _notifyIcon.MouseClick += (sender, e) => {
+                if (e.Button == MouseButtons.Left)
+                {
+                    ShowMainWindow();
+                }
+            };
         }
 
         public void ShowMainWindow()
