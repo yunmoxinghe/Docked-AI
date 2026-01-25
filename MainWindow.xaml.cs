@@ -29,7 +29,6 @@ namespace Docked_AI
             
             // Enable the custom title bar
             ExtendsContentIntoTitleBar = true;
-            SetTitleBar(CustomTitleBar);
         }
     }
 }

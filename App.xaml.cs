@@ -16,6 +16,9 @@ using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 
+
+
+
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
@@ -27,6 +30,7 @@ namespace Docked_AI
     public partial class App : Application
     {
         private Window? _window;
+        private TrayIconManager? _trayIconManager;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -43,8 +47,42 @@ namespace Docked_AI
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
-            _window = new MainWindow();
+
+
+            
+            // Initialize the tray icon manager
+            _trayIconManager = new TrayIconManager(null, () => Environment.Exit(0));
+            _trayIconManager.Initialize();
+            
+            // Don't show the main window initially
+            // The window will only be shown when the user clicks the tray icon
+        }
+        
+        public void OpenMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            ShowMainWindow();
+        }
+        
+        public void ExitMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            // Close all windows and exit the application
+            Environment.Exit(0);
+        }
+        
+        private void ShowMainWindow()
+        {
+            if (_window == null || _window.Content == null)
+            {
+                _window = new MainWindow();
+            }
+            
             _window.Activate();
         }
+        
+        private void OnAppExit(object sender, object e)
+        {
+            _trayIconManager?.Dispose();
+        }
+    
     }
 }
