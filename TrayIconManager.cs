@@ -82,11 +82,23 @@ namespace Docked_AI
 
                 if (_mainWindow == null || _mainWindow.Content == null)
                 {
+                    // 创建新窗口
                     _mainWindow = new MainWindow();
+                    _mainWindow.Activate();
+                    WindowHelper.SetForegroundWindow(_mainWindow);
                 }
-                
-                _mainWindow.Activate();
-                WindowHelper.SetForegroundWindow(_mainWindow);
+                else
+                {
+                    // 窗口存在，切换显示/隐藏状态
+                    if (_mainWindow is MainWindow mainWindow)
+                    {
+                        mainWindow.ToggleWindow();
+                        if (mainWindow.IsWindowVisible)
+                        {
+                            WindowHelper.SetForegroundWindow(_mainWindow);
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
