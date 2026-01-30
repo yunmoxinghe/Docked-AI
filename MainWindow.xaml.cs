@@ -179,10 +179,40 @@ namespace Docked_AI
         {
             isVisible = false;
             
+            // 如果窗口当前是最大化状态，先恢复到正常状态
+            if (this.AppWindow.Presenter.Kind == Microsoft.UI.Windowing.AppWindowPresenterKind.Overlapped)
+            {
+                var overlappedPresenter = this.AppWindow.Presenter as Microsoft.UI.Windowing.OverlappedPresenter;
+                if (overlappedPresenter != null && overlappedPresenter.State == Microsoft.UI.Windowing.OverlappedPresenterState.Maximized)
+                {
+                    // 恢复到正常窗口状态
+                    overlappedPresenter.Restore();
+                    
+                    // 重新设置窗口位置和尺寸到我们期望的停靠位置
+                    // 重新获取工作区域
+                    SystemParametersInfo(SPI_GETWORKAREA, 0, ref workArea, 0);
+                    
+                    // 重新计算窗口尺寸和位置
+                    windowHeight = workArea.Bottom - workArea.Top - (MARGIN * 2);
+                    int normalX = workArea.Right - windowWidth - MARGIN;
+                    int normalY = workArea.Top + MARGIN;
+                    
+                    // 设置到正常的停靠位置
+                    SetWindowPos(hwnd, IntPtr.Zero, normalX, normalY, windowWidth, windowHeight, 0);
+                    
+                    // 更新当前位置
+                    currentX = normalX;
+                    currentY = normalY;
+                }
+            }
+            
             // 设置目标位置为屏幕右侧外部
             targetX = screenWidth;
-            // 保持当前位置
-            currentX = workArea.Right - windowWidth - MARGIN;
+            // 如果没有设置currentX，使用当前停靠位置
+            if (currentX == 0)
+            {
+                currentX = workArea.Right - windowWidth - MARGIN;
+            }
             targetY = workArea.Top + MARGIN;
             currentY = targetY;
 
