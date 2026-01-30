@@ -1,21 +1,19 @@
 using System;
-using System.Drawing;
-using System.Windows.Forms;
+using System.IO;
 using Microsoft.UI.Xaml;
-
-// Alias the two Window types to avoid conflicts
-using WinUIWindow = Microsoft.UI.Xaml.Window;
-using WPFWindow = System.Windows.Window;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using DevWinUI;
 
 namespace Docked_AI
 {
     public class TrayIconManager : IDisposable
     {
-        private NotifyIcon? _notifyIcon;
-        private WinUIWindow? _mainWindow;
+        private SystemTrayIcon? _trayIcon;
+        private Window? _mainWindow;
         private readonly Action? _exitAction;
 
-        public TrayIconManager(WinUIWindow? initialMainWindow, Action? exitAction = null)
+        public TrayIconManager(Window? initialMainWindow, Action? exitAction = null)
         {
             _mainWindow = initialMainWindow;
             _exitAction = exitAction;
@@ -23,67 +21,107 @@ namespace Docked_AI
 
         public void Initialize()
         {
-            // Create the notify icon
-            _notifyIcon = new NotifyIcon();
+            uint iconId = 123;
             
-            // Load icon from resources
-            try
-            {
-                // Try to load from embedded resource or use a default icon
-                _notifyIcon.Icon = Icon.ExtractAssociatedIcon(System.Reflection.Assembly.GetExecutingAssembly().Location) ?? SystemIcons.Application;
-            }
-            catch
-            {
-                _notifyIcon.Icon = SystemIcons.Application; // fallback to default icon
-            }
+            // 使用项目图标初始化托盘图标
+            var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Sparkles.ico");
+            _trayIcon = new SystemTrayIcon(iconId, iconPath, "Docked AI");
             
-            _notifyIcon.Text = "Docked AI";
-            _notifyIcon.Visible = true;
+            _trayIcon.LeftClick += TrayIcon_LeftClick;
+            _trayIcon.RightClick += TrayIcon_RightClick;
+            _trayIcon.IsVisible = true;
+        }
+
+        private void TrayIcon_LeftClick(SystemTrayIcon sender, SystemTrayIconEventArgs args)
+        {
+            ShowMainWindow();
+        }
+
+        private void TrayIcon_RightClick(SystemTrayIcon sender, SystemTrayIconEventArgs args)
+        {
+            var flyout = new MenuFlyout();
             
-            // Create context menu
-            var contextMenu = new ContextMenuStrip();
-            
-            var openItem = new ToolStripMenuItem("打开主窗口");
-            openItem.Click += (sender, e) => ShowMainWindow();
-            
-            var exitItem = new ToolStripMenuItem("退出");
-            exitItem.Click += (sender, e) => ExitApplication();
-            
-            contextMenu.Items.Add(openItem);
-            contextMenu.Items.Add(new ToolStripSeparator());
-            contextMenu.Items.Add(exitItem);
-            
-            _notifyIcon.ContextMenuStrip = contextMenu;
-            
-            // Handle double-click and single-click to show main window
-            _notifyIcon.DoubleClick += (sender, e) => ShowMainWindow();
-            _notifyIcon.MouseClick += (sender, e) => {
-                if (e.Button == MouseButtons.Left)
-                {
-                    ShowMainWindow();
-                }
+            var openItem = new MenuFlyoutItem() 
+            { 
+                Text = "打开主窗口",
+                Icon = new SymbolIcon(Symbol.GoToStart)
             };
+            openItem.Click += (s, e) =>
+            {
+                ShowMainWindow();
+            };
+            flyout.Items.Add(openItem);
+            
+            flyout.Items.Add(new MenuFlyoutSeparator());
+            
+            var exitItem = new MenuFlyoutItem() 
+            { 
+                Text = "退出",
+                Icon = new FontIcon { Glyph = "\uF3B1" }
+            };
+            exitItem.Click += (s, e) => ExitApplication();
+            flyout.Items.Add(exitItem);
+
+            args.Flyout = flyout;
         }
 
         public void ShowMainWindow()
         {
-            if (_mainWindow == null || _mainWindow.Content == null)
+            try
             {
-                _mainWindow = new MainWindow();
+                // 检查现有窗口是否已关闭
+                if (_mainWindow != null)
+                {
+                    var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(_mainWindow);
+                    if (windowHandle == IntPtr.Zero)
+                    {
+                        // 窗口已关闭，需要重新创建
+                        _mainWindow = null;
+                    }
+                }
+
+                if (_mainWindow == null || _mainWindow.Content == null)
+                {
+                    _mainWindow = new MainWindow();
+                }
+                
+                _mainWindow.Activate();
+                WindowHelper.SetForegroundWindow(_mainWindow);
             }
-            
-            _mainWindow.Activate();
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error showing main window: {ex.Message}");
+                // 发生错误时重新创建窗口
+                _mainWindow = null;
+                _mainWindow = new MainWindow();
+                _mainWindow.Activate();
+                WindowHelper.SetForegroundWindow(_mainWindow);
+            }
         }
 
         public void ExitApplication()
         {
+            if (_trayIcon != null)
+            {
+                _trayIcon.LeftClick -= TrayIcon_LeftClick;
+                _trayIcon.RightClick -= TrayIcon_RightClick;
+                _trayIcon.IsVisible = false;
+                _trayIcon.Dispose();
+                _trayIcon = null;
+            }
             _exitAction?.Invoke();
-            _notifyIcon?.Dispose();
         }
 
         public void Dispose()
         {
-            _notifyIcon?.Dispose();
+            if (_trayIcon != null)
+            {
+                _trayIcon.LeftClick -= TrayIcon_LeftClick;
+                _trayIcon.RightClick -= TrayIcon_RightClick;
+                _trayIcon.IsVisible = false;
+                _trayIcon.Dispose();
+                _trayIcon = null;
+            }
         }
     }
 }
