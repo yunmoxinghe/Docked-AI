@@ -154,7 +154,7 @@ namespace Docked_AI
             Microsoft.UI.Xaml.Media.CompositionTarget.Rendering += OnFrame;
         }
 
-        private void OnFrame(object sender, object e)
+        private void OnFrame(object? sender, object e)
         {
             double distance = targetY - currentY;
             double speed;
