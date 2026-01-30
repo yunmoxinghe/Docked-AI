@@ -19,6 +19,18 @@ namespace Docked_AI
         [DllImport("user32.dll")]
         private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
+        [DllImport("user32.dll")]
+        private static extern bool SystemParametersInfo(int uAction, int uParam, ref RECT lpvParam, int fuWinIni);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
         // ShowWindow 参数
         private const int SW_HIDE = 0;
         private const int SW_SHOW = 5;
@@ -27,15 +39,22 @@ namespace Docked_AI
         private const int SM_CXSCREEN = 0;  // 屏幕宽度
         private const int SM_CYSCREEN = 1;  // 屏幕高度
 
+        // SystemParametersInfo 参数
+        private const int SPI_GETWORKAREA = 0x0030;  // 获取工作区域（排除任务栏）
+
         private IntPtr hwnd;
         private double targetY;
         private double currentY;
+        private double currentX; // 当前X位置
         private int targetX;
         private int windowWidth;
         private int windowHeight;
         private bool animationStarted = false;
         private bool isVisible = true; // 窗口可见状态
         private int screenHeight; // 保存屏幕高度
+        private int screenWidth; // 保存屏幕宽度
+        private RECT workArea; // 工作区域（排除任务栏）
+        private const int MARGIN = 10; // 距离边缘的逻辑像素距离
 
         // 公共属性：检查窗口是否可见
         public bool IsWindowVisible => isVisible;
@@ -70,24 +89,28 @@ namespace Docked_AI
                 // 隐藏任务栏图标
                 this.AppWindow.IsShownInSwitchers = false;
 
-                // 获取屏幕尺寸
+                // 获取屏幕尺寸和工作区域
                 screenHeight = GetSystemMetrics(SM_CYSCREEN);
-                int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+                screenWidth = GetSystemMetrics(SM_CXSCREEN);
+                
+                // 获取工作区域（排除任务栏）
+                SystemParametersInfo(SPI_GETWORKAREA, 0, ref workArea, 0);
 
-                // 获取窗口尺寸
-                windowWidth = (int)this.AppWindow.ClientSize.Width;
-                windowHeight = (int)this.AppWindow.ClientSize.Height;
+                // 设置窗口尺寸
+                windowWidth = 500; // 固定宽度500像素
+                // 计算窗口高度：工作区域高度减去上下各10像素边距
+                windowHeight = workArea.Bottom - workArea.Top - (MARGIN * 2);
 
-                // 计算位置
-                targetX = (screenWidth - windowWidth) / 2; // 水平居中
-                int startY = screenHeight; // 从屏幕底部开始
-
-                // 最终目标位置
-                targetY = screenHeight / 2 - windowHeight / 2;
-                currentY = startY;
+                // 计算目标位置：右边缘10px，上边缘10px
+                targetX = workArea.Right - windowWidth - MARGIN; // 距离右边缘10px
+                targetY = workArea.Top + MARGIN; // 距离上边缘10px
+                
+                // 动画起始位置：从屏幕右侧外部滑入
+                currentX = screenWidth; // 从屏幕右边缘外开始
+                currentY = targetY; // Y位置保持不变
 
                 // 设置初始位置
-                SetWindowPos(hwnd, IntPtr.Zero, targetX, (int)currentY, windowWidth, windowHeight, 0);
+                SetWindowPos(hwnd, IntPtr.Zero, (int)currentX, (int)currentY, windowWidth, windowHeight, 0);
 
                 // 开始动画
                 StartSlideAnimation();
@@ -130,12 +153,22 @@ namespace Docked_AI
             // 显示窗口
             ShowWindow(hwnd, SW_SHOW);
             
-            // 设置目标位置为屏幕中央
-            targetY = screenHeight / 2 - windowHeight / 2;
-            currentY = screenHeight; // 从屏幕底部开始
+            // 重新获取工作区域（防止任务栏位置变化）
+            SystemParametersInfo(SPI_GETWORKAREA, 0, ref workArea, 0);
+            
+            // 重新计算窗口高度
+            windowHeight = workArea.Bottom - workArea.Top - (MARGIN * 2);
+            
+            // 设置目标位置
+            targetX = workArea.Right - windowWidth - MARGIN;
+            targetY = workArea.Top + MARGIN;
+            
+            // 从屏幕右侧外部开始
+            currentX = screenWidth;
+            currentY = targetY;
 
             // 设置初始位置
-            SetWindowPos(hwnd, IntPtr.Zero, targetX, (int)currentY, windowWidth, windowHeight, 0);
+            SetWindowPos(hwnd, IntPtr.Zero, (int)currentX, (int)currentY, windowWidth, windowHeight, 0);
             
             // 激活窗口并开始动画
             this.Activate();
@@ -146,9 +179,12 @@ namespace Docked_AI
         {
             isVisible = false;
             
-            // 设置目标位置为屏幕底部之外
-            targetY = screenHeight + windowHeight;
-            currentY = screenHeight / 2 - windowHeight / 2; // 从当前位置开始
+            // 设置目标位置为屏幕右侧外部
+            targetX = screenWidth;
+            // 保持当前位置
+            currentX = workArea.Right - windowWidth - MARGIN;
+            targetY = workArea.Top + MARGIN;
+            currentY = targetY;
 
             // 开始隐藏动画
             Microsoft.UI.Xaml.Media.CompositionTarget.Rendering += OnFrame;
@@ -156,7 +192,7 @@ namespace Docked_AI
 
         private void OnFrame(object? sender, object e)
         {
-            double distance = targetY - currentY;
+            double distance = targetX - currentX;
             double speed;
             
             if (isVisible)
@@ -167,19 +203,18 @@ namespace Docked_AI
             else
             {
                 // 隐藏动画：加速缓动（先慢后快）
-                // 使用反向公式：速度随着接近目标而增加
-                double totalDistance = screenHeight + windowHeight - (screenHeight / 2 - windowHeight / 2);
+                double totalDistance = screenWidth - (workArea.Right - windowWidth - MARGIN);
                 double remainingRatio = Math.Abs(distance) / totalDistance;
-                double accelerationFactor = 1.0 - remainingRatio; // 越接近目标，加速因子越大
-                speed = distance * (0.2 + accelerationFactor * 0.4); // 基础速度0.2，最大0.6
+                double accelerationFactor = 1.0 - remainingRatio;
+                speed = distance * (0.2 + accelerationFactor * 0.4);
             }
             
-            currentY += speed;
+            currentX += speed;
 
             // 判断是否到位
             if (Math.Abs(distance) < 1)
             {
-                currentY = targetY;
+                currentX = targetX;
                 // 停止动画
                 Microsoft.UI.Xaml.Media.CompositionTarget.Rendering -= OnFrame;
                 
@@ -191,7 +226,7 @@ namespace Docked_AI
             }
 
             // 更新窗口位置
-            SetWindowPos(hwnd, IntPtr.Zero, targetX, (int)currentY, windowWidth, windowHeight, 0);
+            SetWindowPos(hwnd, IntPtr.Zero, (int)currentX, (int)currentY, windowWidth, windowHeight, 0);
         }
     }
 }
