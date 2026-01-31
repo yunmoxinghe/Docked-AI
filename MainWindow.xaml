@@ -24,8 +24,14 @@
 
 
         <!-- App content -->
-        <Grid Grid.Row="1">
-
+        <Grid Grid.Row="1" Background="Transparent">
+            <TextBlock 
+                Text="Docked AI" 
+                FontSize="24" 
+                FontWeight="Bold" 
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Center" 
+                Foreground="Black" />
         </Grid>
     </Grid>
 </Window>

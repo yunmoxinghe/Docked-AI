@@ -88,6 +88,9 @@ namespace Docked_AI
             // Enable the custom title bar
             ExtendsContentIntoTitleBar = true;
 
+            // 确保亚克力背景正确设置
+            EnsureAcrylicBackdrop();
+
             // 预先初始化窗口参数，避免闪屏
             InitializeWindowParameters();
             
@@ -117,8 +120,47 @@ namespace Docked_AI
                     return;
                 }
 
+                // 确保亚克力背景正确设置
+                EnsureAcrylicBackdrop();
+
                 // 开始动画
                 StartSlideAnimation();
+            }
+        }
+
+        private void EnsureAcrylicBackdrop()
+        {
+            try
+            {
+                // 检查当前背景状态
+                var currentBackdrop = this.SystemBackdrop;
+                System.Diagnostics.Debug.WriteLine($"当前背景类型: {currentBackdrop?.GetType().Name ?? "null"}");
+                
+                // 重新设置亚克力背景
+                if (this.SystemBackdrop == null || !(this.SystemBackdrop is Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop))
+                {
+                    this.SystemBackdrop = new Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop();
+                    System.Diagnostics.Debug.WriteLine("亚克力背景已重新设置");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("亚克力背景已存在且正确");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"设置亚克力背景失败: {ex.Message}");
+                
+                // 如果亚克力失败，尝试使用 Mica 背景作为备选
+                try
+                {
+                    this.SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop();
+                    System.Diagnostics.Debug.WriteLine("使用 Mica 背景作为备选");
+                }
+                catch (Exception micaEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Mica 背景也失败: {micaEx.Message}");
+                }
             }
         }
 
@@ -183,6 +225,9 @@ namespace Docked_AI
             
             // 隐藏任务栏图标
             this.AppWindow.IsShownInSwitchers = false;
+            
+            // 确保亚克力背景正确设置
+            EnsureAcrylicBackdrop();
             
             // 重新获取工作区域（防止任务栏位置变化）
             SystemParametersInfo(SPI_GETWORKAREA, 0, ref workArea, 0);
@@ -302,10 +347,14 @@ namespace Docked_AI
                 // 停止动画
                 Microsoft.UI.Xaml.Media.CompositionTarget.Rendering -= OnFrame;
                 
-                // 如果是显示动画完成，激活窗口
+                // 如果是显示动画完成，确保亚克力背景
                 if (isVisible)
                 {
-                    // 动画完成，不需要额外操作
+                    // 动画完成后重新确保亚克力背景
+                    this.DispatcherQueue.TryEnqueue(() =>
+                    {
+                        EnsureAcrylicBackdrop();
+                    });
                 }
                 // 如果是隐藏动画完成，隐藏窗口
                 else
