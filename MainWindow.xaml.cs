@@ -22,6 +22,18 @@ namespace Docked_AI
         [DllImport("user32.dll")]
         private static extern bool SystemParametersInfo(int uAction, int uParam, ref RECT lpvParam, int fuWinIni);
 
+        [DllImport("user32.dll")]
+        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        [DllImport("user32.dll")]
+        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+
+        [DllImport("user32.dll")]
+        private static extern bool SetLayeredWindowAttributes(IntPtr hWnd, uint crKey, byte bAlpha, uint dwFlags);
+
+        [DllImport("user32.dll")]
+        private static extern bool SetWindowDisplayAffinity(IntPtr hWnd, uint dwAffinity);
+
         [StructLayout(LayoutKind.Sequential)]
         public struct RECT
         {
@@ -34,6 +46,7 @@ namespace Docked_AI
         // ShowWindow 参数
         private const int SW_HIDE = 0;
         private const int SW_SHOW = 5;
+        private const int SW_SHOWNOACTIVATE = 4;
 
         // GetSystemMetrics 参数
         private const int SM_CXSCREEN = 0;  // 屏幕宽度
@@ -41,6 +54,15 @@ namespace Docked_AI
 
         // SystemParametersInfo 参数
         private const int SPI_GETWORKAREA = 0x0030;  // 获取工作区域（排除任务栏）
+
+        // Window style constants
+        private const int GWL_EXSTYLE = -20;
+        private const int WS_EX_LAYERED = 0x80000;
+        private const int LWA_ALPHA = 0x2;
+
+        // SetWindowPos flags
+        private const uint SWP_NOACTIVATE = 0x0010;
+        private const uint SWP_SHOWWINDOW = 0x0040;
 
         private IntPtr hwnd;
         private double targetY;
@@ -66,12 +88,21 @@ namespace Docked_AI
             // Enable the custom title bar
             ExtendsContentIntoTitleBar = true;
 
+            // 预先初始化窗口参数，避免闪屏
+            InitializeWindowParameters();
+            
+            // 设置窗口初始状态为隐藏
+            this.AppWindow.IsShownInSwitchers = false;
+            
+            // 设置窗口初始位置到屏幕外，避免闪屏
+            this.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32((int)currentX, (int)currentY, windowWidth, windowHeight));
+            
             this.Activated += MainWindow_Activated;
         }
 
         private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
         {
-            // 只在首次激活时执行动画
+            // 只在首次激活时执行
             if (args.WindowActivationState != WindowActivationState.Deactivated && !animationStarted)
             {
                 animationStarted = true;
@@ -86,39 +117,42 @@ namespace Docked_AI
                     return;
                 }
 
-                // 隐藏任务栏图标
-                this.AppWindow.IsShownInSwitchers = false;
-
-                // 获取屏幕尺寸和工作区域
-                screenHeight = GetSystemMetrics(SM_CYSCREEN);
-                screenWidth = GetSystemMetrics(SM_CXSCREEN);
-                
-                // 获取工作区域（排除任务栏）
-                SystemParametersInfo(SPI_GETWORKAREA, 0, ref workArea, 0);
-
-                // 设置窗口尺寸
-                windowWidth = 500; // 固定宽度500像素
-                // 计算窗口高度：工作区域高度减去上下各10像素边距
-                windowHeight = workArea.Bottom - workArea.Top - (MARGIN * 2);
-
-                // 计算目标位置：右边缘10px，上边缘10px
-                targetX = workArea.Right - windowWidth - MARGIN; // 距离右边缘10px
-                targetY = workArea.Top + MARGIN; // 距离上边缘10px
-                
-                // 动画起始位置：从屏幕右侧外部滑入
-                currentX = screenWidth; // 从屏幕右边缘外开始
-                currentY = targetY; // Y位置保持不变
-
-                // 设置初始位置
-                SetWindowPos(hwnd, IntPtr.Zero, (int)currentX, (int)currentY, windowWidth, windowHeight, 0);
-
                 // 开始动画
                 StartSlideAnimation();
             }
         }
 
+        private void InitializeWindowParameters()
+        {
+            // 获取屏幕尺寸和工作区域
+            screenHeight = GetSystemMetrics(SM_CYSCREEN);
+            screenWidth = GetSystemMetrics(SM_CXSCREEN);
+            
+            // 获取工作区域（排除任务栏）
+            SystemParametersInfo(SPI_GETWORKAREA, 0, ref workArea, 0);
+
+            // 设置窗口尺寸
+            windowWidth = 500; // 固定宽度500像素
+            // 计算窗口高度：工作区域高度减去上下各10像素边距
+            windowHeight = workArea.Bottom - workArea.Top - (MARGIN * 2);
+
+            // 计算目标位置：右边缘10px，上边缘10px
+            targetX = workArea.Right - windowWidth - MARGIN; // 距离右边缘10px
+            targetY = workArea.Top + MARGIN; // 距离上边缘10px
+            
+            // 动画起始位置：从屏幕右侧外部滑入
+            currentX = screenWidth; // 从屏幕右边缘外开始
+            currentY = targetY; // Y位置保持不变
+            
+            System.Diagnostics.Debug.WriteLine($"窗口初始化: 屏幕宽度={screenWidth}, 起始X={currentX}, 目标X={targetX}");
+        }
+
         private void StartSlideAnimation()
         {
+            // 记录动画开始时间和起始位置
+            animationStartTime = DateTime.Now;
+            startX = currentX;
+            
             // 用 CompositionTarget.Rendering 高帧率更新窗口位置
             Microsoft.UI.Xaml.Media.CompositionTarget.Rendering += OnFrame;
         }
@@ -150,9 +184,6 @@ namespace Docked_AI
             // 隐藏任务栏图标
             this.AppWindow.IsShownInSwitchers = false;
             
-            // 显示窗口
-            ShowWindow(hwnd, SW_SHOW);
-            
             // 重新获取工作区域（防止任务栏位置变化）
             SystemParametersInfo(SPI_GETWORKAREA, 0, ref workArea, 0);
             
@@ -167,8 +198,12 @@ namespace Docked_AI
             currentX = screenWidth;
             currentY = targetY;
 
-            // 设置初始位置
-            SetWindowPos(hwnd, IntPtr.Zero, (int)currentX, (int)currentY, windowWidth, windowHeight, 0);
+            // 使用 AppWindow API 设置初始位置
+            this.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32((int)currentX, (int)currentY, windowWidth, windowHeight));
+            
+            // 记录动画开始时间和起始位置
+            animationStartTime = DateTime.Now;
+            startX = currentX;
             
             // 激活窗口并开始动画
             this.Activate();
@@ -216,47 +251,71 @@ namespace Docked_AI
             targetY = workArea.Top + MARGIN;
             currentY = targetY;
 
+            // 记录动画开始时间和起始位置
+            animationStartTime = DateTime.Now;
+            startX = currentX;
+
             // 开始隐藏动画
             Microsoft.UI.Xaml.Media.CompositionTarget.Rendering += OnFrame;
         }
 
+        private DateTime animationStartTime;
+        private TimeSpan showAnimationDuration = TimeSpan.FromMilliseconds(220); // 进入动画220ms
+        private TimeSpan hideAnimationDuration = TimeSpan.FromMilliseconds(180); // 退出动画180ms
+        private double startX;
+
         private void OnFrame(object? sender, object e)
         {
-            double distance = targetX - currentX;
-            double speed;
+            var elapsed = DateTime.Now - animationStartTime;
+            double progress;
+            double easedProgress;
             
             if (isVisible)
             {
-                // 显示动画：减速缓动（先快后慢）
-                speed = distance * 0.4;
+                // 显示动画：Strong EaseOut (220ms)
+                progress = Math.Min(elapsed.TotalMilliseconds / showAnimationDuration.TotalMilliseconds, 1.0);
+                
+                // Strong EaseOut 缓动函数: 1 - (1-t)^3
+                easedProgress = 1 - Math.Pow(1 - progress, 3);
+                
+                currentX = startX + (targetX - startX) * easedProgress;
             }
             else
             {
-                // 隐藏动画：加速缓动（先慢后快）
-                double totalDistance = screenWidth - (workArea.Right - windowWidth - MARGIN);
-                double remainingRatio = Math.Abs(distance) / totalDistance;
-                double accelerationFactor = 1.0 - remainingRatio;
-                speed = distance * (0.2 + accelerationFactor * 0.4);
+                // 隐藏动画：Short Duration + EaseOut (180ms)
+                progress = Math.Min(elapsed.TotalMilliseconds / hideAnimationDuration.TotalMilliseconds, 1.0);
+                
+                // EaseOut 缓动函数: 1 - (1-t)^2
+                easedProgress = 1 - Math.Pow(1 - progress, 2);
+                
+                currentX = startX + (targetX - startX) * easedProgress;
             }
-            
-            currentX += speed;
 
-            // 判断是否到位
-            if (Math.Abs(distance) < 1)
+            // 计算整数位置，避免亚像素抖动
+            int newX = (int)Math.Round(currentX);
+            
+            // 判断动画是否完成
+            if (progress >= 1.0)
             {
+                newX = (int)targetX;
                 currentX = targetX;
                 // 停止动画
                 Microsoft.UI.Xaml.Media.CompositionTarget.Rendering -= OnFrame;
                 
+                // 如果是显示动画完成，激活窗口
+                if (isVisible)
+                {
+                    // 动画完成，不需要额外操作
+                }
                 // 如果是隐藏动画完成，隐藏窗口
-                if (!isVisible)
+                else
                 {
                     ShowWindow(hwnd, SW_HIDE);
                 }
             }
 
-            // 更新窗口位置
-            SetWindowPos(hwnd, IntPtr.Zero, (int)currentX, (int)currentY, windowWidth, windowHeight, 0);
+            // 更新窗口位置 - 使用 AppWindow API
+            this.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(newX, (int)currentY, windowWidth, windowHeight));
         }
     }
 }
