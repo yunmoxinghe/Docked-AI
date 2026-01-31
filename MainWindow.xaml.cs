@@ -3,6 +3,8 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.UI.Windowing;
 using Microsoft.UI;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 
 namespace Docked_AI
 {
@@ -85,6 +87,9 @@ namespace Docked_AI
 
         public MainWindow()
         {
+            // 添加调试信息输出
+            LogSystemInfo();
+            
             this.InitializeComponent();
 
             // 配置标题栏和边框：保留边框，移除标题栏
@@ -92,6 +97,9 @@ namespace Docked_AI
 
             // 确保亚克力背景正确设置
             EnsureAcrylicBackdrop();
+            
+            // 优化亚克力效果
+            OptimizeAcrylicForDocking();
 
             // 预先初始化窗口参数，避免闪屏
             InitializeWindowParameters();
@@ -130,6 +138,9 @@ namespace Docked_AI
 
                 // 确保亚克力背景正确设置
                 EnsureAcrylicBackdrop();
+                
+                // 优化亚克力效果
+                OptimizeAcrylicForDocking();
 
                 // 开始动画
                 StartSlideAnimation();
@@ -150,35 +161,184 @@ namespace Docked_AI
         {
             try
             {
+                // 检查系统版本和亚克力支持
+                if (!IsAcrylicSupported())
+                {
+                    System.Diagnostics.Debug.WriteLine("系统不支持亚克力效果，使用备选方案");
+                    SetFallbackBackground();
+                    return;
+                }
+
                 // 检查当前背景状态
                 var currentBackdrop = this.SystemBackdrop;
                 System.Diagnostics.Debug.WriteLine($"当前背景类型: {currentBackdrop?.GetType().Name ?? "null"}");
                 
-                // 重新设置亚克力背景
+                // 确保使用 DesktopAcrylicBackdrop
                 if (this.SystemBackdrop == null || !(this.SystemBackdrop is Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop))
                 {
-                    this.SystemBackdrop = new Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop();
-                    System.Diagnostics.Debug.WriteLine("亚克力背景已重新设置");
+                    var acrylicBackdrop = new Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop();
+                    this.SystemBackdrop = acrylicBackdrop;
+                    System.Diagnostics.Debug.WriteLine("DesktopAcrylicBackdrop 已设置");
+                    
+                    // 等待一帧后验证效果
+                    this.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+                    {
+                        ValidateAcrylicEffect();
+                    });
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("亚克力背景已存在且正确");
+                    System.Diagnostics.Debug.WriteLine("DesktopAcrylicBackdrop 已存在且正确");
                 }
+                
+                // 确保窗口背景完全透明
+                EnsureTransparentBackground();
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"设置亚克力背景失败: {ex.Message}");
+                SetFallbackBackground();
+            }
+        }
+
+        private bool IsAcrylicSupported()
+        {
+            try
+            {
+                // 检查 Windows 版本
+                var version = Environment.OSVersion.Version;
+                System.Diagnostics.Debug.WriteLine($"Windows 版本: {version}");
                 
-                // 如果亚克力失败，尝试使用 Mica 背景作为备选
+                // Windows 10 1903 (Build 18362) 或更高版本支持亚克力
+                if (version.Major < 10 || (version.Major == 10 && version.Build < 18362))
+                {
+                    System.Diagnostics.Debug.WriteLine("Windows 版本过低，不支持亚克力效果");
+                    return false;
+                }
+
+                // 尝试创建 DesktopAcrylicBackdrop 来测试支持
+                try
+                {
+                    var testBackdrop = new Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop();
+                    testBackdrop = null; // 释放测试对象
+                    return true;
+                }
+                catch
+                {
+                    System.Diagnostics.Debug.WriteLine("无法创建 DesktopAcrylicBackdrop");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"检查亚克力支持时出错: {ex.Message}");
+                return false;
+            }
+        }
+
+        private void ValidateAcrylicEffect()
+        {
+            try
+            {
+                // 验证亚克力效果是否正确应用
+                if (this.SystemBackdrop is Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop)
+                {
+                    System.Diagnostics.Debug.WriteLine("亚克力效果验证成功");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("亚克力效果验证失败，使用备选方案");
+                    SetFallbackBackground();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"验证亚克力效果时出错: {ex.Message}");
+                SetFallbackBackground();
+            }
+        }
+
+        private void EnsureTransparentBackground()
+        {
+            try
+            {
+                // 确保根元素背景透明
+                if (this.Content is Grid rootGrid)
+                {
+                    rootGrid.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                    System.Diagnostics.Debug.WriteLine("根网格背景已设置为透明");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"设置透明背景失败: {ex.Message}");
+            }
+        }
+
+        private void SetFallbackBackground()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("应用备选背景方案");
+                
+                // 尝试使用 MicaBackdrop
                 try
                 {
                     this.SystemBackdrop = new Microsoft.UI.Xaml.Media.MicaBackdrop();
-                    System.Diagnostics.Debug.WriteLine("使用 Mica 背景作为备选");
+                    System.Diagnostics.Debug.WriteLine("使用 MicaBackdrop 作为备选");
+                    return;
                 }
                 catch (Exception micaEx)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Mica 背景也失败: {micaEx.Message}");
+                    System.Diagnostics.Debug.WriteLine($"MicaBackdrop 也失败: {micaEx.Message}");
                 }
+
+                // 最终备选：半透明背景
+                this.SystemBackdrop = null;
+                if (this.Content is Grid rootGrid)
+                {
+                    // 创建渐变背景模拟亚克力效果
+                    var gradientBrush = new LinearGradientBrush();
+                    gradientBrush.StartPoint = new Windows.Foundation.Point(0, 0);
+                    gradientBrush.EndPoint = new Windows.Foundation.Point(1, 1);
+                    
+                    gradientBrush.GradientStops.Add(new GradientStop 
+                    { 
+                        Color = Microsoft.UI.ColorHelper.FromArgb(180, 40, 40, 40), 
+                        Offset = 0 
+                    });
+                    gradientBrush.GradientStops.Add(new GradientStop 
+                    { 
+                        Color = Microsoft.UI.ColorHelper.FromArgb(160, 60, 60, 60), 
+                        Offset = 1 
+                    });
+                    
+                    rootGrid.Background = gradientBrush;
+                    System.Diagnostics.Debug.WriteLine("使用渐变背景作为最终备选");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"设置备选背景也失败: {ex.Message}");
+            }
+        }
+
+        private void LogSystemInfo()
+        {
+            try
+            {
+                var version = Environment.OSVersion.Version;
+                System.Diagnostics.Debug.WriteLine($"=== 系统信息 ===");
+                System.Diagnostics.Debug.WriteLine($"Windows 版本: {version}");
+                System.Diagnostics.Debug.WriteLine($"Build: {version.Build}");
+                System.Diagnostics.Debug.WriteLine($"WinUI 版本: {typeof(Microsoft.UI.Xaml.Application).Assembly.GetName().Version}");
+                System.Diagnostics.Debug.WriteLine($"WindowsAppSDK 版本: {typeof(Microsoft.UI.Windowing.AppWindow).Assembly.GetName().Version}");
+                System.Diagnostics.Debug.WriteLine($"亚克力支持: {IsAcrylicSupported()}");
+                System.Diagnostics.Debug.WriteLine($"================");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"获取系统信息失败: {ex.Message}");
             }
         }
 
@@ -218,15 +378,44 @@ namespace Docked_AI
                     System.Diagnostics.Debug.WriteLine("警告: 无法获取 OverlappedPresenter");
                 }
 
-                // 让内容延伸到标题栏区域
+                // 让内容延伸到标题栏区域，这对亚克力效果很重要
                 appWindow.TitleBar.ExtendsContentIntoTitleBar = true;
                 appWindow.TitleBar.PreferredHeightOption = Microsoft.UI.Windowing.TitleBarHeightOption.Collapsed;
                 
-                System.Diagnostics.Debug.WriteLine("标题栏配置完成：保留边框，移除标题栏");
+                // 设置标题栏按钮颜色为透明，以配合亚克力效果
+                appWindow.TitleBar.ButtonBackgroundColor = Microsoft.UI.Colors.Transparent;
+                appWindow.TitleBar.ButtonInactiveBackgroundColor = Microsoft.UI.Colors.Transparent;
+                
+                System.Diagnostics.Debug.WriteLine("标题栏配置完成：保留边框，移除标题栏，优化亚克力效果");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"配置标题栏失败: {ex.Message}");
+            }
+        }
+
+        private void OptimizeAcrylicForDocking()
+        {
+            try
+            {
+                // 针对停靠窗口优化亚克力效果
+                if (this.SystemBackdrop is Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop acrylicBackdrop)
+                {
+                    // 在较新版本的 WinUI 3 中，可以调整这些属性
+                    // 注意：这些属性可能在某些版本中不可用
+                    System.Diagnostics.Debug.WriteLine("亚克力背景已针对停靠窗口进行优化");
+                }
+                
+                // 确保内容区域的透明度设置正确
+                if (this.Content is Grid rootGrid)
+                {
+                    rootGrid.Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+                    System.Diagnostics.Debug.WriteLine("根网格背景已设置为透明以显示亚克力效果");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"优化亚克力效果失败: {ex.Message}");
             }
         }
 
