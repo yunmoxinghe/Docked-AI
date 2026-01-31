@@ -101,6 +101,9 @@ namespace Docked_AI
             this.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32((int)currentX, (int)currentY, windowWidth, windowHeight));
             
             this.Activated += MainWindow_Activated;
+            
+            // 添加失去焦点事件处理
+            this.Activated += MainWindow_ActivationChanged;
         }
 
         private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
@@ -125,6 +128,16 @@ namespace Docked_AI
 
                 // 开始动画
                 StartSlideAnimation();
+            }
+        }
+
+        private void MainWindow_ActivationChanged(object sender, WindowActivatedEventArgs args)
+        {
+            // 当窗口失去焦点时自动隐藏
+            if (args.WindowActivationState == WindowActivationState.Deactivated && isVisible)
+            {
+                System.Diagnostics.Debug.WriteLine("窗口失去焦点，自动隐藏");
+                HideWindow();
             }
         }
 

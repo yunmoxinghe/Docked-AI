@@ -30,8 +30,7 @@
                 FontSize="24" 
                 FontWeight="Bold" 
                 HorizontalAlignment="Center" 
-                VerticalAlignment="Center" 
-                Foreground="Black" />
+                VerticalAlignment="Center" />
         </Grid>
     </Grid>
 </Window>
