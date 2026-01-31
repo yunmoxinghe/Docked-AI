@@ -15,22 +15,13 @@
         <DesktopAcrylicBackdrop />
     </Window.SystemBackdrop>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-
-
-
-        <!-- App content -->
-        <Grid Grid.Row="1" Background="Transparent">
-            <TextBlock 
-                Text="Docked AI" 
-                FontSize="24" 
-                FontWeight="Bold" 
-                HorizontalAlignment="Center" 
-                VerticalAlignment="Center" />
-        </Grid>
+    <Grid Background="Transparent">
+        <!-- 主要内容区域 - 现在可以使用整个窗口区域 -->
+        <TextBlock 
+            Text="Docked AI" 
+            FontSize="24" 
+            FontWeight="Bold" 
+            HorizontalAlignment="Center" 
+            VerticalAlignment="Center" />
     </Grid>
 </Window>

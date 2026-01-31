@@ -1,6 +1,8 @@
 using Microsoft.UI.Xaml;
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.UI.Windowing;
+using Microsoft.UI;
 
 namespace Docked_AI
 {
@@ -85,8 +87,8 @@ namespace Docked_AI
         {
             this.InitializeComponent();
 
-            // Enable the custom title bar
-            ExtendsContentIntoTitleBar = true;
+            // 配置标题栏和边框：保留边框，移除标题栏
+            ConfigureTitleBarAndBorder();
 
             // 确保亚克力背景正确设置
             EnsureAcrylicBackdrop();
@@ -122,6 +124,9 @@ namespace Docked_AI
                     System.Diagnostics.Debug.WriteLine("警告: 无法获取有效的窗口句柄");
                     return;
                 }
+
+                // 确保标题栏配置正确
+                ConfigureTitleBarAndBorder();
 
                 // 确保亚克力背景正确设置
                 EnsureAcrylicBackdrop();
@@ -174,6 +179,54 @@ namespace Docked_AI
                 {
                     System.Diagnostics.Debug.WriteLine($"Mica 背景也失败: {micaEx.Message}");
                 }
+            }
+        }
+
+        private void ConfigureTitleBarAndBorder()
+        {
+            try
+            {
+                // 获取窗口句柄
+                IntPtr hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+                if (hWnd == IntPtr.Zero)
+                {
+                    System.Diagnostics.Debug.WriteLine("警告: 无法获取窗口句柄，将在窗口激活后重试");
+                    return;
+                }
+
+                // 获取 WindowId 和 AppWindow
+                Microsoft.UI.WindowId windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hWnd);
+                Microsoft.UI.Windowing.AppWindow appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+
+                // 获取 OverlappedPresenter
+                var presenter = appWindow.Presenter as Microsoft.UI.Windowing.OverlappedPresenter;
+                if (presenter != null)
+                {
+                    // 关键：保留边框，去掉标题栏
+                    presenter.SetBorderAndTitleBar(hasBorder: true, hasTitleBar: false);
+                    
+                    // 保留调整大小功能
+                    presenter.IsResizable = true;
+                    presenter.IsAlwaysOnTop = true;    // 窗口置顶
+                    presenter.IsMaximizable = false;   // 禁用最大化
+                    presenter.IsMinimizable = false;   // 禁用最小化
+                    
+                    System.Diagnostics.Debug.WriteLine("标题栏已移除，边框已保留");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("警告: 无法获取 OverlappedPresenter");
+                }
+
+                // 让内容延伸到标题栏区域
+                appWindow.TitleBar.ExtendsContentIntoTitleBar = true;
+                appWindow.TitleBar.PreferredHeightOption = Microsoft.UI.Windowing.TitleBarHeightOption.Collapsed;
+                
+                System.Diagnostics.Debug.WriteLine("标题栏配置完成：保留边框，移除标题栏");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"配置标题栏失败: {ex.Message}");
             }
         }
 
@@ -238,6 +291,9 @@ namespace Docked_AI
             
             // 隐藏任务栏图标
             this.AppWindow.IsShownInSwitchers = false;
+            
+            // 确保标题栏配置正确
+            ConfigureTitleBarAndBorder();
             
             // 确保亚克力背景正确设置
             EnsureAcrylicBackdrop();
