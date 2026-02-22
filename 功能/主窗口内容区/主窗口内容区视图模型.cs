@@ -11,5 +11,16 @@ namespace Docked_AI.Features.MainWindowContent
             get => _title;
             set => SetProperty(ref _title, value);
         }
+
+        public void SelectSection(int sectionIndex)
+        {
+            Title = sectionIndex switch
+            {
+                0 => "Main Content Area",
+                1 => "Workspace",
+                2 => "Settings",
+                _ => "Main Content Area"
+            };
+        }
     }
 }
