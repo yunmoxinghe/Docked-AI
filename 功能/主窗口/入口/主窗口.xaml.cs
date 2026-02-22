@@ -1,6 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
-using Docked_AI.Features.MainWindow;
-using Docked_AI.Features.MainWindow.Host;
+using Docked_AI.Features.MainWindow.State;
+using Docked_AI.Features.MainWindow.Visibility;
 
 namespace Docked_AI
 {

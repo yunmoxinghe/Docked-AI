@@ -1,13 +1,10 @@
-﻿using Docked_AI.Features.MainWindow;
-using Docked_AI.Features.MainWindow.Animation;
-using Docked_AI.Features.MainWindow.Backdrop;
-using Docked_AI.Features.MainWindow.Layout;
-using Docked_AI.Features.MainWindow.Native;
-using Docked_AI.Features.MainWindow.Presentation;
+﻿using Docked_AI.Features.MainWindow.State;
+using Docked_AI.Features.MainWindow.Appearance;
+using Docked_AI.Features.MainWindow.Placement;
 using Microsoft.UI.Xaml;
 using System;
 
-namespace Docked_AI.Features.MainWindow.Host
+namespace Docked_AI.Features.MainWindow.Visibility
 {
     internal sealed class WindowHostController
     {

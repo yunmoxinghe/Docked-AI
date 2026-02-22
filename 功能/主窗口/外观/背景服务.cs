@@ -4,7 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System;
 
-namespace Docked_AI.Features.MainWindow.Backdrop
+namespace Docked_AI.Features.MainWindow.Appearance
 {
     internal sealed class BackdropService
     {

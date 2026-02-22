@@ -3,7 +3,7 @@ using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using System;
 
-namespace Docked_AI.Features.MainWindow.Presentation
+namespace Docked_AI.Features.MainWindow.Appearance
 {
     internal sealed class TitleBarService
     {

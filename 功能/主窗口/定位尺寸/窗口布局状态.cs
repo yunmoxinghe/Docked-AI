@@ -1,6 +1,6 @@
-﻿using Docked_AI.Features.MainWindow.Native;
+﻿using Docked_AI.Features.MainWindow.Placement;
 
-namespace Docked_AI.Features.MainWindow.Layout
+namespace Docked_AI.Features.MainWindow.Placement
 {
     internal sealed class WindowLayoutState
     {

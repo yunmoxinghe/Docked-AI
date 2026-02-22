@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Docked_AI.Features.MainWindow.Native
+namespace Docked_AI.Features.MainWindow.Placement
 {
     internal static class Win32WindowApi
     {
