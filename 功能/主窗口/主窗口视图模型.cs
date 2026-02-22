@@ -1,6 +1,6 @@
-using Docked_AI.Core.Mvvm;
+using Docked_AI.Features.MainWindow;
 
-namespace Docked_AI.ViewModels
+namespace Docked_AI.Features.MainWindow
 {
     public sealed class MainWindowViewModel : ObservableObject
     {

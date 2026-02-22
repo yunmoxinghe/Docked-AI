@@ -1,9 +1,9 @@
-using Docked_AI.WindowFeatures.Layout;
-using Docked_AI.WindowFeatures.Native;
+﻿using Docked_AI.Features.MainWindow.Layout;
+using Docked_AI.Features.MainWindow.Native;
 using Microsoft.UI.Xaml;
 using System;
 
-namespace Docked_AI.WindowFeatures.Animation
+namespace Docked_AI.Features.MainWindow.Animation
 {
     internal sealed class SlideAnimationController
     {

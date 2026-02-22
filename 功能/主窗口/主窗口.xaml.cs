@@ -1,6 +1,6 @@
-using Microsoft.UI.Xaml;
-using Docked_AI.ViewModels;
-using Docked_AI.WindowFeatures.Host;
+﻿using Microsoft.UI.Xaml;
+using Docked_AI.Features.MainWindow;
+using Docked_AI.Features.MainWindow.Host;
 
 namespace Docked_AI
 {

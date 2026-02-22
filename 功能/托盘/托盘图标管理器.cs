@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.IO;
 using DevWinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-namespace Docked_AI.Services.Tray
+namespace Docked_AI.Features.Tray
 {
     public class TrayIconManager : IDisposable
     {
@@ -74,13 +74,13 @@ namespace Docked_AI.Services.Tray
 
                 if (_mainWindow == null || _mainWindow.Content == null)
                 {
-                    _mainWindow = new MainWindow();
+                    _mainWindow = new global::Docked_AI.MainWindow();
                     _mainWindow.Activate();
                     WindowHelper.SetForegroundWindow(_mainWindow);
                 }
                 else
                 {
-                    if (_mainWindow is MainWindow mainWindow)
+                    if (_mainWindow is global::Docked_AI.MainWindow mainWindow)
                     {
                         mainWindow.ToggleWindow();
                         if (mainWindow.IsWindowVisible)
@@ -94,7 +94,7 @@ namespace Docked_AI.Services.Tray
             {
                 System.Diagnostics.Debug.WriteLine($"Error showing main window: {ex.Message}");
                 _mainWindow = null;
-                _mainWindow = new MainWindow();
+                _mainWindow = new global::Docked_AI.MainWindow();
                 _mainWindow.Activate();
                 WindowHelper.SetForegroundWindow(_mainWindow);
             }

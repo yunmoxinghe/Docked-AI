@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace Docked_AI.Core.Mvvm
+namespace Docked_AI.Features.MainWindow
 {
     public abstract class ObservableObject : INotifyPropertyChanged
     {

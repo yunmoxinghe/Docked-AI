@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 
-namespace Docked_AI.WindowFeatures.Native
+namespace Docked_AI.Features.MainWindow.Native
 {
     internal static class Win32WindowApi
     {

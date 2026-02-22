@@ -1,10 +1,10 @@
-using Microsoft.UI;
+﻿using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using System;
 
-namespace Docked_AI.WindowFeatures.Backdrop
+namespace Docked_AI.Features.MainWindow.Backdrop
 {
     internal sealed class BackdropService
     {

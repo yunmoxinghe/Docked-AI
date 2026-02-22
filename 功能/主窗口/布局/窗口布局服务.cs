@@ -1,6 +1,6 @@
-using Docked_AI.WindowFeatures.Native;
+﻿using Docked_AI.Features.MainWindow.Native;
 
-namespace Docked_AI.WindowFeatures.Layout
+namespace Docked_AI.Features.MainWindow.Layout
 {
     internal sealed class WindowLayoutService
     {
