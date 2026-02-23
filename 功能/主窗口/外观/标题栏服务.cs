@@ -25,7 +25,7 @@ namespace Docked_AI.Features.MainWindow.Appearance
                     presenter.SetBorderAndTitleBar(hasBorder: true, hasTitleBar: false);
                     presenter.IsResizable = true;
                     presenter.IsAlwaysOnTop = true;
-                    presenter.IsMaximizable = false;
+                    presenter.IsMaximizable = true;
                     presenter.IsMinimizable = false;
                 }
 

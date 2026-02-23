@@ -2,6 +2,7 @@
 using Docked_AI.Features.MainWindow.Appearance;
 using Docked_AI.Features.MainWindow.Placement;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Windowing;
 using System;
 
 namespace Docked_AI.Features.MainWindow.Visibility
@@ -62,6 +63,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
             _window.Activated += OnWindowActivated;
             _window.Activated += OnActivationChanged;
+            _window.AppWindow.Changed += OnAppWindowChanged;
         }
 
         private void OnWindowActivated(object sender, WindowActivatedEventArgs args)
@@ -136,6 +138,20 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _state.TargetY = _state.WorkArea.Top + _state.Margin;
             _state.CurrentY = _state.TargetY;
             _animationController.StartHide();
+        }
+
+        private void OnAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
+        {
+            if (!args.DidSizeChange)
+            {
+                return;
+            }
+
+            int availableWidth = _state.WorkArea.Right - _state.WorkArea.Left - (_state.Margin * 2);
+            if (sender.Size.Width > 0)
+            {
+                _state.WindowWidth = Math.Max(_state.MinWindowWidth, Math.Min(availableWidth, sender.Size.Width));
+            }
         }
     }
 }

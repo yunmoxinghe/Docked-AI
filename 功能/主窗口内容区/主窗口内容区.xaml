@@ -16,23 +16,12 @@
 
         <Grid Grid.Column="0" Margin="4,6,2,4">
             <Border
-                x:Name="PageCard"
                 CornerRadius="4"
                 Padding="24,20"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1">
-                <StackPanel Spacing="10">
-                    <TextBlock
-                        Text="{Binding Title}"
-                        FontSize="38"
-                        FontWeight="SemiBold" />
-                    <TextBlock
-                        Text="{Binding PageBody}"
-                        TextWrapping="WrapWholeWords"
-                        Opacity="0.88"
-                        FontSize="16" />
-                </StackPanel>
+                <ContentControl Content="{Binding CurrentPage}" />
             </Border>
         </Grid>
 
@@ -61,14 +50,6 @@
                     IsSelected="True">
                     <controls:NavigationViewItem.Icon>
                         <SymbolIcon Symbol="Home" />
-                    </controls:NavigationViewItem.Icon>
-                </controls:NavigationViewItem>
-
-                <controls:NavigationViewItem
-                    Content="&#x5DE5;&#x4F5C;&#x533A;"
-                    Tag="1">
-                    <controls:NavigationViewItem.Icon>
-                        <SymbolIcon Symbol="Library" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
             </controls:NavigationView.MenuItems>

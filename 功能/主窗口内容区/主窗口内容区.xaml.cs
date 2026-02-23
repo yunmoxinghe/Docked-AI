@@ -1,5 +1,4 @@
-﻿using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
+﻿using Microsoft.UI.Xaml.Controls;
 
 namespace Docked_AI.Features.MainWindowContent
 {
@@ -18,7 +17,7 @@ namespace Docked_AI.Features.MainWindowContent
         {
             if (args.IsSettingsSelected)
             {
-                ViewModel.SelectSection(2);
+                ViewModel.SelectSection(1);
                 return;
             }
 

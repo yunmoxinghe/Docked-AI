@@ -7,8 +7,9 @@ namespace Docked_AI.Features.MainWindow.Placement
         public int ScreenWidth { get; set; }
         public int ScreenHeight { get; set; }
         public Win32WindowApi.RECT WorkArea;
-        public int WindowWidth { get; set; } = 500;
+        public int WindowWidth { get; set; }
         public int WindowHeight { get; set; }
+        public int MinWindowWidth { get; set; } = 380;
         public int Margin { get; set; } = 10;
         public int TargetX { get; set; }
         public double TargetY { get; set; }

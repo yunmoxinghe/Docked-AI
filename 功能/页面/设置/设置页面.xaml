@@ -1,0 +1,66 @@
+﻿<UserControl
+    x:Class="Docked_AI.Features.Pages.Settings.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="16">
+            <TextBlock Text="设置" FontSize="32" FontWeight="SemiBold" />
+            <TextBlock Text="管理应用外观、行为和隐私选项。" Opacity="0.9" TextWrapping="WrapWholeWords" />
+
+            <controls:SettingsCard
+                Header="常规"
+                Description="启动和窗口行为">
+                <StackPanel Spacing="12">
+                    <controls:SettingsCard
+                        Header="开机启动 Docked AI"
+                        Description="系统登录后自动启动应用">
+                        <ToggleSwitch OffContent="关" OnContent="开" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard
+                        Header="固定贴边"
+                        Description="窗口保持贴边并减少遮挡">
+                        <ToggleSwitch IsOn="True" OffContent="关" OnContent="开" />
+                    </controls:SettingsCard>
+                </StackPanel>
+            </controls:SettingsCard>
+
+            <controls:SettingsCard
+                Header="外观"
+                Description="主题和透明效果">
+                <StackPanel Spacing="12">
+                    <controls:SettingsCard
+                        Header="应用主题"
+                        Description="选择浅色、深色或跟随系统">
+                        <ComboBox SelectedIndex="0">
+                            <x:String>跟随系统</x:String>
+                            <x:String>浅色</x:String>
+                            <x:String>深色</x:String>
+                        </ComboBox>
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard
+                        Header="启用亚克力背景"
+                        Description="在支持设备上使用半透明背景">
+                        <ToggleSwitch IsOn="True" OffContent="关" OnContent="开" />
+                    </controls:SettingsCard>
+                </StackPanel>
+            </controls:SettingsCard>
+
+            <controls:SettingsCard
+                Header="关于"
+                Description="版本和支持信息">
+                <StackPanel Spacing="12">
+                    <controls:SettingsCard Header="当前版本" Description="1.0.0">
+                        <Button Content="检查更新" />
+                    </controls:SettingsCard>
+                </StackPanel>
+            </controls:SettingsCard>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
