@@ -7,23 +7,40 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Background="Transparent" Padding="16,0,0,0">
+    <Grid Background="Transparent" Padding="0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="2" />
             <ColumnDefinition Width="48" />
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Column="0">
-            <TextBlock
-                Text="{Binding Title}"
-                FontSize="80"
-                FontWeight="SemiBold" />
+        <Grid Grid.Column="0" Margin="4,6,2,4">
+            <Border
+                x:Name="PageCard"
+                CornerRadius="4"
+                Padding="24,20"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1">
+                <StackPanel Spacing="10">
+                    <TextBlock
+                        Text="{Binding Title}"
+                        FontSize="38"
+                        FontWeight="SemiBold" />
+                    <TextBlock
+                        Text="{Binding PageBody}"
+                        TextWrapping="WrapWholeWords"
+                        Opacity="0.88"
+                        FontSize="16" />
+                </StackPanel>
+            </Border>
         </Grid>
 
         <controls:NavigationView
             x:Name="RightNavigationView"
-            Grid.Column="1"
+            Grid.Column="2"
             Width="48"
+            Margin="0"
             HorizontalAlignment="Right"
             VerticalAlignment="Stretch"
             AlwaysShowHeader="False"
