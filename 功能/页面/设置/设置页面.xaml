@@ -5,8 +5,12 @@
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
-    <Grid x:Name="RootGrid" Padding="0">
+    mc:Ignorable="d"
+    UseLayoutRounding="True">
+    <Grid
+        x:Name="RootGrid"
+        Padding="0"
+        UseLayoutRounding="True">
         <ScrollViewer
             x:Name="SettingsScrollViewer"
             HorizontalScrollBarVisibility="Disabled"
@@ -16,6 +20,7 @@
             <StackPanel
                 x:Name="CardsPanel"
                 Margin="16,0"
+                UseLayoutRounding="True"
                 Spacing="12">
                 <controls:SettingsCard
                     HorizontalAlignment="Stretch"

@@ -10,6 +10,8 @@ namespace Docked_AI.Features.Pages.Settings
         private const double MaxResponsiveWidth = 760;
         private const double MinHorizontalMargin = 16;
         private const double MaxHorizontalMargin = 36;
+        private double _lastAppliedMargin = -1;
+        private double _lastMeasuredWidth = -1;
 
         public SettingsPage()
         {
@@ -25,6 +27,10 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
+            if (Math.Abs(e.NewSize.Width - _lastMeasuredWidth) < 1)
+            {
+                return;
+            }
             UpdateVisualStateAndDiagnostic();
         }
 
@@ -44,7 +50,12 @@ namespace Docked_AI.Features.Pages.Settings
             normalized = Math.Clamp(normalized, 0, 1);
             double horizontalMargin = Math.Round(MinHorizontalMargin + ((MaxHorizontalMargin - MinHorizontalMargin) * normalized));
 
-            CardsPanel.Margin = new Thickness(horizontalMargin, 0, horizontalMargin, 0);
+            if (Math.Abs(horizontalMargin - _lastAppliedMargin) > 0.01)
+            {
+                CardsPanel.Margin = new Thickness(horizontalMargin, 0, horizontalMargin, 0);
+                _lastAppliedMargin = horizontalMargin;
+            }
+            _lastMeasuredWidth = width;
 
             string mode = normalized >= 1 ? "Wide" : (normalized <= 0 ? "Narrow" : "Fluid");
             WidthValueText.Text = $"{width:F0}px | {mode} | margin {CardsPanel.Margin.Left:F0}";

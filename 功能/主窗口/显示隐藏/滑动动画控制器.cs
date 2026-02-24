@@ -8,6 +8,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
     {
         private readonly Window _window;
         private readonly WindowLayoutState _state;
+        private readonly IntPtr _hwnd;
         private DateTime _animationStartTime;
         private double _startX;
         private bool _isVisible;
@@ -19,6 +20,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
         {
             _window = window;
             _state = state;
+            _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
         }
 
         public void StartShow()
@@ -69,7 +71,21 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 }
             }
 
-            _window.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(newX, (int)_state.CurrentY, _state.WindowWidth, _state.WindowHeight));
+            if (_hwnd != IntPtr.Zero)
+            {
+                _ = Win32WindowApi.SetWindowPos(
+                    _hwnd,
+                    IntPtr.Zero,
+                    newX,
+                    (int)_state.CurrentY,
+                    0,
+                    0,
+                    Win32WindowApi.SWP_NOSIZE | Win32WindowApi.SWP_NOZORDER | Win32WindowApi.SWP_NOACTIVATE | Win32WindowApi.SWP_NOOWNERZORDER);
+            }
+            else
+            {
+                _window.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(newX, (int)_state.CurrentY, _state.WindowWidth, _state.WindowHeight));
+            }
         }
     }
 }

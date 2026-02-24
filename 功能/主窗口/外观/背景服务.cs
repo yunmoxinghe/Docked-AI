@@ -8,6 +8,8 @@ namespace Docked_AI.Features.MainWindow.Appearance
 {
     internal sealed class BackdropService
     {
+        private static readonly SolidColorBrush StableBackdropHostBrush = new(ColorHelper.FromArgb(1, 0, 0, 0));
+
         public void EnsureAcrylicBackdrop(Window window)
         {
             try
@@ -83,7 +85,7 @@ namespace Docked_AI.Features.MainWindow.Appearance
         {
             if (window.Content is Grid rootGrid)
             {
-                rootGrid.Background = new SolidColorBrush(Colors.Transparent);
+                rootGrid.Background = StableBackdropHostBrush;
             }
         }
 
