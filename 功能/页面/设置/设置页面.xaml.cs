@@ -3,29 +3,41 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace Docked_AI.Features.Pages.Settings
 {
-    public sealed partial class SettingsPage : UserControl
+    public sealed partial class SettingsPage : Page
     {
+        private const double WideThreshold = 500;
+
         public SettingsPage()
         {
             InitializeComponent();
-            Loaded += OnLayoutChanged;
-            SizeChanged += OnLayoutChanged;
+            Loaded += OnLoaded;
+            SizeChanged += OnSizeChanged;
         }
 
-        private void OnLayoutChanged(object sender, RoutedEventArgs e)
+        private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            ApplyResponsivePadding();
+            UpdateVisualStateAndDiagnostic();
         }
 
-        private void OnLayoutChanged(object sender, SizeChangedEventArgs e)
+        private void OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
-            ApplyResponsivePadding();
+            UpdateVisualStateAndDiagnostic();
         }
 
-        private void ApplyResponsivePadding()
+        private void UpdateVisualStateAndDiagnostic()
         {
-            double horizontal = ActualWidth >= 500 ? 36 : 16;
-            RootGrid.Padding = new Thickness(horizontal, 0, horizontal, 0);
+            double width = ActualWidth;
+            if (width <= 0 && RootGrid != null)
+            {
+                width = RootGrid.ActualWidth;
+            }
+            bool isWide = width >= WideThreshold;
+            string stateName = isWide ? "WideState" : "NarrowState";
+
+            // Drive visual state from UserControl width (not Window width).
+            _ = VisualStateManager.GoToState(this, stateName, false);
+
+            WidthValueText.Text = $"{width:F0}px | threshold {WideThreshold:F0}px | {stateName} | margin {CardsPanel.Margin.Left:F0}";
         }
     }
 }

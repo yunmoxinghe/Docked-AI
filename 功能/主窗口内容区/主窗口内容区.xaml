@@ -7,6 +7,35 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <VisualStateManager.VisualStateGroups>
+        <VisualStateGroup x:Name="WidthStates">
+            <VisualState x:Name="NarrowState">
+                <VisualState.StateTriggers>
+                    <AdaptiveTrigger MinWindowWidth="0" />
+                </VisualState.StateTriggers>
+                <VisualState.Setters>
+                    <Setter Target="ContentGrid.Margin" Value="4,6,4,4" />
+                </VisualState.Setters>
+            </VisualState>
+            <VisualState x:Name="WideState">
+                <VisualState.StateTriggers>
+                    <AdaptiveTrigger MinWindowWidth="700" />
+                </VisualState.StateTriggers>
+                <VisualState.Setters>
+                    <Setter Target="ContentGrid.Margin" Value="16,6,16,4" />
+                </VisualState.Setters>
+            </VisualState>
+            <VisualState x:Name="LargeState">
+                <VisualState.StateTriggers>
+                    <AdaptiveTrigger MinWindowWidth="1200" />
+                </VisualState.StateTriggers>
+                <VisualState.Setters>
+                    <Setter Target="ContentGrid.Margin" Value="24,6,24,4" />
+                </VisualState.Setters>
+            </VisualState>
+        </VisualStateGroup>
+    </VisualStateManager.VisualStateGroups>
+
     <Grid Background="Transparent" Padding="0">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -14,19 +43,17 @@
             <ColumnDefinition Width="48" />
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Column="0" Margin="4,6,0,4">
+        <Grid x:Name="ContentGrid" Grid.Column="0" Margin="4,6,0,4">
             <Border
                 CornerRadius="4"
                 Padding="0"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1">
-                <ContentControl
-                    Content="{Binding CurrentPage}"
+                <controls:Frame
+                    x:Name="ContentFrame"
                     HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch"
-                    HorizontalContentAlignment="Stretch"
-                    VerticalContentAlignment="Stretch" />
+                    VerticalAlignment="Stretch" />
             </Border>
         </Grid>
 
@@ -61,3 +88,4 @@
         </controls:NavigationView>
     </Grid>
 </UserControl>
+

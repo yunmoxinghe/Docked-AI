@@ -1,30 +1,39 @@
-﻿using Microsoft.UI.Xaml.Controls;
+﻿using Docked_AI.Features.Pages.Home;
+using Docked_AI.Features.Pages.Settings;
+using Microsoft.UI.Xaml.Controls;
 
 namespace Docked_AI.Features.MainWindowContent
 {
     public sealed partial class MainWindowContent : UserControl
     {
-        public MainWindowContentViewModel ViewModel { get; }
-
         public MainWindowContent()
         {
             InitializeComponent();
-            ViewModel = new MainWindowContentViewModel();
-            DataContext = ViewModel;
+            // Navigate to home page on initialization
+            ContentFrame.Navigate(typeof(HomePage));
         }
 
         private void RightNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             if (args.IsSettingsSelected)
             {
-                ViewModel.SelectSection(1);
+                ContentFrame.Navigate(typeof(SettingsPage));
                 return;
             }
 
             if (args.SelectedItemContainer?.Tag is string tagText && int.TryParse(tagText, out int sectionIndex))
             {
-                ViewModel.SelectSection(sectionIndex);
+                switch (sectionIndex)
+                {
+                    case 0:
+                        ContentFrame.Navigate(typeof(HomePage));
+                        break;
+                    default:
+                        ContentFrame.Navigate(typeof(HomePage));
+                        break;
+                }
             }
         }
     }
 }
+
