@@ -1,21 +1,33 @@
 using Docked_AI.Features.Pages.WebApp.Shared;
-using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Hosting;
+using Microsoft.Web.WebView2.Core;
 using System;
-using System.Numerics;
 
 namespace Docked_AI.Features.Pages.WebApp.Browser
 {
     public sealed partial class WebBrowserPage : Page
     {
-        private const float WebViewCornerRadius = 4f;
-        private CompositionRoundedRectangleGeometry? _clipGeometry;
+        private const string CornerClipScript = @"
+(() => {
+  const id = '__docked_ai_corner_style__';
+  if (document.getElementById(id)) return;
+  const style = document.createElement('style');
+  style.id = id;
+  style.textContent = `
+    html, body {
+      border-radius: 8px !important;
+      overflow: hidden !important;
+      background-clip: padding-box !important;
+    }
+  `;
+  document.head.appendChild(style);
+})();";
 
         public WebBrowserPage()
         {
             InitializeComponent();
-            WebView.SizeChanged += WebView_SizeChanged;
+            WebView.CoreWebView2Initialized += WebView_CoreWebView2Initialized;
+            WebView.NavigationCompleted += WebView_NavigationCompleted;
         }
 
         protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
@@ -35,24 +47,24 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             WebView.Source = uri;
         }
 
-        private void WebView_SizeChanged(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
+        private void WebView_CoreWebView2Initialized(Microsoft.UI.Xaml.Controls.WebView2 sender, CoreWebView2InitializedEventArgs args)
         {
-            if (e.NewSize.Width <= 0 || e.NewSize.Height <= 0)
+            if (args.Exception is not null || sender.CoreWebView2 is null)
             {
                 return;
             }
 
-            var visual = ElementCompositionPreview.GetElementVisual(WebView);
-            if (_clipGeometry == null)
+            _ = sender.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(CornerClipScript);
+        }
+
+        private void WebView_NavigationCompleted(Microsoft.UI.Xaml.Controls.WebView2 sender, CoreWebView2NavigationCompletedEventArgs args)
+        {
+            if (!args.IsSuccess || sender.CoreWebView2 is null)
             {
-                var compositor = visual.Compositor;
-                _clipGeometry = compositor.CreateRoundedRectangleGeometry();
-                _clipGeometry.CornerRadius = new Vector2(WebViewCornerRadius, WebViewCornerRadius);
-                _clipGeometry.Offset = Vector2.Zero;
-                visual.Clip = compositor.CreateGeometricClip(_clipGeometry);
+                return;
             }
 
-            _clipGeometry.Size = new Vector2((float)e.NewSize.Width, (float)e.NewSize.Height);
+            _ = sender.CoreWebView2.ExecuteScriptAsync(CornerClipScript);
         }
     }
 }
