@@ -13,25 +13,44 @@
             MaxWidth="560"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Center"
-            Spacing="16">
-            <Grid
-                x:Name="SiteIconHost"
-                Width="64"
-                Height="64"
-                HorizontalAlignment="Center">
-                <Image
-                    x:Name="SiteIconImage"
+            Spacing="12">
+            <Button
+                x:Name="ChooseIconButton"
+                Width="72"
+                Height="72"
+                HorizontalAlignment="Center"
+                Padding="0"
+                Background="Transparent"
+                BorderBrush="Transparent"
+                BorderThickness="0"
+                Click="ChooseIconButton_Click">
+                <Grid
                     Width="64"
                     Height="64"
-                    Stretch="UniformToFill"
-                    Visibility="Collapsed" />
-                <FontIcon
-                    x:Name="SiteIconFallback"
                     HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Glyph="&#xE774;"
-                    FontSize="56" />
-            </Grid>
+                    VerticalAlignment="Center">
+                    <Image
+                        x:Name="SiteIconImage"
+                        Width="64"
+                        Height="64"
+                        Stretch="UniformToFill"
+                        Visibility="Collapsed" />
+                    <FontIcon
+                        x:Name="SiteIconFallback"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Glyph="&#xE774;"
+                        FontSize="56" />
+                </Grid>
+            </Button>
+
+            <Button
+                x:Name="RestoreAutoIconButton"
+                HorizontalAlignment="Center"
+                Padding="10,4"
+                FontSize="12"
+                Content="恢复自动图标"
+                Click="RestoreAutoIconButton_Click" />
 
             <TextBox
                 x:Name="AppNameTextBox"
@@ -50,8 +69,10 @@
                 Opacity="0.7" />
 
             <Button
+                x:Name="ConfirmButton"
                 HorizontalAlignment="Stretch"
-                Content="确定" />
+                Content="确定"
+                Click="ConfirmButton_Click" />
         </StackPanel>
     </Grid>
 </Page>

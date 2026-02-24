@@ -1,3 +1,4 @@
+using Docked_AI.Features.Pages.WebApp.Shared;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -10,11 +11,14 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
+using Windows.Storage;
+using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
 
 namespace Docked_AI.Features.Pages.WebApp
@@ -26,6 +30,8 @@ namespace Docked_AI.Features.Pages.WebApp
 
         private CancellationTokenSource? _urlLookupCts;
         private CompositionRoundedRectangleGeometry? _iconClipGeometry;
+        private bool _hasCustomIcon;
+        private byte[]? _currentIconBytes;
 
         public WebAppPage()
         {
@@ -34,19 +40,37 @@ namespace Docked_AI.Features.Pages.WebApp
 
         private async void WebsiteUrlTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
+            await RefreshWebsiteMetadataAsync(withDelay: true);
+        }
+
+        private async void RestoreAutoIconButton_Click(object sender, RoutedEventArgs e)
+        {
+            _hasCustomIcon = false;
+            LookupStatusText.Text = "已恢复自动图标";
+            await RefreshWebsiteMetadataAsync(withDelay: false);
+        }
+
+        private async Task RefreshWebsiteMetadataAsync(bool withDelay)
+        {
             _urlLookupCts?.Cancel();
 
             string rawInput = WebsiteUrlTextBox.Text?.Trim() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(rawInput))
             {
-                ShowFallbackIcon();
+                if (!_hasCustomIcon)
+                {
+                    ShowFallbackIcon();
+                }
                 LookupStatusText.Text = string.Empty;
                 return;
             }
 
-            if (!TryNormalizeWebsiteUrl(rawInput, out Uri? websiteUri))
+            if (!TryNormalizeWebsiteUrl(rawInput, out Uri websiteUri))
             {
-                ShowFallbackIcon();
+                if (!_hasCustomIcon)
+                {
+                    ShowFallbackIcon();
+                }
                 LookupStatusText.Text = "网址格式无效";
                 return;
             }
@@ -62,7 +86,10 @@ namespace Docked_AI.Features.Pages.WebApp
             try
             {
                 LookupStatusText.Text = "正在获取网站信息...";
-                await Task.Delay(450, cts.Token);
+                if (withDelay)
+                {
+                    await Task.Delay(450, cts.Token);
+                }
 
                 WebsiteMetadata metadata = await FetchWebsiteMetadataAsync(websiteUri, cts.Token);
 
@@ -71,14 +98,20 @@ namespace Docked_AI.Features.Pages.WebApp
                     AppNameTextBox.Text = metadata.Title;
                 }
 
-                if (metadata.IconBytes is not null && metadata.IconBytes.Length > 0)
+                if (metadata.IconBytes is { Length: > 0 })
                 {
-                    await ShowWebsiteIconAsync(metadata.IconBytes);
-                    LookupStatusText.Text = "已获取名称和图标";
+                    if (!_hasCustomIcon)
+                    {
+                        await ShowWebsiteIconAsync(metadata.IconBytes);
+                    }
+                    LookupStatusText.Text = _hasCustomIcon ? "已获取名称（使用手动图标）" : "已获取名称和图标";
                 }
                 else
                 {
-                    ShowFallbackIcon();
+                    if (!_hasCustomIcon)
+                    {
+                        ShowFallbackIcon();
+                    }
                     LookupStatusText.Text = string.IsNullOrWhiteSpace(metadata.Error)
                         ? "已获取名称，未找到图标"
                         : $"已部分获取：{metadata.Error}";
@@ -89,9 +122,82 @@ namespace Docked_AI.Features.Pages.WebApp
             }
             catch (Exception ex)
             {
-                ShowFallbackIcon();
+                if (!_hasCustomIcon)
+                {
+                    ShowFallbackIcon();
+                }
                 LookupStatusText.Text = "获取失败：" + ex.Message;
             }
+        }
+
+        private async void ChooseIconButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var picker = new FileOpenPicker();
+                picker.FileTypeFilter.Add(".png");
+                picker.FileTypeFilter.Add(".jpg");
+                picker.FileTypeFilter.Add(".jpeg");
+                picker.FileTypeFilter.Add(".webp");
+                picker.FileTypeFilter.Add(".bmp");
+                picker.FileTypeFilter.Add(".ico");
+
+                IntPtr hwnd = GetForegroundWindow();
+                if (hwnd == IntPtr.Zero)
+                {
+                    LookupStatusText.Text = "无法打开文件选择器";
+                    return;
+                }
+
+                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+                StorageFile? file = await picker.PickSingleFileAsync();
+                if (file is null)
+                {
+                    return;
+                }
+
+                IBuffer buffer = await FileIO.ReadBufferAsync(file);
+                byte[] bytes = buffer.ToArray();
+                if (bytes.Length == 0)
+                {
+                    LookupStatusText.Text = "图标文件为空";
+                    return;
+                }
+
+                _hasCustomIcon = true;
+                await ShowWebsiteIconAsync(bytes);
+                LookupStatusText.Text = "已替换图标";
+            }
+            catch (Exception ex)
+            {
+                LookupStatusText.Text = "替换图标失败：" + ex.Message;
+            }
+        }
+
+        private void ConfirmButton_Click(object sender, RoutedEventArgs e)
+        {
+            string name = AppNameTextBox.Text?.Trim() ?? string.Empty;
+            string rawUrl = WebsiteUrlTextBox.Text?.Trim() ?? string.Empty;
+
+            if (!TryNormalizeWebsiteUrl(rawUrl, out Uri websiteUri))
+            {
+                LookupStatusText.Text = "网址格式无效";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                name = websiteUri.Host;
+            }
+
+            var shortcut = new WebAppShortcut(
+                Guid.NewGuid().ToString("N"),
+                name,
+                websiteUri.AbsoluteUri,
+                _currentIconBytes);
+
+            WebAppEventBus.PublishShortcutCreated(shortcut);
+            LookupStatusText.Text = "已创建网页入口";
         }
 
         private static HttpClient CreateHttpClient()
@@ -114,9 +220,9 @@ namespace Docked_AI.Features.Pages.WebApp
             return client;
         }
 
-        private static bool TryNormalizeWebsiteUrl(string rawInput, out Uri? uri)
+        private static bool TryNormalizeWebsiteUrl(string rawInput, out Uri uri)
         {
-            uri = null;
+            uri = null!;
             string candidate = rawInput;
             if (!candidate.Contains("://", StringComparison.Ordinal))
             {
@@ -186,13 +292,6 @@ namespace Docked_AI.Features.Pages.WebApp
                 candidates.Add(faviconUri);
             }
 
-            Uri googleFavicon = new Uri(
-                "https://www.google.com/s2/favicons?sz=128&domain_url=" + Uri.EscapeDataString(websiteUri.GetLeftPart(UriPartial.Authority)));
-            if (!candidates.Contains(googleFavicon))
-            {
-                candidates.Add(googleFavicon);
-            }
-
             foreach (Uri candidate in candidates)
             {
                 try
@@ -204,14 +303,25 @@ namespace Docked_AI.Features.Pages.WebApp
                     }
 
                     string? contentType = response.Content.Headers.ContentType?.MediaType;
-                    if (!string.IsNullOrWhiteSpace(contentType) &&
-                        !contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+                    if (!string.IsNullOrWhiteSpace(contentType))
                     {
-                        continue;
+                        if (!contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+                        if (contentType.Contains("svg", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
                     }
 
                     byte[] bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
                     if (bytes.Length == 0 || bytes.Length > 4 * 1024 * 1024)
+                    {
+                        continue;
+                    }
+
+                    if (!await CanDecodeBitmapAsync(bytes))
                     {
                         continue;
                     }
@@ -224,6 +334,22 @@ namespace Docked_AI.Features.Pages.WebApp
             }
 
             return null;
+        }
+
+        private static async Task<bool> CanDecodeBitmapAsync(byte[] bytes)
+        {
+            try
+            {
+                using var stream = new InMemoryRandomAccessStream();
+                await stream.WriteAsync(bytes.AsBuffer());
+                stream.Seek(0);
+                _ = await BitmapDecoder.CreateAsync(stream);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private static List<Uri> ParseIconCandidates(Uri websiteUri, string html)
@@ -297,6 +423,7 @@ namespace Docked_AI.Features.Pages.WebApp
 
         private async Task ShowWebsiteIconAsync(byte[] iconBytes)
         {
+            _currentIconBytes = iconBytes.ToArray();
             bool shouldRound = await ShouldRoundIconCornersAsync(iconBytes);
 
             var bitmap = new BitmapImage();
@@ -308,7 +435,6 @@ namespace Docked_AI.Features.Pages.WebApp
             SiteIconImage.Source = bitmap;
             SiteIconImage.Visibility = Visibility.Visible;
             SiteIconFallback.Visibility = Visibility.Collapsed;
-
             ApplyIconClip(shouldRound);
         }
 
@@ -331,7 +457,7 @@ namespace Docked_AI.Features.Pages.WebApp
                 byte[] pixels = pixelData.DetachPixelData();
                 for (int i = 3; i < pixels.Length; i += 4)
                 {
-                    if (pixels[i] < 250)
+                    if (pixels[i] < 255)
                     {
                         return false;
                     }
@@ -371,11 +497,15 @@ namespace Docked_AI.Features.Pages.WebApp
 
         private void ShowFallbackIcon()
         {
+            _currentIconBytes = null;
             SiteIconImage.Source = null;
             SiteIconImage.Visibility = Visibility.Collapsed;
             SiteIconFallback.Visibility = Visibility.Visible;
             ApplyIconClip(false);
         }
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetForegroundWindow();
 
         private sealed record WebsiteMetadata(string Title, byte[]? IconBytes, string? Error);
     }
