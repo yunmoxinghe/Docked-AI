@@ -53,7 +53,8 @@
                 <controls:Frame
                     x:Name="ContentFrame"
                     HorizontalAlignment="Stretch"
-                    VerticalAlignment="Stretch" />
+                    VerticalAlignment="Stretch"
+                    SizeChanged="ContentFrame_SizeChanged" />
             </Border>
         </Grid>
 
@@ -82,6 +83,14 @@
                     IsSelected="True">
                     <controls:NavigationViewItem.Icon>
                         <SymbolIcon Symbol="Home" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
+                <controls:NavigationViewItem
+                    x:Name="ClipTestNavigationItem"
+                    Content="&#x6D4B;&#x8BD5;"
+                    Tag="1">
+                    <controls:NavigationViewItem.Icon>
+                        <SymbolIcon Symbol="Preview" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
             </controls:NavigationView.MenuItems>

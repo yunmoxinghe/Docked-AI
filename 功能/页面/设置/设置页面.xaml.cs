@@ -52,13 +52,13 @@ namespace Docked_AI.Features.Pages.Settings
 
             if (Math.Abs(horizontalMargin - _lastAppliedMargin) > 0.01)
             {
-                CardsPanel.Margin = new Thickness(horizontalMargin, 0, horizontalMargin, 0);
+                PageContentPanel.Margin = new Thickness(horizontalMargin, 0, horizontalMargin, 0);
                 _lastAppliedMargin = horizontalMargin;
             }
             _lastMeasuredWidth = width;
 
             string mode = normalized >= 1 ? "Wide" : (normalized <= 0 ? "Narrow" : "Fluid");
-            WidthValueText.Text = $"{width:F0}px | {mode} | margin {CardsPanel.Margin.Left:F0}";
+            WidthValueText.Text = $"{width:F0}px | {mode} | margin {PageContentPanel.Margin.Left:F0}";
         }
     }
 }

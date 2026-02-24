@@ -18,81 +18,94 @@
             HorizontalContentAlignment="Stretch"
             VerticalScrollBarVisibility="Auto">
             <StackPanel
-                x:Name="CardsPanel"
+                x:Name="PageContentPanel"
                 Margin="16,0"
                 UseLayoutRounding="True"
-                Spacing="12">
-                <controls:SettingsCard
-                    HorizontalAlignment="Stretch"
-                    Header="布局诊断"
-                    Description="当前页面可用宽度（实时）">
-                    <controls:SettingsCard.HeaderIcon>
-                        <SymbolIcon Symbol="Preview" />
-                    </controls:SettingsCard.HeaderIcon>
-                    <TextBlock
-                        x:Name="WidthValueText"
-                        FontSize="18"
-                        FontWeight="SemiBold" />
-                </controls:SettingsCard>
+                Spacing="0">
+                <Border Height="40" />
+                <TextBlock
+                    Text="设置"
+                    FontSize="32"
+                    FontWeight="SemiBold" />
+                <Border Height="36" />
 
-                <controls:SettingsCard
-                    HorizontalAlignment="Stretch"
-                    Header="通用设置"
-                    Description="这里可以放置应用基础选项。">
-                    <controls:SettingsCard.HeaderIcon>
-                        <SymbolIcon Symbol="Setting" />
-                    </controls:SettingsCard.HeaderIcon>
-                    <ToggleSwitch OnContent="开" OffContent="关" />
-                </controls:SettingsCard>
+                <StackPanel
+                    x:Name="CardsPanel"
+                    Spacing="4">
+                    <controls:SettingsCard
+                        HorizontalAlignment="Stretch"
+                        Header="布局诊断"
+                        Description="当前页面可用宽度（实时）">
+                        <controls:SettingsCard.HeaderIcon>
+                            <SymbolIcon Symbol="Preview" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <TextBlock
+                            x:Name="WidthValueText"
+                            FontSize="18"
+                            FontWeight="SemiBold" />
+                    </controls:SettingsCard>
 
-                <controls:SettingsCard HorizontalAlignment="Stretch" Header="通知" Description="配置提醒、声音和横幅。">
-                    <controls:SettingsCard.HeaderIcon>
-                        <SymbolIcon Symbol="Message" />
-                    </controls:SettingsCard.HeaderIcon>
-                    <ToggleSwitch OnContent="开" OffContent="关" />
-                </controls:SettingsCard>
+                    <controls:SettingsCard
+                        HorizontalAlignment="Stretch"
+                        Header="通用设置"
+                        Description="这里可以放置应用基础选项。">
+                        <controls:SettingsCard.HeaderIcon>
+                            <SymbolIcon Symbol="Setting" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch OnContent="开" OffContent="关" />
+                    </controls:SettingsCard>
 
-                <controls:SettingsCard HorizontalAlignment="Stretch" Header="启动" Description="设置开机启动和后台行为。">
-                    <controls:SettingsCard.HeaderIcon>
-                        <SymbolIcon Symbol="Play" />
-                    </controls:SettingsCard.HeaderIcon>
-                    <ToggleSwitch OnContent="开" OffContent="关" />
-                </controls:SettingsCard>
+                    <controls:SettingsCard HorizontalAlignment="Stretch" Header="通知" Description="配置提醒、声音和横幅。">
+                        <controls:SettingsCard.HeaderIcon>
+                            <SymbolIcon Symbol="Message" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch OnContent="开" OffContent="关" />
+                    </controls:SettingsCard>
 
-                <controls:SettingsCard HorizontalAlignment="Stretch" Header="外观" Description="调整主题与动画效果。">
-                    <controls:SettingsCard.HeaderIcon>
-                        <SymbolIcon Symbol="Highlight" />
-                    </controls:SettingsCard.HeaderIcon>
-                    <ToggleSwitch OnContent="开" OffContent="关" />
-                </controls:SettingsCard>
+                    <controls:SettingsCard HorizontalAlignment="Stretch" Header="启动" Description="设置开机启动和后台行为。">
+                        <controls:SettingsCard.HeaderIcon>
+                            <SymbolIcon Symbol="Play" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch OnContent="开" OffContent="关" />
+                    </controls:SettingsCard>
 
-                <controls:SettingsCard HorizontalAlignment="Stretch" Header="同步" Description="自动同步配置和状态。">
-                    <controls:SettingsCard.HeaderIcon>
-                        <SymbolIcon Symbol="Sync" />
-                    </controls:SettingsCard.HeaderIcon>
-                    <ToggleSwitch OnContent="开" OffContent="关" />
-                </controls:SettingsCard>
+                    <controls:SettingsCard HorizontalAlignment="Stretch" Header="外观" Description="调整主题与动画效果。">
+                        <controls:SettingsCard.HeaderIcon>
+                            <SymbolIcon Symbol="Highlight" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch OnContent="开" OffContent="关" />
+                    </controls:SettingsCard>
 
-                <controls:SettingsCard HorizontalAlignment="Stretch" Header="网络" Description="网络策略与代理选项。">
-                    <controls:SettingsCard.HeaderIcon>
-                        <SymbolIcon Symbol="World" />
-                    </controls:SettingsCard.HeaderIcon>
-                    <ToggleSwitch OnContent="开" OffContent="关" />
-                </controls:SettingsCard>
+                    <controls:SettingsCard HorizontalAlignment="Stretch" Header="同步" Description="自动同步配置和状态。">
+                        <controls:SettingsCard.HeaderIcon>
+                            <SymbolIcon Symbol="Sync" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch OnContent="开" OffContent="关" />
+                    </controls:SettingsCard>
 
-                <controls:SettingsCard HorizontalAlignment="Stretch" Header="隐私" Description="诊断数据与权限控制。">
-                    <controls:SettingsCard.HeaderIcon>
-                        <SymbolIcon Symbol="Permissions" />
-                    </controls:SettingsCard.HeaderIcon>
-                    <ToggleSwitch OnContent="开" OffContent="关" />
-                </controls:SettingsCard>
+                    <controls:SettingsCard HorizontalAlignment="Stretch" Header="网络" Description="网络策略与代理选项。">
+                        <controls:SettingsCard.HeaderIcon>
+                            <SymbolIcon Symbol="World" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch OnContent="开" OffContent="关" />
+                    </controls:SettingsCard>
 
-                <controls:SettingsCard HorizontalAlignment="Stretch" Header="高级" Description="实验功能与开发选项。">
-                    <controls:SettingsCard.HeaderIcon>
-                        <SymbolIcon Symbol="Repair" />
-                    </controls:SettingsCard.HeaderIcon>
-                    <ToggleSwitch OnContent="开" OffContent="关" />
-                </controls:SettingsCard>
+                    <controls:SettingsCard HorizontalAlignment="Stretch" Header="隐私" Description="诊断数据与权限控制。">
+                        <controls:SettingsCard.HeaderIcon>
+                            <SymbolIcon Symbol="Permissions" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch OnContent="开" OffContent="关" />
+                    </controls:SettingsCard>
+
+                    <controls:SettingsCard HorizontalAlignment="Stretch" Header="高级" Description="实验功能与开发选项。">
+                        <controls:SettingsCard.HeaderIcon>
+                            <SymbolIcon Symbol="Repair" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch OnContent="开" OffContent="关" />
+                    </controls:SettingsCard>
+                </StackPanel>
+
+                <Border Height="40" />
             </StackPanel>
         </ScrollViewer>
     </Grid>
