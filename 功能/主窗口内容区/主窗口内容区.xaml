@@ -86,11 +86,11 @@
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
                 <controls:NavigationViewItem
-                    x:Name="ClipTestNavigationItem"
-                    Content="&#x6D4B;&#x8BD5;"
+                    x:Name="CreateNavigationItem"
+                    Content="新建"
                     Tag="1">
                     <controls:NavigationViewItem.Icon>
-                        <SymbolIcon Symbol="Preview" />
+                        <FontIcon Glyph="&#xE710;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
             </controls:NavigationView.MenuItems>

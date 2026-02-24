@@ -1,6 +1,6 @@
-﻿using Docked_AI.Features.Pages.Home;
+using Docked_AI.Features.Pages.Home;
+using Docked_AI.Features.Pages.New;
 using Docked_AI.Features.Pages.Settings;
-using Docked_AI.Features.Pages.Test;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
@@ -37,7 +37,7 @@ namespace Docked_AI.Features.MainWindowContent
                         ContentFrame.Navigate(typeof(HomePage));
                         break;
                     case 1:
-                        ContentFrame.Navigate(typeof(ClipTestPage));
+                        ContentFrame.Navigate(typeof(NewPage));
                         break;
                     default:
                         ContentFrame.Navigate(typeof(HomePage));
