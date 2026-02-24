@@ -6,21 +6,6 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-    <VisualStateManager.VisualStateGroups>
-        <VisualStateGroup x:Name="ResponsiveStates">
-            <VisualState x:Name="NarrowState">
-                <VisualState.Setters>
-                    <Setter Target="CardsPanel.Margin" Value="16,0" />
-                </VisualState.Setters>
-            </VisualState>
-            <VisualState x:Name="WideState">
-                <VisualState.Setters>
-                    <Setter Target="CardsPanel.Margin" Value="36,0" />
-                </VisualState.Setters>
-            </VisualState>
-        </VisualStateGroup>
-    </VisualStateManager.VisualStateGroups>
-
     <Grid x:Name="RootGrid" Padding="0">
         <ScrollViewer
             x:Name="SettingsScrollViewer"
@@ -107,4 +92,3 @@
         </ScrollViewer>
     </Grid>
 </Page>
-

@@ -1,11 +1,15 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System;
 
 namespace Docked_AI.Features.Pages.Settings
 {
     public sealed partial class SettingsPage : Page
     {
-        private const double WideThreshold = 500;
+        private const double MinResponsiveWidth = 320;
+        private const double MaxResponsiveWidth = 760;
+        private const double MinHorizontalMargin = 16;
+        private const double MaxHorizontalMargin = 36;
 
         public SettingsPage()
         {
@@ -26,18 +30,24 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void UpdateVisualStateAndDiagnostic()
         {
-            double width = ActualWidth;
+            double width = RootGrid?.ActualWidth ?? 0;
             if (width <= 0 && RootGrid != null)
             {
                 width = RootGrid.ActualWidth;
             }
-            bool isWide = width >= WideThreshold;
-            string stateName = isWide ? "WideState" : "NarrowState";
+            if (width <= 0)
+            {
+                width = ActualWidth;
+            }
 
-            // Drive visual state from UserControl width (not Window width).
-            _ = VisualStateManager.GoToState(this, stateName, false);
+            double normalized = (width - MinResponsiveWidth) / (MaxResponsiveWidth - MinResponsiveWidth);
+            normalized = Math.Clamp(normalized, 0, 1);
+            double horizontalMargin = Math.Round(MinHorizontalMargin + ((MaxHorizontalMargin - MinHorizontalMargin) * normalized));
 
-            WidthValueText.Text = $"{width:F0}px | threshold {WideThreshold:F0}px | {stateName} | margin {CardsPanel.Margin.Left:F0}";
+            CardsPanel.Margin = new Thickness(horizontalMargin, 0, horizontalMargin, 0);
+
+            string mode = normalized >= 1 ? "Wide" : (normalized <= 0 ? "Narrow" : "Fluid");
+            WidthValueText.Text = $"{width:F0}px | {mode} | margin {CardsPanel.Margin.Left:F0}";
         }
     }
 }
