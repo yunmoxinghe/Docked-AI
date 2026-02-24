@@ -6,61 +6,73 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
+    <Grid x:Name="RootGrid" Padding="0,0">
+        <ScrollViewer
+            x:Name="SettingsScrollViewer"
+            HorizontalScrollBarVisibility="Disabled"
+            HorizontalScrollMode="Disabled"
+            HorizontalContentAlignment="Stretch"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="12">
+                <controls:SettingsCard
+                    HorizontalAlignment="Stretch"
+                    Header="通用设置"
+                    Description="这里可以放置应用基础选项。">
+                    <controls:SettingsCard.HeaderIcon>
+                        <SymbolIcon Symbol="Setting" />
+                    </controls:SettingsCard.HeaderIcon>
+                    <ToggleSwitch OnContent="开" OffContent="关" />
+                </controls:SettingsCard>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="16">
-            <TextBlock Text="设置" FontSize="32" FontWeight="SemiBold" />
-            <TextBlock Text="管理应用外观、行为和隐私选项。" Opacity="0.9" TextWrapping="WrapWholeWords" />
+                <controls:SettingsCard HorizontalAlignment="Stretch" Header="通知" Description="配置提醒、声音和横幅。">
+                    <controls:SettingsCard.HeaderIcon>
+                        <SymbolIcon Symbol="Message" />
+                    </controls:SettingsCard.HeaderIcon>
+                    <ToggleSwitch OnContent="开" OffContent="关" />
+                </controls:SettingsCard>
 
-            <controls:SettingsCard
-                Header="常规"
-                Description="启动和窗口行为">
-                <StackPanel Spacing="12">
-                    <controls:SettingsCard
-                        Header="开机启动 Docked AI"
-                        Description="系统登录后自动启动应用">
-                        <ToggleSwitch OffContent="关" OnContent="开" />
-                    </controls:SettingsCard>
+                <controls:SettingsCard HorizontalAlignment="Stretch" Header="启动" Description="设置开机启动和后台行为。">
+                    <controls:SettingsCard.HeaderIcon>
+                        <SymbolIcon Symbol="Play" />
+                    </controls:SettingsCard.HeaderIcon>
+                    <ToggleSwitch OnContent="开" OffContent="关" />
+                </controls:SettingsCard>
 
-                    <controls:SettingsCard
-                        Header="固定贴边"
-                        Description="窗口保持贴边并减少遮挡">
-                        <ToggleSwitch IsOn="True" OffContent="关" OnContent="开" />
-                    </controls:SettingsCard>
-                </StackPanel>
-            </controls:SettingsCard>
+                <controls:SettingsCard HorizontalAlignment="Stretch" Header="外观" Description="调整主题与动画效果。">
+                    <controls:SettingsCard.HeaderIcon>
+                        <SymbolIcon Symbol="Highlight" />
+                    </controls:SettingsCard.HeaderIcon>
+                    <ToggleSwitch OnContent="开" OffContent="关" />
+                </controls:SettingsCard>
 
-            <controls:SettingsCard
-                Header="外观"
-                Description="主题和透明效果">
-                <StackPanel Spacing="12">
-                    <controls:SettingsCard
-                        Header="应用主题"
-                        Description="选择浅色、深色或跟随系统">
-                        <ComboBox SelectedIndex="0">
-                            <x:String>跟随系统</x:String>
-                            <x:String>浅色</x:String>
-                            <x:String>深色</x:String>
-                        </ComboBox>
-                    </controls:SettingsCard>
+                <controls:SettingsCard HorizontalAlignment="Stretch" Header="同步" Description="自动同步配置和状态。">
+                    <controls:SettingsCard.HeaderIcon>
+                        <SymbolIcon Symbol="Sync" />
+                    </controls:SettingsCard.HeaderIcon>
+                    <ToggleSwitch OnContent="开" OffContent="关" />
+                </controls:SettingsCard>
 
-                    <controls:SettingsCard
-                        Header="启用亚克力背景"
-                        Description="在支持设备上使用半透明背景">
-                        <ToggleSwitch IsOn="True" OffContent="关" OnContent="开" />
-                    </controls:SettingsCard>
-                </StackPanel>
-            </controls:SettingsCard>
+                <controls:SettingsCard HorizontalAlignment="Stretch" Header="网络" Description="网络策略与代理选项。">
+                    <controls:SettingsCard.HeaderIcon>
+                        <SymbolIcon Symbol="World" />
+                    </controls:SettingsCard.HeaderIcon>
+                    <ToggleSwitch OnContent="开" OffContent="关" />
+                </controls:SettingsCard>
 
-            <controls:SettingsCard
-                Header="关于"
-                Description="版本和支持信息">
-                <StackPanel Spacing="12">
-                    <controls:SettingsCard Header="当前版本" Description="1.0.0">
-                        <Button Content="检查更新" />
-                    </controls:SettingsCard>
-                </StackPanel>
-            </controls:SettingsCard>
-        </StackPanel>
-    </ScrollViewer>
+                <controls:SettingsCard HorizontalAlignment="Stretch" Header="隐私" Description="诊断数据与权限控制。">
+                    <controls:SettingsCard.HeaderIcon>
+                        <SymbolIcon Symbol="Permissions" />
+                    </controls:SettingsCard.HeaderIcon>
+                    <ToggleSwitch OnContent="开" OffContent="关" />
+                </controls:SettingsCard>
+
+                <controls:SettingsCard HorizontalAlignment="Stretch" Header="高级" Description="实验功能与开发选项。">
+                    <controls:SettingsCard.HeaderIcon>
+                        <SymbolIcon Symbol="Repair" />
+                    </controls:SettingsCard.HeaderIcon>
+                    <ToggleSwitch OnContent="开" OffContent="关" />
+                </controls:SettingsCard>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
 </UserControl>

@@ -14,14 +14,19 @@
             <ColumnDefinition Width="48" />
         </Grid.ColumnDefinitions>
 
-        <Grid Grid.Column="0" Margin="4,6,2,4">
+        <Grid Grid.Column="0" Margin="4,6,0,4">
             <Border
                 CornerRadius="4"
-                Padding="24,20"
+                Padding="0"
                 Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="1">
-                <ContentControl Content="{Binding CurrentPage}" />
+                <ContentControl
+                    Content="{Binding CurrentPage}"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    VerticalContentAlignment="Stretch" />
             </Border>
         </Grid>
 
