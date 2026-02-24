@@ -14,10 +14,24 @@
             HorizontalAlignment="Stretch"
             VerticalAlignment="Center"
             Spacing="16">
-            <FontIcon
-                HorizontalAlignment="Center"
-                Glyph="&#xE774;"
-                FontSize="56" />
+            <Grid
+                x:Name="SiteIconHost"
+                Width="64"
+                Height="64"
+                HorizontalAlignment="Center">
+                <Image
+                    x:Name="SiteIconImage"
+                    Width="64"
+                    Height="64"
+                    Stretch="UniformToFill"
+                    Visibility="Collapsed" />
+                <FontIcon
+                    x:Name="SiteIconFallback"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Glyph="&#xE774;"
+                    FontSize="56" />
+            </Grid>
 
             <TextBox
                 x:Name="AppNameTextBox"
@@ -28,7 +42,12 @@
                 x:Name="WebsiteUrlTextBox"
                 Header="网址"
                 PlaceholderText="https://example.com"
-                InputScope="Url" />
+                InputScope="Url"
+                TextChanged="WebsiteUrlTextBox_TextChanged" />
+
+            <TextBlock
+                x:Name="LookupStatusText"
+                Opacity="0.7" />
 
             <Button
                 HorizontalAlignment="Stretch"
