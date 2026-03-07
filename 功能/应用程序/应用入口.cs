@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Docked_AI.Features.Tray;
+using Windows.Graphics;
 
 namespace Docked_AI
 {
@@ -158,6 +159,11 @@ namespace Docked_AI
                 Content = new Grid()
             };
 
+            // Keep the host window fully out of user sight before activation.
+            var keepAliveAppWindow = _keepAliveWindow.AppWindow;
+            keepAliveAppWindow.IsShownInSwitchers = false;
+            keepAliveAppWindow.MoveAndResize(new RectInt32(-32000, -32000, 1, 1));
+
             _keepAliveWindow.Activate();
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(_keepAliveWindow);
             if (hwnd != IntPtr.Zero)
@@ -232,3 +238,4 @@ namespace Docked_AI
         }
     }
 }
+
