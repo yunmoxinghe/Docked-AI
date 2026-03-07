@@ -1,9 +1,10 @@
-using Docked_AI.Features.Pages.Home;
+﻿using Docked_AI.Features.Pages.Home;
 using Docked_AI.Features.Pages.New;
 using Docked_AI.Features.Pages.Settings;
 using Docked_AI.Features.Pages.WebApp.Browser;
 using Docked_AI.Features.Pages.WebApp.Shared;
 using Microsoft.UI.Composition;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
@@ -12,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+using System.Threading.Tasks;
 
 namespace Docked_AI.Features.MainWindowContent
 {
@@ -20,6 +22,7 @@ namespace Docked_AI.Features.MainWindowContent
         private const float ContentCornerRadius = 4f;
 
         private readonly Dictionary<string, WebAppShortcut> _webShortcuts = new();
+        private readonly Dictionary<string, NavigationViewItem> _webShortcutItems = new();
         private CompositionRoundedRectangleGeometry? _clipGeometry;
 
         public MainWindowContent()
@@ -29,18 +32,62 @@ namespace Docked_AI.Features.MainWindowContent
 
             WebAppEventBus.ShortcutCreated += OnShortcutCreated;
             Unloaded += (_, _) => WebAppEventBus.ShortcutCreated -= OnShortcutCreated;
+            Loaded += MainWindowContent_Loaded;
+        }
+
+        private async void MainWindowContent_Loaded(object sender, RoutedEventArgs e)
+        {
+            Loaded -= MainWindowContent_Loaded;
+            await RestorePersistedShortcutsAsync();
         }
 
         private void OnShortcutCreated(object? sender, WebAppShortcut shortcut)
         {
+            AddOrUpdateShortcutNavigationItem(shortcut, selectItem: true);
+            _ = PersistShortcutsAsync();
+        }
+
+        private async Task RestorePersistedShortcutsAsync()
+        {
+            IReadOnlyList<WebAppShortcut> shortcuts = await WebAppShortcutStore.LoadAsync();
+            foreach (WebAppShortcut shortcut in shortcuts)
+            {
+                AddOrUpdateShortcutNavigationItem(shortcut, selectItem: false);
+            }
+        }
+
+        private async Task PersistShortcutsAsync()
+        {
+            try
+            {
+                await WebAppShortcutStore.SaveAsync(_webShortcuts.Values);
+            }
+            catch
+            {
+            }
+        }
+
+        private void AddOrUpdateShortcutNavigationItem(WebAppShortcut shortcut, bool selectItem)
+        {
             _webShortcuts[shortcut.Id] = shortcut;
+
+            if (_webShortcutItems.TryGetValue(shortcut.Id, out NavigationViewItem? existingItem))
+            {
+                existingItem.Content = shortcut.Name;
+                existingItem.Icon = BuildShortcutIcon(shortcut);
+                if (selectItem)
+                {
+                    RightNavigationView.SelectedItem = existingItem;
+                }
+                return;
+            }
 
             var navItem = new NavigationViewItem
             {
                 Content = shortcut.Name,
-                Tag = "webapp:" + shortcut.Id
+                Tag = "webapp:" + shortcut.Id,
+                Icon = BuildShortcutIcon(shortcut)
             };
-            navItem.Icon = BuildShortcutIcon(shortcut);
 
             int insertIndex = RightNavigationView.MenuItems.IndexOf(CreateNavigationItem);
             if (insertIndex < 0)
@@ -49,7 +96,11 @@ namespace Docked_AI.Features.MainWindowContent
             }
 
             RightNavigationView.MenuItems.Insert(insertIndex, navItem);
-            RightNavigationView.SelectedItem = navItem;
+            _webShortcutItems[shortcut.Id] = navItem;
+            if (selectItem)
+            {
+                RightNavigationView.SelectedItem = navItem;
+            }
         }
 
         private static IconElement BuildShortcutIcon(WebAppShortcut shortcut)
@@ -174,7 +225,7 @@ namespace Docked_AI.Features.MainWindowContent
             }
         }
 
-        private void ContentFrame_SizeChanged(object sender, Microsoft.UI.Xaml.SizeChangedEventArgs e)
+        private void ContentFrame_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (e.NewSize.Width <= 0 || e.NewSize.Height <= 0)
             {

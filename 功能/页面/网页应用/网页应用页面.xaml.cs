@@ -31,6 +31,9 @@ namespace Docked_AI.Features.Pages.WebApp
         private CancellationTokenSource? _urlLookupCts;
         private CompositionRoundedRectangleGeometry? _iconClipGeometry;
         private bool _hasCustomIcon;
+        private bool _isProgrammaticNameUpdate;
+        private bool _isAppNameManuallyEdited;
+        private string _lastAutoAppName = string.Empty;
         private byte[]? _currentIconBytes;
 
         public WebAppPage()
@@ -43,6 +46,23 @@ namespace Docked_AI.Features.Pages.WebApp
             await RefreshWebsiteMetadataAsync(withDelay: true);
         }
 
+        private void AppNameTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_isProgrammaticNameUpdate)
+            {
+                return;
+            }
+
+            string current = AppNameTextBox.Text?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(current))
+            {
+                _isAppNameManuallyEdited = false;
+                return;
+            }
+
+            _isAppNameManuallyEdited = !string.Equals(current, _lastAutoAppName, StringComparison.Ordinal);
+        }
+
         private async void RestoreAutoIconButton_Click(object sender, RoutedEventArgs e)
         {
             _hasCustomIcon = false;
@@ -53,6 +73,7 @@ namespace Docked_AI.Features.Pages.WebApp
         private async Task RefreshWebsiteMetadataAsync(bool withDelay)
         {
             _urlLookupCts?.Cancel();
+            _urlLookupCts?.Dispose();
 
             string rawInput = WebsiteUrlTextBox.Text?.Trim() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(rawInput))
@@ -61,6 +82,7 @@ namespace Docked_AI.Features.Pages.WebApp
                 {
                     ShowFallbackIcon();
                 }
+
                 LookupStatusText.Text = string.Empty;
                 return;
             }
@@ -71,14 +93,12 @@ namespace Docked_AI.Features.Pages.WebApp
                 {
                     ShowFallbackIcon();
                 }
+
                 LookupStatusText.Text = "网址格式无效";
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(AppNameTextBox.Text))
-            {
-                AppNameTextBox.Text = websiteUri.Host;
-            }
+            SetAppNameIfAutoMode(websiteUri.Host);
 
             var cts = new CancellationTokenSource();
             _urlLookupCts = cts;
@@ -93,9 +113,14 @@ namespace Docked_AI.Features.Pages.WebApp
 
                 WebsiteMetadata metadata = await FetchWebsiteMetadataAsync(websiteUri, cts.Token);
 
+                if (!ReferenceEquals(_urlLookupCts, cts))
+                {
+                    return;
+                }
+
                 if (!string.IsNullOrWhiteSpace(metadata.Title))
                 {
-                    AppNameTextBox.Text = metadata.Title;
+                    SetAppNameIfAutoMode(metadata.Title);
                 }
 
                 if (metadata.IconBytes is { Length: > 0 })
@@ -104,7 +129,10 @@ namespace Docked_AI.Features.Pages.WebApp
                     {
                         await ShowWebsiteIconAsync(metadata.IconBytes);
                     }
-                    LookupStatusText.Text = _hasCustomIcon ? "已获取名称（使用手动图标）" : "已获取名称和图标";
+
+                    LookupStatusText.Text = _hasCustomIcon
+                        ? "已获取名称（使用手动图标）"
+                        : "已获取名称和图标";
                 }
                 else
                 {
@@ -112,9 +140,10 @@ namespace Docked_AI.Features.Pages.WebApp
                     {
                         ShowFallbackIcon();
                     }
+
                     LookupStatusText.Text = string.IsNullOrWhiteSpace(metadata.Error)
                         ? "已获取名称，未找到图标"
-                        : $"已部分获取：{metadata.Error}";
+                        : $"部分获取成功：{metadata.Error}";
                 }
             }
             catch (OperationCanceledException)
@@ -126,7 +155,17 @@ namespace Docked_AI.Features.Pages.WebApp
                 {
                     ShowFallbackIcon();
                 }
+
                 LookupStatusText.Text = "获取失败：" + ex.Message;
+            }
+            finally
+            {
+                if (ReferenceEquals(_urlLookupCts, cts))
+                {
+                    _urlLookupCts = null;
+                }
+
+                cts.Dispose();
             }
         }
 
@@ -239,8 +278,40 @@ namespace Docked_AI.Features.Pages.WebApp
                 return false;
             }
 
+            if (string.IsNullOrWhiteSpace(parsed.Host))
+            {
+                return false;
+            }
+
             uri = parsed;
             return true;
+        }
+
+        private void SetAppNameIfAutoMode(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return;
+            }
+
+            string current = AppNameTextBox.Text?.Trim() ?? string.Empty;
+            if (_isAppNameManuallyEdited && !string.Equals(current, _lastAutoAppName, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _isProgrammaticNameUpdate = true;
+            try
+            {
+                AppNameTextBox.Text = value;
+            }
+            finally
+            {
+                _isProgrammaticNameUpdate = false;
+            }
+
+            _lastAutoAppName = value.Trim();
+            _isAppNameManuallyEdited = false;
         }
 
         private static async Task<WebsiteMetadata> FetchWebsiteMetadataAsync(Uri websiteUri, CancellationToken cancellationToken)

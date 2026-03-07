@@ -55,7 +55,8 @@
             <TextBox
                 x:Name="AppNameTextBox"
                 Header="名称"
-                PlaceholderText="输入应用名称" />
+                PlaceholderText="输入应用名称"
+                TextChanged="AppNameTextBox_TextChanged" />
 
             <TextBox
                 x:Name="WebsiteUrlTextBox"
