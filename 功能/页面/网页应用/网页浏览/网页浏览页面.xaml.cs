@@ -29,6 +29,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private Uri? _pendingNavigationUri;
         private bool _isWebViewReady;
+        private Uri? _currentUri;
 
         public WebBrowserPage()
         {
@@ -52,6 +53,12 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 return;
             }
 
+            if (_isWebViewReady && _currentUri is not null && UriEquals(_currentUri, uri))
+            {
+                return;
+            }
+
+            _currentUri = uri;
             _pendingNavigationUri = uri;
             TryNavigatePendingUri();
         }
@@ -99,6 +106,12 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 return;
             }
 
+            if (WebView.Source is not null && UriEquals(WebView.Source, _pendingNavigationUri))
+            {
+                _pendingNavigationUri = null;
+                return;
+            }
+
             WebView.Source = _pendingNavigationUri;
             _pendingNavigationUri = null;
         }
@@ -133,6 +146,15 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
             return PreferredWebViewLanguage;
         }
+
+        private static bool UriEquals(Uri left, Uri right)
+        {
+            return Uri.Compare(
+                       left,
+                       right,
+                       UriComponents.AbsoluteUri,
+                       UriFormat.SafeUnescaped,
+                       StringComparison.OrdinalIgnoreCase) == 0;
+        }
     }
 }
-
