@@ -1,9 +1,12 @@
 using Docked_AI.Features.Pages.WebApp.Shared;
+using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Hosting;
 using Microsoft.Web.WebView2.Core;
 using System;
 using System.Globalization;
+using System.Numerics;
 using System.Threading.Tasks;
 
 namespace Docked_AI.Features.Pages.WebApp.Browser
@@ -11,31 +14,18 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
     public sealed partial class WebBrowserPage : Page
     {
         private const string PreferredWebViewLanguage = "zh-CN";
-        private const string CornerClipScript = @"
-(() => {
-  const id = '__docked_ai_corner_style__';
-  if (document.getElementById(id)) return;
-  const style = document.createElement('style');
-  style.id = id;
-  style.textContent = `
-    html, body {
-      border-radius: 8px !important;
-      overflow: hidden !important;
-      background-clip: padding-box !important;
-    }
-  `;
-  document.head.appendChild(style);
-})();";
+        private const double WebViewCornerRadius = 8;
 
         private Uri? _pendingNavigationUri;
         private bool _isWebViewReady;
         private Uri? _currentUri;
+        private CompositionGeometricClip? _webViewClip;
+        private CompositionRoundedRectangleGeometry? _webViewClipGeometry;
 
         public WebBrowserPage()
         {
             InitializeComponent();
-            WebView.CoreWebView2Initialized += WebView_CoreWebView2Initialized;
-            WebView.NavigationCompleted += WebView_NavigationCompleted;
+            WebView.SizeChanged += WebView_SizeChanged;
             Loaded += WebBrowserPage_Loaded;
         }
 
@@ -66,6 +56,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private async void WebBrowserPage_Loaded(object sender, RoutedEventArgs e)
         {
             Loaded -= WebBrowserPage_Loaded;
+            ApplyWebViewCornerClip();
             await EnsureWebViewInitializedAsync();
             TryNavigatePendingUri();
         }
@@ -116,24 +107,36 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             _pendingNavigationUri = null;
         }
 
-        private void WebView_CoreWebView2Initialized(Microsoft.UI.Xaml.Controls.WebView2 sender, CoreWebView2InitializedEventArgs args)
+        private void ApplyWebViewCornerClip()
         {
-            if (args.Exception is not null || sender.CoreWebView2 is null)
-            {
-                return;
-            }
+            var visual = ElementCompositionPreview.GetElementVisual(WebView);
+            Compositor compositor = visual.Compositor;
 
-            _ = sender.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(CornerClipScript);
+            _webViewClipGeometry ??= compositor.CreateRoundedRectangleGeometry();
+            _webViewClipGeometry.CornerRadius = new Vector2((float)WebViewCornerRadius);
+            _webViewClipGeometry.Offset = Vector2.Zero;
+
+            _webViewClip ??= compositor.CreateGeometricClip(_webViewClipGeometry);
+            visual.Clip = _webViewClip;
+
+            UpdateWebViewCornerClipSize();
         }
 
-        private void WebView_NavigationCompleted(Microsoft.UI.Xaml.Controls.WebView2 sender, CoreWebView2NavigationCompletedEventArgs args)
+        private void WebView_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if (!args.IsSuccess || sender.CoreWebView2 is null)
+            UpdateWebViewCornerClipSize();
+        }
+
+        private void UpdateWebViewCornerClipSize()
+        {
+            if (_webViewClipGeometry is null)
             {
                 return;
             }
 
-            _ = sender.CoreWebView2.ExecuteScriptAsync(CornerClipScript);
+            float width = (float)Math.Max(0, WebView.ActualWidth);
+            float height = (float)Math.Max(0, WebView.ActualHeight);
+            _webViewClipGeometry.Size = new Vector2(width, height);
         }
 
         private static string GetWebViewLanguage()
