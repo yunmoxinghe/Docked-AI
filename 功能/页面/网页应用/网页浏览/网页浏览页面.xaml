@@ -8,9 +8,112 @@
     mc:Ignorable="d"
     NavigationCacheMode="Required">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border
+            x:Name="TopBarHost"
+            Grid.Row="0"
+            Padding="12,10"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
+                <Grid Width="22" Height="22" VerticalAlignment="Center">
+                    <Image
+                        x:Name="SiteIconImage"
+                        Width="22"
+                        Height="22"
+                        Stretch="UniformToFill"
+                        Visibility="Collapsed" />
+                    <FontIcon
+                        x:Name="SiteIconFallback"
+                        Glyph="&#xE774;"
+                        FontSize="16"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center" />
+                </Grid>
+                <TextBlock
+                    x:Name="TitleText"
+                    Grid.Column="1"
+                    Margin="10,0,0,0"
+                    VerticalAlignment="Center"
+                    TextTrimming="CharacterEllipsis"
+                    FontWeight="SemiBold" />
+            </Grid>
+        </Border>
+
         <controls:WebView2
             x:Name="WebView"
+            Grid.Row="1"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch" />
+
+        <Border
+            x:Name="BottomBarHost"
+            Grid.Row="2"
+            Padding="6,2"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+            <controls:CommandBar
+                x:Name="BottomCommandBar"
+                Background="Transparent"
+                DefaultLabelPosition="Collapsed">
+                <controls:CommandBar.PrimaryCommands>
+                    <controls:AppBarButton
+                        x:Name="BackButton"
+                        Label="后退"
+                        Click="BackButton_Click">
+                        <controls:AppBarButton.Icon>
+                            <SymbolIcon Symbol="Back" />
+                        </controls:AppBarButton.Icon>
+                    </controls:AppBarButton>
+                    <controls:AppBarButton
+                        x:Name="ForwardButton"
+                        Label="前进"
+                        Click="ForwardButton_Click">
+                        <controls:AppBarButton.Icon>
+                            <SymbolIcon Symbol="Forward" />
+                        </controls:AppBarButton.Icon>
+                    </controls:AppBarButton>
+                    <controls:AppBarButton
+                        x:Name="RefreshButton"
+                        Label="刷新"
+                        Click="RefreshButton_Click">
+                        <controls:AppBarButton.Icon>
+                            <SymbolIcon Symbol="Refresh" />
+                        </controls:AppBarButton.Icon>
+                    </controls:AppBarButton>
+                    <controls:AppBarButton
+                        x:Name="CopyUrlButton"
+                        Label="复制链接"
+                        Click="CopyUrlButton_Click">
+                        <controls:AppBarButton.Icon>
+                            <SymbolIcon Symbol="Copy" />
+                        </controls:AppBarButton.Icon>
+                    </controls:AppBarButton>
+                    <controls:AppBarButton
+                        x:Name="OpenExternalButton"
+                        Label="外部打开"
+                        Click="OpenExternalButton_Click">
+                        <controls:AppBarButton.Icon>
+                            <SymbolIcon Symbol="World" />
+                        </controls:AppBarButton.Icon>
+                    </controls:AppBarButton>
+                </controls:CommandBar.PrimaryCommands>
+
+                <controls:CommandBar.Content>
+                    <TextBlock
+                        x:Name="UrlText"
+                        Opacity="0.72"
+                        VerticalAlignment="Center"
+                        TextTrimming="CharacterEllipsis" />
+                </controls:CommandBar.Content>
+            </controls:CommandBar>
+        </Border>
     </Grid>
 </Page>
