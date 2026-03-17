@@ -20,7 +20,7 @@
             Padding="12,10"
             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-            BorderThickness="0,0,0,1">
+            BorderThickness="0">
             <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
                 <Grid Width="22" Height="22" VerticalAlignment="Center">
                     <Image
@@ -58,7 +58,7 @@
             Padding="6,2"
             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-            BorderThickness="0,1,0,0">
+            BorderThickness="0">
             <controls:CommandBar
                 x:Name="BottomCommandBar"
                 Background="Transparent"
