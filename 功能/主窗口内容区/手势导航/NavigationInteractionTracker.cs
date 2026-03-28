@@ -301,9 +301,10 @@ namespace GestureNavigation
                         _parent._tracker.TryUpdatePositionWithAnimation(_returnAnimation);
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    try { _parent._tracker.TryUpdatePosition(new(0f)); } catch { }
+                    System.Diagnostics.Debug.WriteLine($"InteractionTracker inertial transition failed: {ex}");
+                    try { _parent._tracker.TryUpdatePosition(new(0f)); } catch (Exception resetEx) { System.Diagnostics.Debug.WriteLine($"Failed to reset InteractionTracker position: {resetEx}"); }
                 }
                 finally
                 {

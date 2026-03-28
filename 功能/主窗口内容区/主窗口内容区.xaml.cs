@@ -62,8 +62,9 @@ namespace Docked_AI.Features.MainWindowContent
             {
                 await WebAppShortcutStore.SaveAsync(_webShortcuts.Values);
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Failed to persist web shortcuts: {ex.Message}");
             }
         }
 

@@ -120,8 +120,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     await EnsureTintScriptInstalledAsync();
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"WebView initialization failed: {ex.Message}");
                 // Fall back to default initialization behavior.
             }
             finally
@@ -192,7 +193,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
     const msg = { type: 'docked_ai_tint', top: topCss, bottom: bottomCss, title: (document.title || '') };
     try {
       window.chrome?.webview?.postMessage(JSON.stringify(msg));
-    } catch (_) { }
+    } catch (error) {
+      console.warn('Failed to post tint message to host.', error);
+    }
   }
   function sendNow() {
     state.scheduled = false;
