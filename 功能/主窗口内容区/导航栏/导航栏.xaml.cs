@@ -17,12 +17,15 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
     {
         private readonly Dictionary<string, WebAppShortcut> _webShortcuts = new();
         private readonly Dictionary<string, NavigationViewItem> _webShortcutItems = new();
+        private NavigationViewItemBase? _lastSelectedNavigationItem;
 
         public event EventHandler<NavigationRequest>? NavigationRequested;
+        public event EventHandler? DockToggleRequested;
 
         public NavigationBar()
         {
             InitializeComponent();
+            _lastSelectedNavigationItem = HomeNavigationItem;
 
             WebAppEventBus.ShortcutCreated += OnShortcutCreated;
             Unloaded += (_, _) => WebAppEventBus.ShortcutCreated -= OnShortcutCreated;
@@ -181,21 +184,32 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             Type pageType;
-            object? parameter = null;
-
-            if (args.IsSettingsSelected)
-            {
-                NavigationRequested?.Invoke(this, new NavigationRequest(typeof(SettingsPage), null));
-                return;
-            }
 
             if (args.SelectedItemContainer?.Tag is not string tagText)
             {
                 return;
             }
 
+            if (tagText == "dock-toggle")
+            {
+                DockToggleRequested?.Invoke(this, EventArgs.Empty);
+                if (_lastSelectedNavigationItem != null)
+                {
+                    NavView.SelectedItem = _lastSelectedNavigationItem;
+                }
+                return;
+            }
+
+            if (tagText == "settings")
+            {
+                _lastSelectedNavigationItem = args.SelectedItemContainer;
+                NavigationRequested?.Invoke(this, new NavigationRequest(typeof(SettingsPage), null));
+                return;
+            }
+
             if (tagText.StartsWith("webapp:"))
             {
+                _lastSelectedNavigationItem = args.SelectedItemContainer;
                 string shortcutId = tagText["webapp:".Length..];
                 if (_webShortcuts.TryGetValue(shortcutId, out WebAppShortcut? shortcut))
                 {
@@ -208,6 +222,8 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             {
                 return;
             }
+
+            _lastSelectedNavigationItem = args.SelectedItemContainer;
 
             pageType = sectionIndex switch
             {

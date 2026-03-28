@@ -16,7 +16,7 @@
         AlwaysShowHeader="False"
         IsBackButtonVisible="Collapsed"
         IsPaneToggleButtonVisible="False"
-        IsSettingsVisible="True"
+        IsSettingsVisible="False"
         IsPaneOpen="False"
         PaneDisplayMode="LeftCompact"
         OpenPaneLength="220"
@@ -42,5 +42,23 @@
                 </controls:NavigationViewItem.Icon>
             </controls:NavigationViewItem>
         </controls:NavigationView.MenuItems>
+        <controls:NavigationView.FooterMenuItems>
+            <controls:NavigationViewItem
+                x:Name="DockNavigationItem"
+                Content="固定边栏"
+                Tag="dock-toggle">
+                <controls:NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE840;" />
+                </controls:NavigationViewItem.Icon>
+            </controls:NavigationViewItem>
+            <controls:NavigationViewItem
+                x:Name="SettingsNavigationItem"
+                Content="设置"
+                Tag="settings">
+                <controls:NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Setting" />
+                </controls:NavigationViewItem.Icon>
+            </controls:NavigationViewItem>
+        </controls:NavigationView.FooterMenuItems>
     </controls:NavigationView>
 </UserControl>

@@ -1,6 +1,7 @@
-﻿using Microsoft.UI.Xaml;
 using Docked_AI.Features.MainWindow.State;
 using Docked_AI.Features.MainWindow.Visibility;
+using Docked_AI.Features.MainWindowContent.Linker;
+using Microsoft.UI.Xaml;
 
 namespace Docked_AI
 {
@@ -22,11 +23,26 @@ namespace Docked_AI
             }
 
             _windowController = new WindowHostController(this, _viewModel);
+
+            if (RootGrid.Children.Count > 0 && RootGrid.Children[0] is Linker linker)
+            {
+                linker.DockToggleRequested += OnDockToggleRequested;
+            }
         }
 
         public void ToggleWindow()
         {
             _windowController.ToggleWindow();
+        }
+
+        public void TogglePinnedDock()
+        {
+            _windowController.TogglePinnedDock();
+        }
+
+        private void OnDockToggleRequested(object? sender, System.EventArgs e)
+        {
+            TogglePinnedDock();
         }
     }
 }
