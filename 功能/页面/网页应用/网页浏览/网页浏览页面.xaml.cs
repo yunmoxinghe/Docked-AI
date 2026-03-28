@@ -30,6 +30,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private readonly SolidColorBrush _bottomBarBackgroundBrush = new(Colors.Transparent);
         private readonly SolidColorBrush _topBarForegroundBrush = new(Colors.Black);
         private readonly SolidColorBrush _bottomBarForegroundBrush = new(Colors.Black);
+        private bool _isDisposed;
 
         public WebBrowserPage()
         {
@@ -47,6 +48,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             UrlText.Foreground = _bottomBarForegroundBrush;
 
             Loaded += WebBrowserPage_Loaded;
+            Unloaded += WebBrowserPage_Unloaded;
         }
 
         protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
@@ -71,11 +73,22 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             TryNavigatePendingUri();
         }
 
+        protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+        {
+            DisposeWebView();
+            base.OnNavigatedFrom(e);
+        }
+
         private async void WebBrowserPage_Loaded(object sender, RoutedEventArgs e)
         {
             Loaded -= WebBrowserPage_Loaded;
             await EnsureWebViewInitializedAsync();
             TryNavigatePendingUri();
+        }
+
+        private void WebBrowserPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            DisposeWebView();
         }
 
         private async Task EnsureWebViewInitializedAsync()
@@ -471,6 +484,41 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
 
             await Launcher.LaunchUriAsync(uri);
+        }
+
+        private void DisposeWebView()
+        {
+            if (_isDisposed)
+            {
+                return;
+            }
+
+            _isDisposed = true;
+            Loaded -= WebBrowserPage_Loaded;
+            Unloaded -= WebBrowserPage_Unloaded;
+
+            if (WebView.CoreWebView2 is not null)
+            {
+                WebView.CoreWebView2.WebMessageReceived -= CoreWebView2_WebMessageReceived;
+                WebView.CoreWebView2.DocumentTitleChanged -= CoreWebView2_DocumentTitleChanged;
+                WebView.CoreWebView2.HistoryChanged -= CoreWebView2_HistoryChanged;
+                WebView.CoreWebView2.NavigationCompleted -= CoreWebView2_NavigationCompleted;
+
+                try
+                {
+                    WebView.CoreWebView2.Stop();
+                }
+                catch
+                {
+                    // Ignore cleanup errors during page teardown.
+                }
+            }
+
+            WebView.Source = null;
+            WebView.Close();
+            _pendingNavigationUri = null;
+            _currentShortcut = null;
+            _isWebViewReady = false;
         }
     }
 }
