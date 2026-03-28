@@ -20,8 +20,15 @@ namespace Docked_AI.Features.MainWindow.Visibility
         private bool _animationStarted;
         private bool _isAppBarRegistered;
         private bool _isApplyingPinnedBounds;
+        private bool _hasCapturedBaseWindowStyle;
+        private bool _hasCapturedBaseExtendedWindowStyle;
+        private bool _isWindowSubclassed;
         private IntPtr _hwnd;
         private readonly uint _appBarMessageId;
+        private IntPtr _baseWindowStyle;
+        private IntPtr _baseExtendedWindowStyle;
+        private IntPtr _originalWindowProc;
+        private readonly Win32WindowApi.WindowProc _windowProcDelegate;
 
         public WindowHostController(Window window, MainWindowViewModel viewModel)
         {
@@ -33,6 +40,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _backdropService = new BackdropService();
             _animationController = new SlideAnimationController(_window, _state);
             _appBarMessageId = Win32WindowApi.RegisterWindowMessage("DockedAI_AppBarMessage");
+            _windowProcDelegate = WindowProc;
 
             InitializeWindow();
         }
@@ -53,7 +61,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         private void InitializeWindow()
         {
-            _titleBarService.ConfigureTitleBarAndBorder(_window);
+            _titleBarService.ConfigureStandardWindow(_window);
             _backdropService.EnsureAcrylicBackdrop(_window);
 
             _layoutService.Refresh(_state);
@@ -100,7 +108,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 return;
             }
 
-            _titleBarService.ConfigureTitleBarAndBorder(_window);
+            _titleBarService.ConfigureStandardWindow(_window);
             _backdropService.EnsureAcrylicBackdrop(_window);
             StartInitialSlideIn();
         }
@@ -126,7 +134,6 @@ namespace Docked_AI.Features.MainWindow.Visibility
         {
             _viewModel.MarkVisible();
             _window.AppWindow.IsShownInSwitchers = false;
-            _titleBarService.ConfigureTitleBarAndBorder(_window);
             _backdropService.EnsureAcrylicBackdrop(_window);
 
             if (_viewModel.IsDockPinned)
@@ -134,6 +141,8 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 ShowPinnedDock();
                 return;
             }
+
+            _titleBarService.ConfigureStandardWindow(_window);
 
             MoveWindowToStandardDock(prepareForShow: true);
 
@@ -190,7 +199,11 @@ namespace Docked_AI.Features.MainWindow.Visibility
         {
             _viewModel.MarkVisible();
             _window.AppWindow.IsShownInSwitchers = false;
-            _titleBarService.ConfigureTitleBarAndBorder(_window);
+            
+            // 先应用窗口样式和 DWM 设置
+            ApplyPinnedWindowStyle();
+            
+            // 然后应用背景
             _backdropService.EnsureAcrylicBackdrop(_window);
 
             ApplyPinnedBounds();
@@ -200,6 +213,8 @@ namespace Docked_AI.Features.MainWindow.Visibility
         private void RestoreStandardDock()
         {
             RemoveAppBar();
+            RestoreStandardWindowStyle();
+            _titleBarService.ConfigureStandardWindow(_window);
             MoveWindowToStandardDock(prepareForShow: false);
             SetTopMost(false);
         }
@@ -223,22 +238,22 @@ namespace Docked_AI.Features.MainWindow.Visibility
         private void ApplyPinnedBounds()
         {
             _layoutService.Refresh(_state);
-            _state.CurrentX = _state.TargetX;
-            _state.CurrentY = _state.TargetY;
             RegisterAppBarIfNeeded();
 
             Win32WindowApi.APPBARDATA appBarData = CreateAppBarData();
             int desiredWidth = _state.WindowWidth;
 
             appBarData.uEdge = Win32WindowApi.ABE_RIGHT;
-            appBarData.rc.Top = 0;
-            appBarData.rc.Bottom = _state.ScreenHeight;
-            appBarData.rc.Right = _state.ScreenWidth;
+            appBarData.rc.Top = _state.WorkArea.Top;
+            appBarData.rc.Bottom = _state.WorkArea.Bottom;
+            appBarData.rc.Right = _state.WorkArea.Right;
             appBarData.rc.Left = appBarData.rc.Right - desiredWidth;
 
             _ = Win32WindowApi.SHAppBarMessage(Win32WindowApi.ABM_QUERYPOS, ref appBarData);
 
-            appBarData.rc.Right = _state.ScreenWidth;
+            appBarData.rc.Top = _state.WorkArea.Top;
+            appBarData.rc.Bottom = _state.WorkArea.Bottom;
+            appBarData.rc.Right = _state.WorkArea.Right;
             appBarData.rc.Left = appBarData.rc.Right - desiredWidth;
 
             _ = Win32WindowApi.SHAppBarMessage(Win32WindowApi.ABM_SETPOS, ref appBarData);
@@ -256,8 +271,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _isApplyingPinnedBounds = true;
             try
             {
-                _window.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(_state.TargetX, (int)_state.TargetY, width, height));
-                SetTopMost(true);
+                ApplyPinnedWindowFrame(appBarData.rc);
             }
             finally
             {
@@ -288,7 +302,210 @@ namespace Docked_AI.Features.MainWindow.Visibility
             if (_hwnd == IntPtr.Zero)
             {
                 _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(_window);
+                TrySubclassWindow();
             }
+        }
+
+        private void TrySubclassWindow()
+        {
+            if (_isWindowSubclassed || _hwnd == IntPtr.Zero)
+            {
+                return;
+            }
+
+            IntPtr newWindowProc = System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate(_windowProcDelegate);
+            _originalWindowProc = Win32WindowApi.SetWindowLongPtr(_hwnd, Win32WindowApi.GWLP_WNDPROC, newWindowProc);
+            _isWindowSubclassed = _originalWindowProc != IntPtr.Zero;
+        }
+
+        private void ApplyPinnedWindowStyle()
+        {
+            EnsureWindowHandle();
+            if (_hwnd == IntPtr.Zero)
+            {
+                return;
+            }
+
+            // 先配置 AppWindow
+            var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(_hwnd);
+            var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+            
+            if (appWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            {
+                presenter.SetBorderAndTitleBar(hasBorder: false, hasTitleBar: false);
+                presenter.IsResizable = false; // 完全禁用调整大小以移除边框
+                presenter.IsAlwaysOnTop = true;
+                presenter.IsMaximizable = false;
+                presenter.IsMinimizable = false;
+            }
+
+            IntPtr currentStyle = Win32WindowApi.GetWindowLongPtr(_hwnd, Win32WindowApi.GWL_STYLE);
+            IntPtr currentExtendedStyle = Win32WindowApi.GetWindowLongPtr(_hwnd, Win32WindowApi.GWL_EXSTYLE);
+            if (!_hasCapturedBaseWindowStyle)
+            {
+                _baseWindowStyle = currentStyle;
+                _hasCapturedBaseWindowStyle = true;
+            }
+            if (!_hasCapturedBaseExtendedWindowStyle)
+            {
+                _baseExtendedWindowStyle = currentExtendedStyle;
+                _hasCapturedBaseExtendedWindowStyle = true;
+            }
+
+            int style = currentStyle.ToInt32();
+            // 移除所有边框和标题栏相关样式
+            style &= ~Win32WindowApi.WS_OVERLAPPEDWINDOW;
+            style &= ~Win32WindowApi.WS_CAPTION;
+            style &= ~Win32WindowApi.WS_SYSMENU;
+            style &= ~Win32WindowApi.WS_THICKFRAME;
+            style &= ~Win32WindowApi.WS_BORDER;
+            style &= ~Win32WindowApi.WS_DLGFRAME;
+            // 只保留 POPUP 和 VISIBLE
+            style |= Win32WindowApi.WS_POPUP;
+            style |= Win32WindowApi.WS_VISIBLE;
+
+            int extendedStyle = currentExtendedStyle.ToInt32();
+            extendedStyle &= ~Win32WindowApi.WS_EX_DLGMODALFRAME;
+            extendedStyle &= ~Win32WindowApi.WS_EX_WINDOWEDGE;
+            extendedStyle &= ~Win32WindowApi.WS_EX_CLIENTEDGE;
+            extendedStyle &= ~Win32WindowApi.WS_EX_STATICEDGE;
+
+            _ = Win32WindowApi.SetWindowLongPtr(_hwnd, Win32WindowApi.GWL_STYLE, new IntPtr(style));
+            _ = Win32WindowApi.SetWindowLongPtr(_hwnd, Win32WindowApi.GWL_EXSTYLE, new IntPtr(extendedStyle));
+
+            // 关键：使用 DwmExtendFrameIntoClientArea 扩展框架到客户区
+            Win32WindowApi.MARGINS margins = new Win32WindowApi.MARGINS { cxLeftWidth = 0, cxRightWidth = 0, cyTopHeight = 0, cyBottomHeight = 0 };
+            _ = Win32WindowApi.DwmExtendFrameIntoClientArea(_hwnd, ref margins);
+
+            // DWM 属性设置
+            int cornerPreference = Win32WindowApi.DWMWCP_DONOTROUND;
+            _ = Win32WindowApi.DwmSetWindowAttribute(
+                _hwnd,
+                Win32WindowApi.DWMWA_WINDOW_CORNER_PREFERENCE,
+                ref cornerPreference,
+                sizeof(int));
+
+            // 移除边框颜色
+            int borderColor = Win32WindowApi.DWMWA_COLOR_NONE;
+            _ = Win32WindowApi.DwmSetWindowAttribute(
+                _hwnd,
+                Win32WindowApi.DWMWA_BORDER_COLOR,
+                ref borderColor,
+                sizeof(int));
+
+            // 设置标题栏颜色为完全透明（ARGB: 0x01000000 - 几乎透明的黑色，让 Acrylic 透过）
+            int captionColor = 0x01000000;
+            _ = Win32WindowApi.DwmSetWindowAttribute(
+                _hwnd,
+                Win32WindowApi.DWMWA_CAPTION_COLOR,
+                ref captionColor,
+                sizeof(int));
+
+            RefreshWindowFrame();
+            
+            System.Diagnostics.Debug.WriteLine($"ApplyPinnedWindowStyle: All styles and DWM attributes applied");
+        }
+
+        private void RestoreStandardWindowStyle()
+        {
+            EnsureWindowHandle();
+            if (_hwnd == IntPtr.Zero || !_hasCapturedBaseWindowStyle)
+            {
+                return;
+            }
+
+            _ = Win32WindowApi.SetWindowLongPtr(_hwnd, Win32WindowApi.GWL_STYLE, _baseWindowStyle);
+            if (_hasCapturedBaseExtendedWindowStyle)
+            {
+                _ = Win32WindowApi.SetWindowLongPtr(_hwnd, Win32WindowApi.GWL_EXSTYLE, _baseExtendedWindowStyle);
+            }
+            RefreshWindowFrame();
+        }
+
+        private void RefreshWindowFrame()
+        {
+            EnsureWindowHandle();
+            if (_hwnd == IntPtr.Zero)
+            {
+                return;
+            }
+
+            _ = Win32WindowApi.SetWindowPos(
+                _hwnd,
+                IntPtr.Zero,
+                0,
+                0,
+                0,
+                0,
+                Win32WindowApi.SWP_NOSIZE |
+                Win32WindowApi.SWP_NOZORDER |
+                Win32WindowApi.SWP_NOACTIVATE |
+                Win32WindowApi.SWP_FRAMECHANGED);
+        }
+
+        private void ApplyPinnedWindowFrame(Win32WindowApi.RECT approvedRect)
+        {
+            EnsureWindowHandle();
+            if (_hwnd == IntPtr.Zero)
+            {
+                return;
+            }
+
+            ApplyWindowRect(approvedRect);
+
+            if (TryGetExtendedFrameBounds(out Win32WindowApi.RECT actualBounds))
+            {
+                Win32WindowApi.RECT correctedRect = new()
+                {
+                    Left = approvedRect.Left + (approvedRect.Left - actualBounds.Left),
+                    Top = approvedRect.Top + (approvedRect.Top - actualBounds.Top),
+                    Right = approvedRect.Right + (approvedRect.Right - actualBounds.Right),
+                    Bottom = approvedRect.Bottom + (approvedRect.Bottom - actualBounds.Bottom)
+                };
+
+                ApplyWindowRect(correctedRect);
+                approvedRect = correctedRect;
+            }
+
+            _state.TargetX = approvedRect.Left;
+            _state.TargetY = approvedRect.Top;
+            _state.CurrentX = approvedRect.Left;
+            _state.CurrentY = approvedRect.Top;
+            _state.WindowWidth = Math.Max(_state.MinWindowWidth, approvedRect.Right - approvedRect.Left);
+            _state.WindowHeight = Math.Max(1, approvedRect.Bottom - approvedRect.Top);
+        }
+
+        private void ApplyWindowRect(Win32WindowApi.RECT rect)
+        {
+            int width = Math.Max(_state.MinWindowWidth, rect.Right - rect.Left);
+            int height = Math.Max(1, rect.Bottom - rect.Top);
+
+            _ = Win32WindowApi.SetWindowPos(
+                _hwnd,
+                Win32WindowApi.HWND_TOPMOST,
+                rect.Left,
+                rect.Top,
+                width,
+                height,
+                Win32WindowApi.SWP_SHOWWINDOW);
+        }
+
+        private bool TryGetExtendedFrameBounds(out Win32WindowApi.RECT bounds)
+        {
+            EnsureWindowHandle();
+            if (_hwnd == IntPtr.Zero)
+            {
+                bounds = default;
+                return false;
+            }
+
+            int hr = Win32WindowApi.DwmGetWindowAttribute(
+                _hwnd,
+                Win32WindowApi.DWMWA_EXTENDED_FRAME_BOUNDS,
+                out bounds,
+                System.Runtime.InteropServices.Marshal.SizeOf<Win32WindowApi.RECT>());
+
+            return hr >= 0;
         }
 
         private void RegisterAppBarIfNeeded()
@@ -329,6 +546,40 @@ namespace Docked_AI.Features.MainWindow.Visibility
         private void OnWindowClosed(object sender, WindowEventArgs args)
         {
             RemoveAppBar();
+        }
+
+        private IntPtr WindowProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
+        {
+            if (_viewModel.IsDockPinned)
+            {
+                if (msg == Win32WindowApi.WM_NCCALCSIZE)
+                {
+                    System.Diagnostics.Debug.WriteLine($"WM_NCCALCSIZE: wParam={wParam}, lParam={lParam}");
+                    
+                    if (wParam != IntPtr.Zero && lParam != IntPtr.Zero)
+                    {
+                        // 当 wParam 为 TRUE 时，lParam 指向 NCCALCSIZE_PARAMS 结构
+                        // 返回 0 表示客户区占据整个窗口区域
+                        System.Diagnostics.Debug.WriteLine("WM_NCCALCSIZE: Returning 0 to make client area = window area");
+                        return IntPtr.Zero;
+                    }
+                    return IntPtr.Zero;
+                }
+
+                if (msg == Win32WindowApi.WM_NCPAINT)
+                {
+                    System.Diagnostics.Debug.WriteLine("WM_NCPAINT: Blocking non-client paint");
+                    return IntPtr.Zero;
+                }
+
+                if (msg == Win32WindowApi.WM_NCACTIVATE)
+                {
+                    System.Diagnostics.Debug.WriteLine("WM_NCACTIVATE: Returning 1 without drawing");
+                    return new IntPtr(1);
+                }
+            }
+
+            return Win32WindowApi.CallWindowProc(_originalWindowProc, hWnd, msg, wParam, lParam);
         }
     }
 }
