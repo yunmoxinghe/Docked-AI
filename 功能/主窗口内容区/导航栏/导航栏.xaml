@@ -1,0 +1,46 @@
+﻿<UserControl
+    x:Class="Docked_AI.Features.MainWindowContent.NavigationBar.NavigationBar"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <controls:NavigationView
+        x:Name="NavView"
+        Width="48"
+        Margin="0"
+        HorizontalAlignment="Right"
+        VerticalAlignment="Stretch"
+        AlwaysShowHeader="False"
+        IsBackButtonVisible="Collapsed"
+        IsPaneToggleButtonVisible="False"
+        IsSettingsVisible="True"
+        IsPaneOpen="False"
+        PaneDisplayMode="LeftCompact"
+        OpenPaneLength="220"
+        CompactPaneLength="48"
+        SelectionChanged="NavView_SelectionChanged"
+        FlowDirection="RightToLeft">
+        <controls:NavigationView.MenuItems>
+            <controls:NavigationViewItem
+                x:Name="HomeNavigationItem"
+                Content="主页"
+                Tag="0"
+                IsSelected="True">
+                <controls:NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Home" />
+                </controls:NavigationViewItem.Icon>
+            </controls:NavigationViewItem>
+            <controls:NavigationViewItem
+                x:Name="CreateNavigationItem"
+                Content="新建"
+                Tag="1">
+                <controls:NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE710;" />
+                </controls:NavigationViewItem.Icon>
+            </controls:NavigationViewItem>
+        </controls:NavigationView.MenuItems>
+    </controls:NavigationView>
+</UserControl>

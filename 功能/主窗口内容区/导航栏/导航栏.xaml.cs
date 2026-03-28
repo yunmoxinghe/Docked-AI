@@ -3,41 +3,35 @@ using Docked_AI.Features.Pages.New;
 using Docked_AI.Features.Pages.Settings;
 using Docked_AI.Features.Pages.WebApp.Browser;
 using Docked_AI.Features.Pages.WebApp.Shared;
-using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Hosting;
-using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Numerics;
 using System.Threading.Tasks;
 
-namespace Docked_AI.Features.MainWindowContent
+namespace Docked_AI.Features.MainWindowContent.NavigationBar
 {
-    public sealed partial class MainWindowContent : UserControl
+    public sealed partial class NavigationBar : UserControl
     {
-        private const float ContentCornerRadius = 4f;
-
         private readonly Dictionary<string, WebAppShortcut> _webShortcuts = new();
         private readonly Dictionary<string, NavigationViewItem> _webShortcutItems = new();
-        private CompositionRoundedRectangleGeometry? _clipGeometry;
 
-        public MainWindowContent()
+        public event EventHandler<NavigationRequest>? NavigationRequested;
+
+        public NavigationBar()
         {
             InitializeComponent();
-            ContentFrame.Navigate(typeof(HomePage));
 
             WebAppEventBus.ShortcutCreated += OnShortcutCreated;
             Unloaded += (_, _) => WebAppEventBus.ShortcutCreated -= OnShortcutCreated;
-            Loaded += MainWindowContent_Loaded;
+            Loaded += NavigationBar_Loaded;
         }
 
-        private async void MainWindowContent_Loaded(object sender, RoutedEventArgs e)
+        private async void NavigationBar_Loaded(object sender, RoutedEventArgs e)
         {
-            Loaded -= MainWindowContent_Loaded;
+            Loaded -= NavigationBar_Loaded;
             await RestorePersistedShortcutsAsync();
         }
 
@@ -78,7 +72,7 @@ namespace Docked_AI.Features.MainWindowContent
                 existingItem.Icon = BuildShortcutIcon(shortcut);
                 if (selectItem)
                 {
-                    RightNavigationView.SelectedItem = existingItem;
+                    NavView.SelectedItem = existingItem;
                 }
                 return;
             }
@@ -90,17 +84,17 @@ namespace Docked_AI.Features.MainWindowContent
                 Icon = BuildShortcutIcon(shortcut)
             };
 
-            int insertIndex = RightNavigationView.MenuItems.IndexOf(CreateNavigationItem);
+            int insertIndex = NavView.MenuItems.IndexOf(CreateNavigationItem);
             if (insertIndex < 0)
             {
-                insertIndex = RightNavigationView.MenuItems.Count;
+                insertIndex = NavView.MenuItems.Count;
             }
 
-            RightNavigationView.MenuItems.Insert(insertIndex, navItem);
+            NavView.MenuItems.Insert(insertIndex, navItem);
             _webShortcutItems[shortcut.Id] = navItem;
             if (selectItem)
             {
-                RightNavigationView.SelectedItem = navItem;
+                NavView.SelectedItem = navItem;
             }
         }
 
@@ -184,11 +178,14 @@ namespace Docked_AI.Features.MainWindowContent
             return ".png";
         }
 
-        private void RightNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+        private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
+            Type pageType;
+            object? parameter = null;
+
             if (args.IsSettingsSelected)
             {
-                ContentFrame.Navigate(typeof(SettingsPage));
+                NavigationRequested?.Invoke(this, new NavigationRequest(typeof(SettingsPage), null));
                 return;
             }
 
@@ -202,7 +199,7 @@ namespace Docked_AI.Features.MainWindowContent
                 string shortcutId = tagText["webapp:".Length..];
                 if (_webShortcuts.TryGetValue(shortcutId, out WebAppShortcut? shortcut))
                 {
-                    ContentFrame.Navigate(typeof(WebBrowserPage), shortcut);
+                    NavigationRequested?.Invoke(this, new NavigationRequest(typeof(WebBrowserPage), shortcut));
                 }
                 return;
             }
@@ -212,38 +209,25 @@ namespace Docked_AI.Features.MainWindowContent
                 return;
             }
 
-            switch (sectionIndex)
+            pageType = sectionIndex switch
             {
-                case 0:
-                    ContentFrame.Navigate(typeof(HomePage));
-                    break;
-                case 1:
-                    ContentFrame.Navigate(typeof(NewPage));
-                    break;
-                default:
-                    ContentFrame.Navigate(typeof(HomePage));
-                    break;
-            }
+                1 => typeof(NewPage),
+                _ => typeof(HomePage)
+            };
+
+            NavigationRequested?.Invoke(this, new NavigationRequest(pageType, null));
         }
+    }
 
-        private void ContentFrame_SizeChanged(object sender, SizeChangedEventArgs e)
+    public sealed class NavigationRequest
+    {
+        public Type PageType { get; }
+        public object? Parameter { get; }
+
+        public NavigationRequest(Type pageType, object? parameter)
         {
-            if (e.NewSize.Width <= 0 || e.NewSize.Height <= 0)
-            {
-                return;
-            }
-
-            var visual = ElementCompositionPreview.GetElementVisual(ContentFrame);
-            if (_clipGeometry == null)
-            {
-                var compositor = visual.Compositor;
-                _clipGeometry = compositor.CreateRoundedRectangleGeometry();
-                _clipGeometry.CornerRadius = new Vector2(ContentCornerRadius, ContentCornerRadius);
-                _clipGeometry.Offset = Vector2.Zero;
-                visual.Clip = compositor.CreateGeometricClip(_clipGeometry);
-            }
-
-            _clipGeometry.Size = new Vector2((float)e.NewSize.Width, (float)e.NewSize.Height);
+            PageType = pageType;
+            Parameter = parameter;
         }
     }
 }

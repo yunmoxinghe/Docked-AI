@@ -4,7 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:Docked_AI"
-    xmlns:mainContent="using:Docked_AI.Features.MainWindowContent"
+    xmlns:linker="using:Docked_AI.Features.MainWindowContent.Linker"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:win="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -13,6 +13,6 @@
     Title="Docked AI">
 
     <Grid x:Name="RootGrid" Background="Transparent">
-        <mainContent:MainWindowContent />
+        <linker:Linker />
     </Grid>
 </Window>
