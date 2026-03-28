@@ -24,11 +24,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private Uri? _pendingNavigationUri;
         private bool _isWebViewReady;
-        private Uri? _currentUri;
         private WebAppShortcut? _currentShortcut;
-        private int _navigationVersion;
-        private (double x, double y)? _pendingScrollRestore;
-        private string? _pendingScrollRestoreUrl;
 
         private readonly SolidColorBrush _topBarBackgroundBrush = new(Colors.Transparent);
         private readonly SolidColorBrush _bottomBarBackgroundBrush = new(Colors.Transparent);
@@ -71,56 +67,14 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             TitleText.Text = string.IsNullOrWhiteSpace(shortcut.Name) ? uri.Host : shortcut.Name;
             _ = ShowShortcutIconAsync(shortcut.IconBytes);
 
-            if (_isWebViewReady && _currentUri is not null && UriEquals(_currentUri, uri))
-            {
-                return;
-            }
-
-            _currentUri = uri;
-            _pendingNavigationUri = null;
-            int version = ++_navigationVersion;
-            _ = PrepareNavigationAsync(shortcut, uri, version);
-        }
-
-        protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
-        {
-            base.OnNavigatedFrom(e);
-            _ = SaveStateAsync();
+            _pendingNavigationUri = uri;
+            TryNavigatePendingUri();
         }
 
         private async void WebBrowserPage_Loaded(object sender, RoutedEventArgs e)
         {
             Loaded -= WebBrowserPage_Loaded;
             await EnsureWebViewInitializedAsync();
-            TryNavigatePendingUri();
-        }
-
-        private async Task PrepareNavigationAsync(WebAppShortcut shortcut, Uri defaultUri, int version)
-        {
-            Uri target = defaultUri;
-            (double x, double y)? restoreScroll = null;
-
-            WebBrowserState? state = await WebBrowserStateStore.LoadAsync(shortcut.Id);
-            if (!string.IsNullOrWhiteSpace(state?.LastUrl) &&
-                Uri.TryCreate(state.LastUrl, UriKind.Absolute, out Uri? savedUri))
-            {
-                target = savedUri;
-
-                if (state.ScrollX is not null && state.ScrollY is not null)
-                {
-                    restoreScroll = ((double)state.ScrollX, (double)state.ScrollY);
-                }
-            }
-
-            if (version != _navigationVersion)
-            {
-                return;
-            }
-
-            _pendingNavigationUri = target;
-            _pendingScrollRestore = restoreScroll;
-            _pendingScrollRestoreUrl = target.AbsoluteUri;
-
             TryNavigatePendingUri();
         }
 
@@ -167,12 +121,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         {
             if (!_isWebViewReady || _pendingNavigationUri is null)
             {
-                return;
-            }
-
-            if (WebView.Source is not null && UriEquals(WebView.Source, _pendingNavigationUri))
-            {
-                _pendingNavigationUri = null;
                 return;
             }
 
@@ -263,7 +211,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         {
             UpdateNavigationButtons();
             UpdateUrlText();
-            _ = RestoreScrollIfNeededAsync();
         }
 
         private void CoreWebView2_HistoryChanged(object? sender, object e)
@@ -447,105 +394,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             UrlText.Text = uri?.AbsoluteUri ?? string.Empty;
         }
 
-        private async Task RestoreScrollIfNeededAsync()
-        {
-            if (WebView.CoreWebView2 is null || _pendingScrollRestore is null || string.IsNullOrWhiteSpace(_pendingScrollRestoreUrl))
-            {
-                return;
-            }
-
-            string currentUrl = WebView.Source?.AbsoluteUri ?? string.Empty;
-            if (!string.Equals(currentUrl, _pendingScrollRestoreUrl, StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-            var (x, y) = _pendingScrollRestore.Value;
-            _pendingScrollRestore = null;
-            _pendingScrollRestoreUrl = null;
-
-            try
-            {
-                await WebView.CoreWebView2.ExecuteScriptAsync($"try{{window.scrollTo({x.ToString(CultureInfo.InvariantCulture)},{y.ToString(CultureInfo.InvariantCulture)});}}catch(e){{}}");
-            }
-            catch
-            {
-                // Ignore failures (navigation in progress / blocked).
-            }
-        }
-
-        private async Task SaveStateAsync()
-        {
-            if (_currentShortcut is null)
-            {
-                return;
-            }
-
-            string? url = WebView.Source?.AbsoluteUri;
-            string? title = TitleText.Text;
-            (double x, double y)? scroll = await TryGetScrollAsync();
-
-            var state = new WebBrowserState(
-                LastUrl: url,
-                LastTitle: title,
-                ScrollX: scroll?.x,
-                ScrollY: scroll?.y,
-                UpdatedAt: DateTimeOffset.UtcNow);
-
-            try
-            {
-                await WebBrowserStateStore.SaveAsync(_currentShortcut.Id, state);
-            }
-            catch
-            {
-                // Ignore persistence failures.
-            }
-        }
-
-        private async Task<(double x, double y)?> TryGetScrollAsync()
-        {
-            if (WebView.CoreWebView2 is null)
-            {
-                return null;
-            }
-
-            try
-            {
-                string raw = await WebView.CoreWebView2.ExecuteScriptAsync("(() => JSON.stringify({ x: (window.scrollX || 0), y: (window.scrollY || 0) }))()");
-                if (string.IsNullOrWhiteSpace(raw))
-                {
-                    return null;
-                }
-
-                using JsonDocument outer = JsonDocument.Parse(raw);
-                if (outer.RootElement.ValueKind != JsonValueKind.String)
-                {
-                    return null;
-                }
-
-                string? innerJson = outer.RootElement.GetString();
-                if (string.IsNullOrWhiteSpace(innerJson))
-                {
-                    return null;
-                }
-
-                using JsonDocument inner = JsonDocument.Parse(innerJson);
-                JsonElement root = inner.RootElement;
-                if (!root.TryGetProperty("x", out JsonElement xEl) || !root.TryGetProperty("y", out JsonElement yEl))
-                {
-                    return null;
-                }
-
-                double x = xEl.GetDouble();
-                double y = yEl.GetDouble();
-                return (x, y);
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         private async Task ShowShortcutIconAsync(byte[]? iconBytes)
         {
             if (iconBytes is not { Length: > 0 })
@@ -623,16 +471,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
 
             await Launcher.LaunchUriAsync(uri);
-        }
-
-        private static bool UriEquals(Uri left, Uri right)
-        {
-            return Uri.Compare(
-                       left,
-                       right,
-                       UriComponents.AbsoluteUri,
-                       UriFormat.SafeUnescaped,
-                       StringComparison.OrdinalIgnoreCase) == 0;
         }
     }
 }
