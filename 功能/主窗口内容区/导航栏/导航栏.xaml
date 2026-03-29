@@ -22,6 +22,7 @@
         OpenPaneLength="220"
         CompactPaneLength="48"
         SelectionChanged="NavView_SelectionChanged"
+        ItemInvoked="NavView_ItemInvoked"
         FlowDirection="RightToLeft">
         <controls:NavigationView.MenuItems>
             <controls:NavigationViewItem
@@ -44,11 +45,14 @@
         </controls:NavigationView.MenuItems>
         <controls:NavigationView.FooterMenuItems>
             <controls:NavigationViewItem
-                x:Name="DockNavigationItem"
+                x:Name="DockToggleNavigationItem"
                 Content="固定边栏"
-                Tag="dock-toggle">
+                Tag="dock"
+                SelectsOnInvoked="False">
                 <controls:NavigationViewItem.Icon>
-                    <FontIcon Glyph="&#xE840;" />
+                    <FontIcon
+                        x:Name="DockToggleIcon"
+                        Glyph="&#xE89F;" />
                 </controls:NavigationViewItem.Icon>
             </controls:NavigationViewItem>
             <controls:NavigationViewItem

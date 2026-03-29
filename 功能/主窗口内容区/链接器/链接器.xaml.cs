@@ -1,15 +1,18 @@
 ﻿using Docked_AI.Features.MainWindowContent.ContentArea;
-using Docked_AI.Features.MainWindowContent.NavigationBar;
 using Docked_AI.Features.Pages.Home;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using NavBarControl = Docked_AI.Features.MainWindowContent.NavigationBar.NavigationBar;
+using NavRequest = Docked_AI.Features.MainWindowContent.NavigationBar.NavigationRequest;
 
 namespace Docked_AI.Features.MainWindowContent.Linker
 {
     public sealed partial class Linker : UserControl
     {
         public event EventHandler? DockToggleRequested;
+
+        public NavBarControl NavBarInstance => NavBar;
 
         public Linker()
         {
@@ -19,7 +22,7 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             NavBar.DockToggleRequested += OnDockToggleRequested;
         }
 
-        private void OnNavigationRequested(object? sender, NavigationRequest request)
+        private void OnNavigationRequested(object? sender, NavRequest request)
         {
             ContentHost.Navigate(request.PageType, request.Parameter);
         }

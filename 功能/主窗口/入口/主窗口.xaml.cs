@@ -1,7 +1,9 @@
 using Docked_AI.Features.MainWindow.State;
 using Docked_AI.Features.MainWindow.Visibility;
 using Docked_AI.Features.MainWindowContent.Linker;
+using Docked_AI.Features.MainWindowContent.NavigationBar;
 using Microsoft.UI.Xaml;
+using System.ComponentModel;
 
 namespace Docked_AI
 {
@@ -27,6 +29,25 @@ namespace Docked_AI
             if (RootGrid.Children.Count > 0 && RootGrid.Children[0] is Linker linker)
             {
                 linker.DockToggleRequested += OnDockToggleRequested;
+            }
+
+            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        }
+
+        private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(MainWindowViewModel.IsDockPinned))
+            {
+                UpdateDockToggleIcon(_viewModel.IsDockPinned);
+            }
+        }
+
+        private void UpdateDockToggleIcon(bool isPinned)
+        {
+            if (RootGrid.Children.Count > 0 && 
+                RootGrid.Children[0] is Linker linker)
+            {
+                linker.NavBarInstance.UpdateDockToggleIcon(isPinned);
             }
         }
 

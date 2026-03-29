@@ -22,6 +22,11 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         public event EventHandler<NavigationRequest>? NavigationRequested;
         public event EventHandler? DockToggleRequested;
 
+        public void UpdateDockToggleIcon(bool isPinned)
+        {
+            DockToggleIcon.Glyph = isPinned ? "\uE8A0" : "\uE89F";
+        }
+
         public NavigationBar()
         {
             InitializeComponent();
@@ -181,29 +186,62 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             return ".png";
         }
 
-        private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+        private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
-            Type pageType;
-
-            if (args.SelectedItemContainer?.Tag is not string tagText)
+            if (args.InvokedItemContainer?.Tag is not string tagText)
             {
                 return;
             }
 
-            if (tagText == "dock-toggle")
+            if (tagText == "dock")
             {
                 DockToggleRequested?.Invoke(this, EventArgs.Empty);
-                if (_lastSelectedNavigationItem != null)
+                return;
+            }
+
+            if (tagText == "settings")
+            {
+                NavigationRequested?.Invoke(this, new NavigationRequest(typeof(SettingsPage), null));
+                return;
+            }
+
+            if (tagText.StartsWith("webapp:"))
+            {
+                string shortcutId = tagText["webapp:".Length..];
+                if (_webShortcuts.TryGetValue(shortcutId, out WebAppShortcut? shortcut))
                 {
-                    NavView.SelectedItem = _lastSelectedNavigationItem;
+                    NavView.SelectedItem = args.InvokedItemContainer;
+                    NavigationRequested?.Invoke(this, new NavigationRequest(typeof(WebBrowserPage), shortcut));
                 }
+                return;
+            }
+
+            if (!int.TryParse(tagText, out int sectionIndex))
+            {
+                return;
+            }
+
+            NavView.SelectedItem = args.InvokedItemContainer;
+
+            Type pageType = sectionIndex switch
+            {
+                1 => typeof(NewPage),
+                _ => typeof(HomePage)
+            };
+
+            NavigationRequested?.Invoke(this, new NavigationRequest(pageType, null));
+        }
+
+        private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+        {
+            if (args.SelectedItemContainer?.Tag is not string tagText)
+            {
                 return;
             }
 
             if (tagText == "settings")
             {
                 _lastSelectedNavigationItem = args.SelectedItemContainer;
-                NavigationRequested?.Invoke(this, new NavigationRequest(typeof(SettingsPage), null));
                 return;
             }
 
@@ -225,7 +263,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
 
             _lastSelectedNavigationItem = args.SelectedItemContainer;
 
-            pageType = sectionIndex switch
+            Type pageType = sectionIndex switch
             {
                 1 => typeof(NewPage),
                 _ => typeof(HomePage)
@@ -233,6 +271,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
 
             NavigationRequested?.Invoke(this, new NavigationRequest(pageType, null));
         }
+
     }
 
     public sealed class NavigationRequest
