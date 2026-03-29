@@ -58,7 +58,18 @@ namespace Docked_AI.Features.Pages.Settings
             _lastMeasuredWidth = width;
 
             string mode = normalized >= 1 ? "Wide" : (normalized <= 0 ? "Narrow" : "Fluid");
-            WidthValueText.Text = $"{width:F0}px | {mode} | margin {PageContentPanel.Margin.Left:F0}";
+        }
+
+        private void OnOpenGitHubClick(object sender, RoutedEventArgs args)
+        {
+        }
+
+        private void OnSendFeedbackClick(object sender, RoutedEventArgs args)
+        {
+        }
+
+        private void OnViewLicenseClick(object sender, RoutedEventArgs args)
+        {
         }
     }
 }

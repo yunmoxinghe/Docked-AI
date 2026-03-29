@@ -32,77 +32,40 @@
                 <StackPanel
                     x:Name="CardsPanel"
                     Spacing="4">
-                    <controls:SettingsCard
-                        HorizontalAlignment="Stretch"
-                        Header="布局诊断"
-                        Description="当前页面可用宽度（实时）">
-                        <controls:SettingsCard.HeaderIcon>
-                            <SymbolIcon Symbol="Preview" />
-                        </controls:SettingsCard.HeaderIcon>
-                        <TextBlock
-                            x:Name="WidthValueText"
-                            FontSize="18"
-                            FontWeight="SemiBold" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard
-                        HorizontalAlignment="Stretch"
-                        Header="通用设置"
-                        Description="这里可以放置应用基础选项。">
-                        <controls:SettingsCard.HeaderIcon>
-                            <SymbolIcon Symbol="Setting" />
-                        </controls:SettingsCard.HeaderIcon>
-                        <ToggleSwitch OnContent="开" OffContent="关" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard HorizontalAlignment="Stretch" Header="通知" Description="配置提醒、声音和横幅。">
-                        <controls:SettingsCard.HeaderIcon>
-                            <SymbolIcon Symbol="Message" />
-                        </controls:SettingsCard.HeaderIcon>
-                        <ToggleSwitch OnContent="开" OffContent="关" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard HorizontalAlignment="Stretch" Header="启动" Description="设置开机启动和后台行为。">
-                        <controls:SettingsCard.HeaderIcon>
-                            <SymbolIcon Symbol="Play" />
-                        </controls:SettingsCard.HeaderIcon>
-                        <ToggleSwitch OnContent="开" OffContent="关" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard HorizontalAlignment="Stretch" Header="外观" Description="调整主题与动画效果。">
-                        <controls:SettingsCard.HeaderIcon>
-                            <SymbolIcon Symbol="Highlight" />
-                        </controls:SettingsCard.HeaderIcon>
-                        <ToggleSwitch OnContent="开" OffContent="关" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard HorizontalAlignment="Stretch" Header="同步" Description="自动同步配置和状态。">
-                        <controls:SettingsCard.HeaderIcon>
-                            <SymbolIcon Symbol="Sync" />
-                        </controls:SettingsCard.HeaderIcon>
-                        <ToggleSwitch OnContent="开" OffContent="关" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard HorizontalAlignment="Stretch" Header="网络" Description="网络策略与代理选项。">
-                        <controls:SettingsCard.HeaderIcon>
-                            <SymbolIcon Symbol="World" />
-                        </controls:SettingsCard.HeaderIcon>
-                        <ToggleSwitch OnContent="开" OffContent="关" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard HorizontalAlignment="Stretch" Header="隐私" Description="诊断数据与权限控制。">
-                        <controls:SettingsCard.HeaderIcon>
-                            <SymbolIcon Symbol="Permissions" />
-                        </controls:SettingsCard.HeaderIcon>
-                        <ToggleSwitch OnContent="开" OffContent="关" />
-                    </controls:SettingsCard>
-
-                    <controls:SettingsCard HorizontalAlignment="Stretch" Header="高级" Description="实验功能与开发选项。">
-                        <controls:SettingsCard.HeaderIcon>
-                            <SymbolIcon Symbol="Repair" />
-                        </controls:SettingsCard.HeaderIcon>
-                        <ToggleSwitch OnContent="开" OffContent="关" />
-                    </controls:SettingsCard>
+                    <controls:SettingsExpander x:Name="AboutAppExpander"
+                                              Header="Clash WinUI 控制面板"
+                                              Description="基于 WinUI 3 的现代化 Clash 代理管理工具"
+                                              IsExpanded="False">
+                        <controls:SettingsExpander.HeaderIcon>
+                            <BitmapIcon UriSource="ms-appx:///Assets/Sparkles.ico" ShowAsMonochrome="False"/>
+                        </controls:SettingsExpander.HeaderIcon>
+                        
+                        <TextBlock x:Name="VersionText" 
+                                   Text="版本: v1.0.0" 
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        
+                        <controls:SettingsExpander.Items>
+                            <controls:SettingsCard Header="应用详情" 
+                                                  HorizontalContentAlignment="Left"
+                                                  ContentAlignment="Left">
+                                <StackPanel Margin="-12,0,0,0" Orientation="Vertical" Spacing="4">
+                                    <TextBlock Text="基于 WinUI 3 框架开发" FontSize="14"/>
+                                    <TextBlock Text="支持 Clash 核心代理管理" FontSize="14"/>
+                                    <TextBlock Text="遵循 Windows 11 设计规范" FontSize="14"/>
+                                </StackPanel>
+                            </controls:SettingsCard>
+                            
+                            <controls:SettingsCard Header="相关链接" 
+                                                  HorizontalContentAlignment="Left"
+                                                  ContentAlignment="Left">
+                                <StackPanel Margin="-12,0,0,0" Orientation="Vertical" Spacing="4">
+                                    <HyperlinkButton Content="访问 GitHub 项目" Click="OnOpenGitHubClick"/>
+                                    <HyperlinkButton Content="提交反馈和建议" Click="OnSendFeedbackClick"/>
+                                    <HyperlinkButton Content="查看开源协议" Click="OnViewLicenseClick"/>
+                                </StackPanel>
+                            </controls:SettingsCard>
+                        </controls:SettingsExpander.Items>
+                    </controls:SettingsExpander>
                 </StackPanel>
 
                 <Border Height="40" />

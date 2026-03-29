@@ -93,6 +93,17 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                 Icon = BuildShortcutIcon(shortcut)
             };
 
+            var contextMenu = new MenuFlyout();
+            var unpinItem = new MenuFlyoutItem
+            {
+                Text = "取消固定",
+                Tag = shortcut.Id,
+                Icon = new FontIcon { Glyph = "\uE77A" }
+            };
+            unpinItem.Click += OnUnpinShortcutClick;
+            contextMenu.Items.Add(unpinItem);
+            navItem.ContextFlyout = contextMenu;
+
             int insertIndex = NavView.MenuItems.IndexOf(CreateNavigationItem);
             if (insertIndex < 0)
             {
@@ -281,6 +292,36 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         private void SettingsNavigationItem_PointerExited(object sender, PointerRoutedEventArgs e)
         {
             AnimatedIcon.SetState(SettingsAnimatedIcon, "Normal");
+        }
+
+        private void OnUnpinShortcutClick(object sender, RoutedEventArgs e)
+        {
+            if (sender is MenuFlyoutItem menuItem && menuItem.Tag is string shortcutId)
+            {
+                RemoveShortcut(shortcutId);
+            }
+        }
+
+        private void RemoveShortcut(string shortcutId)
+        {
+            if (!_webShortcuts.Remove(shortcutId))
+            {
+                return;
+            }
+
+            if (_webShortcutItems.TryGetValue(shortcutId, out NavigationViewItem? navItem))
+            {
+                NavView.MenuItems.Remove(navItem);
+                _webShortcutItems.Remove(shortcutId);
+
+                if (NavView.SelectedItem is NavigationViewItem selectedItem && selectedItem == navItem)
+                {
+                    NavView.SelectedItem = HomeNavigationItem;
+                    NavigationRequested?.Invoke(this, new NavigationRequest(typeof(HomePage), null));
+                }
+            }
+
+            _ = PersistShortcutsAsync();
         }
 
     }
