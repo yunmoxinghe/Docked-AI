@@ -9,6 +9,7 @@
     <AppIconSource>E:\OneDrive - zlbx3\桌面\Sparkles.png</AppIconSource>
     <SplashScreenSource>E:\OneDrive - zlbx3\桌面\Sparkles.png</SplashScreenSource>
     <PackageLogoSource>E:\OneDrive - zlbx3\桌面\Sparkles.png</PackageLogoSource>
+    <AppxShowAllApps>False</AppxShowAllApps>
   </PropertyGroup>
   <ItemGroup>
     <None Update="Package.appxmanifest">

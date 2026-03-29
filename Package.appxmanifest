@@ -8,15 +8,15 @@
   IgnorableNamespaces="uap rescap">
 
   <Identity
-    Name="c1c08eeb-1346-4c68-9887-bd2df0db8aa9"
-    Publisher="CN=gold"
+    Name="8B8CC4F4.482486777ECD9"
+    Publisher="CN=A19C62A9-1AA6-44AB-9F57-2DE6C380D9C9"
     Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="c1c08eeb-1346-4c68-9887-bd2df0db8aa9" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="3bb471d1-b8f7-4b6d-bba5-cc1b59b654ad" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>Docked AI</DisplayName>
-    <PublisherDisplayName>gold</PublisherDisplayName>
+    <DisplayName>边栏助手</DisplayName>
+    <PublisherDisplayName>云漠星</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -34,7 +34,7 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="Docked AI"
+        DisplayName="边栏助手"
         Description="Docked AI"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
