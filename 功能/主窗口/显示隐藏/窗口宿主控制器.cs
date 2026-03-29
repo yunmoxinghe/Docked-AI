@@ -200,13 +200,12 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _viewModel.MarkVisible();
             _window.AppWindow.IsShownInSwitchers = false;
             
-            // 先应用窗口样式和 DWM 设置
             ApplyPinnedWindowStyle();
             
-            // 然后应用背景
+            ApplyPinnedBounds();
+            
             _backdropService.EnsureAcrylicBackdrop(_window);
 
-            ApplyPinnedBounds();
             _window.Activate();
         }
 
@@ -438,6 +437,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 0,
                 0,
                 Win32WindowApi.SWP_NOSIZE |
+                Win32WindowApi.SWP_NOMOVE |
                 Win32WindowApi.SWP_NOZORDER |
                 Win32WindowApi.SWP_NOACTIVATE |
                 Win32WindowApi.SWP_FRAMECHANGED);
