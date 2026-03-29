@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,6 +40,19 @@ namespace Docked_AI.Features.Pages.WebApp
         public WebAppPage()
         {
             InitializeComponent();
+        }
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+
+            System.Diagnostics.Debug.WriteLine($"WebAppPage.OnNavigatedTo called with parameter: {e.Parameter}");
+
+            if (e.Parameter is string url && !string.IsNullOrWhiteSpace(url))
+            {
+                System.Diagnostics.Debug.WriteLine($"WebAppPage: setting URL to: {url}");
+                WebsiteUrlTextBox.Text = url;
+            }
         }
 
         private async void WebsiteUrlTextBox_TextChanged(object sender, TextChangedEventArgs e)

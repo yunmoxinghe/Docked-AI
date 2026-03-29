@@ -30,8 +30,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Remove="功能\应用程序\App.xaml" />
-    <ApplicationDefinition Include="功能\应用程序\App.xaml" />
+    <Page Remove="功能\应用入口\App.xaml" />
+    <ApplicationDefinition Include="功能\应用入口\App.xaml" />
   </ItemGroup>
 
   <!--

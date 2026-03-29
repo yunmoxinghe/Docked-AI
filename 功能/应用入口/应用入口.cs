@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,6 +6,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Docked_AI.Features.Tray;
 using Windows.Graphics;
+using Windows.ApplicationModel.Activation;
+using Windows.ApplicationModel.DataTransfer;
 
 namespace Docked_AI
 {
@@ -19,6 +21,7 @@ namespace Docked_AI
         private TrayIconManager? _trayIconManager;
         private static Mutex? _mutex;
         private static bool _ownsMutex;
+        private string? _pendingSharedUrl;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -40,13 +43,21 @@ namespace Docked_AI
         {
             try
             {
+                var activationArgs = Windows.ApplicationModel.AppInstance.GetActivatedEventArgs();
+
+                // ShareTarget activation should always proceed (even if another instance exists)
+                if (activationArgs?.Kind == ActivationKind.ShareTarget)
+                {
+                    HandleShareTargetActivation(activationArgs as ShareTargetActivatedEventArgs);
+                    return;
+                }
+
                 const string appName = "DockedAI_SingleInstance_Mutex";
                 _mutex = new Mutex(true, appName, out bool createdNew);
                 _ownsMutex = createdNew;
 
                 if (!createdNew)
                 {
-                    // Another instance is already running, bring it to the foreground.
                     ActivateExistingInstance();
                     ExitApplication();
                     return;
@@ -64,6 +75,66 @@ namespace Docked_AI
             {
                 LogException("OnLaunched", ex);
                 throw;
+            }
+        }
+
+        private async void HandleShareTargetActivation(ShareTargetActivatedEventArgs? shareArgs)
+        {
+            if (shareArgs == null)
+            {
+                return;
+            }
+
+            try
+            {
+                var shareOperation = shareArgs.ShareOperation;
+                shareOperation.ReportStarted();
+
+                string? sharedUrl = null;
+
+                if (shareOperation.Data.Contains(StandardDataFormats.WebLink))
+                {
+                    var webLink = await shareOperation.Data.GetWebLinkAsync();
+                    sharedUrl = webLink?.AbsoluteUri;
+                }
+                else if (shareOperation.Data.Contains(StandardDataFormats.Text))
+                {
+                    var text = await shareOperation.Data.GetTextAsync();
+                    if (Uri.TryCreate(text, UriKind.Absolute, out var uri) &&
+                        (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+                    {
+                        sharedUrl = uri.AbsoluteUri;
+                    }
+                }
+
+                shareOperation.ReportCompleted();
+
+                if (!string.IsNullOrEmpty(sharedUrl))
+                {
+                    _pendingSharedUrl = sharedUrl;
+
+                    if (_window == null)
+                    {
+                        _window = new MainWindow();
+                    }
+
+                    _window.Activate();
+
+                    // Wait for window to fully load before navigating
+                    await Task.Delay(500);
+
+                    System.Diagnostics.Debug.WriteLine($"HandleShareTargetActivation: navigating with URL: {_pendingSharedUrl}");
+
+                    if (_window is MainWindow mainWindow)
+                    {
+                        mainWindow.NavigateToNewPage(_pendingSharedUrl);
+                        _pendingSharedUrl = null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogException("HandleShareTargetActivation", ex);
             }
         }
 

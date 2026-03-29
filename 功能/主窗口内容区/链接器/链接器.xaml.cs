@@ -1,5 +1,7 @@
 ﻿using Docked_AI.Features.MainWindowContent.ContentArea;
 using Docked_AI.Features.Pages.Home;
+using Docked_AI.Features.Pages.New;
+using Docked_AI.Features.Pages.WebApp;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
@@ -30,6 +32,13 @@ namespace Docked_AI.Features.MainWindowContent.Linker
         private void OnDockToggleRequested(object? sender, EventArgs e)
         {
             DockToggleRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        public void NavigateToNewPage(string url)
+        {
+            System.Diagnostics.Debug.WriteLine($"Linker.NavigateToNewPage called with URL: {url}");
+            ContentHost.Navigate(typeof(NewPage), url);
+            NavBar.SelectNewPageItem();
         }
     }
 }

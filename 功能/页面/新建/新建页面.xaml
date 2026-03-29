@@ -48,5 +48,7 @@
                 <Border Height="40" />
             </StackPanel>
         </ScrollViewer>
+        
+        <Frame x:Name="SubPageFrame" Visibility="Collapsed" />
     </Grid>
 </Page>

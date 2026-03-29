@@ -2,6 +2,7 @@ using Docked_AI.Features.MainWindow.State;
 using Docked_AI.Features.MainWindow.Visibility;
 using Docked_AI.Features.MainWindowContent.Linker;
 using Docked_AI.Features.MainWindowContent.NavigationBar;
+using Docked_AI.Features.Pages.New;
 using Microsoft.UI.Xaml;
 using System.ComponentModel;
 
@@ -64,6 +65,22 @@ namespace Docked_AI
         private void OnDockToggleRequested(object? sender, System.EventArgs e)
         {
             TogglePinnedDock();
+        }
+
+        public void NavigateToNewPage(string url)
+        {
+            System.Diagnostics.Debug.WriteLine($"MainWindow.NavigateToNewPage called with URL: {url}");
+            System.Diagnostics.Debug.WriteLine($"RootGrid.Children.Count: {RootGrid.Children.Count}");
+            
+            if (RootGrid.Children.Count > 0 && RootGrid.Children[0] is Linker linker)
+            {
+                System.Diagnostics.Debug.WriteLine("Linker found, calling NavigateToNewPage");
+                linker.NavigateToNewPage(url);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("Linker NOT found!");
+            }
         }
     }
 }

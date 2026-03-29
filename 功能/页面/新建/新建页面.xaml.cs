@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
+using Microsoft.UI.Xaml.Navigation;
 using System;
 using Docked_AI.Features.Pages.WebApp;
 
@@ -21,6 +22,32 @@ namespace Docked_AI.Features.Pages.New
             InitializeComponent();
             Loaded += OnLoaded;
             SizeChanged += OnSizeChanged;
+        }
+
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+
+            System.Diagnostics.Debug.WriteLine($"NewPage.OnNavigatedTo called with parameter: {e.Parameter}");
+
+            if (e.Parameter is string url && !string.IsNullOrWhiteSpace(url))
+            {
+                System.Diagnostics.Debug.WriteLine($"NewPage: navigating to WebAppPage with URL: {url}");
+                CreateScrollViewer.Visibility = Visibility.Collapsed;
+                SubPageFrame.Visibility = Visibility.Visible;
+                SubPageFrame.Navigate(
+                    typeof(WebAppPage),
+                    url,
+                    new SlideNavigationTransitionInfo
+                    {
+                        Effect = SlideNavigationTransitionEffect.FromRight
+                    });
+            }
+            else
+            {
+                CreateScrollViewer.Visibility = Visibility.Visible;
+                SubPageFrame.Visibility = Visibility.Collapsed;
+            }
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -63,7 +90,9 @@ namespace Docked_AI.Features.Pages.New
 
         private void PinWebCard_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            Frame?.Navigate(
+            CreateScrollViewer.Visibility = Visibility.Collapsed;
+            SubPageFrame.Visibility = Visibility.Visible;
+            SubPageFrame.Navigate(
                 typeof(WebAppPage),
                 null,
                 new SlideNavigationTransitionInfo

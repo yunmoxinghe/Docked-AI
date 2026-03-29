@@ -1,4 +1,4 @@
-﻿using Docked_AI.Features.Pages.Home;
+using Docked_AI.Features.Pages.Home;
 using Docked_AI.Features.Pages.New;
 using Docked_AI.Features.Pages.Settings;
 using Docked_AI.Features.Pages.WebApp.Browser;
@@ -19,6 +19,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         private readonly Dictionary<string, WebAppShortcut> _webShortcuts = new();
         private readonly Dictionary<string, NavigationViewItem> _webShortcutItems = new();
         private NavigationViewItemBase? _lastSelectedNavigationItem;
+        private bool _suppressSelectionChanged;
 
         public event EventHandler<NavigationRequest>? NavigationRequested;
         public event EventHandler? DockToggleRequested;
@@ -26,6 +27,13 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         public void UpdateDockToggleIcon(bool isPinned)
         {
             DockToggleIcon.Glyph = isPinned ? "\uE8A0" : "\uE89F";
+        }
+
+        public void SelectNewPageItem()
+        {
+            _suppressSelectionChanged = true;
+            NavView.SelectedItem = CreateNavigationItem;
+            _suppressSelectionChanged = false;
         }
 
         public NavigationBar()
@@ -265,6 +273,11 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
 
         private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
+            if (_suppressSelectionChanged)
+            {
+                return;
+            }
+
             if (args.SelectedItemContainer?.Tag is not string tagText)
             {
                 return;
