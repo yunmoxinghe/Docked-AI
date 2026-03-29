@@ -120,27 +120,46 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
 
         private static IconElement BuildShortcutIcon(WebAppShortcut shortcut)
         {
-            try
+            string cacheDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Docked AI",
+                "web-icons");
+            Directory.CreateDirectory(cacheDir);
+            string extension = DetectImageExtension(shortcut.IconBytes ?? Array.Empty<byte>());
+            string iconPath = Path.Combine(cacheDir, $"{shortcut.Id}{extension}");
+
+            if (shortcut.IconBytes is { Length: > 0 })
             {
-                if (shortcut.IconBytes is { Length: > 0 })
+                try
                 {
-                    string cacheDir = Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                        "Docked AI",
-                        "web-icons");
-                    Directory.CreateDirectory(cacheDir);
-
-                    string extension = DetectImageExtension(shortcut.IconBytes);
-                    string iconPath = Path.Combine(cacheDir, $"{shortcut.Id}{extension}");
                     File.WriteAllBytes(iconPath, shortcut.IconBytes);
-
                     return new ImageIcon
                     {
                         Source = new BitmapImage(new Uri(iconPath))
                     };
                 }
+                catch
+                {
+                }
+            }
 
-                if (Uri.TryCreate(shortcut.Url, UriKind.Absolute, out Uri? websiteUri))
+            if (File.Exists(iconPath))
+            {
+                try
+                {
+                    return new ImageIcon
+                    {
+                        Source = new BitmapImage(new Uri(iconPath))
+                    };
+                }
+                catch
+                {
+                }
+            }
+
+            if (Uri.TryCreate(shortcut.Url, UriKind.Absolute, out Uri? websiteUri))
+            {
+                try
                 {
                     Uri faviconUri = new Uri(websiteUri.GetLeftPart(UriPartial.Authority) + "/favicon.ico");
                     return new ImageIcon
@@ -148,9 +167,9 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                         Source = new BitmapImage(faviconUri)
                     };
                 }
-            }
-            catch
-            {
+                catch
+                {
+                }
             }
 
             return new FontIcon { Glyph = "\uE8A7" };
