@@ -5,6 +5,7 @@ using Docked_AI.Features.Pages.WebApp.Browser;
 using Docked_AI.Features.Pages.WebApp.Shared;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
@@ -270,6 +271,16 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             };
 
             NavigationRequested?.Invoke(this, new NavigationRequest(pageType, null));
+        }
+
+        private void SettingsNavigationItem_PointerEntered(object sender, PointerRoutedEventArgs e)
+        {
+            AnimatedIcon.SetState(SettingsAnimatedIcon, "PointerOver");
+        }
+
+        private void SettingsNavigationItem_PointerExited(object sender, PointerRoutedEventArgs e)
+        {
+            AnimatedIcon.SetState(SettingsAnimatedIcon, "Normal");
         }
 
     }
