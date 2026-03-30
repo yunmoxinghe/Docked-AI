@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Docked_AI.Features.Pages.WebApp.Shared;
+using Docked_AI.Features.Pages.WebApp.Browser;
 using SymbolIcon = Microsoft.UI.Xaml.Controls.SymbolIcon;
 using Symbol = Microsoft.UI.Xaml.Controls.Symbol;
 using Visibility = Microsoft.UI.Xaml.Visibility;
@@ -60,6 +61,8 @@ namespace Docked_AI.Features.Pages.Home
                     IsClickEnabled = true
                 };
 
+                card.Click += (sender, e) => OnCardClick(shortcut);
+
                 if (shortcut.IconBytes != null && shortcut.IconBytes.Length > 0)
                 {
                     try
@@ -83,6 +86,11 @@ namespace Docked_AI.Features.Pages.Home
 
                 WebAppsList.Children.Add(card);
             }
+        }
+
+        private void OnCardClick(WebAppShortcut shortcut)
+        {
+            Frame.Navigate(typeof(WebBrowserPage), shortcut);
         }
     }
 }
