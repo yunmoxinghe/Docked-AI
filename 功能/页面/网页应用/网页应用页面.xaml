@@ -50,21 +50,16 @@
                 HorizontalAlignment="Center"
                 Padding="10,4"
                 FontSize="12"
-                Content="恢复自动图标"
                 Click="RestoreAutoIconButton_Click" />
 
             <TextBox
                 x:Name="AppNameTextBox"
                 x:Uid="WebAppPage_NameHeader"
-                Header="名称"
-                PlaceholderText="输入应用名称"
                 TextChanged="AppNameTextBox_TextChanged" />
 
             <TextBox
                 x:Name="WebsiteUrlTextBox"
                 x:Uid="WebAppPage_UrlHeader"
-                Header="网址"
-                PlaceholderText="https://example.com"
                 InputScope="Url"
                 TextChanged="WebsiteUrlTextBox_TextChanged" />
 
@@ -76,7 +71,6 @@
                 x:Name="ConfirmButton"
                 x:Uid="WebAppPage_Confirm"
                 HorizontalAlignment="Stretch"
-                Content="确定"
                 Click="ConfirmButton_Click" />
         </StackPanel>
     </Grid>

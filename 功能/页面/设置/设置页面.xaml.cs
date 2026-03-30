@@ -22,7 +22,25 @@ namespace Docked_AI.Features.Pages.Settings
             InitializeComponent();
             Loaded += OnLoaded;
             SizeChanged += OnSizeChanged;
+            InitializeLanguageComboBox();
             LoadLanguageSettings();
+        }
+
+        private void InitializeLanguageComboBox()
+        {
+            // 设置本地化的语言名称
+            foreach (ComboBoxItem item in LanguageComboBox.Items)
+            {
+                var tag = item.Tag?.ToString();
+                if (tag == "zh-CN")
+                {
+                    item.Content = LocalizationHelper.GetString("Language_SimplifiedChinese");
+                }
+                else if (tag == "en-US")
+                {
+                    item.Content = LocalizationHelper.GetString("Language_English");
+                }
+            }
         }
 
         private void LoadLanguageSettings()

@@ -25,7 +25,6 @@
                 <Border Height="40" />
                 <TextBlock
                     x:Uid="NewPage_Title"
-                    Text="新建"
                     FontSize="32"
                     FontWeight="SemiBold" />
                 <Border Height="36" />
@@ -37,8 +36,6 @@
                         x:Name="PinWebCard"
                         x:Uid="NewPage_PinWebHeader"
                         HorizontalAlignment="Stretch"
-                        Header="将网页固定为应用"
-                        Description="把常用网站固定成独立应用入口。"
                         IsClickEnabled="True"
                         Tapped="PinWebCard_Tapped">
                         <controls:SettingsCard.HeaderIcon>

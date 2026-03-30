@@ -65,15 +65,15 @@
   </data>
   
   <!-- Home Page -->
-  <data name="HomePage_Title" xml:space="preserve">
+  <data name="HomePage_Title.Text" xml:space="preserve">
     <value>Home</value>
   </data>
-  <data name="HomePage_EmptyText" xml:space="preserve">
+  <data name="HomePage_EmptyText.Text" xml:space="preserve">
     <value>No pinned web pages yet</value>
   </data>
   
   <!-- Settings Page -->
-  <data name="SettingsPage_Title" xml:space="preserve">
+  <data name="SettingsPage_Title.Text" xml:space="preserve">
     <value>Settings</value>
   </data>
   <data name="SettingsPage_LanguageHeader.Header" xml:space="preserve">
@@ -88,34 +88,34 @@
   <data name="SettingsPage_AboutHeader.Description" xml:space="preserve">
     <value>Modern docked window management and web app integration tool based on WinUI 3</value>
   </data>
-  <data name="SettingsPage_Version" xml:space="preserve">
+  <data name="SettingsPage_Version.Text" xml:space="preserve">
     <value>Version: v1.0.0</value>
   </data>
   <data name="SettingsPage_AppDetailsHeader.Header" xml:space="preserve">
     <value>App Details</value>
   </data>
-  <data name="SettingsPage_AppDetail1" xml:space="preserve">
+  <data name="SettingsPage_AppDetail1.Text" xml:space="preserve">
     <value>Built with WinUI 3 framework</value>
   </data>
-  <data name="SettingsPage_AppDetail2" xml:space="preserve">
+  <data name="SettingsPage_AppDetail2.Text" xml:space="preserve">
     <value>Smart window docking with smooth animations</value>
   </data>
-  <data name="SettingsPage_AppDetail3" xml:space="preserve">
+  <data name="SettingsPage_AppDetail3.Text" xml:space="preserve">
     <value>Integrated web app shortcut management</value>
   </data>
-  <data name="SettingsPage_AppDetail4" xml:space="preserve">
+  <data name="SettingsPage_AppDetail4.Text" xml:space="preserve">
     <value>Follows Windows 11 design guidelines</value>
   </data>
   <data name="SettingsPage_LinksHeader.Header" xml:space="preserve">
     <value>Related Links</value>
   </data>
-  <data name="SettingsPage_GitHubLink" xml:space="preserve">
+  <data name="SettingsPage_GitHubLink.Content" xml:space="preserve">
     <value>Visit GitHub Project</value>
   </data>
-  <data name="SettingsPage_FeedbackLink" xml:space="preserve">
+  <data name="SettingsPage_FeedbackLink.Content" xml:space="preserve">
     <value>Submit Feedback</value>
   </data>
-  <data name="SettingsPage_LicenseLink" xml:space="preserve">
+  <data name="SettingsPage_LicenseLink.Content" xml:space="preserve">
     <value>View License</value>
   </data>
   
@@ -128,21 +128,21 @@
   </data>
   
   <!-- Navigation -->
-  <data name="Nav_Home" xml:space="preserve">
+  <data name="Nav_Home.Content" xml:space="preserve">
     <value>Home</value>
   </data>
-  <data name="Nav_New" xml:space="preserve">
+  <data name="Nav_New.Content" xml:space="preserve">
     <value>New</value>
   </data>
-  <data name="Nav_Settings" xml:space="preserve">
+  <data name="Nav_Settings.Content" xml:space="preserve">
     <value>Settings</value>
   </data>
-  <data name="Nav_DockToggle" xml:space="preserve">
+  <data name="Nav_DockToggle.Content" xml:space="preserve">
     <value>Pin Sidebar</value>
   </data>
   
   <!-- New Page -->
-  <data name="NewPage_Title" xml:space="preserve">
+  <data name="NewPage_Title.Text" xml:space="preserve">
     <value>New</value>
   </data>
   <data name="NewPage_PinWebHeader.Header" xml:space="preserve">
@@ -153,7 +153,7 @@
   </data>
   
   <!-- Web App Page -->
-  <data name="WebAppPage_RestoreAutoIcon" xml:space="preserve">
+  <data name="WebAppPage_RestoreAutoIcon.Content" xml:space="preserve">
     <value>Restore Auto Icon</value>
   </data>
   <data name="WebAppPage_NameHeader.Header" xml:space="preserve">
@@ -168,24 +168,24 @@
   <data name="WebAppPage_UrlHeader.PlaceholderText" xml:space="preserve">
     <value>https://example.com</value>
   </data>
-  <data name="WebAppPage_Confirm" xml:space="preserve">
+  <data name="WebAppPage_Confirm.Content" xml:space="preserve">
     <value>Confirm</value>
   </data>
   
   <!-- Web Browser Page -->
-  <data name="WebBrowserPage_Back" xml:space="preserve">
+  <data name="WebBrowserPage_Back.Label" xml:space="preserve">
     <value>Back</value>
   </data>
-  <data name="WebBrowserPage_Forward" xml:space="preserve">
+  <data name="WebBrowserPage_Forward.Label" xml:space="preserve">
     <value>Forward</value>
   </data>
-  <data name="WebBrowserPage_Refresh" xml:space="preserve">
+  <data name="WebBrowserPage_Refresh.Label" xml:space="preserve">
     <value>Refresh</value>
   </data>
-  <data name="WebBrowserPage_CopyUrl" xml:space="preserve">
+  <data name="WebBrowserPage_CopyUrl.Label" xml:space="preserve">
     <value>Copy Link</value>
   </data>
-  <data name="WebBrowserPage_OpenExternal" xml:space="preserve">
+  <data name="WebBrowserPage_OpenExternal.Label" xml:space="preserve">
     <value>Open Externally</value>
   </data>
   
@@ -242,6 +242,14 @@
   </data>
   <data name="SettingsPage_LaterButton" xml:space="preserve">
     <value>Later</value>
+  </data>
+  
+  <!-- Language Options -->
+  <data name="Language_SimplifiedChinese" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="Language_English" xml:space="preserve">
+    <value>English</value>
   </data>
   
   <!-- Navigation Menu -->

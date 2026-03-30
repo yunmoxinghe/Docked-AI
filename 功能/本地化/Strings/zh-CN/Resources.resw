@@ -65,15 +65,15 @@
   </data>
   
   <!-- 主页 -->
-  <data name="HomePage_Title" xml:space="preserve">
+  <data name="HomePage_Title.Text" xml:space="preserve">
     <value>主页</value>
   </data>
-  <data name="HomePage_EmptyText" xml:space="preserve">
+  <data name="HomePage_EmptyText.Text" xml:space="preserve">
     <value>暂无已固定的网页</value>
   </data>
   
   <!-- 设置页 -->
-  <data name="SettingsPage_Title" xml:space="preserve">
+  <data name="SettingsPage_Title.Text" xml:space="preserve">
     <value>设置</value>
   </data>
   <data name="SettingsPage_LanguageHeader.Header" xml:space="preserve">
@@ -88,34 +88,34 @@
   <data name="SettingsPage_AboutHeader.Description" xml:space="preserve">
     <value>基于 WinUI 3 的现代化停靠式窗口管理与网页应用集成工具</value>
   </data>
-  <data name="SettingsPage_Version" xml:space="preserve">
+  <data name="SettingsPage_Version.Text" xml:space="preserve">
     <value>版本：v1.0.0</value>
   </data>
   <data name="SettingsPage_AppDetailsHeader.Header" xml:space="preserve">
     <value>应用详情</value>
   </data>
-  <data name="SettingsPage_AppDetail1" xml:space="preserve">
+  <data name="SettingsPage_AppDetail1.Text" xml:space="preserve">
     <value>基于 WinUI 3 框架开发</value>
   </data>
-  <data name="SettingsPage_AppDetail2" xml:space="preserve">
+  <data name="SettingsPage_AppDetail2.Text" xml:space="preserve">
     <value>支持智能窗口停靠与滑动动画</value>
   </data>
-  <data name="SettingsPage_AppDetail3" xml:space="preserve">
+  <data name="SettingsPage_AppDetail3.Text" xml:space="preserve">
     <value>集成网页应用快捷方式管理</value>
   </data>
-  <data name="SettingsPage_AppDetail4" xml:space="preserve">
+  <data name="SettingsPage_AppDetail4.Text" xml:space="preserve">
     <value>遵循 Windows 11 设计规范</value>
   </data>
   <data name="SettingsPage_LinksHeader.Header" xml:space="preserve">
     <value>相关链接</value>
   </data>
-  <data name="SettingsPage_GitHubLink" xml:space="preserve">
+  <data name="SettingsPage_GitHubLink.Content" xml:space="preserve">
     <value>访问 GitHub 项目</value>
   </data>
-  <data name="SettingsPage_FeedbackLink" xml:space="preserve">
+  <data name="SettingsPage_FeedbackLink.Content" xml:space="preserve">
     <value>提交反馈和建议</value>
   </data>
-  <data name="SettingsPage_LicenseLink" xml:space="preserve">
+  <data name="SettingsPage_LicenseLink.Content" xml:space="preserve">
     <value>查看开源协议</value>
   </data>
   
@@ -128,21 +128,21 @@
   </data>
   
   <!-- 导航栏 -->
-  <data name="Nav_Home" xml:space="preserve">
+  <data name="Nav_Home.Content" xml:space="preserve">
     <value>主页</value>
   </data>
-  <data name="Nav_New" xml:space="preserve">
+  <data name="Nav_New.Content" xml:space="preserve">
     <value>新建</value>
   </data>
-  <data name="Nav_Settings" xml:space="preserve">
+  <data name="Nav_Settings.Content" xml:space="preserve">
     <value>设置</value>
   </data>
-  <data name="Nav_DockToggle" xml:space="preserve">
+  <data name="Nav_DockToggle.Content" xml:space="preserve">
     <value>固定边栏</value>
   </data>
   
   <!-- 新建页面 -->
-  <data name="NewPage_Title" xml:space="preserve">
+  <data name="NewPage_Title.Text" xml:space="preserve">
     <value>新建</value>
   </data>
   <data name="NewPage_PinWebHeader.Header" xml:space="preserve">
@@ -153,7 +153,7 @@
   </data>
   
   <!-- 网页应用页面 -->
-  <data name="WebAppPage_RestoreAutoIcon" xml:space="preserve">
+  <data name="WebAppPage_RestoreAutoIcon.Content" xml:space="preserve">
     <value>恢复自动图标</value>
   </data>
   <data name="WebAppPage_NameHeader.Header" xml:space="preserve">
@@ -168,24 +168,24 @@
   <data name="WebAppPage_UrlHeader.PlaceholderText" xml:space="preserve">
     <value>https://example.com</value>
   </data>
-  <data name="WebAppPage_Confirm" xml:space="preserve">
+  <data name="WebAppPage_Confirm.Content" xml:space="preserve">
     <value>确定</value>
   </data>
   
   <!-- 网页浏览页面 -->
-  <data name="WebBrowserPage_Back" xml:space="preserve">
+  <data name="WebBrowserPage_Back.Label" xml:space="preserve">
     <value>后退</value>
   </data>
-  <data name="WebBrowserPage_Forward" xml:space="preserve">
+  <data name="WebBrowserPage_Forward.Label" xml:space="preserve">
     <value>前进</value>
   </data>
-  <data name="WebBrowserPage_Refresh" xml:space="preserve">
+  <data name="WebBrowserPage_Refresh.Label" xml:space="preserve">
     <value>刷新</value>
   </data>
-  <data name="WebBrowserPage_CopyUrl" xml:space="preserve">
+  <data name="WebBrowserPage_CopyUrl.Label" xml:space="preserve">
     <value>复制链接</value>
   </data>
-  <data name="WebBrowserPage_OpenExternal" xml:space="preserve">
+  <data name="WebBrowserPage_OpenExternal.Label" xml:space="preserve">
     <value>外部打开</value>
   </data>
   
@@ -242,6 +242,14 @@
   </data>
   <data name="SettingsPage_LaterButton" xml:space="preserve">
     <value>稍后</value>
+  </data>
+  
+  <!-- 语言选项 -->
+  <data name="Language_SimplifiedChinese" xml:space="preserve">
+    <value>简体中文</value>
+  </data>
+  <data name="Language_English" xml:space="preserve">
+    <value>English</value>
   </data>
   
   <!-- 导航栏菜单 -->

@@ -29,7 +29,6 @@
             <controls:NavigationViewItem
                 x:Name="HomeNavigationItem"
                 x:Uid="Nav_Home"
-                Content="主页"
                 Tag="0"
                 IsSelected="True">
                 <controls:NavigationViewItem.Icon>
@@ -39,7 +38,6 @@
             <controls:NavigationViewItem
                 x:Name="CreateNavigationItem"
                 x:Uid="Nav_New"
-                Content="新建"
                 Tag="1">
                 <controls:NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE710;" />
@@ -50,7 +48,6 @@
             <controls:NavigationViewItem
                 x:Name="DockToggleNavigationItem"
                 x:Uid="Nav_DockToggle"
-                Content="固定边栏"
                 Tag="dock"
                 SelectsOnInvoked="False">
                 <controls:NavigationViewItem.Icon>
@@ -62,7 +59,6 @@
             <controls:NavigationViewItem
                 x:Name="SettingsNavigationItem"
                 x:Uid="Nav_Settings"
-                Content="设置"
                 Tag="settings"
                 PointerEntered="SettingsNavigationItem_PointerEntered"
                 PointerExited="SettingsNavigationItem_PointerExited">

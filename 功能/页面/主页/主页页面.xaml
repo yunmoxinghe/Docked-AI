@@ -11,13 +11,13 @@
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled">
             <StackPanel Margin="16,0" Spacing="0">
                 <Border Height="40" />
-                <TextBlock x:Uid="HomePage_Title" Text="主页" FontSize="32" FontWeight="SemiBold" />
+                <TextBlock x:Uid="HomePage_Title" FontSize="32" FontWeight="SemiBold" />
                 <Border Height="36" />
 
                 <StackPanel x:Name="WebAppsList" Spacing="4">
                 </StackPanel>
 
-                <TextBlock x:Name="EmptyText" x:Uid="HomePage_EmptyText" Text="暂无已固定的网页" Opacity="0.6" Visibility="Collapsed" />
+                <TextBlock x:Name="EmptyText" x:Uid="HomePage_EmptyText" Opacity="0.6" Visibility="Collapsed" />
             </StackPanel>
         </ScrollViewer>
     </Grid>

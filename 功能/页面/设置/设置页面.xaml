@@ -25,7 +25,6 @@
                 <Border Height="40" />
                 <TextBlock
                     x:Uid="SettingsPage_Title"
-                    Text="设置"
                     FontSize="32"
                     FontWeight="SemiBold" />
                 <Border Height="36" />
@@ -33,24 +32,20 @@
                 <StackPanel
                     x:Name="CardsPanel"
                     Spacing="4">
-                    <controls:SettingsCard x:Uid="SettingsPage_LanguageHeader"
-                                      Header="语言"
-                                      Description="选择应用显示语言">
+                    <controls:SettingsCard x:Uid="SettingsPage_LanguageHeader">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xF2B7;"/>
                         </controls:SettingsCard.HeaderIcon>
                         <ComboBox x:Name="LanguageComboBox" 
                                   MinWidth="200"
                                   SelectionChanged="OnLanguageChanged">
-                            <ComboBoxItem Content="简体中文" Tag="zh-CN"/>
-                            <ComboBoxItem Content="English" Tag="en-US"/>
+                            <ComboBoxItem Tag="zh-CN"/>
+                            <ComboBoxItem Tag="en-US"/>
                         </ComboBox>
                     </controls:SettingsCard>
                     
                     <controls:SettingsExpander x:Name="AboutAppExpander"
                                           x:Uid="SettingsPage_AboutHeader"
-                                          Header="Docked-AI"
-                                          Description="基于 WinUI 3 的现代化停靠式窗口管理与网页应用集成工具"
                                           IsExpanded="False">
                         <controls:SettingsExpander.HeaderIcon>
                             <BitmapIcon UriSource="ms-appx:///Assets/Sparkles.ico" ShowAsMonochrome="False"/>
@@ -58,30 +53,27 @@
                         
                         <TextBlock x:Name="VersionText" 
                                x:Uid="SettingsPage_Version"
-                               Text="版本：v1.0.0" 
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                         
                         <controls:SettingsExpander.Items>
                             <controls:SettingsCard x:Uid="SettingsPage_AppDetailsHeader"
-                                              Header="应用详情" 
                                               HorizontalContentAlignment="Left"
                                               ContentAlignment="Left">
                                 <StackPanel Margin="-12,0,0,0" Orientation="Vertical" Spacing="4">
-                                    <TextBlock x:Uid="SettingsPage_AppDetail1" Text="基于 WinUI 3 框架开发" FontSize="14"/>
-                                    <TextBlock x:Uid="SettingsPage_AppDetail2" Text="支持智能窗口停靠与滑动动画" FontSize="14"/>
-                                    <TextBlock x:Uid="SettingsPage_AppDetail3" Text="集成网页应用快捷方式管理" FontSize="14"/>
-                                    <TextBlock x:Uid="SettingsPage_AppDetail4" Text="遵循 Windows 11 设计规范" FontSize="14"/>
+                                    <TextBlock x:Uid="SettingsPage_AppDetail1" FontSize="14"/>
+                                    <TextBlock x:Uid="SettingsPage_AppDetail2" FontSize="14"/>
+                                    <TextBlock x:Uid="SettingsPage_AppDetail3" FontSize="14"/>
+                                    <TextBlock x:Uid="SettingsPage_AppDetail4" FontSize="14"/>
                                 </StackPanel>
                             </controls:SettingsCard>
                             
                             <controls:SettingsCard x:Uid="SettingsPage_LinksHeader"
-                                              Header="相关链接" 
                                               HorizontalContentAlignment="Left"
                                               ContentAlignment="Left">
                                 <StackPanel Margin="-12,0,0,0" Orientation="Vertical" Spacing="4">
-                                    <HyperlinkButton x:Uid="SettingsPage_GitHubLink" Content="访问 GitHub 项目" Click="OnOpenGitHubClick"/>
-                                    <HyperlinkButton x:Uid="SettingsPage_FeedbackLink" Content="提交反馈和建议" Click="OnSendFeedbackClick"/>
-                                    <HyperlinkButton x:Uid="SettingsPage_LicenseLink" Content="查看开源协议" Click="OnViewLicenseClick"/>
+                                    <HyperlinkButton x:Uid="SettingsPage_GitHubLink" Click="OnOpenGitHubClick"/>
+                                    <HyperlinkButton x:Uid="SettingsPage_FeedbackLink" Click="OnSendFeedbackClick"/>
+                                    <HyperlinkButton x:Uid="SettingsPage_LicenseLink" Click="OnViewLicenseClick"/>
                                 </StackPanel>
                             </controls:SettingsCard>
                         </controls:SettingsExpander.Items>

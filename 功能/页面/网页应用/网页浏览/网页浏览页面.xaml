@@ -67,7 +67,6 @@
                     <controls:AppBarButton
                         x:Name="BackButton"
                         x:Uid="WebBrowserPage_Back"
-                        Label="后退"
                         Click="BackButton_Click">
                         <controls:AppBarButton.Icon>
                             <SymbolIcon Symbol="Back" />
@@ -76,7 +75,6 @@
                     <controls:AppBarButton
                         x:Name="ForwardButton"
                         x:Uid="WebBrowserPage_Forward"
-                        Label="前进"
                         Click="ForwardButton_Click">
                         <controls:AppBarButton.Icon>
                             <SymbolIcon Symbol="Forward" />
@@ -85,7 +83,6 @@
                     <controls:AppBarButton
                         x:Name="RefreshButton"
                         x:Uid="WebBrowserPage_Refresh"
-                        Label="刷新"
                         Click="RefreshButton_Click">
                         <controls:AppBarButton.Icon>
                             <SymbolIcon Symbol="Refresh" />
@@ -94,7 +91,6 @@
                     <controls:AppBarButton
                         x:Name="CopyUrlButton"
                         x:Uid="WebBrowserPage_CopyUrl"
-                        Label="复制链接"
                         Click="CopyUrlButton_Click">
                         <controls:AppBarButton.Icon>
                             <SymbolIcon Symbol="Copy" />
@@ -103,7 +99,6 @@
                     <controls:AppBarButton
                         x:Name="OpenExternalButton"
                         x:Uid="WebBrowserPage_OpenExternal"
-                        Label="外部打开"
                         Click="OpenExternalButton_Click">
                         <controls:AppBarButton.Icon>
                             <SymbolIcon Symbol="World" />
