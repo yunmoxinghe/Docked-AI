@@ -2,6 +2,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using Windows.System;
+using Windows.Globalization;
+using Windows.ApplicationModel.Resources.Core;
 
 namespace Docked_AI.Features.Pages.Settings
 {
@@ -19,6 +21,36 @@ namespace Docked_AI.Features.Pages.Settings
             InitializeComponent();
             Loaded += OnLoaded;
             SizeChanged += OnSizeChanged;
+            LoadLanguageSettings();
+        }
+
+        private void LoadLanguageSettings()
+        {
+            var currentLanguage = ApplicationLanguages.PrimaryLanguageOverride;
+            if (string.IsNullOrEmpty(currentLanguage))
+            {
+                currentLanguage = ApplicationLanguages.Languages[0];
+            }
+
+            // 暂时取消事件订阅，避免在初始化时触发
+            LanguageComboBox.SelectionChanged -= OnLanguageChanged;
+
+            foreach (ComboBoxItem item in LanguageComboBox.Items)
+            {
+                if (item.Tag?.ToString() == currentLanguage)
+                {
+                    LanguageComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+
+            if (LanguageComboBox.SelectedItem == null)
+            {
+                LanguageComboBox.SelectedIndex = 0;
+            }
+
+            // 重新订阅事件
+            LanguageComboBox.SelectionChanged += OnLanguageChanged;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -75,6 +107,50 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void OnViewLicenseClick(object sender, RoutedEventArgs args)
         {
+        }
+
+        private async void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // 确保 XamlRoot 已初始化
+            if (this.XamlRoot == null)
+            {
+                return;
+            }
+
+            if (LanguageComboBox.SelectedItem is ComboBoxItem selectedItem)
+            {
+                var languageTag = selectedItem.Tag?.ToString();
+                if (!string.IsNullOrEmpty(languageTag))
+                {
+                    var currentLanguage = ApplicationLanguages.PrimaryLanguageOverride;
+                    if (string.IsNullOrEmpty(currentLanguage))
+                    {
+                        currentLanguage = ApplicationLanguages.Languages[0];
+                    }
+
+                    if (languageTag != currentLanguage)
+                    {
+                        ApplicationLanguages.PrimaryLanguageOverride = languageTag;
+                        
+                        var dialog = new ContentDialog
+                        {
+                            Title = languageTag == "zh-CN" ? "需要重启" : "Restart Required",
+                            Content = languageTag == "zh-CN" 
+                                ? "语言更改将在重启应用后生效。是否现在重启？" 
+                                : "Language changes will take effect after restarting the app. Restart now?",
+                            PrimaryButtonText = languageTag == "zh-CN" ? "重启" : "Restart",
+                            CloseButtonText = languageTag == "zh-CN" ? "稍后" : "Later",
+                            XamlRoot = this.XamlRoot
+                        };
+
+                        var result = await dialog.ShowAsync();
+                        if (result == ContentDialogResult.Primary)
+                        {
+                            await Windows.ApplicationModel.Core.CoreApplication.RequestRestartAsync(string.Empty);
+                        }
+                    }
+                }
+            }
         }
     }
 }

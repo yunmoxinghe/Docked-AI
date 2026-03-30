@@ -3,6 +3,7 @@ using System.IO;
 using DevWinUI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Docked_AI.Features.Localization;
 
 namespace Docked_AI.Features.Tray
 {
@@ -40,7 +41,7 @@ namespace Docked_AI.Features.Tray
 
             var openItem = new MenuFlyoutItem
             {
-                Text = "打开主窗口",
+                Text = LocalizationHelper.GetString("TrayMenu_OpenWindow"),
                 Icon = new SymbolIcon(Symbol.GoToStart)
             };
             openItem.Click += (s, e) => ShowMainWindow();
@@ -50,7 +51,7 @@ namespace Docked_AI.Features.Tray
 
             var exitItem = new MenuFlyoutItem
             {
-                Text = "退出",
+                Text = LocalizationHelper.GetString("TrayMenu_Exit"),
                 Icon = new FontIcon { Glyph = "\uF3B1" }
             };
             exitItem.Click += (s, e) => ExitApplication();

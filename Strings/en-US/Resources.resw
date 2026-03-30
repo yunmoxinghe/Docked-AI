@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" msdata:Ordinal="5" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Common -->
+  <data name="AppDisplayName" xml:space="preserve">
+    <value>Docked AI</value>
+  </data>
+  
+  <!-- Home Page -->
+  <data name="HomePage_Title" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="HomePage_EmptyText" xml:space="preserve">
+    <value>No pinned web pages yet</value>
+  </data>
+  
+  <!-- Settings Page -->
+  <data name="SettingsPage_Title" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="SettingsPage_LanguageHeader.Header" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
+    <value>Select app display language</value>
+  </data>
+  <data name="SettingsPage_AboutHeader.Header" xml:space="preserve">
+    <value>Docked-AI</value>
+  </data>
+  <data name="SettingsPage_AboutHeader.Description" xml:space="preserve">
+    <value>Modern docked window management and web app integration tool based on WinUI 3</value>
+  </data>
+  <data name="SettingsPage_Version" xml:space="preserve">
+    <value>Version: v1.0.0</value>
+  </data>
+  <data name="SettingsPage_AppDetailsHeader.Header" xml:space="preserve">
+    <value>App Details</value>
+  </data>
+  <data name="SettingsPage_AppDetail1" xml:space="preserve">
+    <value>Built with WinUI 3 framework</value>
+  </data>
+  <data name="SettingsPage_AppDetail2" xml:space="preserve">
+    <value>Smart window docking with smooth animations</value>
+  </data>
+  <data name="SettingsPage_AppDetail3" xml:space="preserve">
+    <value>Integrated web app shortcut management</value>
+  </data>
+  <data name="SettingsPage_AppDetail4" xml:space="preserve">
+    <value>Follows Windows 11 design guidelines</value>
+  </data>
+  <data name="SettingsPage_LinksHeader.Header" xml:space="preserve">
+    <value>Related Links</value>
+  </data>
+  <data name="SettingsPage_GitHubLink" xml:space="preserve">
+    <value>Visit GitHub Project</value>
+  </data>
+  <data name="SettingsPage_FeedbackLink" xml:space="preserve">
+    <value>Submit Feedback</value>
+  </data>
+  <data name="SettingsPage_LicenseLink" xml:space="preserve">
+    <value>View License</value>
+  </data>
+  
+  <!-- Tray Menu -->
+  <data name="TrayMenu_OpenWindow" xml:space="preserve">
+    <value>Open Main Window</value>
+  </data>
+  <data name="TrayMenu_Exit" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  
+  <!-- Navigation -->
+  <data name="Nav_Home" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="Nav_New" xml:space="preserve">
+    <value>New</value>
+  </data>
+  <data name="Nav_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Nav_DockToggle" xml:space="preserve">
+    <value>Pin Sidebar</value>
+  </data>
+  
+  <!-- New Page -->
+  <data name="NewPage_Title" xml:space="preserve">
+    <value>New</value>
+  </data>
+  <data name="NewPage_PinWebHeader.Header" xml:space="preserve">
+    <value>Pin Web Page as App</value>
+  </data>
+  <data name="NewPage_PinWebHeader.Description" xml:space="preserve">
+    <value>Pin frequently used websites as standalone app entries.</value>
+  </data>
+</root>
