@@ -4,6 +4,7 @@ using System;
 using Windows.System;
 using Windows.Globalization;
 using Windows.ApplicationModel.Resources.Core;
+using Docked_AI.Features.Localization;
 
 namespace Docked_AI.Features.Pages.Settings
 {
@@ -134,12 +135,10 @@ namespace Docked_AI.Features.Pages.Settings
                         
                         var dialog = new ContentDialog
                         {
-                            Title = languageTag == "zh-CN" ? "需要重启" : "Restart Required",
-                            Content = languageTag == "zh-CN" 
-                                ? "语言更改将在重启应用后生效。是否现在重启？" 
-                                : "Language changes will take effect after restarting the app. Restart now?",
-                            PrimaryButtonText = languageTag == "zh-CN" ? "重启" : "Restart",
-                            CloseButtonText = languageTag == "zh-CN" ? "稍后" : "Later",
+                            Title = LocalizationHelper.GetString("SettingsPage_RestartTitle"),
+                            Content = LocalizationHelper.GetString("SettingsPage_RestartContent"),
+                            PrimaryButtonText = LocalizationHelper.GetString("SettingsPage_RestartButton"),
+                            CloseButtonText = LocalizationHelper.GetString("SettingsPage_LaterButton"),
                             XamlRoot = this.XamlRoot
                         };
 

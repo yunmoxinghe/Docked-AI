@@ -46,6 +46,7 @@
 
             <Button
                 x:Name="RestoreAutoIconButton"
+                x:Uid="WebAppPage_RestoreAutoIcon"
                 HorizontalAlignment="Center"
                 Padding="10,4"
                 FontSize="12"
@@ -54,12 +55,14 @@
 
             <TextBox
                 x:Name="AppNameTextBox"
+                x:Uid="WebAppPage_NameHeader"
                 Header="名称"
                 PlaceholderText="输入应用名称"
                 TextChanged="AppNameTextBox_TextChanged" />
 
             <TextBox
                 x:Name="WebsiteUrlTextBox"
+                x:Uid="WebAppPage_UrlHeader"
                 Header="网址"
                 PlaceholderText="https://example.com"
                 InputScope="Url"
@@ -71,6 +74,7 @@
 
             <Button
                 x:Name="ConfirmButton"
+                x:Uid="WebAppPage_Confirm"
                 HorizontalAlignment="Stretch"
                 Content="确定"
                 Click="ConfirmButton_Click" />

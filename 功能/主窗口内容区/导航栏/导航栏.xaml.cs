@@ -3,6 +3,7 @@ using Docked_AI.Features.Pages.New;
 using Docked_AI.Features.Pages.Settings;
 using Docked_AI.Features.Pages.WebApp.Browser;
 using Docked_AI.Features.Pages.WebApp.Shared;
+using Docked_AI.Features.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -104,7 +105,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             var contextMenu = new MenuFlyout();
             var unpinItem = new MenuFlyoutItem
             {
-                Text = "取消固定",
+                Text = LocalizationHelper.GetString("Nav_UnpinShortcut"),
                 Tag = shortcut.Id,
                 Icon = new FontIcon { Glyph = "\uE77A" }
             };

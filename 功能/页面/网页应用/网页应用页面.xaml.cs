@@ -1,4 +1,5 @@
 using Docked_AI.Features.Pages.WebApp.Shared;
+using Docked_AI.Features.Localization;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -80,7 +81,7 @@ namespace Docked_AI.Features.Pages.WebApp
         private async void RestoreAutoIconButton_Click(object sender, RoutedEventArgs e)
         {
             _hasCustomIcon = false;
-            LookupStatusText.Text = "已恢复自动图标";
+            LookupStatusText.Text = LocalizationHelper.GetString("WebAppPage_IconRestored");
             await RefreshWebsiteMetadataAsync(withDelay: false);
         }
 
@@ -108,7 +109,7 @@ namespace Docked_AI.Features.Pages.WebApp
                     ShowFallbackIcon();
                 }
 
-                LookupStatusText.Text = "网址格式无效";
+                LookupStatusText.Text = LocalizationHelper.GetString("WebAppPage_InvalidUrl");
                 return;
             }
 
@@ -119,7 +120,7 @@ namespace Docked_AI.Features.Pages.WebApp
 
             try
             {
-                LookupStatusText.Text = "正在获取网站信息...";
+                LookupStatusText.Text = LocalizationHelper.GetString("WebAppPage_FetchingInfo");
                 if (withDelay)
                 {
                     await Task.Delay(450, cts.Token);
@@ -145,8 +146,8 @@ namespace Docked_AI.Features.Pages.WebApp
                     }
 
                     LookupStatusText.Text = _hasCustomIcon
-                        ? "已获取名称（使用手动图标）"
-                        : "已获取名称和图标";
+                        ? LocalizationHelper.GetString("WebAppPage_FetchedWithCustomIcon")
+                        : LocalizationHelper.GetString("WebAppPage_FetchedWithIcon");
                 }
                 else
                 {
@@ -156,8 +157,8 @@ namespace Docked_AI.Features.Pages.WebApp
                     }
 
                     LookupStatusText.Text = string.IsNullOrWhiteSpace(metadata.Error)
-                        ? "已获取名称，未找到图标"
-                        : $"部分获取成功：{metadata.Error}";
+                        ? LocalizationHelper.GetString("WebAppPage_FetchedNoIcon")
+                        : string.Format(LocalizationHelper.GetString("WebAppPage_PartialSuccess"), metadata.Error);
                 }
             }
             catch (OperationCanceledException)
@@ -170,7 +171,7 @@ namespace Docked_AI.Features.Pages.WebApp
                     ShowFallbackIcon();
                 }
 
-                LookupStatusText.Text = "获取失败：" + ex.Message;
+                LookupStatusText.Text = string.Format(LocalizationHelper.GetString("WebAppPage_FetchFailed"), ex.Message);
             }
             finally
             {
@@ -198,7 +199,7 @@ namespace Docked_AI.Features.Pages.WebApp
                 IntPtr hwnd = GetForegroundWindow();
                 if (hwnd == IntPtr.Zero)
                 {
-                    LookupStatusText.Text = "无法打开文件选择器";
+                    LookupStatusText.Text = LocalizationHelper.GetString("WebAppPage_CannotOpenPicker");
                     return;
                 }
 
@@ -213,17 +214,17 @@ namespace Docked_AI.Features.Pages.WebApp
                 byte[] bytes = buffer.ToArray();
                 if (bytes.Length == 0)
                 {
-                    LookupStatusText.Text = "图标文件为空";
+                    LookupStatusText.Text = LocalizationHelper.GetString("WebAppPage_EmptyIconFile");
                     return;
                 }
 
                 _hasCustomIcon = true;
                 await ShowWebsiteIconAsync(bytes);
-                LookupStatusText.Text = "已替换图标";
+                LookupStatusText.Text = LocalizationHelper.GetString("WebAppPage_IconReplaced");
             }
             catch (Exception ex)
             {
-                LookupStatusText.Text = "替换图标失败：" + ex.Message;
+                LookupStatusText.Text = string.Format(LocalizationHelper.GetString("WebAppPage_IconReplaceFailed"), ex.Message);
             }
         }
 
@@ -234,7 +235,7 @@ namespace Docked_AI.Features.Pages.WebApp
 
             if (!TryNormalizeWebsiteUrl(rawUrl, out Uri websiteUri))
             {
-                LookupStatusText.Text = "网址格式无效";
+                LookupStatusText.Text = LocalizationHelper.GetString("WebAppPage_InvalidUrl");
                 return;
             }
 
@@ -250,7 +251,7 @@ namespace Docked_AI.Features.Pages.WebApp
                 _currentIconBytes);
 
             WebAppEventBus.PublishShortcutCreated(shortcut);
-            LookupStatusText.Text = "已创建网页入口";
+            LookupStatusText.Text = LocalizationHelper.GetString("WebAppPage_ShortcutCreated");
         }
 
         private static HttpClient CreateHttpClient()

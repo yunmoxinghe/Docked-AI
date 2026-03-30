@@ -151,4 +151,101 @@
   <data name="NewPage_PinWebHeader.Description" xml:space="preserve">
     <value>Pin frequently used websites as standalone app entries.</value>
   </data>
+  
+  <!-- Web App Page -->
+  <data name="WebAppPage_RestoreAutoIcon" xml:space="preserve">
+    <value>Restore Auto Icon</value>
+  </data>
+  <data name="WebAppPage_NameHeader.Header" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="WebAppPage_NameHeader.PlaceholderText" xml:space="preserve">
+    <value>Enter app name</value>
+  </data>
+  <data name="WebAppPage_UrlHeader.Header" xml:space="preserve">
+    <value>URL</value>
+  </data>
+  <data name="WebAppPage_UrlHeader.PlaceholderText" xml:space="preserve">
+    <value>https://example.com</value>
+  </data>
+  <data name="WebAppPage_Confirm" xml:space="preserve">
+    <value>Confirm</value>
+  </data>
+  
+  <!-- Web Browser Page -->
+  <data name="WebBrowserPage_Back" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="WebBrowserPage_Forward" xml:space="preserve">
+    <value>Forward</value>
+  </data>
+  <data name="WebBrowserPage_Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="WebBrowserPage_CopyUrl" xml:space="preserve">
+    <value>Copy Link</value>
+  </data>
+  <data name="WebBrowserPage_OpenExternal" xml:space="preserve">
+    <value>Open Externally</value>
+  </data>
+  
+  <!-- Web App Page Status Messages -->
+  <data name="WebAppPage_IconRestored" xml:space="preserve">
+    <value>Auto icon restored</value>
+  </data>
+  <data name="WebAppPage_InvalidUrl" xml:space="preserve">
+    <value>Invalid URL format</value>
+  </data>
+  <data name="WebAppPage_FetchingInfo" xml:space="preserve">
+    <value>Fetching website info...</value>
+  </data>
+  <data name="WebAppPage_FetchedWithCustomIcon" xml:space="preserve">
+    <value>Name fetched (using custom icon)</value>
+  </data>
+  <data name="WebAppPage_FetchedWithIcon" xml:space="preserve">
+    <value>Name and icon fetched</value>
+  </data>
+  <data name="WebAppPage_FetchedNoIcon" xml:space="preserve">
+    <value>Name fetched, icon not found</value>
+  </data>
+  <data name="WebAppPage_PartialSuccess" xml:space="preserve">
+    <value>Partially successful: {0}</value>
+  </data>
+  <data name="WebAppPage_FetchFailed" xml:space="preserve">
+    <value>Fetch failed: {0}</value>
+  </data>
+  <data name="WebAppPage_CannotOpenPicker" xml:space="preserve">
+    <value>Cannot open file picker</value>
+  </data>
+  <data name="WebAppPage_EmptyIconFile" xml:space="preserve">
+    <value>Icon file is empty</value>
+  </data>
+  <data name="WebAppPage_IconReplaced" xml:space="preserve">
+    <value>Icon replaced</value>
+  </data>
+  <data name="WebAppPage_IconReplaceFailed" xml:space="preserve">
+    <value>Icon replacement failed: {0}</value>
+  </data>
+  <data name="WebAppPage_ShortcutCreated" xml:space="preserve">
+    <value>Web shortcut created</value>
+  </data>
+  
+  <!-- Settings Page Dialog -->
+  <data name="SettingsPage_RestartTitle" xml:space="preserve">
+    <value>Restart Required</value>
+  </data>
+  <data name="SettingsPage_RestartContent" xml:space="preserve">
+    <value>Language changes will take effect after restarting the app. Restart now?</value>
+  </data>
+  <data name="SettingsPage_RestartButton" xml:space="preserve">
+    <value>Restart</value>
+  </data>
+  <data name="SettingsPage_LaterButton" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  
+  <!-- Navigation Menu -->
+  <data name="Nav_UnpinShortcut" xml:space="preserve">
+    <value>Unpin</value>
+  </data>
 </root>
