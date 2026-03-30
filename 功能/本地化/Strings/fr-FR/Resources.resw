@@ -59,108 +59,108 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   
-  <!-- Common -->
+  <!-- Commun -->
   <data name="AppDisplayName" xml:space="preserve">
     <value>Docked AI</value>
   </data>
   
-  <!-- Home Page -->
+  <!-- Page d'accueil -->
   <data name="HomePage_Title.Text" xml:space="preserve">
-    <value>Home</value>
+    <value>Accueil</value>
   </data>
   <data name="HomePage_EmptyText.Text" xml:space="preserve">
-    <value>No pinned web pages yet</value>
+    <value>Aucune page web épinglée</value>
   </data>
   
-  <!-- Settings Page -->
+  <!-- Page des paramètres -->
   <data name="SettingsPage_Title.Text" xml:space="preserve">
-    <value>Settings</value>
+    <value>Paramètres</value>
   </data>
   <data name="SettingsPage_LanguageHeader.Header" xml:space="preserve">
-    <value>Language</value>
+    <value>Langue</value>
   </data>
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
-    <value>Select app display language</value>
+    <value>Sélectionner la langue d'affichage</value>
   </data>
   <data name="SettingsPage_AboutHeader.Header" xml:space="preserve">
     <value>Docked-AI</value>
   </data>
   <data name="SettingsPage_AboutHeader.Description" xml:space="preserve">
-    <value>Modern docked window management and web app integration tool based on WinUI 3</value>
+    <value>Outil moderne de gestion de fenêtres ancrées et d'intégration d'applications web basé sur WinUI 3</value>
   </data>
   <data name="SettingsPage_Version.Text" xml:space="preserve">
-    <value>Version: v1.0.0</value>
+    <value>Version : v1.0.0</value>
   </data>
   <data name="SettingsPage_AppDetailsHeader.Header" xml:space="preserve">
-    <value>App Details</value>
+    <value>Détails de l'application</value>
   </data>
   <data name="SettingsPage_AppDetail1.Text" xml:space="preserve">
-    <value>Built with WinUI 3 framework</value>
+    <value>Développé avec le framework WinUI 3</value>
   </data>
   <data name="SettingsPage_AppDetail2.Text" xml:space="preserve">
-    <value>Smart window docking with smooth animations</value>
+    <value>Ancrage intelligent des fenêtres avec animations fluides</value>
   </data>
   <data name="SettingsPage_AppDetail3.Text" xml:space="preserve">
-    <value>Integrated web app shortcut management</value>
+    <value>Gestion intégrée des raccourcis d'applications web</value>
   </data>
   <data name="SettingsPage_AppDetail4.Text" xml:space="preserve">
-    <value>Follows Windows 11 design guidelines</value>
+    <value>Conforme aux directives de conception Windows 11</value>
   </data>
   <data name="SettingsPage_LinksHeader.Header" xml:space="preserve">
-    <value>Related Links</value>
+    <value>Liens connexes</value>
   </data>
   <data name="SettingsPage_GitHubLink.Content" xml:space="preserve">
-    <value>Visit GitHub Project</value>
+    <value>Visiter le projet GitHub</value>
   </data>
   <data name="SettingsPage_FeedbackLink.Content" xml:space="preserve">
-    <value>Submit Feedback</value>
+    <value>Soumettre des commentaires</value>
   </data>
   <data name="SettingsPage_LicenseLink.Content" xml:space="preserve">
-    <value>View License</value>
+    <value>Voir la licence</value>
   </data>
   
-  <!-- Tray Menu -->
+  <!-- Menu de la barre d'état système -->
   <data name="TrayMenu_OpenWindow" xml:space="preserve">
-    <value>Open Main Window</value>
+    <value>Ouvrir la fenêtre principale</value>
   </data>
   <data name="TrayMenu_Exit" xml:space="preserve">
-    <value>Exit</value>
+    <value>Quitter</value>
   </data>
   
   <!-- Navigation -->
   <data name="Nav_Home.Content" xml:space="preserve">
-    <value>Home</value>
+    <value>Accueil</value>
   </data>
   <data name="Nav_New.Content" xml:space="preserve">
-    <value>New</value>
+    <value>Nouveau</value>
   </data>
   <data name="Nav_Settings.Content" xml:space="preserve">
-    <value>Settings</value>
+    <value>Paramètres</value>
   </data>
   <data name="Nav_DockToggle.Content" xml:space="preserve">
-    <value>Pin Sidebar</value>
+    <value>Épingler la barre latérale</value>
   </data>
   
-  <!-- New Page -->
+  <!-- Nouvelle page -->
   <data name="NewPage_Title.Text" xml:space="preserve">
-    <value>New</value>
+    <value>Nouveau</value>
   </data>
   <data name="NewPage_PinWebHeader.Header" xml:space="preserve">
-    <value>Pin Web Page as App</value>
+    <value>Épingler une page web comme application</value>
   </data>
   <data name="NewPage_PinWebHeader.Description" xml:space="preserve">
-    <value>Pin frequently used websites as standalone app entries.</value>
+    <value>Épinglez les sites web fréquemment utilisés comme entrées d'application autonomes.</value>
   </data>
   
-  <!-- Web App Page -->
+  <!-- Page d'application web -->
   <data name="WebAppPage_RestoreAutoIcon.Content" xml:space="preserve">
-    <value>Restore Auto Icon</value>
+    <value>Restaurer l'icône automatique</value>
   </data>
   <data name="WebAppPage_NameHeader.Header" xml:space="preserve">
-    <value>Name</value>
+    <value>Nom</value>
   </data>
   <data name="WebAppPage_NameHeader.PlaceholderText" xml:space="preserve">
-    <value>Enter app name</value>
+    <value>Entrer le nom de l'application</value>
   </data>
   <data name="WebAppPage_UrlHeader.Header" xml:space="preserve">
     <value>URL</value>
@@ -169,109 +169,94 @@
     <value>https://example.com</value>
   </data>
   <data name="WebAppPage_Confirm.Content" xml:space="preserve">
-    <value>Confirm</value>
+    <value>Confirmer</value>
   </data>
   
-  <!-- Web Browser Page -->
+  <!-- Page du navigateur web -->
   <data name="WebBrowserPage_Back.Label" xml:space="preserve">
-    <value>Back</value>
+    <value>Retour</value>
   </data>
   <data name="WebBrowserPage_Forward.Label" xml:space="preserve">
-    <value>Forward</value>
+    <value>Suivant</value>
   </data>
   <data name="WebBrowserPage_Refresh.Label" xml:space="preserve">
-    <value>Refresh</value>
+    <value>Actualiser</value>
   </data>
   <data name="WebBrowserPage_CopyUrl.Label" xml:space="preserve">
-    <value>Copy Link</value>
+    <value>Copier le lien</value>
   </data>
   <data name="WebBrowserPage_OpenExternal.Label" xml:space="preserve">
-    <value>Open Externally</value>
+    <value>Ouvrir en externe</value>
   </data>
   
-  <!-- Web App Page Status Messages -->
+  <!-- Messages d'état de la page d'application web -->
   <data name="WebAppPage_IconRestored" xml:space="preserve">
-    <value>Auto icon restored</value>
+    <value>Icône automatique restaurée</value>
   </data>
   <data name="WebAppPage_InvalidUrl" xml:space="preserve">
-    <value>Invalid URL format</value>
+    <value>Format d'URL invalide</value>
   </data>
   <data name="WebAppPage_FetchingInfo" xml:space="preserve">
-    <value>Fetching website info...</value>
+    <value>Récupération des informations du site web...</value>
   </data>
   <data name="WebAppPage_FetchedWithCustomIcon" xml:space="preserve">
-    <value>Name fetched (using custom icon)</value>
+    <value>Nom récupéré (utilisation de l'icône personnalisée)</value>
   </data>
   <data name="WebAppPage_FetchedWithIcon" xml:space="preserve">
-    <value>Name and icon fetched</value>
+    <value>Nom et icône récupérés</value>
   </data>
   <data name="WebAppPage_FetchedNoIcon" xml:space="preserve">
-    <value>Name fetched, icon not found</value>
+    <value>Nom récupéré, icône introuvable</value>
   </data>
   <data name="WebAppPage_PartialSuccess" xml:space="preserve">
-    <value>Partially successful: {0}</value>
+    <value>Partiellement réussi : {0}</value>
   </data>
   <data name="WebAppPage_FetchFailed" xml:space="preserve">
-    <value>Fetch failed: {0}</value>
+    <value>Échec de la récupération : {0}</value>
   </data>
   <data name="WebAppPage_CannotOpenPicker" xml:space="preserve">
-    <value>Cannot open file picker</value>
+    <value>Impossible d'ouvrir le sélecteur de fichiers</value>
   </data>
   <data name="WebAppPage_EmptyIconFile" xml:space="preserve">
-    <value>Icon file is empty</value>
+    <value>Le fichier d'icône est vide</value>
   </data>
   <data name="WebAppPage_IconReplaced" xml:space="preserve">
-    <value>Icon replaced</value>
+    <value>Icône remplacée</value>
   </data>
   <data name="WebAppPage_IconReplaceFailed" xml:space="preserve">
-    <value>Icon replacement failed: {0}</value>
+    <value>Échec du remplacement de l'icône : {0}</value>
   </data>
   <data name="WebAppPage_ShortcutCreated" xml:space="preserve">
-    <value>Web shortcut created</value>
+    <value>Raccourci web créé</value>
   </data>
   
-  <!-- Settings Page Dialog -->
+  <!-- Dialogue de la page des paramètres -->
   <data name="SettingsPage_RestartTitle" xml:space="preserve">
-    <value>Restart Required</value>
+    <value>Redémarrage requis</value>
   </data>
   <data name="SettingsPage_RestartContent" xml:space="preserve">
-    <value>Language changes will take effect after restarting the app. Restart now?</value>
+    <value>Les modifications de langue prendront effet après le redémarrage de l'application. Redémarrer maintenant ?</value>
   </data>
   <data name="SettingsPage_RestartButton" xml:space="preserve">
-    <value>Restart</value>
+    <value>Redémarrer</value>
   </data>
   <data name="SettingsPage_LaterButton" xml:space="preserve">
-    <value>Later</value>
+    <value>Plus tard</value>
   </data>
   
-  <!-- Language Options -->
+  <!-- Options de langue -->
   <data name="Language_SimplifiedChinese" xml:space="preserve">
     <value>简体中文</value>
-  </data>
-  <data name="Language_TraditionalChinese" xml:space="preserve">
-    <value>繁體中文</value>
   </data>
   <data name="Language_English" xml:space="preserve">
     <value>English</value>
   </data>
-  <data name="Language_Japanese" xml:space="preserve">
-    <value>日本語</value>
-  </data>
-  <data name="Language_Korean" xml:space="preserve">
-    <value>한국어</value>
-  </data>
   <data name="Language_French" xml:space="preserve">
     <value>Français</value>
   </data>
-  <data name="Language_German" xml:space="preserve">
-    <value>Deutsch</value>
-  </data>
-  <data name="Language_Spanish" xml:space="preserve">
-    <value>Español</value>
-  </data>
   
-  <!-- Navigation Menu -->
+  <!-- Menu de navigation -->
   <data name="Nav_UnpinShortcut" xml:space="preserve">
-    <value>Unpin</value>
+    <value>Désépingler</value>
   </data>
 </root>

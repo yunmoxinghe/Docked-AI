@@ -79,7 +79,13 @@ string text = LocalizationHelper.GetString("TrayMenu_OpenWindow");
 ## 当前支持的语言
 
 - 简体中文 (zh-CN)
+- 繁體中文 (zh-TW)
 - English (en-US)
+- 日本語 (ja-JP)
+- 한국어 (ko-KR)
+- Français (fr-FR)
+- Deutsch (de-DE)
+- Español (es-ES)
 
 ---
 

@@ -40,7 +40,13 @@
                                   MinWidth="200"
                                   SelectionChanged="OnLanguageChanged">
                             <ComboBoxItem Tag="zh-CN"/>
+                            <ComboBoxItem Tag="zh-TW"/>
                             <ComboBoxItem Tag="en-US"/>
+                            <ComboBoxItem Tag="ja-JP"/>
+                            <ComboBoxItem Tag="ko-KR"/>
+                            <ComboBoxItem Tag="fr-FR"/>
+                            <ComboBoxItem Tag="de-DE"/>
+                            <ComboBoxItem Tag="es-ES"/>
                         </ComboBox>
                     </controls:SettingsCard>
                     

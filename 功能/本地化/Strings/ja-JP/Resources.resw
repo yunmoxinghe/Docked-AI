@@ -59,108 +59,108 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   
-  <!-- Common -->
+  <!-- 共通 -->
   <data name="AppDisplayName" xml:space="preserve">
     <value>Docked AI</value>
   </data>
   
-  <!-- Home Page -->
+  <!-- ホームページ -->
   <data name="HomePage_Title.Text" xml:space="preserve">
-    <value>Home</value>
+    <value>ホーム</value>
   </data>
   <data name="HomePage_EmptyText.Text" xml:space="preserve">
-    <value>No pinned web pages yet</value>
+    <value>ピン留めされたウェブページはありません</value>
   </data>
   
-  <!-- Settings Page -->
+  <!-- 設定ページ -->
   <data name="SettingsPage_Title.Text" xml:space="preserve">
-    <value>Settings</value>
+    <value>設定</value>
   </data>
   <data name="SettingsPage_LanguageHeader.Header" xml:space="preserve">
-    <value>Language</value>
+    <value>言語</value>
   </data>
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
-    <value>Select app display language</value>
+    <value>アプリの表示言語を選択</value>
   </data>
   <data name="SettingsPage_AboutHeader.Header" xml:space="preserve">
     <value>Docked-AI</value>
   </data>
   <data name="SettingsPage_AboutHeader.Description" xml:space="preserve">
-    <value>Modern docked window management and web app integration tool based on WinUI 3</value>
+    <value>WinUI 3ベースのモダンなドッキングウィンドウ管理とウェブアプリ統合ツール</value>
   </data>
   <data name="SettingsPage_Version.Text" xml:space="preserve">
-    <value>Version: v1.0.0</value>
+    <value>バージョン：v1.0.0</value>
   </data>
   <data name="SettingsPage_AppDetailsHeader.Header" xml:space="preserve">
-    <value>App Details</value>
+    <value>アプリの詳細</value>
   </data>
   <data name="SettingsPage_AppDetail1.Text" xml:space="preserve">
-    <value>Built with WinUI 3 framework</value>
+    <value>WinUI 3フレームワークで開発</value>
   </data>
   <data name="SettingsPage_AppDetail2.Text" xml:space="preserve">
-    <value>Smart window docking with smooth animations</value>
+    <value>スマートウィンドウドッキングとスムーズなアニメーション</value>
   </data>
   <data name="SettingsPage_AppDetail3.Text" xml:space="preserve">
-    <value>Integrated web app shortcut management</value>
+    <value>ウェブアプリショートカット管理を統合</value>
   </data>
   <data name="SettingsPage_AppDetail4.Text" xml:space="preserve">
-    <value>Follows Windows 11 design guidelines</value>
+    <value>Windows 11デザインガイドラインに準拠</value>
   </data>
   <data name="SettingsPage_LinksHeader.Header" xml:space="preserve">
-    <value>Related Links</value>
+    <value>関連リンク</value>
   </data>
   <data name="SettingsPage_GitHubLink.Content" xml:space="preserve">
-    <value>Visit GitHub Project</value>
+    <value>GitHubプロジェクトを見る</value>
   </data>
   <data name="SettingsPage_FeedbackLink.Content" xml:space="preserve">
-    <value>Submit Feedback</value>
+    <value>フィードバックを送信</value>
   </data>
   <data name="SettingsPage_LicenseLink.Content" xml:space="preserve">
-    <value>View License</value>
+    <value>ライセンスを表示</value>
   </data>
   
-  <!-- Tray Menu -->
+  <!-- トレイメニュー -->
   <data name="TrayMenu_OpenWindow" xml:space="preserve">
-    <value>Open Main Window</value>
+    <value>メインウィンドウを開く</value>
   </data>
   <data name="TrayMenu_Exit" xml:space="preserve">
-    <value>Exit</value>
+    <value>終了</value>
   </data>
   
-  <!-- Navigation -->
+  <!-- ナビゲーション -->
   <data name="Nav_Home.Content" xml:space="preserve">
-    <value>Home</value>
+    <value>ホーム</value>
   </data>
   <data name="Nav_New.Content" xml:space="preserve">
-    <value>New</value>
+    <value>新規</value>
   </data>
   <data name="Nav_Settings.Content" xml:space="preserve">
-    <value>Settings</value>
+    <value>設定</value>
   </data>
   <data name="Nav_DockToggle.Content" xml:space="preserve">
-    <value>Pin Sidebar</value>
+    <value>サイドバーをピン留め</value>
   </data>
   
-  <!-- New Page -->
+  <!-- 新規ページ -->
   <data name="NewPage_Title.Text" xml:space="preserve">
-    <value>New</value>
+    <value>新規</value>
   </data>
   <data name="NewPage_PinWebHeader.Header" xml:space="preserve">
-    <value>Pin Web Page as App</value>
+    <value>ウェブページをアプリとしてピン留め</value>
   </data>
   <data name="NewPage_PinWebHeader.Description" xml:space="preserve">
-    <value>Pin frequently used websites as standalone app entries.</value>
+    <value>よく使うウェブサイトを独立したアプリエントリとしてピン留めします。</value>
   </data>
   
-  <!-- Web App Page -->
+  <!-- ウェブアプリページ -->
   <data name="WebAppPage_RestoreAutoIcon.Content" xml:space="preserve">
-    <value>Restore Auto Icon</value>
+    <value>自動アイコンを復元</value>
   </data>
   <data name="WebAppPage_NameHeader.Header" xml:space="preserve">
-    <value>Name</value>
+    <value>名前</value>
   </data>
   <data name="WebAppPage_NameHeader.PlaceholderText" xml:space="preserve">
-    <value>Enter app name</value>
+    <value>アプリ名を入力</value>
   </data>
   <data name="WebAppPage_UrlHeader.Header" xml:space="preserve">
     <value>URL</value>
@@ -169,87 +169,84 @@
     <value>https://example.com</value>
   </data>
   <data name="WebAppPage_Confirm.Content" xml:space="preserve">
-    <value>Confirm</value>
+    <value>確認</value>
   </data>
   
-  <!-- Web Browser Page -->
+  <!-- ウェブブラウザページ -->
   <data name="WebBrowserPage_Back.Label" xml:space="preserve">
-    <value>Back</value>
+    <value>戻る</value>
   </data>
   <data name="WebBrowserPage_Forward.Label" xml:space="preserve">
-    <value>Forward</value>
+    <value>進む</value>
   </data>
   <data name="WebBrowserPage_Refresh.Label" xml:space="preserve">
-    <value>Refresh</value>
+    <value>更新</value>
   </data>
   <data name="WebBrowserPage_CopyUrl.Label" xml:space="preserve">
-    <value>Copy Link</value>
+    <value>リンクをコピー</value>
   </data>
   <data name="WebBrowserPage_OpenExternal.Label" xml:space="preserve">
-    <value>Open Externally</value>
+    <value>外部で開く</value>
   </data>
   
-  <!-- Web App Page Status Messages -->
+  <!-- ウェブアプリページステータスメッセージ -->
   <data name="WebAppPage_IconRestored" xml:space="preserve">
-    <value>Auto icon restored</value>
+    <value>自動アイコンを復元しました</value>
   </data>
   <data name="WebAppPage_InvalidUrl" xml:space="preserve">
-    <value>Invalid URL format</value>
+    <value>無効なURL形式</value>
   </data>
   <data name="WebAppPage_FetchingInfo" xml:space="preserve">
-    <value>Fetching website info...</value>
+    <value>ウェブサイト情報を取得中...</value>
   </data>
   <data name="WebAppPage_FetchedWithCustomIcon" xml:space="preserve">
-    <value>Name fetched (using custom icon)</value>
+    <value>名前を取得しました（カスタムアイコンを使用）</value>
   </data>
   <data name="WebAppPage_FetchedWithIcon" xml:space="preserve">
-    <value>Name and icon fetched</value>
+    <value>名前とアイコンを取得しました</value>
   </data>
   <data name="WebAppPage_FetchedNoIcon" xml:space="preserve">
-    <value>Name fetched, icon not found</value>
+    <value>名前を取得しました、アイコンが見つかりません</value>
   </data>
   <data name="WebAppPage_PartialSuccess" xml:space="preserve">
-    <value>Partially successful: {0}</value>
+    <value>部分的に成功：{0}</value>
   </data>
   <data name="WebAppPage_FetchFailed" xml:space="preserve">
-    <value>Fetch failed: {0}</value>
+    <value>取得に失敗しました：{0}</value>
   </data>
   <data name="WebAppPage_CannotOpenPicker" xml:space="preserve">
-    <value>Cannot open file picker</value>
+    <value>ファイルピッカーを開けません</value>
   </data>
   <data name="WebAppPage_EmptyIconFile" xml:space="preserve">
-    <value>Icon file is empty</value>
+    <value>アイコンファイルが空です</value>
   </data>
   <data name="WebAppPage_IconReplaced" xml:space="preserve">
-    <value>Icon replaced</value>
+    <value>アイコンを置き換えました</value>
   </data>
   <data name="WebAppPage_IconReplaceFailed" xml:space="preserve">
-    <value>Icon replacement failed: {0}</value>
+    <value>アイコンの置き換えに失敗しました：{0}</value>
   </data>
   <data name="WebAppPage_ShortcutCreated" xml:space="preserve">
-    <value>Web shortcut created</value>
+    <value>ウェブショートカットを作成しました</value>
   </data>
   
-  <!-- Settings Page Dialog -->
+  <!-- 設定ページダイアログ -->
   <data name="SettingsPage_RestartTitle" xml:space="preserve">
-    <value>Restart Required</value>
+    <value>再起動が必要</value>
   </data>
   <data name="SettingsPage_RestartContent" xml:space="preserve">
-    <value>Language changes will take effect after restarting the app. Restart now?</value>
+    <value>言語の変更はアプリを再起動後に有効になります。今すぐ再起動しますか？</value>
   </data>
   <data name="SettingsPage_RestartButton" xml:space="preserve">
-    <value>Restart</value>
+    <value>再起動</value>
   </data>
   <data name="SettingsPage_LaterButton" xml:space="preserve">
-    <value>Later</value>
+    <value>後で</value>
   </data>
   
-  <!-- Language Options -->
+  <!-- 言語オプション -->
   <data name="Language_SimplifiedChinese" xml:space="preserve">
     <value>简体中文</value>
-  </data>
-  <data name="Language_TraditionalChinese" xml:space="preserve">
-    <value>繁體中文</value>
   </data>
   <data name="Language_English" xml:space="preserve">
     <value>English</value>
@@ -257,21 +254,9 @@
   <data name="Language_Japanese" xml:space="preserve">
     <value>日本語</value>
   </data>
-  <data name="Language_Korean" xml:space="preserve">
-    <value>한국어</value>
-  </data>
-  <data name="Language_French" xml:space="preserve">
-    <value>Français</value>
-  </data>
-  <data name="Language_German" xml:space="preserve">
-    <value>Deutsch</value>
-  </data>
-  <data name="Language_Spanish" xml:space="preserve">
-    <value>Español</value>
-  </data>
   
-  <!-- Navigation Menu -->
+  <!-- ナビゲーションメニュー -->
   <data name="Nav_UnpinShortcut" xml:space="preserve">
-    <value>Unpin</value>
+    <value>ピン留めを外す</value>
   </data>
 </root>

@@ -32,13 +32,32 @@ namespace Docked_AI.Features.Pages.Settings
             foreach (ComboBoxItem item in LanguageComboBox.Items)
             {
                 var tag = item.Tag?.ToString();
-                if (tag == "zh-CN")
+                switch (tag)
                 {
-                    item.Content = LocalizationHelper.GetString("Language_SimplifiedChinese");
-                }
-                else if (tag == "en-US")
-                {
-                    item.Content = LocalizationHelper.GetString("Language_English");
+                    case "zh-CN":
+                        item.Content = LocalizationHelper.GetString("Language_SimplifiedChinese");
+                        break;
+                    case "zh-TW":
+                        item.Content = LocalizationHelper.GetString("Language_TraditionalChinese");
+                        break;
+                    case "en-US":
+                        item.Content = LocalizationHelper.GetString("Language_English");
+                        break;
+                    case "ja-JP":
+                        item.Content = LocalizationHelper.GetString("Language_Japanese");
+                        break;
+                    case "ko-KR":
+                        item.Content = LocalizationHelper.GetString("Language_Korean");
+                        break;
+                    case "fr-FR":
+                        item.Content = LocalizationHelper.GetString("Language_French");
+                        break;
+                    case "de-DE":
+                        item.Content = LocalizationHelper.GetString("Language_German");
+                        break;
+                    case "es-ES":
+                        item.Content = LocalizationHelper.GetString("Language_Spanish");
+                        break;
                 }
             }
         }
