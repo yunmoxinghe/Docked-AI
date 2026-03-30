@@ -39,14 +39,14 @@
                         <ComboBox x:Name="LanguageComboBox" 
                                   MinWidth="200"
                                   SelectionChanged="OnLanguageChanged">
-                            <ComboBoxItem Tag="zh-CN"/>
-                            <ComboBoxItem Tag="zh-TW"/>
-                            <ComboBoxItem Tag="en-US"/>
-                            <ComboBoxItem Tag="ja-JP"/>
-                            <ComboBoxItem Tag="ko-KR"/>
-                            <ComboBoxItem Tag="fr-FR"/>
-                            <ComboBoxItem Tag="de-DE"/>
-                            <ComboBoxItem Tag="es-ES"/>
+                            <ComboBoxItem Tag="zh-CN" Content="简体中文"/>
+                            <ComboBoxItem Tag="zh-TW" Content="繁體中文"/>
+                            <ComboBoxItem Tag="en-US" Content="English"/>
+                            <ComboBoxItem Tag="ja-JP" Content="日本語"/>
+                            <ComboBoxItem Tag="ko-KR" Content="한국어"/>
+                            <ComboBoxItem Tag="fr-FR" Content="Français"/>
+                            <ComboBoxItem Tag="de-DE" Content="Deutsch"/>
+                            <ComboBoxItem Tag="es-ES" Content="Español"/>
                         </ComboBox>
                     </controls:SettingsCard>
                     

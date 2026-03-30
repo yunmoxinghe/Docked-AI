@@ -22,44 +22,8 @@ namespace Docked_AI.Features.Pages.Settings
             InitializeComponent();
             Loaded += OnLoaded;
             SizeChanged += OnSizeChanged;
-            InitializeLanguageComboBox();
+            // 不再需要 InitializeLanguageComboBox，因为 XAML 中已经设置了 Content
             LoadLanguageSettings();
-        }
-
-        private void InitializeLanguageComboBox()
-        {
-            // 设置本地化的语言名称
-            foreach (ComboBoxItem item in LanguageComboBox.Items)
-            {
-                var tag = item.Tag?.ToString();
-                switch (tag)
-                {
-                    case "zh-CN":
-                        item.Content = LocalizationHelper.GetString("Language_SimplifiedChinese");
-                        break;
-                    case "zh-TW":
-                        item.Content = LocalizationHelper.GetString("Language_TraditionalChinese");
-                        break;
-                    case "en-US":
-                        item.Content = LocalizationHelper.GetString("Language_English");
-                        break;
-                    case "ja-JP":
-                        item.Content = LocalizationHelper.GetString("Language_Japanese");
-                        break;
-                    case "ko-KR":
-                        item.Content = LocalizationHelper.GetString("Language_Korean");
-                        break;
-                    case "fr-FR":
-                        item.Content = LocalizationHelper.GetString("Language_French");
-                        break;
-                    case "de-DE":
-                        item.Content = LocalizationHelper.GetString("Language_German");
-                        break;
-                    case "es-ES":
-                        item.Content = LocalizationHelper.GetString("Language_Spanish");
-                        break;
-                }
-            }
         }
 
         private void LoadLanguageSettings()
@@ -70,22 +34,74 @@ namespace Docked_AI.Features.Pages.Settings
                 currentLanguage = ApplicationLanguages.Languages[0];
             }
 
+            System.Diagnostics.Debug.WriteLine($"[LoadLanguageSettings] Current language: {currentLanguage}");
+
             // 暂时取消事件订阅，避免在初始化时触发
             LanguageComboBox.SelectionChanged -= OnLanguageChanged;
 
+            bool found = false;
+            
+            // 第一步：尝试精确匹配
             foreach (ComboBoxItem item in LanguageComboBox.Items)
             {
-                if (item.Tag?.ToString() == currentLanguage)
+                var itemTag = item.Tag?.ToString();
+                System.Diagnostics.Debug.WriteLine($"  Checking: Tag={itemTag}, Content={item.Content}");
+                if (itemTag == currentLanguage)
                 {
                     LanguageComboBox.SelectedItem = item;
+                    found = true;
+                    System.Diagnostics.Debug.WriteLine($"  ✓ Matched! Selected: {item.Content}");
                     break;
                 }
             }
 
-            if (LanguageComboBox.SelectedItem == null)
+            // 第二步：尝试匹配 zh-Hant-TW -> zh-TW 这种情况
+            if (!found && currentLanguage.Contains("-"))
             {
+                var parts = currentLanguage.Split('-');
+                if (parts.Length == 3) // 例如 zh-Hant-TW
+                {
+                    var simplifiedTag = $"{parts[0]}-{parts[2]}"; // zh-TW
+                    System.Diagnostics.Debug.WriteLine($"  No exact match, trying simplified tag: {simplifiedTag}");
+                    foreach (ComboBoxItem item in LanguageComboBox.Items)
+                    {
+                        var itemTag = item.Tag?.ToString();
+                        if (itemTag == simplifiedTag)
+                        {
+                            LanguageComboBox.SelectedItem = item;
+                            found = true;
+                            System.Diagnostics.Debug.WriteLine($"  ✓ Matched by simplified tag! Selected: {item.Content}");
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // 第三步：尝试匹配语言代码（忽略地区）
+            if (!found)
+            {
+                var languageCode = currentLanguage.Split('-')[0];
+                System.Diagnostics.Debug.WriteLine($"  No match yet, trying language code: {languageCode}");
+                foreach (ComboBoxItem item in LanguageComboBox.Items)
+                {
+                    var itemTag = item.Tag?.ToString();
+                    if (itemTag?.StartsWith(languageCode + "-") == true)
+                    {
+                        LanguageComboBox.SelectedItem = item;
+                        found = true;
+                        System.Diagnostics.Debug.WriteLine($"  ✓ Matched by code! Selected: {item.Content}");
+                        break;
+                    }
+                }
+            }
+
+            if (!found)
+            {
+                System.Diagnostics.Debug.WriteLine("  ✗ No match found, defaulting to index 0");
                 LanguageComboBox.SelectedIndex = 0;
             }
+
+            System.Diagnostics.Debug.WriteLine($"[LoadLanguageSettings] Final selection: {(LanguageComboBox.SelectedItem as ComboBoxItem)?.Content}");
 
             // 重新订阅事件
             LanguageComboBox.SelectionChanged += OnLanguageChanged;
