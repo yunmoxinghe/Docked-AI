@@ -5,14 +5,14 @@
 ## 文件结构
 
 ```
-Strings/
-├── zh-CN/
-│   └── Resources.resw    # 中文资源文件
-└── en-US/
-    └── Resources.resw    # 英文资源文件
-
 功能/本地化/
-└── LocalizationHelper.cs  # 本地化辅助类
+├── Strings/
+│   ├── zh-CN/
+│   │   └── Resources.resw    # 中文资源文件
+│   └── en-US/
+│       └── Resources.resw    # 英文资源文件
+├── LocalizationHelper.cs      # 本地化辅助类
+└── README.md                  # 本文档
 ```
 
 ## 使用方法
@@ -37,8 +37,8 @@ string text = LocalizationHelper.GetString("TrayMenu_OpenWindow");
 
 ## 添加新的本地化字符串
 
-1. 在 `Strings/zh-CN/Resources.resw` 中添加中文资源
-2. 在 `Strings/en-US/Resources.resw` 中添加对应的英文资源
+1. 在 `功能/本地化/Strings/zh-CN/Resources.resw` 中添加中文资源
+2. 在 `功能/本地化/Strings/en-US/Resources.resw` 中添加对应的英文资源
 3. 使用相同的 `name` 属性作为资源键
 
 示例：

@@ -7,7 +7,7 @@ namespace Docked_AI.Features.Localization
     /// </summary>
     public static class LocalizationHelper
     {
-        private static readonly ResourceLoader _resourceLoader = new();
+        private static readonly ResourceLoader _resourceLoader = new("功能/本地化/Strings/Resources");
 
         /// <summary>
         /// 获取本地化字符串
