@@ -282,31 +282,5 @@ namespace Docked_AI.Features.Pages.Settings
                 }
             }
         }
-
-        // Debug event handlers for simulating different states
-        private void OnSimulateEnabled(object sender, RoutedEventArgs e)
-        {
-            ViewModel.SetDebugState(StartupTaskState.Enabled);
-        }
-
-        private void OnSimulateDisabled(object sender, RoutedEventArgs e)
-        {
-            ViewModel.SetDebugState(StartupTaskState.Disabled);
-        }
-
-        private void OnSimulateDisabledByUser(object sender, RoutedEventArgs e)
-        {
-            ViewModel.SetDebugState(StartupTaskState.DisabledByUser);
-        }
-
-        private void OnSimulateDisabledByPolicy(object sender, RoutedEventArgs e)
-        {
-            ViewModel.SetDebugState(StartupTaskState.DisabledByPolicy);
-        }
-
-        private async void OnRefreshActualState(object sender, RoutedEventArgs e)
-        {
-            await ViewModel.InitializeAsync();
-        }
     }
 }

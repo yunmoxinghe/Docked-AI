@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:ui="using:Microsoft.UI.Xaml.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
@@ -54,71 +55,20 @@
                     <controls:SettingsCard 
                         Header="开机自启动"
                         Description="允许应用在 Windows 启动时自动运行"
-                        IsClickEnabled="{x:Bind ViewModel.CanNavigateToSettings, Mode=OneWay}"
+                        IsClickEnabled="True"
+                        ActionIconToolTip="在系统设置管理应用的开机自启动"
                         Click="OnSettingCardClick">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE7E8;"/>
                         </controls:SettingsCard.HeaderIcon>
+                        <controls:SettingsCard.ActionIcon>
+                            <FontIcon Glyph="&#xE8A7;"/>
+                        </controls:SettingsCard.ActionIcon>
                         <ToggleSwitch 
                             IsOn="{x:Bind ViewModel.IsStartupEnabled, Mode=OneWay}"
                             IsEnabled="{x:Bind ViewModel.CanToggle, Mode=OneWay}"
                             Toggled="OnToggleSwitched"/>
                     </controls:SettingsCard>
-
-                    <!-- 调试卡片：显示开机自启动状态 -->
-                    <controls:SettingsExpander
-                        Header="调试：开机自启动状态"
-                        Description="查看和测试不同的自启动状态"
-                        IsExpanded="False">
-                        <controls:SettingsExpander.HeaderIcon>
-                            <FontIcon Glyph="&#xE9F5;"/>
-                        </controls:SettingsExpander.HeaderIcon>
-                        
-                        <TextBlock 
-                            Text="{x:Bind ViewModel.CurrentStateText, Mode=OneWay}"
-                            Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
-                        
-                        <controls:SettingsExpander.Items>
-                            <controls:SettingsCard
-                                Header="当前状态详情"
-                                Description="查看所有状态属性">
-                                <StackPanel Spacing="8">
-                                    <TextBlock>
-                                        <Run Text="IsStartupEnabled: "/>
-                                        <Run Text="{x:Bind ViewModel.IsStartupEnabled, Mode=OneWay}" FontWeight="SemiBold"/>
-                                    </TextBlock>
-                                    <TextBlock>
-                                        <Run Text="CanToggle: "/>
-                                        <Run Text="{x:Bind ViewModel.CanToggle, Mode=OneWay}" FontWeight="SemiBold"/>
-                                    </TextBlock>
-                                    <TextBlock>
-                                        <Run Text="CanNavigateToSettings: "/>
-                                        <Run Text="{x:Bind ViewModel.CanNavigateToSettings, Mode=OneWay}" FontWeight="SemiBold"/>
-                                    </TextBlock>
-                                    <TextBlock>
-                                        <Run Text="ShowPolicyWarning: "/>
-                                        <Run Text="{x:Bind ViewModel.ShowPolicyWarning, Mode=OneWay}" FontWeight="SemiBold"/>
-                                    </TextBlock>
-                                    <TextBlock>
-                                        <Run Text="ShowUserDisabledInfo: "/>
-                                        <Run Text="{x:Bind ViewModel.ShowUserDisabledInfo, Mode=OneWay}" FontWeight="SemiBold"/>
-                                    </TextBlock>
-                                </StackPanel>
-                            </controls:SettingsCard>
-                            
-                            <controls:SettingsCard
-                                Header="模拟状态"
-                                Description="测试不同状态下的UI表现">
-                                <StackPanel Spacing="8">
-                                    <Button Content="模拟 Enabled" Click="OnSimulateEnabled" MinWidth="200"/>
-                                    <Button Content="模拟 Disabled" Click="OnSimulateDisabled" MinWidth="200"/>
-                                    <Button Content="模拟 DisabledByUser" Click="OnSimulateDisabledByUser" MinWidth="200"/>
-                                    <Button Content="模拟 DisabledByPolicy" Click="OnSimulateDisabledByPolicy" MinWidth="200"/>
-                                    <Button Content="刷新实际状态" Click="OnRefreshActualState" MinWidth="200" Style="{ThemeResource AccentButtonStyle}"/>
-                                </StackPanel>
-                            </controls:SettingsCard>
-                        </controls:SettingsExpander.Items>
-                    </controls:SettingsExpander>
 
                     <controls:SettingsCard x:Uid="SettingsPage_LanguageHeader">
                         <controls:SettingsCard.HeaderIcon>

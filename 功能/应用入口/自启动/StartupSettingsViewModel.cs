@@ -54,11 +54,6 @@ namespace Docked_AI.Features.AppEntry.AutoLaunch
         public bool ShowUserDisabledInfo => _currentState == StartupTaskState.DisabledByUser;
 
         /// <summary>
-        /// 当前状态的文本表示（用于调试）
-        /// </summary>
-        public string CurrentStateText => _currentState.ToString();
-
-        /// <summary>
         /// 初始化并加载当前状态
         /// </summary>
         public async Task InitializeAsync()
@@ -171,17 +166,6 @@ namespace Docked_AI.Features.AppEntry.AutoLaunch
             RaisePropertyChanged(nameof(CanNavigateToSettings));
             RaisePropertyChanged(nameof(ShowPolicyWarning));
             RaisePropertyChanged(nameof(ShowUserDisabledInfo));
-            RaisePropertyChanged(nameof(CurrentStateText));
-        }
-
-        /// <summary>
-        /// 设置模拟状态（仅用于调试）
-        /// </summary>
-        public void SetDebugState(StartupTaskState state)
-        {
-            _currentState = state;
-            UpdateUIProperties();
-            LogInfo($"Debug: State set to {state}");
         }
 
         private static void LogInfo(string message)
