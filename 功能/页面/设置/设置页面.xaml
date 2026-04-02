@@ -35,28 +35,24 @@
                     Spacing="4">
                     <!-- 当状态为 DisabledByUser 时显示提示信息 -->
                     <InfoBar
+                        x:Uid="SettingsPage_UserDisabledInfo"
                         Severity="Informational"
                         IsOpen="{x:Bind ViewModel.ShowUserDisabledInfo, Mode=OneWay}"
-                        Title="需要在系统设置中启用"
-                        Message="此应用的开机自启动已在系统设置中被禁用。请点击下方卡片跳转到系统设置页面进行启用。"
                         IsClosable="False"
                         Visibility="{x:Bind ViewModel.ShowUserDisabledInfo, Mode=OneWay}"/>
 
                     <!-- 当状态为 DisabledByPolicy 时显示警告 -->
                     <InfoBar
+                        x:Uid="SettingsPage_PolicyWarning"
                         Severity="Warning"
                         IsOpen="{x:Bind ViewModel.ShowPolicyWarning, Mode=OneWay}"
-                        Title="自启动功能已被组策略限制"
-                        Message="系统管理员已禁用此应用的开机自启动功能。如需启用,请联系您的 IT 管理员。"
                         IsClosable="False"
                         Visibility="{x:Bind ViewModel.ShowPolicyWarning, Mode=OneWay}"/>
 
                     <!-- 开机自启动设置 -->
                     <controls:SettingsCard 
-                        Header="开机自启动"
-                        Description="允许应用在 Windows 启动时自动运行"
+                        x:Uid="SettingsPage_StartupHeader"
                         IsClickEnabled="True"
-                        ActionIconToolTip="在系统设置管理应用的开机自启动"
                         Click="OnSettingCardClick">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE7B5;" />
@@ -77,14 +73,14 @@
                         <ComboBox x:Name="LanguageComboBox" 
                                   MinWidth="200"
                                   SelectionChanged="OnLanguageChanged">
-                            <ComboBoxItem Tag="zh-CN" Content="简体中文"/>
-                            <ComboBoxItem Tag="zh-TW" Content="繁體中文"/>
-                            <ComboBoxItem Tag="en-US" Content="English"/>
-                            <ComboBoxItem Tag="ja-JP" Content="日本語"/>
-                            <ComboBoxItem Tag="ko-KR" Content="한국어"/>
-                            <ComboBoxItem Tag="fr-FR" Content="Français"/>
-                            <ComboBoxItem Tag="de-DE" Content="Deutsch"/>
-                            <ComboBoxItem Tag="es-ES" Content="Español"/>
+                            <ComboBoxItem Tag="zh-CN" x:Uid="Language_SimplifiedChinese"/>
+                            <ComboBoxItem Tag="zh-TW" x:Uid="Language_TraditionalChinese"/>
+                            <ComboBoxItem Tag="en-US" x:Uid="Language_English"/>
+                            <ComboBoxItem Tag="ja-JP" x:Uid="Language_Japanese"/>
+                            <ComboBoxItem Tag="ko-KR" x:Uid="Language_Korean"/>
+                            <ComboBoxItem Tag="fr-FR" x:Uid="Language_French"/>
+                            <ComboBoxItem Tag="de-DE" x:Uid="Language_German"/>
+                            <ComboBoxItem Tag="es-ES" x:Uid="Language_Spanish"/>
                         </ComboBox>
                     </controls:SettingsCard>
                     
