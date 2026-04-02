@@ -59,7 +59,7 @@
                         ActionIconToolTip="在系统设置管理应用的开机自启动"
                         Click="OnSettingCardClick">
                         <controls:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE7E8;"/>
+                            <FontIcon Glyph="&#xE7B5;" />
                         </controls:SettingsCard.HeaderIcon>
                         <controls:SettingsCard.ActionIcon>
                             <FontIcon Glyph="&#xE8A7;"/>
