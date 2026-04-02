@@ -76,6 +76,27 @@
   <data name="SettingsPage_Title.Text" xml:space="preserve">
     <value>Paramètres</value>
   </data>
+  <data name="SettingsPage_UserDisabledInfo.Title" xml:space="preserve">
+    <value>Activer dans les paramètres système</value>
+  </data>
+  <data name="SettingsPage_UserDisabledInfo.Message" xml:space="preserve">
+    <value>Le démarrage de cette application a été désactivé dans les paramètres système. Cliquez sur la carte ci-dessous pour ouvrir les paramètres système et l'activer.</value>
+  </data>
+  <data name="SettingsPage_PolicyWarning.Title" xml:space="preserve">
+    <value>Démarrage restreint par la stratégie de groupe</value>
+  </data>
+  <data name="SettingsPage_PolicyWarning.Message" xml:space="preserve">
+    <value>L'administrateur système a désactivé le démarrage de cette application. Veuillez contacter votre administrateur informatique pour l'activer.</value>
+  </data>
+  <data name="SettingsPage_StartupHeader.Header" xml:space="preserve">
+    <value>Exécuter au démarrage</value>
+  </data>
+  <data name="SettingsPage_StartupHeader.Description" xml:space="preserve">
+    <value>Permettre à l'application de s'exécuter automatiquement au démarrage de Windows</value>
+  </data>
+  <data name="SettingsPage_StartupHeader.ActionIconToolTip" xml:space="preserve">
+    <value>Gérer le démarrage de l'application dans les paramètres système</value>
+  </data>
   <data name="SettingsPage_LanguageHeader.Header" xml:space="preserve">
     <value>Langue</value>
   </data>
@@ -248,28 +269,28 @@
   </data>
   
   <!-- Options de langue -->
-  <data name="Language_SimplifiedChinese" xml:space="preserve">
+  <data name="Language_SimplifiedChinese.Content" xml:space="preserve">
     <value>简体中文</value>
   </data>
-  <data name="Language_TraditionalChinese" xml:space="preserve">
+  <data name="Language_TraditionalChinese.Content" xml:space="preserve">
     <value>繁體中文</value>
   </data>
-  <data name="Language_English" xml:space="preserve">
+  <data name="Language_English.Content" xml:space="preserve">
     <value>English</value>
   </data>
-  <data name="Language_Japanese" xml:space="preserve">
+  <data name="Language_Japanese.Content" xml:space="preserve">
     <value>日本語</value>
   </data>
-  <data name="Language_Korean" xml:space="preserve">
+  <data name="Language_Korean.Content" xml:space="preserve">
     <value>한국어</value>
   </data>
-  <data name="Language_French" xml:space="preserve">
+  <data name="Language_French.Content" xml:space="preserve">
     <value>Français</value>
   </data>
-  <data name="Language_German" xml:space="preserve">
+  <data name="Language_German.Content" xml:space="preserve">
     <value>Deutsch</value>
   </data>
-  <data name="Language_Spanish" xml:space="preserve">
+  <data name="Language_Spanish.Content" xml:space="preserve">
     <value>Español</value>
   </data>
   
