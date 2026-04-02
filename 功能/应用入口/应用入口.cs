@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Docked_AI.Features.Tray;
+using Docked_AI.Features.AppEntry.NormalLaunch;
+using Docked_AI.Features.AppEntry.AutoLaunch;
+using Docked_AI.Features.AppEntry.ShareLaunch;
 using Windows.Graphics;
 using Windows.ApplicationModel.Activation;
 using Windows.ApplicationModel.DataTransfer;
@@ -21,7 +24,11 @@ namespace Docked_AI
         private TrayIconManager? _trayIconManager;
         private static Mutex? _mutex;
         private static bool _ownsMutex;
-        private string? _pendingSharedUrl;
+        
+        // Launch handlers
+        private NormalLaunchHandler? _normalLaunchHandler;
+        private AutoLaunchHandler? _autoLaunchHandler;
+        private ShareLaunchHandler? _shareLaunchHandler;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -45,6 +52,11 @@ namespace Docked_AI
             {
                 var activationArgs = Windows.ApplicationModel.AppInstance.GetActivatedEventArgs();
 
+                // Initialize handlers
+                _normalLaunchHandler = new NormalLaunchHandler(this);
+                _autoLaunchHandler = new AutoLaunchHandler(this);
+                _shareLaunchHandler = new ShareLaunchHandler(this);
+
                 // ShareTarget activation should always proceed (even if another instance exists)
                 if (activationArgs?.Kind == ActivationKind.ShareTarget)
                 {
@@ -63,9 +75,15 @@ namespace Docked_AI
                     return;
                 }
 
-                // Initialize the tray icon manager.
-                _trayIconManager = new TrayIconManager(null, ExitApplication);
-                _trayIconManager.Initialize();
+                // Check if this is an auto-launch scenario
+                if (_autoLaunchHandler.IsAutoLaunch())
+                {
+                    _ = _autoLaunchHandler.HandleAsync();
+                }
+
+                // Handle normal launch
+                _normalLaunchHandler.Handle(ExitApplication);
+                _trayIconManager = _normalLaunchHandler.TrayIconManager;
                 EnsureKeepAliveWindow();
 
                 // Don't show the main window initially.
@@ -80,62 +98,17 @@ namespace Docked_AI
 
         private async void HandleShareTargetActivation(ShareTargetActivatedEventArgs? shareArgs)
         {
-            if (shareArgs == null)
+            if (_shareLaunchHandler == null)
             {
-                return;
+                _shareLaunchHandler = new ShareLaunchHandler(this);
             }
 
-            try
+            if (_window == null)
             {
-                var shareOperation = shareArgs.ShareOperation;
-                shareOperation.ReportStarted();
-
-                string? sharedUrl = null;
-
-                if (shareOperation.Data.Contains(StandardDataFormats.WebLink))
-                {
-                    var webLink = await shareOperation.Data.GetWebLinkAsync();
-                    sharedUrl = webLink?.AbsoluteUri;
-                }
-                else if (shareOperation.Data.Contains(StandardDataFormats.Text))
-                {
-                    var text = await shareOperation.Data.GetTextAsync();
-                    if (Uri.TryCreate(text, UriKind.Absolute, out var uri) &&
-                        (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
-                    {
-                        sharedUrl = uri.AbsoluteUri;
-                    }
-                }
-
-                shareOperation.ReportCompleted();
-
-                if (!string.IsNullOrEmpty(sharedUrl))
-                {
-                    _pendingSharedUrl = sharedUrl;
-
-                    if (_window == null)
-                    {
-                        _window = new MainWindow();
-                    }
-
-                    _window.Activate();
-
-                    // Wait for window to fully load before navigating
-                    await Task.Delay(500);
-
-                    System.Diagnostics.Debug.WriteLine($"HandleShareTargetActivation: navigating with URL: {_pendingSharedUrl}");
-
-                    if (_window is MainWindow mainWindow)
-                    {
-                        mainWindow.NavigateToNewPage(_pendingSharedUrl);
-                        _pendingSharedUrl = null;
-                    }
-                }
+                _window = new MainWindow();
             }
-            catch (Exception ex)
-            {
-                LogException("HandleShareTargetActivation", ex);
-            }
+
+            await _shareLaunchHandler.HandleAsync(shareArgs, _window);
         }
 
         public void OpenMenuItem_Click(object sender, RoutedEventArgs e)

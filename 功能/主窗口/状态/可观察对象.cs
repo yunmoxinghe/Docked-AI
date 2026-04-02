@@ -19,5 +19,10 @@ namespace Docked_AI.Features.MainWindow.State
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             return true;
         }
+
+        protected void RaisePropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }

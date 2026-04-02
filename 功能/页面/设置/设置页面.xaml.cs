@@ -5,6 +5,7 @@ using Windows.System;
 using Windows.Globalization;
 using Windows.ApplicationModel.Resources.Core;
 using Docked_AI.Features.Localization;
+using Docked_AI.Features.AppEntry.AutoLaunch;
 
 namespace Docked_AI.Features.Pages.Settings
 {
@@ -17,13 +18,35 @@ namespace Docked_AI.Features.Pages.Settings
         private double _lastAppliedMargin = -1;
         private double _lastMeasuredWidth = -1;
 
+        // ViewModel for startup settings
+        public StartupSettingsViewModel ViewModel { get; }
+
         public SettingsPage()
         {
+            // Initialize ViewModel
+            var startupManager = new StartupTaskManager();
+            ViewModel = new StartupSettingsViewModel(startupManager);
+
             InitializeComponent();
             Loaded += OnLoaded;
             SizeChanged += OnSizeChanged;
             // 不再需要 InitializeLanguageComboBox，因为 XAML 中已经设置了 Content
             LoadLanguageSettings();
+            
+            // Initialize startup settings asynchronously
+            _ = InitializeStartupSettingsAsync();
+        }
+
+        private async System.Threading.Tasks.Task InitializeStartupSettingsAsync()
+        {
+            try
+            {
+                await ViewModel.InitializeAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Failed to initialize startup settings: {ex}");
+            }
         }
 
         private void LoadLanguageSettings()
@@ -201,6 +224,60 @@ namespace Docked_AI.Features.Pages.Settings
                             await Windows.ApplicationModel.Core.CoreApplication.RequestRestartAsync(string.Empty);
                         }
                     }
+                }
+            }
+        }
+
+        // Event handlers for startup settings
+        private async void OnToggleSwitched(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (sender is ToggleSwitch toggleSwitch)
+                {
+                    await ViewModel.HandleToggleAsync(toggleSwitch.IsOn);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SettingsPage] OnToggleSwitched error: {ex}");
+                
+                // Show error dialog to user
+                if (this.XamlRoot != null)
+                {
+                    var dialog = new ContentDialog
+                    {
+                        Title = "错误",
+                        Content = "切换自启动设置时发生错误，请稍后重试。",
+                        CloseButtonText = "确定",
+                        XamlRoot = this.XamlRoot
+                    };
+                    await dialog.ShowAsync();
+                }
+            }
+        }
+
+        private async void OnSettingCardClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await ViewModel.NavigateToSystemSettingsAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SettingsPage] OnSettingCardClick error: {ex}");
+                
+                // Show error dialog to user
+                if (this.XamlRoot != null)
+                {
+                    var dialog = new ContentDialog
+                    {
+                        Title = "错误",
+                        Content = "无法打开系统设置页面，请手动前往 Windows 设置 > 应用 > 启动。",
+                        CloseButtonText = "确定",
+                        XamlRoot = this.XamlRoot
+                    };
+                    await dialog.ShowAsync();
                 }
             }
         }
