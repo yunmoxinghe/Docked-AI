@@ -4,6 +4,7 @@ using System;
 using Windows.System;
 using Windows.Globalization;
 using Windows.ApplicationModel.Resources.Core;
+using Windows.ApplicationModel;
 using Docked_AI.Features.Localization;
 using Docked_AI.Features.AppEntry.AutoLaunch;
 
@@ -280,6 +281,32 @@ namespace Docked_AI.Features.Pages.Settings
                     await dialog.ShowAsync();
                 }
             }
+        }
+
+        // Debug event handlers for simulating different states
+        private void OnSimulateEnabled(object sender, RoutedEventArgs e)
+        {
+            ViewModel.SetDebugState(StartupTaskState.Enabled);
+        }
+
+        private void OnSimulateDisabled(object sender, RoutedEventArgs e)
+        {
+            ViewModel.SetDebugState(StartupTaskState.Disabled);
+        }
+
+        private void OnSimulateDisabledByUser(object sender, RoutedEventArgs e)
+        {
+            ViewModel.SetDebugState(StartupTaskState.DisabledByUser);
+        }
+
+        private void OnSimulateDisabledByPolicy(object sender, RoutedEventArgs e)
+        {
+            ViewModel.SetDebugState(StartupTaskState.DisabledByPolicy);
+        }
+
+        private async void OnRefreshActualState(object sender, RoutedEventArgs e)
+        {
+            await ViewModel.InitializeAsync();
         }
     }
 }
