@@ -91,6 +91,9 @@
   <data name="SettingsPage_Version.Text" xml:space="preserve">
     <value>バージョン：v1.0.0</value>
   </data>
+  <data name="SettingsPage_VersionPrefix" xml:space="preserve">
+    <value>バージョン：</value>
+  </data>
   <data name="SettingsPage_AppDetailsHeader.Header" xml:space="preserve">
     <value>アプリの詳細</value>
   </data>

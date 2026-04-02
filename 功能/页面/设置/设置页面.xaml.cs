@@ -134,6 +134,25 @@ namespace Docked_AI.Features.Pages.Settings
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             UpdateVisualStateAndDiagnostic();
+            LoadVersionInfo();
+        }
+
+        private void LoadVersionInfo()
+        {
+            try
+            {
+                var version = Package.Current.Id.Version;
+                var versionString = $"{version.Major}.{version.Minor}.{version.Build}";
+                
+                // 获取本地化的版本前缀（如"版本："、"Version:"等）
+                var versionPrefix = LocalizationHelper.GetString("SettingsPage_VersionPrefix");
+                VersionText.Text = $"{versionPrefix}v{versionString}";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Failed to load version info: {ex}");
+                // 如果读取失败，保持使用本地化资源中的默认值
+            }
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
@@ -183,8 +202,10 @@ namespace Docked_AI.Features.Pages.Settings
             await Launcher.LaunchUriAsync(uri);
         }
 
-        private void OnViewLicenseClick(object sender, RoutedEventArgs args)
+        private async void OnViewLicenseClick(object sender, RoutedEventArgs args)
         {
+            var uri = new Uri("https://github.com/yunmoxinghe/Docked-AI/blob/main/LICENSE");
+            await Launcher.LaunchUriAsync(uri);
         }
 
         private async void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
