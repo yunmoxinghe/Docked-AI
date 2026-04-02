@@ -3,15 +3,23 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Docked_AI.Features.Pages.WebApp.Shared
 {
+    [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+    [JsonSerializable(typeof(List<WebAppShortcutStore.StoredWebAppShortcut>))]
+    internal partial class WebAppShortcutJsonContext : JsonSerializerContext
+    {
+    }
+
     public static class WebAppShortcutStore
     {
         private static readonly JsonSerializerOptions JsonOptions = new()
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            TypeInfoResolver = WebAppShortcutJsonContext.Default
         };
 
         private static string StorageDirectory =>
@@ -34,7 +42,7 @@ namespace Docked_AI.Features.Pages.WebApp.Shared
                     return Array.Empty<WebAppShortcut>();
                 }
 
-                List<StoredWebAppShortcut>? stored = JsonSerializer.Deserialize<List<StoredWebAppShortcut>>(json, JsonOptions);
+                List<StoredWebAppShortcut>? stored = JsonSerializer.Deserialize(json, WebAppShortcutJsonContext.Default.ListStoredWebAppShortcut);
                 if (stored is null || stored.Count == 0)
                 {
                     return Array.Empty<WebAppShortcut>();
@@ -65,11 +73,11 @@ namespace Docked_AI.Features.Pages.WebApp.Shared
                 })
                 .ToList();
 
-            string json = JsonSerializer.Serialize(data, JsonOptions);
+            string json = JsonSerializer.Serialize(data, WebAppShortcutJsonContext.Default.ListStoredWebAppShortcut);
             await File.WriteAllTextAsync(StorageFilePath, json);
         }
 
-        private sealed class StoredWebAppShortcut
+        internal sealed class StoredWebAppShortcut
         {
             public string? Id { get; set; }
             public string? Name { get; set; }
