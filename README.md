@@ -100,9 +100,15 @@ dotnet publish -c Release -r win-arm64
 
 欢迎提交 Issue 和 Pull Request！
 
+## 本地化
+
+本应用支持多语言界面，包括简体中文、繁體中文、English、日本語、한국어、Français、Deutsch 和 Español。
+
+如需了解如何添加或修改本地化资源，请查看 [本地化指南](功能/本地化/README.md)。
+
 ## 许可证
 
-[请在此添加许可证信息]
+本项目采用 MIT 许可证。详见 [LICENSE](LICENSE) 文件。
 
 ## 作者
 
