@@ -1,2 +1,1 @@
-MainPackage=C:\Users\gold\source\repos\yunmoxinghe\Docked-AI\bin\x86\Release\net8.0-windows10.0.19041.0\win-x86\Upload\Docked AI_1.1.0.0_x86.msix
-SymbolPackage=C:\Users\gold\source\repos\yunmoxinghe\Docked-AI\bin\x86\Release\net8.0-windows10.0.19041.0\win-x86\Upload\Docked AI_1.1.0.0\Docked AI_1.1.0.0_x86.appxsym
+MainPackage=C:\Users\gold\source\repos\yunmoxinghe\Docked-AI\bin\x86\Release\net8.0-windows10.0.19041.0\win-x86\Upload\Docked AI_1.1.5.0_x86.msix
