@@ -7,17 +7,40 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     UseLayoutRounding="True">
-    <Grid Padding="0" UseLayoutRounding="True">
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" HorizontalScrollMode="Disabled">
-            <StackPanel Margin="16,0" Spacing="0">
+    <Grid
+        x:Name="RootGrid"
+        Padding="0"
+        UseLayoutRounding="True">
+        <ScrollViewer
+            x:Name="HomeScrollViewer"
+            HorizontalScrollBarVisibility="Disabled"
+            HorizontalScrollMode="Disabled"
+            HorizontalContentAlignment="Stretch"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel
+                x:Name="PageContentPanel"
+                Margin="16,0"
+                UseLayoutRounding="True"
+                Spacing="0">
                 <Border Height="40" />
-                <TextBlock x:Uid="HomePage_Title" FontSize="32" FontWeight="SemiBold" />
+                <TextBlock
+                    x:Uid="HomePage_Title"
+                    FontSize="32"
+                    FontWeight="SemiBold" />
                 <Border Height="36" />
 
-                <StackPanel x:Name="WebAppsList" Spacing="4">
+                <StackPanel
+                    x:Name="WebAppsList"
+                    Spacing="4">
                 </StackPanel>
 
-                <TextBlock x:Name="EmptyText" x:Uid="HomePage_EmptyText" Opacity="0.6" Visibility="Collapsed" />
+                <TextBlock
+                    x:Name="EmptyText"
+                    x:Uid="HomePage_EmptyText"
+                    Opacity="0.6"
+                    Visibility="Collapsed" />
+
+                <Border Height="40" />
             </StackPanel>
         </ScrollViewer>
     </Grid>
