@@ -97,6 +97,18 @@
   <data name="SettingsPage_StartupHeader.ActionIconToolTip" xml:space="preserve">
     <value>在系統設定管理應用程式的開機自動啟動</value>
   </data>
+  <data name="SettingsPage_HotkeyHeader.Header" xml:space="preserve">
+    <value>全域快速鍵</value>
+  </data>
+  <data name="SettingsPage_HotkeyHeader.Description" xml:space="preserve">
+    <value>設定快速鍵以快速顯示/隱藏視窗</value>
+  </data>
+  <data name="SettingsPage_HotkeyConfigHeader.Header" xml:space="preserve">
+    <value>快速鍵配置</value>
+  </data>
+  <data name="SettingsPage_HotkeyConfigHeader.Description" xml:space="preserve">
+    <value>點擊按鈕修改快速鍵組合</value>
+  </data>
   <data name="SettingsPage_LanguageHeader.Header" xml:space="preserve">
     <value>語言</value>
   </data>

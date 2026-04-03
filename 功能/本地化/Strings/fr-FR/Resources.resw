@@ -97,6 +97,18 @@
   <data name="SettingsPage_StartupHeader.ActionIconToolTip" xml:space="preserve">
     <value>Gérer le démarrage de l'application dans les paramètres système</value>
   </data>
+  <data name="SettingsPage_HotkeyHeader.Header" xml:space="preserve">
+    <value>Raccourci clavier global</value>
+  </data>
+  <data name="SettingsPage_HotkeyHeader.Description" xml:space="preserve">
+    <value>Définir un raccourci pour afficher/masquer rapidement la fenêtre</value>
+  </data>
+  <data name="SettingsPage_HotkeyConfigHeader.Header" xml:space="preserve">
+    <value>Configuration du raccourci</value>
+  </data>
+  <data name="SettingsPage_HotkeyConfigHeader.Description" xml:space="preserve">
+    <value>Cliquer sur le bouton pour modifier la combinaison de touches</value>
+  </data>
   <data name="SettingsPage_LanguageHeader.Header" xml:space="preserve">
     <value>Langue</value>
   </data>

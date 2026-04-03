@@ -103,6 +103,12 @@
   <data name="SettingsPage_HotkeyHeader.Description" xml:space="preserve">
     <value>Set hotkey to quickly show/hide window</value>
   </data>
+  <data name="SettingsPage_HotkeyConfigHeader.Header" xml:space="preserve">
+    <value>Hotkey Configuration</value>
+  </data>
+  <data name="SettingsPage_HotkeyConfigHeader.Description" xml:space="preserve">
+    <value>Click button to modify hotkey combination</value>
+  </data>
   <data name="SettingsPage_LanguageHeader.Header" xml:space="preserve">
     <value>Language</value>
   </data>

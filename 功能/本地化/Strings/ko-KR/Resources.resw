@@ -97,6 +97,18 @@
   <data name="SettingsPage_StartupHeader.ActionIconToolTip" xml:space="preserve">
     <value>시스템 설정에서 앱 시작 프로그램 관리</value>
   </data>
+  <data name="SettingsPage_HotkeyHeader.Header" xml:space="preserve">
+    <value>전역 단축키</value>
+  </data>
+  <data name="SettingsPage_HotkeyHeader.Description" xml:space="preserve">
+    <value>창을 빠르게 표시/숨기기 위한 단축키 설정</value>
+  </data>
+  <data name="SettingsPage_HotkeyConfigHeader.Header" xml:space="preserve">
+    <value>단축키 구성</value>
+  </data>
+  <data name="SettingsPage_HotkeyConfigHeader.Description" xml:space="preserve">
+    <value>버튼을 클릭하여 단축키 조합 수정</value>
+  </data>
   <data name="SettingsPage_LanguageHeader.Header" xml:space="preserve">
     <value>언어</value>
   </data>

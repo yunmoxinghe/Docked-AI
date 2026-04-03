@@ -103,6 +103,12 @@
   <data name="SettingsPage_HotkeyHeader.Description" xml:space="preserve">
     <value>设置快捷键以快速显示/隐藏窗口</value>
   </data>
+  <data name="SettingsPage_HotkeyConfigHeader.Header" xml:space="preserve">
+    <value>快捷键配置</value>
+  </data>
+  <data name="SettingsPage_HotkeyConfigHeader.Description" xml:space="preserve">
+    <value>点击按钮修改快捷键组合</value>
+  </data>
   
   <data name="SettingsPage_LanguageHeader.Header" xml:space="preserve">
     <value>语言</value>

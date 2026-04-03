@@ -6,6 +6,7 @@
     xmlns:ui="using:Microsoft.UI.Xaml.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:devwinui="using:DevWinUI"
     mc:Ignorable="d"
     UseLayoutRounding="True">
     <Grid
@@ -67,25 +68,37 @@
                     </controls:SettingsCard>
 
                     <!-- 全局快捷键设置 -->
-                    <controls:SettingsCard x:Uid="SettingsPage_HotkeyHeader">
-                        <controls:SettingsCard.HeaderIcon>
+                    <controls:SettingsExpander x:Name="HotkeyExpander"
+                                          x:Uid="SettingsPage_HotkeyHeader"
+                                          IsExpanded="False">
+                        <controls:SettingsExpander.HeaderIcon>
                             <FontIcon Glyph="&#xE765;"/>
-                        </controls:SettingsCard.HeaderIcon>
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                            <ToggleSwitch 
-                                x:Name="HotkeyToggle"
-                                Toggled="OnHotkeyToggled"/>
-                            <Button 
-                                x:Name="HotkeyButton"
-                                MinWidth="180"
-                                Click="OnHotkeyButtonClick">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <FontIcon Glyph="&#xE765;" FontSize="14"/>
-                                    <TextBlock x:Name="HotkeyText" Text="Ctrl + Alt + Space"/>
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
-                    </controls:SettingsCard>
+                        </controls:SettingsExpander.HeaderIcon>
+                        
+                        <ToggleSwitch 
+                            x:Name="HotkeyToggle"
+                            Toggled="OnHotkeyToggled"/>
+                        
+                        <controls:SettingsExpander.Items>
+                            <controls:SettingsCard x:Uid="SettingsPage_HotkeyConfigHeader"
+                                              IsClickEnabled="True"
+                                              Click="OnHotkeyButtonClick">
+                                <ItemsControl x:Name="HotkeyKeysDisplay" 
+                                            HorizontalAlignment="Right">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal" Spacing="4"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <devwinui:KeyVisual Content="{Binding}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </controls:SettingsCard>
+                        </controls:SettingsExpander.Items>
+                    </controls:SettingsExpander>
 
                     <controls:SettingsCard x:Uid="SettingsPage_LanguageHeader">
                         <controls:SettingsCard.HeaderIcon>
@@ -157,21 +170,24 @@
             <StackPanel Spacing="16">
                 <TextBlock Text="请按下您想要设置的快捷键组合" TextWrapping="Wrap"/>
                 
-                <Border
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="20,16"
-                    KeyDown="OnDialogKeyDown">
+                <ToggleButton
+                    x:Name="HotkeyToggleButton"
+                    MinHeight="80"
+                    Padding="16"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    Checked="HotkeyToggleButton_Checked"
+                    Unchecked="HotkeyToggleButton_Unchecked"
+                    PreviewKeyDown="HotkeyToggleButton_PreviewKeyDown"
+                    PreviewKeyUp="HotkeyToggleButton_PreviewKeyUp">
                     <TextBlock
-                        x:Name="DialogPreviewText"
-                        Text="等待输入..."
-                        FontSize="18"
-                        FontWeight="SemiBold"
-                        HorizontalAlignment="Center"
-                        TextAlignment="Center"/>
-                </Border>
+                        x:Name="HotkeyDisplayText"
+                        Text="点击开始录制"
+                        FontSize="16"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap"/>
+                </ToggleButton>
 
                 <TextBlock
                     Text="提示：至少需要一个修饰键（Ctrl、Alt、Shift 或 Win）"

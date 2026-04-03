@@ -97,6 +97,18 @@
   <data name="SettingsPage_StartupHeader.ActionIconToolTip" xml:space="preserve">
     <value>システム設定でアプリのスタートアップを管理</value>
   </data>
+  <data name="SettingsPage_HotkeyHeader.Header" xml:space="preserve">
+    <value>グローバルホットキー</value>
+  </data>
+  <data name="SettingsPage_HotkeyHeader.Description" xml:space="preserve">
+    <value>ウィンドウの表示/非表示を切り替えるホットキーを設定</value>
+  </data>
+  <data name="SettingsPage_HotkeyConfigHeader.Header" xml:space="preserve">
+    <value>ホットキー設定</value>
+  </data>
+  <data name="SettingsPage_HotkeyConfigHeader.Description" xml:space="preserve">
+    <value>ボタンをクリックしてホットキーの組み合わせを変更</value>
+  </data>
   <data name="SettingsPage_LanguageHeader.Header" xml:space="preserve">
     <value>言語</value>
   </data>

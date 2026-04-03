@@ -6,6 +6,8 @@ using Microsoft.UI.Xaml.Controls;
 using Docked_AI.Features.Localization;
 using Docked_AI.Features.Hotkey;
 using Docked_AI.Features.Pages.Settings;
+using NHotkey.WinUI;
+using Windows.System;
 
 namespace Docked_AI.Features.Tray
 {
@@ -14,8 +16,6 @@ namespace Docked_AI.Features.Tray
         private SystemTrayIcon? _trayIcon;
         private Window? _mainWindow;
         private readonly Action? _exitAction;
-        private GlobalHotkeyManager? _hotkeyManager;
-        private Window? _keepAliveWindow;
 
         public TrayIconManager(Window? initialMainWindow, Action? exitAction = null)
         {
@@ -44,15 +44,6 @@ namespace Docked_AI.Features.Tray
         {
             try
             {
-                // 创建一个隐藏的窗口用于接收快捷键消息
-                _keepAliveWindow = new Window
-                {
-                    Title = "Docked AI Hotkey Handler"
-                };
-
-                // 不显示窗口
-                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(_keepAliveWindow);
-                
                 // 注册快捷键
                 RegisterHotkey();
             }
@@ -68,32 +59,32 @@ namespace Docked_AI.Features.Tray
             {
                 var settings = new HotkeySettings();
 
-                if (!settings.IsEnabled || _keepAliveWindow == null)
+                if (!settings.IsEnabled)
                 {
-                    _hotkeyManager?.UnregisterHotkey();
+                    // 移除已注册的快捷键
+                    try
+                    {
+                        HotkeyManager.Current.Remove("ShowHideWindow");
+                    }
+                    catch { }
                     return;
                 }
 
-                _hotkeyManager ??= new GlobalHotkeyManager();
+                // 构建修饰键
+                VirtualKeyModifiers modifiers = VirtualKeyModifiers.None;
+                if (settings.Ctrl) modifiers |= VirtualKeyModifiers.Control;
+                if (settings.Alt) modifiers |= VirtualKeyModifiers.Menu;
+                if (settings.Shift) modifiers |= VirtualKeyModifiers.Shift;
+                if (settings.Win) modifiers |= VirtualKeyModifiers.Windows;
 
-                bool success = _hotkeyManager.RegisterHotkey(
-                    _keepAliveWindow,
+                // 使用 NHotkey 注册全局快捷键
+                HotkeyManager.Current.AddOrReplace(
+                    "ShowHideWindow",
                     settings.Key,
-                    settings.Ctrl,
-                    settings.Alt,
-                    settings.Shift,
-                    settings.Win,
-                    OnGlobalHotkeyPressed
-                );
+                    modifiers,
+                    OnGlobalHotkeyPressed);
 
-                if (success)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[TrayIconManager] Global hotkey registered: {settings.GetDisplayText()}");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("[TrayIconManager] Failed to register global hotkey");
-                }
+                System.Diagnostics.Debug.WriteLine($"[TrayIconManager] Global hotkey registered: {settings.GetDisplayText()}");
             }
             catch (Exception ex)
             {
@@ -107,9 +98,11 @@ namespace Docked_AI.Features.Tray
             RegisterHotkey();
         }
 
-        private void OnGlobalHotkeyPressed()
+        private void OnGlobalHotkeyPressed(object? sender, NHotkey.HotkeyEventArgs e)
         {
             // 快捷键被按下，显示/隐藏主窗口
+            System.Diagnostics.Debug.WriteLine("[TrayIconManager] Global hotkey pressed!");
+            e.Handled = true;
             ShowMainWindow();
         }
 
@@ -188,6 +181,13 @@ namespace Docked_AI.Features.Tray
         {
             SettingsPage.HotkeySettingsChanged -= OnHotkeySettingsChanged;
 
+            // 移除快捷键
+            try
+            {
+                HotkeyManager.Current.Remove("ShowHideWindow");
+            }
+            catch { }
+
             if (_trayIcon != null)
             {
                 _trayIcon.LeftClick -= TrayIcon_LeftClick;
@@ -196,9 +196,6 @@ namespace Docked_AI.Features.Tray
                 _trayIcon.Dispose();
                 _trayIcon = null;
             }
-
-            _hotkeyManager?.Dispose();
-            _hotkeyManager = null;
 
             _exitAction?.Invoke();
         }
@@ -207,6 +204,13 @@ namespace Docked_AI.Features.Tray
         {
             SettingsPage.HotkeySettingsChanged -= OnHotkeySettingsChanged;
 
+            // 移除快捷键
+            try
+            {
+                HotkeyManager.Current.Remove("ShowHideWindow");
+            }
+            catch { }
+
             if (_trayIcon != null)
             {
                 _trayIcon.LeftClick -= TrayIcon_LeftClick;
@@ -215,9 +219,6 @@ namespace Docked_AI.Features.Tray
                 _trayIcon.Dispose();
                 _trayIcon = null;
             }
-
-            _hotkeyManager?.Dispose();
-            _hotkeyManager = null;
         }
     }
 }

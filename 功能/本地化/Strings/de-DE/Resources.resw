@@ -97,6 +97,18 @@
   <data name="SettingsPage_StartupHeader.ActionIconToolTip" xml:space="preserve">
     <value>App-Autostart in Systemeinstellungen verwalten</value>
   </data>
+  <data name="SettingsPage_HotkeyHeader.Header" xml:space="preserve">
+    <value>Globale Tastenkombination</value>
+  </data>
+  <data name="SettingsPage_HotkeyHeader.Description" xml:space="preserve">
+    <value>Tastenkombination zum schnellen Anzeigen/Ausblenden des Fensters festlegen</value>
+  </data>
+  <data name="SettingsPage_HotkeyConfigHeader.Header" xml:space="preserve">
+    <value>Tastenkombination konfigurieren</value>
+  </data>
+  <data name="SettingsPage_HotkeyConfigHeader.Description" xml:space="preserve">
+    <value>Klicken Sie auf die Schaltfläche, um die Tastenkombination zu ändern</value>
+  </data>
   <data name="SettingsPage_LanguageHeader.Header" xml:space="preserve">
     <value>Sprache</value>
   </data>

@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using System;
+using System.Linq;
 using Windows.System;
 using Windows.Globalization;
 using Windows.ApplicationModel.Resources.Core;
@@ -325,7 +326,6 @@ namespace Docked_AI.Features.Pages.Settings
             
             HotkeyToggle.IsOn = _hotkeySettings.IsEnabled;
             UpdateHotkeyButtonText();
-            HotkeyButton.IsEnabled = _hotkeySettings.IsEnabled;
             
             // 重新订阅事件
             HotkeyToggle.Toggled += OnHotkeyToggled;
@@ -333,7 +333,20 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void UpdateHotkeyButtonText()
         {
-            HotkeyText.Text = _hotkeySettings.GetDisplayText();
+            var keys = new System.Collections.Generic.List<string>();
+            
+            if (_hotkeySettings.Ctrl) keys.Add("Ctrl");
+            if (_hotkeySettings.Alt) keys.Add("Alt");
+            if (_hotkeySettings.Shift) keys.Add("Shift");
+            if (_hotkeySettings.Win) keys.Add("Win");
+            
+            if (_hotkeySettings.Key != VirtualKey.None)
+            {
+                keys.Add(GetKeyDisplayName(_hotkeySettings.Key));
+            }
+            
+            // 使用 ItemsControl 显示按键，每个按键都有独立的视觉容器
+            HotkeyKeysDisplay.ItemsSource = keys;
         }
 
         private void OnHotkeyToggled(object sender, RoutedEventArgs e)
@@ -343,7 +356,6 @@ namespace Docked_AI.Features.Pages.Settings
             if (sender is ToggleSwitch toggle)
             {
                 _hotkeySettings.IsEnabled = toggle.IsOn;
-                HotkeyButton.IsEnabled = toggle.IsOn;
 
                 // 通知应用更新快捷键注册状态
                 HotkeySettingsChanged?.Invoke(this, EventArgs.Empty);
@@ -352,18 +364,32 @@ namespace Docked_AI.Features.Pages.Settings
 
         private async void OnHotkeyButtonClick(object sender, RoutedEventArgs e)
         {
-            _isCapturingHotkey = true;
+            _isCapturingHotkey = false;
             _tempKey = VirtualKey.None;
             _tempCtrl = _tempAlt = _tempShift = _tempWin = false;
-            DialogPreviewText.Text = "等待输入...";
+            HotkeyToggleButton.IsChecked = false;
+            HotkeyDisplayText.Text = "点击开始录制";
 
             HotkeyDialog.XamlRoot = this.XamlRoot;
             await HotkeyDialog.ShowAsync();
         }
 
-        private void OnDialogKeyDown(object sender, KeyRoutedEventArgs e)
+        private void HotkeyToggleButton_Checked(object sender, RoutedEventArgs e)
         {
-            if (!_isCapturingHotkey) return;
+            _isCapturingHotkey = true;
+            _tempKey = VirtualKey.None;
+            _tempCtrl = _tempAlt = _tempShift = _tempWin = false;
+            HotkeyDisplayText.Text = "按下快捷键...";
+        }
+
+        private void HotkeyToggleButton_Unchecked(object sender, RoutedEventArgs e)
+        {
+            _isCapturingHotkey = false;
+        }
+
+        private void HotkeyToggleButton_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (!_isCapturingHotkey || HotkeyToggleButton.IsChecked != true) return;
 
             e.Handled = true;
             var key = e.Key;
@@ -391,7 +417,7 @@ namespace Docked_AI.Features.Pages.Settings
             // 必须至少有一个修饰键
             if (!ctrl && !alt && !shift && !win)
             {
-                DialogPreviewText.Text = "需要至少一个修饰键";
+                HotkeyDisplayText.Text = "需要至少一个修饰键";
                 return;
             }
 
@@ -402,7 +428,34 @@ namespace Docked_AI.Features.Pages.Settings
             _tempShift = shift;
             _tempWin = win;
 
-            DialogPreviewText.Text = GetHotkeyDisplayText(key, ctrl, alt, shift, win);
+            HotkeyDisplayText.Text = GetHotkeyDisplayText(key, ctrl, alt, shift, win);
+        }
+
+        private void HotkeyToggleButton_PreviewKeyUp(object sender, KeyRoutedEventArgs e)
+        {
+            if (!_isCapturingHotkey || HotkeyToggleButton.IsChecked != true) return;
+
+            e.Handled = true;
+
+            // 当所有键都释放后，自动取消选中 ToggleButton
+            var ctrlState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control);
+            var altState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Menu);
+            var shiftState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift);
+            var winLeftState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.LeftWindows);
+            var winRightState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.RightWindows);
+
+            bool anyModifierPressed = 
+                (ctrlState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down ||
+                (altState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down ||
+                (shiftState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down ||
+                (winLeftState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down ||
+                (winRightState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+
+            // 如果有有效的快捷键且所有键都释放了，自动取消选中
+            if (_tempKey != VirtualKey.None && !anyModifierPressed)
+            {
+                HotkeyToggleButton.IsChecked = false;
+            }
         }
 
         private void OnHotkeyDialogPrimaryClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
