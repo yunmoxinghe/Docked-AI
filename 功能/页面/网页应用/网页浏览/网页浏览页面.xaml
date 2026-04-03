@@ -21,28 +21,36 @@
             Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0">
-            <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
-                <Grid Width="22" Height="22" VerticalAlignment="Center">
-                    <Image
-                        x:Name="SiteIconImage"
-                        Width="22"
-                        Height="22"
-                        Stretch="UniformToFill"
-                        Visibility="Collapsed" />
-                    <FontIcon
-                        x:Name="SiteIconFallback"
-                        Glyph="&#xE774;"
-                        FontSize="16"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center" />
+            <Grid>
+                <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
+                    <Grid Width="22" Height="22" VerticalAlignment="Center">
+                        <Image
+                            x:Name="SiteIconImage"
+                            Width="22"
+                            Height="22"
+                            Stretch="UniformToFill"
+                            Visibility="Collapsed" />
+                        <FontIcon
+                            x:Name="SiteIconFallback"
+                            Glyph="&#xE774;"
+                            FontSize="16"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                    </Grid>
+                    <TextBlock
+                        x:Name="TitleText"
+                        Grid.Column="1"
+                        Margin="10,0,0,0"
+                        VerticalAlignment="Center"
+                        TextTrimming="CharacterEllipsis"
+                        FontWeight="SemiBold" />
                 </Grid>
-                <TextBlock
-                    x:Name="TitleText"
-                    Grid.Column="1"
-                    Margin="10,0,0,0"
-                    VerticalAlignment="Center"
-                    TextTrimming="CharacterEllipsis"
-                    FontWeight="SemiBold" />
+                <ProgressBar
+                    x:Name="LoadingProgressBar"
+                    VerticalAlignment="Bottom"
+                    IsIndeterminate="True"
+                    Visibility="Collapsed"
+                    Height="2" />
             </Grid>
         </Border>
 

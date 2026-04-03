@@ -2,6 +2,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
+using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Numerics;
 
@@ -12,9 +13,17 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         private const float ContentCornerRadius = 4f;
         private CompositionRoundedRectangleGeometry? _clipGeometry;
 
+        public event EventHandler<NavigationEventArgs>? Navigated;
+
         public ContentArea()
         {
             InitializeComponent();
+            ContentFrame.Navigated += ContentFrame_Navigated;
+        }
+
+        private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
+        {
+            Navigated?.Invoke(this, e);
         }
 
         public void Navigate(Type pageType, object? parameter = null)

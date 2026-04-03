@@ -116,6 +116,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     WebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
                     WebView.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
                     WebView.CoreWebView2.HistoryChanged += CoreWebView2_HistoryChanged;
+                    WebView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
                     WebView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
                     await EnsureTintScriptInstalledAsync();
                 }
@@ -223,8 +224,14 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             await WebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(script);
         }
 
+        private void CoreWebView2_NavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
+        {
+            LoadingProgressBar.Visibility = Visibility.Visible;
+        }
+
         private void CoreWebView2_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
         {
+            LoadingProgressBar.Visibility = Visibility.Collapsed;
             UpdateNavigationButtons();
             UpdateUrlText();
         }
@@ -505,6 +512,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 WebView.CoreWebView2.WebMessageReceived -= CoreWebView2_WebMessageReceived;
                 WebView.CoreWebView2.DocumentTitleChanged -= CoreWebView2_DocumentTitleChanged;
                 WebView.CoreWebView2.HistoryChanged -= CoreWebView2_HistoryChanged;
+                WebView.CoreWebView2.NavigationStarting -= CoreWebView2_NavigationStarting;
                 WebView.CoreWebView2.NavigationCompleted -= CoreWebView2_NavigationCompleted;
 
                 try

@@ -37,6 +37,23 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             _suppressSelectionChanged = false;
         }
 
+        public void SelectHomeItem()
+        {
+            _suppressSelectionChanged = true;
+            NavView.SelectedItem = HomeNavigationItem;
+            _suppressSelectionChanged = false;
+        }
+
+        public void SelectWebAppItem(string shortcutId)
+        {
+            if (_webShortcutItems.TryGetValue(shortcutId, out NavigationViewItem? navItem))
+            {
+                _suppressSelectionChanged = true;
+                NavView.SelectedItem = navItem;
+                _suppressSelectionChanged = false;
+            }
+        }
+
         public NavigationBar()
         {
             InitializeComponent();
