@@ -51,6 +51,11 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             NavBar.SelectNewPageItem();
         }
 
+        public void UpdateContentCornerRadius(bool isPinned)
+        {
+            ContentHost.SetCornerRadius(isPinned);
+        }
+
         public void SyncNavigationBarSelection(Type pageType, object? parameter)
         {
             if (pageType == typeof(WebBrowserPage) && parameter is WebAppShortcut shortcut)

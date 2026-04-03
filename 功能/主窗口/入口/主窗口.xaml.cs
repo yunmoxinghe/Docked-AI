@@ -40,6 +40,7 @@ namespace Docked_AI
             if (e.PropertyName == nameof(MainWindowViewModel.IsDockPinned))
             {
                 UpdateDockToggleIcon(_viewModel.IsDockPinned);
+                UpdateContentCornerRadius(_viewModel.IsDockPinned);
             }
         }
 
@@ -49,6 +50,15 @@ namespace Docked_AI
                 RootGrid.Children[0] is Linker linker)
             {
                 linker.NavBarInstance.UpdateDockToggleIcon(isPinned);
+            }
+        }
+
+        private void UpdateContentCornerRadius(bool isPinned)
+        {
+            if (RootGrid.Children.Count > 0 && 
+                RootGrid.Children[0] is Linker linker)
+            {
+                linker.UpdateContentCornerRadius(isPinned);
             }
         }
 

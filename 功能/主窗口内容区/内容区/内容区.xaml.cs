@@ -10,7 +10,9 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
 {
     public sealed partial class ContentArea : UserControl
     {
-        private const float ContentCornerRadius = 4f;
+        private const float DefaultCornerRadius = 4f;
+        private const float PinnedCornerRadius = 8f;
+        private float _currentCornerRadius = DefaultCornerRadius;
         private CompositionRoundedRectangleGeometry? _clipGeometry;
 
         public event EventHandler<NavigationEventArgs>? Navigated;
@@ -19,6 +21,17 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         {
             InitializeComponent();
             ContentFrame.Navigated += ContentFrame_Navigated;
+        }
+
+        public void SetCornerRadius(bool isPinned)
+        {
+            _currentCornerRadius = isPinned ? PinnedCornerRadius : DefaultCornerRadius;
+            ContentBorder.CornerRadius = new CornerRadius(_currentCornerRadius);
+            
+            if (_clipGeometry != null)
+            {
+                _clipGeometry.CornerRadius = new Vector2(_currentCornerRadius, _currentCornerRadius);
+            }
         }
 
         private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
@@ -50,7 +63,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             {
                 var compositor = visual.Compositor;
                 _clipGeometry = compositor.CreateRoundedRectangleGeometry();
-                _clipGeometry.CornerRadius = new Vector2(ContentCornerRadius, ContentCornerRadius);
+                _clipGeometry.CornerRadius = new Vector2(_currentCornerRadius, _currentCornerRadius);
                 _clipGeometry.Offset = Vector2.Zero;
                 visual.Clip = compositor.CreateGeometricClip(_clipGeometry);
             }
