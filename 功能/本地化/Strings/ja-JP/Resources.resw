@@ -164,6 +164,9 @@
   <data name="Nav_DockToggle.Content" xml:space="preserve">
     <value>サイドバーをピン留め</value>
   </data>
+  <data name="Nav_WindowStateToggle" xml:space="preserve">
+    <value>ウィンドウ状態を切り替え</value>
+  </data>
   
   <!-- 新規ページ -->
   <data name="NewPage_Title.Text" xml:space="preserve">

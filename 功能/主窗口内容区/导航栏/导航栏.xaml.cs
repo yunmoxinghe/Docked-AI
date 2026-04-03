@@ -24,6 +24,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
 
         public event EventHandler<NavigationRequest>? NavigationRequested;
         public event EventHandler? DockToggleRequested;
+        public event EventHandler? WindowStateToggleRequested;
 
         public void UpdateDockToggleIcon(bool isPinned)
         {
@@ -62,6 +63,13 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             WebAppEventBus.ShortcutCreated += OnShortcutCreated;
             Unloaded += (_, _) => WebAppEventBus.ShortcutCreated -= OnShortcutCreated;
             Loaded += NavigationBar_Loaded;
+        }
+
+        public void UpdateWindowStateIcon(bool isMaximized)
+        {
+            // E73F: 还原窗口图标
+            // E740: 最大化图标
+            WindowStateIcon.Glyph = isMaximized ? "\uE73F" : "\uE740";
         }
 
         private async void NavigationBar_Loaded(object sender, RoutedEventArgs e)
@@ -253,6 +261,12 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             if (tagText == "dock")
             {
                 DockToggleRequested?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
+            if (tagText == "windowstate")
+            {
+                WindowStateToggleRequested?.Invoke(this, EventArgs.Empty);
                 return;
             }
 

@@ -164,6 +164,9 @@
   <data name="Nav_DockToggle.Content" xml:space="preserve">
     <value>Épingler la barre latérale</value>
   </data>
+  <data name="Nav_WindowStateToggle" xml:space="preserve">
+    <value>Basculer l'état de la fenêtre</value>
+  </data>
   
   <!-- Nouvelle page -->
   <data name="NewPage_Title.Text" xml:space="preserve">

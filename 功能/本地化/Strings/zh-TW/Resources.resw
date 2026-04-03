@@ -164,6 +164,9 @@
   <data name="Nav_DockToggle.Content" xml:space="preserve">
     <value>固定側邊欄</value>
   </data>
+  <data name="Nav_WindowStateToggle" xml:space="preserve">
+    <value>切換視窗狀態</value>
+  </data>
   
   <!-- 新增頁面 -->
   <data name="NewPage_Title.Text" xml:space="preserve">

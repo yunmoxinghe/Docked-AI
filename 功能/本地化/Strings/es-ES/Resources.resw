@@ -164,6 +164,9 @@
   <data name="Nav_DockToggle.Content" xml:space="preserve">
     <value>Anclar barra lateral</value>
   </data>
+  <data name="Nav_WindowStateToggle" xml:space="preserve">
+    <value>Alternar estado de ventana</value>
+  </data>
   
   <!-- Nueva página -->
   <data name="NewPage_Title.Text" xml:space="preserve">

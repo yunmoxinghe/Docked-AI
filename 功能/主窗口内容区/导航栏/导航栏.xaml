@@ -10,22 +10,33 @@
 
     <controls:NavigationView
         x:Name="NavView"
-        Width="48"
-        Margin="0"
-        HorizontalAlignment="Right"
-        VerticalAlignment="Stretch"
-        AlwaysShowHeader="False"
-        IsBackButtonVisible="Collapsed"
-        IsPaneToggleButtonVisible="False"
-        IsSettingsVisible="False"
-        IsPaneOpen="False"
-        PaneDisplayMode="LeftCompact"
-        OpenPaneLength="220"
-        CompactPaneLength="48"
-        SelectionChanged="NavView_SelectionChanged"
-        ItemInvoked="NavView_ItemInvoked"
-        FlowDirection="RightToLeft">
+            Width="48"
+            Margin="0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Stretch"
+            AlwaysShowHeader="False"
+            IsBackButtonVisible="Collapsed"
+            IsPaneToggleButtonVisible="False"
+            IsSettingsVisible="False"
+            IsPaneOpen="False"
+            PaneDisplayMode="LeftCompact"
+            OpenPaneLength="220"
+            CompactPaneLength="48"
+            SelectionChanged="NavView_SelectionChanged"
+            ItemInvoked="NavView_ItemInvoked"
+            FlowDirection="RightToLeft">
         <controls:NavigationView.MenuItems>
+            <controls:NavigationViewItem
+                x:Name="WindowStateToggleNavigationItem"
+                x:Uid="Nav_WindowStateToggle"
+                Tag="windowstate"
+                SelectsOnInvoked="False">
+                <controls:NavigationViewItem.Icon>
+                    <FontIcon
+                        x:Name="WindowStateIcon"
+                        Glyph="&#xE740;" />
+                </controls:NavigationViewItem.Icon>
+            </controls:NavigationViewItem>
             <controls:NavigationViewItem
                 x:Name="HomeNavigationItem"
                 x:Uid="Nav_Home"

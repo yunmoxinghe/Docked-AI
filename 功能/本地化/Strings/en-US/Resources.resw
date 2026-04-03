@@ -164,6 +164,9 @@
   <data name="Nav_DockToggle.Content" xml:space="preserve">
     <value>Pin Sidebar</value>
   </data>
+  <data name="Nav_WindowStateToggle" xml:space="preserve">
+    <value>Toggle Window State</value>
+  </data>
   
   <!-- New Page -->
   <data name="NewPage_Title.Text" xml:space="preserve">

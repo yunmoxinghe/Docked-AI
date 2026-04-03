@@ -30,9 +30,56 @@ namespace Docked_AI
             if (RootGrid.Children.Count > 0 && RootGrid.Children[0] is Linker linker)
             {
                 linker.DockToggleRequested += OnDockToggleRequested;
+                linker.WindowStateToggleRequested += OnWindowStateToggleRequested;
             }
 
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+            
+            // 监听窗口状态变化以更新图标
+            this.AppWindow.Changed += OnAppWindowChanged;
+        }
+
+        private void OnAppWindowChanged(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowChangedEventArgs args)
+        {
+            if (args.DidPresenterChange)
+            {
+                UpdateWindowStateIcon();
+            }
+        }
+
+        private void UpdateWindowStateIcon()
+        {
+            bool isMaximized = false;
+            if (this.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            {
+                isMaximized = presenter.State == Microsoft.UI.Windowing.OverlappedPresenterState.Maximized;
+            }
+
+            if (RootGrid.Children.Count > 0 && RootGrid.Children[0] is Linker linker)
+            {
+                linker.NavBarInstance.UpdateWindowStateIcon(isMaximized);
+            }
+        }
+
+        private void OnWindowStateToggleRequested(object? sender, System.EventArgs e)
+        {
+            ToggleWindowState();
+        }
+
+        public void ToggleWindowState()
+        {
+            if (this.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            {
+                if (presenter.State == Microsoft.UI.Windowing.OverlappedPresenterState.Maximized)
+                {
+                    presenter.Restore();
+                }
+                else
+                {
+                    presenter.Maximize();
+                }
+                UpdateWindowStateIcon();
+            }
         }
 
         private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)

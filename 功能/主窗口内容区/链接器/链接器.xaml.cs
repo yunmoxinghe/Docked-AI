@@ -17,6 +17,7 @@ namespace Docked_AI.Features.MainWindowContent.Linker
     public sealed partial class Linker : UserControl
     {
         public event EventHandler? DockToggleRequested;
+        public event EventHandler? WindowStateToggleRequested;
 
         public NavBarControl NavBarInstance => NavBar;
 
@@ -27,6 +28,7 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             ContentHost.Navigated += ContentHost_Navigated;
             NavBar.NavigationRequested += OnNavigationRequested;
             NavBar.DockToggleRequested += OnDockToggleRequested;
+            NavBar.WindowStateToggleRequested += OnWindowStateToggleRequested;
         }
 
         private void ContentHost_Navigated(object? sender, NavigationEventArgs e)
@@ -42,6 +44,11 @@ namespace Docked_AI.Features.MainWindowContent.Linker
         private void OnDockToggleRequested(object? sender, EventArgs e)
         {
             DockToggleRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OnWindowStateToggleRequested(object? sender, EventArgs e)
+        {
+            WindowStateToggleRequested?.Invoke(this, EventArgs.Empty);
         }
 
         public void NavigateToNewPage(string url)

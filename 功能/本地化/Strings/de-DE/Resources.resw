@@ -164,6 +164,9 @@
   <data name="Nav_DockToggle.Content" xml:space="preserve">
     <value>Seitenleiste anheften</value>
   </data>
+  <data name="Nav_WindowStateToggle" xml:space="preserve">
+    <value>Fensterstatus umschalten</value>
+  </data>
   
   <!-- Neue Seite -->
   <data name="NewPage_Title.Text" xml:space="preserve">

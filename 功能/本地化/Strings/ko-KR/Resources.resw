@@ -164,6 +164,9 @@
   <data name="Nav_DockToggle.Content" xml:space="preserve">
     <value>사이드바 고정</value>
   </data>
+  <data name="Nav_WindowStateToggle" xml:space="preserve">
+    <value>창 상태 전환</value>
+  </data>
   
   <!-- 새 페이지 -->
   <data name="NewPage_Title.Text" xml:space="preserve">
