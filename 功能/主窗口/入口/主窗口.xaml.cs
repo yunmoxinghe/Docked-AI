@@ -41,7 +41,7 @@ namespace Docked_AI
 
         private void OnAppWindowChanged(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowChangedEventArgs args)
         {
-            if (args.DidPresenterChange)
+            if (args.DidPresenterChange || args.DidSizeChange)
             {
                 UpdateWindowStateIcon();
             }
@@ -63,7 +63,21 @@ namespace Docked_AI
 
         private void OnWindowStateToggleRequested(object? sender, System.EventArgs e)
         {
-            ToggleWindowState();
+            // 如果窗口是固定状态，先取消固定
+            if (_viewModel.IsDockPinned)
+            {
+                TogglePinnedDock();
+                // 等待固定状态取消后再切换窗口状态
+                // 使用 DispatcherQueue 确保在下一个 UI 周期执行
+                this.DispatcherQueue.TryEnqueue(() =>
+                {
+                    ToggleWindowState();
+                });
+            }
+            else
+            {
+                ToggleWindowState();
+            }
         }
 
         public void ToggleWindowState()
@@ -121,6 +135,17 @@ namespace Docked_AI
 
         private void OnDockToggleRequested(object? sender, System.EventArgs e)
         {
+            // 如果窗口是最大化状态，先还原窗口
+            if (this.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            {
+                if (presenter.State == Microsoft.UI.Windowing.OverlappedPresenterState.Maximized)
+                {
+                    presenter.Restore();
+                    // 立即更新图标
+                    UpdateWindowStateIcon();
+                }
+            }
+            
             TogglePinnedDock();
         }
 
