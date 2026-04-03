@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using System;
 using Windows.System;
 using Windows.Globalization;
@@ -7,6 +8,8 @@ using Windows.ApplicationModel.Resources.Core;
 using Windows.ApplicationModel;
 using Docked_AI.Features.Localization;
 using Docked_AI.Features.AppEntry.AutoLaunch;
+using Docked_AI.Features.Hotkey;
+using Windows.UI.Core;
 
 namespace Docked_AI.Features.Pages.Settings
 {
@@ -22,17 +25,27 @@ namespace Docked_AI.Features.Pages.Settings
         // ViewModel for startup settings
         public StartupSettingsViewModel ViewModel { get; }
 
+        // Hotkey management
+        private HotkeySettings _hotkeySettings;
+        private VirtualKey _tempKey = VirtualKey.None;
+        private bool _tempCtrl, _tempAlt, _tempShift, _tempWin;
+        private bool _isCapturingHotkey;
+
         public SettingsPage()
         {
             // Initialize ViewModel
             var startupManager = new StartupTaskManager();
             ViewModel = new StartupSettingsViewModel(startupManager);
 
+            // Initialize hotkey settings
+            _hotkeySettings = new HotkeySettings();
+
             InitializeComponent();
             Loaded += OnLoaded;
             SizeChanged += OnSizeChanged;
             // 不再需要 InitializeLanguageComboBox，因为 XAML 中已经设置了 Content
             LoadLanguageSettings();
+            LoadHotkeySettings();
             
             // Initialize startup settings asynchronously
             _ = InitializeStartupSettingsAsync();
@@ -303,5 +316,163 @@ namespace Docked_AI.Features.Pages.Settings
                 }
             }
         }
+
+        // Hotkey settings methods
+        private void LoadHotkeySettings()
+        {
+            // 暂时取消事件订阅，避免在初始化时触发
+            HotkeyToggle.Toggled -= OnHotkeyToggled;
+            
+            HotkeyToggle.IsOn = _hotkeySettings.IsEnabled;
+            UpdateHotkeyButtonText();
+            HotkeyButton.IsEnabled = _hotkeySettings.IsEnabled;
+            
+            // 重新订阅事件
+            HotkeyToggle.Toggled += OnHotkeyToggled;
+        }
+
+        private void UpdateHotkeyButtonText()
+        {
+            HotkeyText.Text = _hotkeySettings.GetDisplayText();
+        }
+
+        private void OnHotkeyToggled(object sender, RoutedEventArgs e)
+        {
+            if (_hotkeySettings == null) return;
+            
+            if (sender is ToggleSwitch toggle)
+            {
+                _hotkeySettings.IsEnabled = toggle.IsOn;
+                HotkeyButton.IsEnabled = toggle.IsOn;
+
+                // 通知应用更新快捷键注册状态
+                HotkeySettingsChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        private async void OnHotkeyButtonClick(object sender, RoutedEventArgs e)
+        {
+            _isCapturingHotkey = true;
+            _tempKey = VirtualKey.None;
+            _tempCtrl = _tempAlt = _tempShift = _tempWin = false;
+            DialogPreviewText.Text = "等待输入...";
+
+            HotkeyDialog.XamlRoot = this.XamlRoot;
+            await HotkeyDialog.ShowAsync();
+        }
+
+        private void OnDialogKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (!_isCapturingHotkey) return;
+
+            e.Handled = true;
+            var key = e.Key;
+
+            // 获取修饰键状态
+            var ctrlState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control);
+            var altState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Menu);
+            var shiftState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift);
+            var winLeftState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.LeftWindows);
+            var winRightState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.RightWindows);
+
+            bool ctrl = (ctrlState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+            bool alt = (altState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+            bool shift = (shiftState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+            bool win = (winLeftState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down ||
+                       (winRightState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+
+            // 忽略单独的修饰键
+            if (key == VirtualKey.Control || key == VirtualKey.Menu ||
+                key == VirtualKey.Shift || key == VirtualKey.LeftWindows || key == VirtualKey.RightWindows)
+            {
+                return;
+            }
+
+            // 必须至少有一个修饰键
+            if (!ctrl && !alt && !shift && !win)
+            {
+                DialogPreviewText.Text = "需要至少一个修饰键";
+                return;
+            }
+
+            // 更新临时值
+            _tempKey = key;
+            _tempCtrl = ctrl;
+            _tempAlt = alt;
+            _tempShift = shift;
+            _tempWin = win;
+
+            DialogPreviewText.Text = GetHotkeyDisplayText(key, ctrl, alt, shift, win);
+        }
+
+        private void OnHotkeyDialogPrimaryClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        {
+            _isCapturingHotkey = false;
+
+            if (_tempKey != VirtualKey.None)
+            {
+                // 保存设置
+                _hotkeySettings.Key = _tempKey;
+                _hotkeySettings.Ctrl = _tempCtrl;
+                _hotkeySettings.Alt = _tempAlt;
+                _hotkeySettings.Shift = _tempShift;
+                _hotkeySettings.Win = _tempWin;
+
+                UpdateHotkeyButtonText();
+
+                // 通知应用更新快捷键
+                HotkeySettingsChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        private void OnHotkeyDialogCloseClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        {
+            _isCapturingHotkey = false;
+        }
+
+        private string GetHotkeyDisplayText(VirtualKey key, bool ctrl, bool alt, bool shift, bool win)
+        {
+            var parts = new System.Collections.Generic.List<string>();
+
+            if (ctrl) parts.Add("Ctrl");
+            if (alt) parts.Add("Alt");
+            if (shift) parts.Add("Shift");
+            if (win) parts.Add("Win");
+
+            if (key != VirtualKey.None)
+            {
+                parts.Add(GetKeyDisplayName(key));
+            }
+
+            return parts.Count > 0 ? string.Join(" + ", parts) : "未设置";
+        }
+
+        private string GetKeyDisplayName(VirtualKey key)
+        {
+            return key switch
+            {
+                VirtualKey.Space => "Space",
+                VirtualKey.Enter => "Enter",
+                VirtualKey.Escape => "Esc",
+                VirtualKey.Tab => "Tab",
+                VirtualKey.Back => "Backspace",
+                VirtualKey.Delete => "Delete",
+                VirtualKey.Home => "Home",
+                VirtualKey.End => "End",
+                VirtualKey.PageUp => "PageUp",
+                VirtualKey.PageDown => "PageDown",
+                VirtualKey.Left => "←",
+                VirtualKey.Right => "→",
+                VirtualKey.Up => "↑",
+                VirtualKey.Down => "↓",
+                _ when key >= VirtualKey.F1 && key <= VirtualKey.F24 => $"F{(int)key - (int)VirtualKey.F1 + 1}",
+                _ when key >= VirtualKey.Number0 && key <= VirtualKey.Number9 => $"{(int)key - (int)VirtualKey.Number0}",
+                _ when key >= VirtualKey.A && key <= VirtualKey.Z => key.ToString(),
+                _ => key.ToString()
+            };
+        }
+
+        // Event to notify when hotkey settings change
+        public static event EventHandler? HotkeySettingsChanged;
     }
 }

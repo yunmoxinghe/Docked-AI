@@ -97,6 +97,13 @@
   <data name="SettingsPage_StartupHeader.ActionIconToolTip" xml:space="preserve">
     <value>在系统设置管理应用的开机自启动</value>
   </data>
+  <data name="SettingsPage_HotkeyHeader.Header" xml:space="preserve">
+    <value>全局快捷键</value>
+  </data>
+  <data name="SettingsPage_HotkeyHeader.Description" xml:space="preserve">
+    <value>设置快捷键以快速显示/隐藏窗口</value>
+  </data>
+  
   <data name="SettingsPage_LanguageHeader.Header" xml:space="preserve">
     <value>语言</value>
   </data>
@@ -269,6 +276,12 @@
   </data>
   <data name="SettingsPage_LaterButton" xml:space="preserve">
     <value>稍后</value>
+  </data>
+  <data name="SettingsPage_HotkeyError" xml:space="preserve">
+    <value>快捷键注册失败，可能已被其他程序占用。请尝试其他组合。</value>
+  </data>
+  <data name="SettingsPage_HotkeySuccess" xml:space="preserve">
+    <value>快捷键设置成功</value>
   </data>
   
   <!-- 语言选项 -->
