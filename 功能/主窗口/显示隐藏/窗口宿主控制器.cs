@@ -51,6 +51,12 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
             if (_viewModel.IsWindowVisible)
             {
+                // 如果窗口处于固定状态，先取消固定再隐藏
+                if (_viewModel.IsDockPinned)
+                {
+                    _viewModel.SetDockPinned(false);
+                    RestoreStandardDock();
+                }
                 HideWindow();
             }
             else
