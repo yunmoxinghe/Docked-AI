@@ -113,13 +113,13 @@ namespace Docked_AI.Features.MainWindow.Visibility
             StartInitialSlideIn();
         }
 
-        private void OnActivationChanged(object sender, WindowActivatedEventArgs args)
+        private async void OnActivationChanged(object sender, WindowActivatedEventArgs args)
         {
             if (args.WindowActivationState == WindowActivationState.Deactivated &&
                 _viewModel.IsWindowVisible &&
                 !_viewModel.IsDockPinned)
             {
-                HideWindow();
+                await HideWindowAsync();
             }
         }
 
@@ -152,22 +152,35 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         private void HideWindow()
         {
-            _viewModel.MarkHidden();
-            RemoveAppBar();
-            SetTopMost(false);
+            _ = HideWindowAsync();
+        }
 
+        private async System.Threading.Tasks.Task HideWindowAsync()
+        {
+            bool wasMaximized = false;
             if (_window.AppWindow.Presenter.Kind == Microsoft.UI.Windowing.AppWindowPresenterKind.Overlapped)
             {
                 var presenter = _window.AppWindow.Presenter as Microsoft.UI.Windowing.OverlappedPresenter;
                 if (presenter != null && presenter.State == Microsoft.UI.Windowing.OverlappedPresenterState.Maximized)
                 {
+                    wasMaximized = true;
                     presenter.Restore();
-                    _layoutService.Refresh(_state);
-                    Win32WindowApi.SetWindowPos(_hwnd, IntPtr.Zero, _state.TargetX, (int)_state.TargetY, _state.WindowWidth, _state.WindowHeight, 0);
-                    _state.CurrentX = _state.TargetX;
-                    _state.CurrentY = _state.TargetY;
                 }
             }
+
+            // 如果窗口是最大化状态，等待还原动画完成
+            if (wasMaximized)
+            {
+                await System.Threading.Tasks.Task.Delay(500);
+            }
+
+            _viewModel.MarkHidden();
+            RemoveAppBar();
+            SetTopMost(false);
+
+            _layoutService.Refresh(_state);
+            _state.CurrentX = _state.TargetX;
+            _state.CurrentY = _state.TargetY;
 
             _layoutService.PrepareForHide(_state);
             _state.TargetX = _state.ScreenWidth;
