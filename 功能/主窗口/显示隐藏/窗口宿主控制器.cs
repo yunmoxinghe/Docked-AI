@@ -204,7 +204,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             
             ApplyPinnedBounds();
             
-            _backdropService.EnsureAcrylicBackdrop(_window);
+            _backdropService.EnsureMicaBackdrop(_window);
 
             _window.Activate();
         }
@@ -214,6 +214,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             RemoveAppBar();
             RestoreStandardWindowStyle();
             _titleBarService.ConfigureStandardWindow(_window);
+            _backdropService.EnsureAcrylicBackdrop(_window);
             MoveWindowToStandardDock(prepareForShow: false);
             SetTopMost(false);
         }

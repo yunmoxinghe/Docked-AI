@@ -10,6 +10,34 @@ namespace Docked_AI.Features.MainWindow.Appearance
     {
         private static readonly SolidColorBrush StableBackdropHostBrush = new(ColorHelper.FromArgb(1, 0, 0, 0));
 
+        public void EnsureMicaBackdrop(Window window)
+        {
+            try
+            {
+                if (!IsMicaSupported())
+                {
+                    SetFallbackBackground(window);
+                    return;
+                }
+
+                if (window.SystemBackdrop == null || window.SystemBackdrop is not MicaBackdrop)
+                {
+                    window.SystemBackdrop = new MicaBackdrop();
+                    window.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+                    {
+                        ValidateMicaEffect(window);
+                    });
+                }
+
+                EnsureTransparentBackground(window);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to set mica backdrop: {ex.Message}");
+                SetFallbackBackground(window);
+            }
+        }
+
         public void EnsureAcrylicBackdrop(Window window)
         {
             try
@@ -38,6 +66,33 @@ namespace Docked_AI.Features.MainWindow.Appearance
             }
         }
 
+        private bool IsMicaSupported()
+        {
+            try
+            {
+                var version = Environment.OSVersion.Version;
+                if (version.Major < 10 || (version.Major == 10 && version.Build < 22000))
+                {
+                    return false;
+                }
+
+                try
+                {
+                    _ = new MicaBackdrop();
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to check mica support: {ex.Message}");
+                return false;
+            }
+        }
+
         private bool IsAcrylicSupported()
         {
             try
@@ -62,6 +117,22 @@ namespace Docked_AI.Features.MainWindow.Appearance
             {
                 System.Diagnostics.Debug.WriteLine($"Failed to check acrylic support: {ex.Message}");
                 return false;
+            }
+        }
+
+        private void ValidateMicaEffect(Window window)
+        {
+            try
+            {
+                if (window.SystemBackdrop is not MicaBackdrop)
+                {
+                    SetFallbackBackground(window);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to validate mica effect: {ex.Message}");
+                SetFallbackBackground(window);
             }
         }
 
