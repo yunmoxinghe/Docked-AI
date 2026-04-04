@@ -22,6 +22,9 @@ namespace Docked_AI.Features.Tray
     /// </summary>
     public class TrayIconManager : IDisposable
     {
+        // 托盘图标的唯一标识符
+        private const uint TrayIconId = 123;
+
         // 系统托盘图标对象，可为空
         private SystemTrayIcon? _trayIcon;
         // 主窗口引用，可为空
@@ -30,21 +33,32 @@ namespace Docked_AI.Features.Tray
         private readonly Action? _exitAction;
         // 全局快捷键管理器，负责处理快捷键注册和监听
         private readonly GlobalHotkeyManager? _hotkeyManager;
+        // 缓存的托盘菜单，避免每次右键都重新创建
+        private MenuFlyout? _trayMenu;
+        // 窗口工厂方法，用于创建自定义窗口（支持扩展）
+        private readonly Func<Window>? _windowFactory;
+        // 标记是否已初始化，防止重复初始化
+        private bool _initialized;
+        // 标记是否已释放资源，防止重复释放
+        private bool _isDisposed;
 
         /// <summary>
         /// 构造函数
         /// </summary>
         /// <param name="initialMainWindow">初始主窗口引用</param>
         /// <param name="exitAction">退出应用程序时的回调函数</param>
-        public TrayIconManager(Window? initialMainWindow, Action? exitAction = null)
+        /// <param name="windowFactory">窗口工厂方法，用于创建自定义窗口（可选）</param>
+        public TrayIconManager(Window? initialMainWindow, Action? exitAction = null, Func<Window>? windowFactory = null)
         {
             // 保存主窗口引用
             _mainWindow = initialMainWindow;
             // 保存退出回调函数
             _exitAction = exitAction;
+            // 保存窗口工厂方法
+            _windowFactory = windowFactory;
 
-            // 创建全局快捷键管理器，传入显示主窗口的回调函数
-            _hotkeyManager = new GlobalHotkeyManager(ShowMainWindow);
+            // 创建全局快捷键管理器，使用 lambda 避免方法引用绑定实例
+            _hotkeyManager = new GlobalHotkeyManager(() => ShowMainWindow());
         }
 
         /// <summary>
@@ -52,12 +66,26 @@ namespace Docked_AI.Features.Tray
         /// </summary>
         public void Initialize()
         {
-            // 设置托盘图标的唯一标识符
-            uint iconId = 123;
+            // 防止重复初始化
+            if (_initialized)
+            {
+                System.Diagnostics.Debug.WriteLine("[TrayIconManager] Already initialized, skipping.");
+                return;
+            }
+            _initialized = true;
+
             // 构建图标文件的完整路径（应用程序目录/Assets/Sparkles.ico）
             var iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "Sparkles.ico");
+            
+            // 检查图标文件是否存在
+            if (!File.Exists(iconPath))
+            {
+                System.Diagnostics.Debug.WriteLine($"[TrayIconManager] Tray icon not found at: {iconPath}");
+                throw new FileNotFoundException("Tray icon not found", iconPath);
+            }
+
             // 创建系统托盘图标对象，参数：图标ID、图标路径、鼠标悬停提示文本
-            _trayIcon = new SystemTrayIcon(iconId, iconPath, "Docked AI");
+            _trayIcon = new SystemTrayIcon(TrayIconId, iconPath, "Docked AI");
 
             // 订阅托盘图标的左键点击事件
             _trayIcon.LeftClick += TrayIcon_LeftClick;
@@ -66,8 +94,20 @@ namespace Docked_AI.Features.Tray
             // 设置托盘图标为可见状态
             _trayIcon.IsVisible = true;
 
-            // 初始化全局快捷键
-            _hotkeyManager?.Initialize();
+            System.Diagnostics.Debug.WriteLine("[TrayIconManager] Tray icon initialized successfully.");
+
+            // 初始化全局快捷键（在托盘图标创建之后）
+            try
+            {
+                _hotkeyManager?.Initialize();
+                System.Diagnostics.Debug.WriteLine("[TrayIconManager] Global hotkey initialized successfully.");
+            }
+            catch (Exception ex)
+            {
+                // 热键注册失败不应该阻止托盘初始化
+                System.Diagnostics.Debug.WriteLine($"[TrayIconManager] Failed to initialize global hotkey: {ex.Message}");
+                // TODO: 未来可以在这里显示通知给用户
+            }
         }
 
         /// <summary>
@@ -88,6 +128,22 @@ namespace Docked_AI.Features.Tray
         /// <param name="args">事件参数</param>
         private void TrayIcon_RightClick(SystemTrayIcon sender, SystemTrayIconEventArgs args)
         {
+            // 获取或创建托盘菜单（支持缓存和动态更新）
+            args.Flyout = CreateTrayMenu();
+        }
+
+        /// <summary>
+        /// 创建托盘菜单（支持缓存）
+        /// </summary>
+        /// <returns>托盘菜单对象</returns>
+        private MenuFlyout CreateTrayMenu()
+        {
+            // 如果菜单已缓存，直接返回（可在语言切换时清空缓存）
+            if (_trayMenu != null)
+            {
+                return _trayMenu;
+            }
+
             // 创建弹出菜单
             var flyout = new MenuFlyout();
 
@@ -100,7 +156,7 @@ namespace Docked_AI.Features.Tray
                 Icon = new SymbolIcon(Symbol.GoToStart)
             };
             // 绑定点击事件，点击时显示主窗口
-            openItem.Click += (s, e) => ShowMainWindow();
+            openItem.Click += OnOpenWindowClicked;
             // 将菜单项添加到弹出菜单
             flyout.Items.Add(openItem);
 
@@ -116,12 +172,53 @@ namespace Docked_AI.Features.Tray
                 Icon = new FontIcon { Glyph = "\uF3B1" }
             };
             // 绑定点击事件，点击时退出应用程序
-            exitItem.Click += (s, e) => ExitApplication();
+            exitItem.Click += OnExitClicked;
             // 将菜单项添加到弹出菜单
             flyout.Items.Add(exitItem);
 
-            // 将弹出菜单赋值给事件参数，系统会自动显示菜单
-            args.Flyout = flyout;
+            // 缓存菜单
+            _trayMenu = flyout;
+            return flyout;
+        }
+
+        /// <summary>
+        /// 打开窗口菜单项点击事件处理
+        /// </summary>
+        private void OnOpenWindowClicked(object sender, RoutedEventArgs e)
+        {
+            ShowMainWindow();
+        }
+
+        /// <summary>
+        /// 退出菜单项点击事件处理
+        /// </summary>
+        private void OnExitClicked(object sender, RoutedEventArgs e)
+        {
+            ExitApplication();
+        }
+
+        /// <summary>
+        /// 清空托盘菜单缓存（用于语言切换等场景）
+        /// </summary>
+        public void RefreshTrayMenu()
+        {
+            // 确保在 UI 线程上执行（线程安全）
+            var dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
+            if (dispatcherQueue != null)
+            {
+                dispatcherQueue.TryEnqueue(() =>
+                {
+                    // 清理菜单项，防止潜在引用链
+                    _trayMenu?.Items.Clear();
+                    _trayMenu = null;
+                });
+            }
+            else
+            {
+                // 如果不在 UI 线程，直接清理（降级处理）
+                _trayMenu?.Items.Clear();
+                _trayMenu = null;
+            }
         }
 
         /// <summary>
@@ -133,55 +230,85 @@ namespace Docked_AI.Features.Tray
         {
             try
             {
-                // 如果主窗口引用不为空
-                if (_mainWindow != null)
+                if (!IsWindowValid())
                 {
-                    // 获取窗口的原生句柄
-                    var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(_mainWindow);
-                    // 如果句柄无效（窗口已关闭），清空引用
-                    if (windowHandle == IntPtr.Zero)
-                    {
-                        _mainWindow = null;
-                    }
-                }
-
-                // 如果主窗口不存在或内容为空（窗口已关闭）
-                if (_mainWindow == null || _mainWindow.Content == null)
-                {
-                    // 创建新的主窗口实例
-                    _mainWindow = new global::Docked_AI.MainWindow();
-                    // 激活窗口（显示并获得焦点）
-                    _mainWindow.Activate();
-                    // 将窗口置于前台
-                    WindowHelper.SetForegroundWindow(_mainWindow);
+                    CreateAndShowWindow();
                 }
                 else
                 {
-                    // 如果窗口已存在，尝试转换为 MainWindow 类型
-                    if (_mainWindow is global::Docked_AI.MainWindow mainWindow)
-                    {
-                        // 切换窗口的显示/隐藏状态
-                        mainWindow.ToggleWindow();
-                        // 如果窗口现在是可见状态
-                        if (mainWindow.IsWindowVisible)
-                        {
-                            // 将窗口置于前台
-                            WindowHelper.SetForegroundWindow(_mainWindow);
-                        }
-                    }
+                    ToggleExistingWindow();
                 }
             }
             catch (Exception ex)
             {
-                // 如果发生异常，输出错误信息
                 System.Diagnostics.Debug.WriteLine($"Error showing main window: {ex.Message}");
-                // 清空窗口引用
+                CreateAndShowWindow();
+            }
+        }
+
+        /// <summary>
+        /// 检查窗口是否有效
+        /// </summary>
+        /// <returns>窗口是否有效</returns>
+        private bool IsWindowValid()
+        {
+            try
+            {
+                // 检查窗口引用是否存在
+                if (_mainWindow == null)
+                {
+                    return false;
+                }
+
+                // 检查窗口句柄是否有效（更严谨的判断）
+                var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(_mainWindow);
+                if (windowHandle == IntPtr.Zero)
+                {
+                    _mainWindow = null;
+                    return false;
+                }
+
+                // 检查窗口内容是否存在
+                return _mainWindow.Content != null;
+            }
+            catch
+            {
+                // 如果发生异常，认为窗口无效
                 _mainWindow = null;
-                // 创建新的主窗口实例
-                _mainWindow = new global::Docked_AI.MainWindow();
-                // 激活窗口
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// 创建并显示新窗口
+        /// </summary>
+        private void CreateAndShowWindow()
+        {
+            // 使用窗口工厂创建窗口（如果提供），否则创建默认窗口
+            _mainWindow = _windowFactory?.Invoke() ?? new global::Docked_AI.MainWindow();
+            _mainWindow.Activate();
+            WindowHelper.SetForegroundWindow(_mainWindow);
+        }
+
+        /// <summary>
+        /// 切换现有窗口的显示状态
+        /// </summary>
+        private void ToggleExistingWindow()
+        {
+            // 使用接口解耦，支持多种窗口类型（插件窗口、浮动窗口等）
+            if (_mainWindow is IWindowToggle toggleWindow)
+            {
+                toggleWindow.ToggleWindow();
+
+                if (toggleWindow.IsWindowVisible)
+                {
+                    WindowHelper.SetForegroundWindow(_mainWindow);
+                }
+            }
+            else
+            {
+                // 降级处理：如果窗口不支持 IWindowToggle，直接激活窗口
                 _mainWindow.Activate();
-                // 将窗口置于前台
                 WindowHelper.SetForegroundWindow(_mainWindow);
             }
         }
@@ -192,26 +319,10 @@ namespace Docked_AI.Features.Tray
         /// </summary>
         public void ExitApplication()
         {
-            // 释放快捷键管理器资源
-            _hotkeyManager?.Dispose();
-
-            // 如果托盘图标存在
-            if (_trayIcon != null)
-            {
-                // 取消订阅左键点击事件
-                _trayIcon.LeftClick -= TrayIcon_LeftClick;
-                // 取消订阅右键点击事件
-                _trayIcon.RightClick -= TrayIcon_RightClick;
-                // 隐藏托盘图标
-                _trayIcon.IsVisible = false;
-                // 释放托盘图标资源
-                _trayIcon.Dispose();
-                // 清空托盘图标引用
-                _trayIcon = null;
-            }
-
-            // 如果退出回调函数存在，则调用它
+            // 先通知外部（外部可能需要访问托盘/热键/窗口状态）
             _exitAction?.Invoke();
+            // 再销毁内部资源
+            Dispose();
         }
 
         /// <summary>
@@ -220,10 +331,41 @@ namespace Docked_AI.Features.Tray
         /// </summary>
         public void Dispose()
         {
-            // 释放快捷键管理器资源
-            _hotkeyManager?.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
 
-            // 如果托盘图标存在
+        /// <summary>
+        /// 标准 Dispose 模式实现
+        /// 支持托管资源和非托管资源的分别释放
+        /// </summary>
+        /// <param name="disposing">是否正在释放托管资源</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            // 防止重复释放资源
+            if (_isDisposed)
+            {
+                return;
+            }
+            _isDisposed = true;
+
+            System.Diagnostics.Debug.WriteLine("[TrayIconManager] Disposing resources...");
+
+            // 释放托管资源
+            if (disposing)
+            {
+                // 释放快捷键管理器资源
+                _hotkeyManager?.Dispose();
+
+                // 清理菜单缓存
+                _trayMenu?.Items.Clear();
+                _trayMenu = null;
+
+                // 注意：不重置 _initialized，防止对象复活导致状态不一致
+                // 如果需要复活功能，应该提供专门的 ReInitialize() 方法
+            }
+
+            // 释放非托管资源（托盘图标涉及系统资源）
             if (_trayIcon != null)
             {
                 // 取消订阅左键点击事件
@@ -237,6 +379,8 @@ namespace Docked_AI.Features.Tray
                 // 清空托盘图标引用
                 _trayIcon = null;
             }
+
+            System.Diagnostics.Debug.WriteLine("[TrayIconManager] Resources disposed successfully.");
         }
     }
 }

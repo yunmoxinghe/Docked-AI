@@ -3,12 +3,13 @@ using Docked_AI.Features.MainWindow.Visibility;
 using Docked_AI.Features.MainWindowContent.Linker;
 using Docked_AI.Features.MainWindowContent.NavigationBar;
 using Docked_AI.Features.Pages.New;
+using Docked_AI.Features.Tray;
 using Microsoft.UI.Xaml;
 using System.ComponentModel;
 
 namespace Docked_AI
 {
-    public sealed partial class MainWindow : Window
+    public sealed partial class MainWindow : Window, IWindowToggle
     {
         private readonly MainWindowViewModel _viewModel;
         private readonly WindowHostController _windowController;
