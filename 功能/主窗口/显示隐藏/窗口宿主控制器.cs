@@ -374,6 +374,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             MoveWindowToStandardDock(prepareForShow: true);
 
             _window.Activate();
+            Tray.WindowHelper.SetForegroundWindow(_window);
             _animationController.StartShow();
         }
 
@@ -446,6 +447,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _backdropService.EnsureMicaBackdrop(_window);
 
             _window.Activate();
+            Tray.WindowHelper.SetForegroundWindow(_window);
         }
 
         private void RestoreStandardDock()
@@ -896,6 +898,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             MoveWindowToStandardDock(prepareForShow: true);
 
             _window.Activate();
+            Tray.WindowHelper.SetForegroundWindow(_window);
             _animationController.StartShow();
             await System.Threading.Tasks.Task.Delay(300); // 等待动画完成
         }
@@ -912,6 +915,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _backdropService.EnsureMicaBackdrop(_window);
 
             _window.Activate();
+            Tray.WindowHelper.SetForegroundWindow(_window);
             await System.Threading.Tasks.Task.Delay(100); // 等待样式应用完成
         }
 
