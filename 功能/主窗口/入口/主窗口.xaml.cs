@@ -45,6 +45,7 @@ namespace Docked_AI
             if (args.DidPresenterChange || args.DidSizeChange)
             {
                 UpdateWindowStateIcon();
+                UpdateContentTopMargin();
             }
         }
 
@@ -97,6 +98,7 @@ namespace Docked_AI
             {
                 UpdateDockToggleIcon(_viewModel.IsDockPinned);
                 UpdateContentCornerRadius(_viewModel.IsDockPinned);
+                UpdateContentTopMargin();
             }
         }
 
@@ -115,6 +117,23 @@ namespace Docked_AI
                 RootGrid.Children[0] is Linker linker)
             {
                 linker.UpdateContentCornerRadius(isPinned);
+            }
+        }
+
+        private void UpdateContentTopMargin()
+        {
+            bool isMaximized = false;
+            if (this.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            {
+                isMaximized = presenter.State == Microsoft.UI.Windowing.OverlappedPresenterState.Maximized;
+            }
+
+            bool isPinnedOrMaximized = _viewModel.IsDockPinned || isMaximized;
+
+            if (RootGrid.Children.Count > 0 && 
+                RootGrid.Children[0] is Linker linker)
+            {
+                linker.UpdateContentTopMargin(isPinnedOrMaximized);
             }
         }
 

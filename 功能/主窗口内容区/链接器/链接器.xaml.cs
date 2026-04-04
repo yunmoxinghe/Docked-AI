@@ -63,6 +63,13 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             ContentHost.SetCornerRadius(isPinned);
         }
 
+        public void UpdateContentTopMargin(bool isPinnedOrMaximized)
+        {
+            double topMargin = isPinnedOrMaximized ? 4 : 6;
+            var currentMargin = ContentHost.Margin;
+            ContentHost.Margin = new Thickness(currentMargin.Left, topMargin, currentMargin.Right, currentMargin.Bottom);
+        }
+
         public void SyncNavigationBarSelection(Type pageType, object? parameter)
         {
             if (pageType == typeof(WebBrowserPage) && parameter is WebAppShortcut shortcut)
