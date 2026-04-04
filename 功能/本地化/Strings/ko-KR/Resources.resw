@@ -282,6 +282,12 @@
   <data name="SettingsPage_LaterButton" xml:space="preserve">
     <value>나중에</value>
   </data>
+  <data name="SettingsPage_TouchpadSettingsHeader.Header" xml:space="preserve">
+    <value>터치패드 설정</value>
+  </data>
+  <data name="SettingsPage_TouchpadSettingsHeader.Description" xml:space="preserve">
+    <value>아래 관련 설정의 고급 제스처 설정에서 사용자 지정 바로 가기를 선택하여 터치패드 제스처를 단축키로 매핑할 수 있습니다</value>
+  </data>
   
   <!-- 언어 옵션 -->
   <data name="Language_SimplifiedChinese.Content" xml:space="preserve">

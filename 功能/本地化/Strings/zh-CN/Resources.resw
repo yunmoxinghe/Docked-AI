@@ -289,6 +289,12 @@
   <data name="SettingsPage_HotkeySuccess" xml:space="preserve">
     <value>快捷键设置成功</value>
   </data>
+  <data name="SettingsPage_TouchpadSettingsHeader.Header" xml:space="preserve">
+    <value>触摸板设置</value>
+  </data>
+  <data name="SettingsPage_TouchpadSettingsHeader.Description" xml:space="preserve">
+    <value>在下方相关设置中的高级手势设置中可以选择自定义快捷方式将触摸板手势映射为快捷键</value>
+  </data>
   
   <!-- 语言选项 -->
   <data name="Language_SimplifiedChinese.Content" xml:space="preserve">

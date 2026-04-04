@@ -282,6 +282,12 @@
   <data name="SettingsPage_LaterButton" xml:space="preserve">
     <value>Plus tard</value>
   </data>
+  <data name="SettingsPage_TouchpadSettingsHeader.Header" xml:space="preserve">
+    <value>Paramètres du pavé tactile</value>
+  </data>
+  <data name="SettingsPage_TouchpadSettingsHeader.Description" xml:space="preserve">
+    <value>Dans Gestes avancés sous Paramètres associés, vous pouvez sélectionner des raccourcis personnalisés pour mapper les gestes du pavé tactile aux touches de raccourci</value>
+  </data>
   
   <!-- Options de langue -->
   <data name="Language_SimplifiedChinese.Content" xml:space="preserve">

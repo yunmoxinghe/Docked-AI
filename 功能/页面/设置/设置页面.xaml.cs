@@ -374,6 +374,31 @@ namespace Docked_AI.Features.Pages.Settings
             await HotkeyDialog.ShowAsync();
         }
 
+        private async void OnTouchpadSettingsClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await Launcher.LaunchUriAsync(new Uri("ms-settings:devices-touchpad"));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SettingsPage] OnTouchpadSettingsClick error: {ex}");
+                
+                // Show error dialog to user
+                if (this.XamlRoot != null)
+                {
+                    var dialog = new ContentDialog
+                    {
+                        Title = "错误",
+                        Content = "无法打开触摸板设置页面。",
+                        CloseButtonText = "确定",
+                        XamlRoot = this.XamlRoot
+                    };
+                    await dialog.ShowAsync();
+                }
+            }
+        }
+
         private void HotkeyToggleButton_Checked(object sender, RoutedEventArgs e)
         {
             _isCapturingHotkey = true;

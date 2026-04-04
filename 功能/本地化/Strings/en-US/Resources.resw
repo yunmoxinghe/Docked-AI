@@ -288,6 +288,12 @@
   <data name="SettingsPage_HotkeySuccess" xml:space="preserve">
     <value>Hotkey registered successfully</value>
   </data>
+  <data name="SettingsPage_TouchpadSettingsHeader.Header" xml:space="preserve">
+    <value>Touchpad Settings</value>
+  </data>
+  <data name="SettingsPage_TouchpadSettingsHeader.Description" xml:space="preserve">
+    <value>In Advanced gestures under Related settings below, you can select custom shortcuts to map touchpad gestures to hotkeys</value>
+  </data>
   
   <!-- Language Options -->
   <data name="Language_SimplifiedChinese.Content" xml:space="preserve">

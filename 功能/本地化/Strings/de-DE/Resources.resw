@@ -282,6 +282,12 @@
   <data name="SettingsPage_LaterButton" xml:space="preserve">
     <value>Später</value>
   </data>
+  <data name="SettingsPage_TouchpadSettingsHeader.Header" xml:space="preserve">
+    <value>Touchpad-Einstellungen</value>
+  </data>
+  <data name="SettingsPage_TouchpadSettingsHeader.Description" xml:space="preserve">
+    <value>In den erweiterten Gesteneinstellungen unter Verwandte Einstellungen können Sie benutzerdefinierte Tastenkombinationen auswählen, um Touchpad-Gesten auf Hotkeys zu mappen</value>
+  </data>
   
   <!-- Sprachoptionen -->
   <data name="Language_SimplifiedChinese.Content" xml:space="preserve">

@@ -97,6 +97,14 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                             </controls:SettingsCard>
+                            
+                            <controls:SettingsCard x:Uid="SettingsPage_TouchpadSettingsHeader"
+                                              IsClickEnabled="True"
+                                              Click="OnTouchpadSettingsClick">
+                                <controls:SettingsCard.ActionIcon>
+                                    <FontIcon Glyph="&#xE8A7;"/>
+                                </controls:SettingsCard.ActionIcon>
+                            </controls:SettingsCard>
                         </controls:SettingsExpander.Items>
                     </controls:SettingsExpander>
 

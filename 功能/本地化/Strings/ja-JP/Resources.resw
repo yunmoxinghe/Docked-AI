@@ -282,6 +282,12 @@
   <data name="SettingsPage_LaterButton" xml:space="preserve">
     <value>後で</value>
   </data>
+  <data name="SettingsPage_TouchpadSettingsHeader.Header" xml:space="preserve">
+    <value>タッチパッド設定</value>
+  </data>
+  <data name="SettingsPage_TouchpadSettingsHeader.Description" xml:space="preserve">
+    <value>下部の関連設定にある高度なジェスチャ設定で、カスタムショートカットを選択してタッチパッドジェスチャをホットキーにマッピングできます</value>
+  </data>
   
   <!-- 言語オプション -->
   <data name="Language_SimplifiedChinese.Content" xml:space="preserve">

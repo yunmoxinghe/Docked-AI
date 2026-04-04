@@ -282,6 +282,12 @@
   <data name="SettingsPage_LaterButton" xml:space="preserve">
     <value>Más tarde</value>
   </data>
+  <data name="SettingsPage_TouchpadSettingsHeader.Header" xml:space="preserve">
+    <value>Configuración del panel táctil</value>
+  </data>
+  <data name="SettingsPage_TouchpadSettingsHeader.Description" xml:space="preserve">
+    <value>En Gestos avanzados bajo Configuración relacionada, puede seleccionar accesos directos personalizados para asignar gestos del panel táctil a teclas de acceso rápido</value>
+  </data>
   
   <!-- Opciones de idioma -->
   <data name="Language_SimplifiedChinese.Content" xml:space="preserve">

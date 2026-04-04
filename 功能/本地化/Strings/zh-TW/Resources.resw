@@ -282,6 +282,12 @@
   <data name="SettingsPage_LaterButton" xml:space="preserve">
     <value>稍後</value>
   </data>
+  <data name="SettingsPage_TouchpadSettingsHeader.Header" xml:space="preserve">
+    <value>觸控板設定</value>
+  </data>
+  <data name="SettingsPage_TouchpadSettingsHeader.Description" xml:space="preserve">
+    <value>在下方相關設定中的進階手勢設定中可以選擇自訂快速鍵將觸控板手勢對應為快速鍵</value>
+  </data>
   
   <!-- 語言選項 -->
   <data name="Language_SimplifiedChinese.Content" xml:space="preserve">
