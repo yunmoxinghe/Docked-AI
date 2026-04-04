@@ -1,3 +1,5 @@
+using Docked_AI.Features.MainWindow.State;
+
 namespace Docked_AI.Features.Tray
 {
     /// <summary>
@@ -13,8 +15,8 @@ namespace Docked_AI.Features.Tray
         void ToggleWindow();
 
         /// <summary>
-        /// 获取窗口当前是否可见
+        /// 获取窗口当前状态
         /// </summary>
-        bool IsWindowVisible { get; }
+        WindowState CurrentWindowState { get; }
     }
 }

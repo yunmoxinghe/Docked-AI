@@ -300,7 +300,11 @@ namespace Docked_AI.Features.Tray
             {
                 toggleWindow.ToggleWindow();
 
-                if (toggleWindow.IsWindowVisible)
+                // 检查窗口是否可见（非隐藏且非未创建状态）
+                bool isVisible = toggleWindow.CurrentWindowState != Docked_AI.Features.MainWindow.State.WindowState.Hidden &&
+                                toggleWindow.CurrentWindowState != Docked_AI.Features.MainWindow.State.WindowState.NotCreated;
+
+                if (isVisible)
                 {
                     WindowHelper.SetForegroundWindow(_mainWindow);
                 }

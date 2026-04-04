@@ -14,7 +14,7 @@ namespace Docked_AI
         private readonly MainWindowViewModel _viewModel;
         private readonly WindowHostController _windowController;
 
-        public bool IsWindowVisible => _viewModel.IsWindowVisible;
+        public WindowState CurrentWindowState => _viewModel.CurrentState;
 
         public MainWindow()
         {
@@ -38,6 +38,9 @@ namespace Docked_AI
             
             // 监听窗口状态变化以更新图标
             this.AppWindow.Changed += OnAppWindowChanged;
+            
+            // 监听窗口关闭事件以清理订阅
+            this.Closed += OnWindowClosed;
         }
 
         private void OnAppWindowChanged(Microsoft.UI.Windowing.AppWindow sender, Microsoft.UI.Windowing.AppWindowChangedEventArgs args)
@@ -46,7 +49,30 @@ namespace Docked_AI
             {
                 UpdateWindowStateIcon();
                 UpdateContentTopMargin();
+                
+                // Sync OS window state changes to StateManager
+                if (args.DidPresenterChange)
+                {
+                    WindowState osState = DetermineOSWindowState();
+                    _windowController.SyncFromOSWindowState(osState);
+                }
             }
+        }
+        
+        private WindowState DetermineOSWindowState()
+        {
+            if (this.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            {
+                return presenter.State switch
+                {
+                    Microsoft.UI.Windowing.OverlappedPresenterState.Maximized => WindowState.Maximized,
+                    Microsoft.UI.Windowing.OverlappedPresenterState.Restored => WindowState.Windowed,
+                    Microsoft.UI.Windowing.OverlappedPresenterState.Minimized => WindowState.Hidden,
+                    _ => _viewModel.CurrentState // Fallback to current state
+                };
+            }
+            
+            return _viewModel.CurrentState; // Fallback to current state
         }
 
         private void UpdateWindowStateIcon()
@@ -65,39 +91,25 @@ namespace Docked_AI
 
         private async void OnWindowStateToggleRequested(object? sender, System.EventArgs e)
         {
-            // 如果窗口是固定状态，先取消固定
-            if (_viewModel.IsDockPinned)
-            {
-                TogglePinnedDock();
-                // 等待取消固定的动画完成
-                await System.Threading.Tasks.Task.Delay(500);
-            }
-            
-            ToggleWindowState();
+            // 使用 WindowHostController 的 ToggleMaximize 方法
+            _windowController.ToggleMaximize();
         }
 
         public void ToggleWindowState()
         {
-            if (this.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
-            {
-                if (presenter.State == Microsoft.UI.Windowing.OverlappedPresenterState.Maximized)
-                {
-                    presenter.Restore();
-                }
-                else
-                {
-                    presenter.Maximize();
-                }
-                UpdateWindowStateIcon();
-            }
+            // 委托给 WindowHostController
+            _windowController.ToggleMaximize();
         }
 
         private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(MainWindowViewModel.IsDockPinned))
+            if (e.PropertyName == nameof(MainWindowViewModel.CurrentState))
             {
-                UpdateDockToggleIcon(_viewModel.IsDockPinned);
-                UpdateContentCornerRadius(_viewModel.IsDockPinned);
+                var currentState = _viewModel.CurrentState;
+                bool isPinned = currentState == WindowState.Pinned;
+                
+                UpdateDockToggleIcon(isPinned);
+                UpdateContentCornerRadius(isPinned);
                 UpdateContentTopMargin();
             }
         }
@@ -128,7 +140,8 @@ namespace Docked_AI
                 isMaximized = presenter.State == Microsoft.UI.Windowing.OverlappedPresenterState.Maximized;
             }
 
-            bool isPinnedOrMaximized = _viewModel.IsDockPinned || isMaximized;
+            var currentState = _viewModel.CurrentState;
+            bool isPinnedOrMaximized = currentState == WindowState.Pinned || isMaximized;
 
             if (RootGrid.Children.Count > 0 && 
                 RootGrid.Children[0] is Linker linker)
@@ -149,19 +162,8 @@ namespace Docked_AI
 
         private async void OnDockToggleRequested(object? sender, System.EventArgs e)
         {
-            // 如果窗口是最大化状态，先还原窗口
-            if (this.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
-            {
-                if (presenter.State == Microsoft.UI.Windowing.OverlappedPresenterState.Maximized)
-                {
-                    presenter.Restore();
-                    // 立即更新图标
-                    UpdateWindowStateIcon();
-                    // 等待动画完成
-                    await System.Threading.Tasks.Task.Delay(500);
-                }
-            }
-            
+            // 使用 WindowHostController 的 TogglePinnedDock 方法
+            // StateManager 会自动处理从 Maximized 到 Pinned 的转换
             TogglePinnedDock();
         }
 
@@ -178,6 +180,20 @@ namespace Docked_AI
             else
             {
                 System.Diagnostics.Debug.WriteLine("Linker NOT found!");
+            }
+        }
+        
+        private void OnWindowClosed(object sender, WindowEventArgs args)
+        {
+            // Unsubscribe from all events to prevent memory leaks
+            _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            this.AppWindow.Changed -= OnAppWindowChanged;
+            this.Closed -= OnWindowClosed;
+            
+            if (RootGrid.Children.Count > 0 && RootGrid.Children[0] is Linker linker)
+            {
+                linker.DockToggleRequested -= OnDockToggleRequested;
+                linker.WindowStateToggleRequested -= OnWindowStateToggleRequested;
             }
         }
     }
