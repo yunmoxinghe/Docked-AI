@@ -33,6 +33,12 @@ namespace Docked_AI.Features.MainWindow.Visibility
         private readonly VisibilityWin32Api.WindowProc _windowProcDelegate;
 
         private const int DefaultAnimationTimeoutMs = 2000;
+        private static readonly TimeSpan TransitionThroughWindowedTimeout = TimeSpan.FromSeconds(5);
+        private static readonly TimeSpan TransitionPollInterval = TimeSpan.FromMilliseconds(50);
+        private static readonly TimeSpan IntermediateTransitionDelay = TimeSpan.FromMilliseconds(100);
+        private static readonly TimeSpan SlideAnimationDelay = TimeSpan.FromMilliseconds(300);
+        private static readonly TimeSpan PinnedModeDelay = TimeSpan.FromMilliseconds(100);
+        private static readonly TimeSpan MaximizedModeDelay = TimeSpan.FromMilliseconds(200);
 
         public WindowHostController(Window window, MainWindowViewModel viewModel, int animationTimeoutMs = DefaultAnimationTimeoutMs)
         {
@@ -64,39 +70,12 @@ namespace Docked_AI.Features.MainWindow.Visibility
         /// </summary>
         public void ToggleWindow()
         {
-            EnsureWindowHandle();
-
-            // 防重入检查
-            if (_stateManager.IsTransitioning)
-            {
-                System.Diagnostics.Debug.WriteLine("ToggleWindow blocked: state transition in progress");
-                return;
-            }
-
             var currentState = _stateManager.CurrentState;
-            WindowState targetState;
+            WindowState targetState = currentState is WindowState.Hidden or WindowState.NotCreated
+                ? WindowState.Windowed
+                : WindowState.Hidden;
 
-            // 根据当前状态决定目标状态
-            if (currentState == WindowState.Hidden || currentState == WindowState.NotCreated)
-            {
-                // 隐藏 -> 窗口化
-                targetState = WindowState.Windowed;
-            }
-            else
-            {
-                // 其他状态 -> 隐藏（支持直接转换：Pinned/Maximized -> Hidden）
-                targetState = WindowState.Hidden;
-            }
-
-            // 使用 StateManager 创建转换计划
-            var plan = _stateManager.CreatePlan(targetState, "User toggled window");
-            if (plan == null)
-            {
-                System.Diagnostics.Debug.WriteLine($"Failed to create transition plan: {currentState} -> {targetState}");
-                return;
-            }
-
-            // 计划已创建，OnWindowStateChanged 会自动执行副作用
+            _ = TryRequestTransition(targetState, "User toggled window", nameof(ToggleWindow));
         }
 
         private void InitializeWindow()
@@ -123,50 +102,22 @@ namespace Docked_AI.Features.MainWindow.Visibility
         /// </summary>
         public void TogglePinnedDock()
         {
-            EnsureWindowHandle();
-
-            // 防重入检查
-            if (_stateManager.IsTransitioning)
-            {
-                System.Diagnostics.Debug.WriteLine("TogglePinnedDock blocked: state transition in progress");
-                return;
-            }
-
             var currentState = _stateManager.CurrentState;
-            WindowState targetState;
-
-            // 根据当前状态决定目标状态
-            if (currentState == WindowState.Pinned)
+            switch (currentState)
             {
-                // 固定 -> 窗口化
-                targetState = WindowState.Windowed;
+                case WindowState.Pinned:
+                    _ = TryRequestTransition(WindowState.Windowed, "User toggled pinned dock", nameof(TogglePinnedDock));
+                    return;
+                case WindowState.Windowed:
+                    _ = TryRequestTransition(WindowState.Pinned, "User toggled pinned dock", nameof(TogglePinnedDock));
+                    return;
+                case WindowState.Maximized:
+                    _ = TransitionThroughWindowedAsync(WindowState.Pinned, "User toggled pinned dock from maximized");
+                    return;
+                default:
+                    System.Diagnostics.Debug.WriteLine($"TogglePinnedDock not allowed from state: {currentState}");
+                    return;
             }
-            else if (currentState == WindowState.Windowed)
-            {
-                // 窗口化 -> 固定
-                targetState = WindowState.Pinned;
-            }
-            else if (currentState == WindowState.Maximized)
-            {
-                // 最大化 -> 窗口化 -> 固定（自动两步转换）
-                TransitionThroughWindowed(WindowState.Pinned, "User toggled pinned dock from maximized");
-                return;
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"TogglePinnedDock not allowed from state: {currentState}");
-                return;
-            }
-
-            // 使用 StateManager 创建转换计划
-            var plan = _stateManager.CreatePlan(targetState, "User toggled pinned dock");
-            if (plan == null)
-            {
-                System.Diagnostics.Debug.WriteLine($"Failed to create transition plan: {currentState} -> {targetState}");
-                return;
-            }
-
-            // 计划已创建，OnWindowStateChanged 会自动执行副作用
         }
 
         /// <summary>
@@ -176,50 +127,42 @@ namespace Docked_AI.Features.MainWindow.Visibility
         /// </summary>
         public void ToggleMaximize()
         {
+            var currentState = _stateManager.CurrentState;
+            switch (currentState)
+            {
+                case WindowState.Maximized:
+                    _ = TryRequestTransition(WindowState.Windowed, "User toggled maximize", nameof(ToggleMaximize));
+                    return;
+                case WindowState.Windowed:
+                    _ = TryRequestTransition(WindowState.Maximized, "User toggled maximize", nameof(ToggleMaximize));
+                    return;
+                case WindowState.Pinned:
+                    _ = TransitionThroughWindowedAsync(WindowState.Maximized, "User toggled maximize from pinned");
+                    return;
+                default:
+                    System.Diagnostics.Debug.WriteLine($"ToggleMaximize not allowed from state: {currentState}");
+                    return;
+            }
+        }
+
+        private bool TryRequestTransition(WindowState targetState, string reason, string operationName)
+        {
             EnsureWindowHandle();
 
-            // 防重入检查
             if (_stateManager.IsTransitioning)
             {
-                System.Diagnostics.Debug.WriteLine("ToggleMaximize blocked: state transition in progress");
-                return;
+                System.Diagnostics.Debug.WriteLine($"{operationName} blocked: state transition in progress");
+                return false;
             }
 
-            var currentState = _stateManager.CurrentState;
-            WindowState targetState;
-
-            // 根据当前状态决定目标状态
-            if (currentState == WindowState.Maximized)
+            WindowState currentState = _stateManager.CurrentState;
+            if (_stateManager.CreatePlan(targetState, reason) is not null)
             {
-                // 最大化 -> 窗口化
-                targetState = WindowState.Windowed;
-            }
-            else if (currentState == WindowState.Windowed)
-            {
-                // 窗口化 -> 最大化
-                targetState = WindowState.Maximized;
-            }
-            else if (currentState == WindowState.Pinned)
-            {
-                // 固定 -> 窗口化 -> 最大化（自动两步转换）
-                TransitionThroughWindowed(WindowState.Maximized, "User toggled maximize from pinned");
-                return;
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"ToggleMaximize not allowed from state: {currentState}");
-                return;
+                return true;
             }
 
-            // 使用 StateManager 创建转换计划
-            var plan = _stateManager.CreatePlan(targetState, "User toggled maximize");
-            if (plan == null)
-            {
-                System.Diagnostics.Debug.WriteLine($"Failed to create transition plan: {currentState} -> {targetState}");
-                return;
-            }
-
-            // 计划已创建，OnWindowStateChanged 会自动执行副作用
+            System.Diagnostics.Debug.WriteLine($"{operationName}: Failed to create transition plan: {currentState} -> {targetState}");
+            return false;
         }
 
         /// <summary>
@@ -241,7 +184,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
         /// </summary>
         /// <param name="finalState">最终目标状态（Pinned 或 Maximized）</param>
         /// <param name="reason">转换原因</param>
-        private async void TransitionThroughWindowed(WindowState finalState, string reason)
+        private async System.Threading.Tasks.Task TransitionThroughWindowedAsync(WindowState finalState, string reason)
         {
             var currentState = _stateManager.CurrentState;
             
@@ -255,44 +198,41 @@ namespace Docked_AI.Features.MainWindow.Visibility
             System.Diagnostics.Debug.WriteLine($"TransitionThroughWindowed: {currentState} -> Windowed -> {finalState}");
 
             // 第一步：转换到 Windowed
-            var plan1 = _stateManager.CreatePlan(WindowState.Windowed, $"{reason} (step 1: to Windowed)");
-            if (plan1 == null)
+            if (!TryRequestTransition(WindowState.Windowed, $"{reason} (step 1: to Windowed)", nameof(TransitionThroughWindowedAsync)))
             {
                 System.Diagnostics.Debug.WriteLine($"TransitionThroughWindowed: Failed to create plan for step 1");
                 return;
             }
 
-            // 等待第一步完成（轮询 CommittedState）
-            var startTime = DateTime.Now;
-            var timeout = TimeSpan.FromSeconds(5);
-            
-            while (DateTime.Now - startTime < timeout)
+            if (!await WaitForCommittedStateAsync(WindowState.Windowed, TransitionThroughWindowedTimeout))
             {
-                // 检查状态是否已经提交为 Windowed
-                if (_stateManager.CommittedState == WindowState.Windowed && !_stateManager.IsTransitioning)
-                {
-                    System.Diagnostics.Debug.WriteLine($"TransitionThroughWindowed: Step 1 completed, starting step 2");
-                    
-                    // 等待一小段时间，确保 UI 稳定
-                    await System.Threading.Tasks.Task.Delay(100);
-                    
-                    // 第二步：从 Windowed 转换到最终状态
-                    var plan2 = _stateManager.CreatePlan(finalState, $"{reason} (step 2: to {finalState})");
-                    if (plan2 == null)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"TransitionThroughWindowed: Failed to create plan for step 2");
-                        return;
-                    }
-                    
-                    System.Diagnostics.Debug.WriteLine($"TransitionThroughWindowed: Step 2 plan created, transition will complete automatically");
-                    return;
-                }
-                
-                // 等待 50ms 后再次检查
-                await System.Threading.Tasks.Task.Delay(50);
+                System.Diagnostics.Debug.WriteLine("TransitionThroughWindowed: Timeout waiting for step 1 to complete");
+                return;
             }
 
-            System.Diagnostics.Debug.WriteLine($"TransitionThroughWindowed: Timeout waiting for step 1 to complete");
+            System.Diagnostics.Debug.WriteLine("TransitionThroughWindowed: Step 1 completed, starting step 2");
+            await System.Threading.Tasks.Task.Delay(IntermediateTransitionDelay);
+
+            if (TryRequestTransition(finalState, $"{reason} (step 2: to {finalState})", nameof(TransitionThroughWindowedAsync)))
+            {
+                System.Diagnostics.Debug.WriteLine("TransitionThroughWindowed: Step 2 plan created, transition will complete automatically");
+            }
+        }
+
+        private async System.Threading.Tasks.Task<bool> WaitForCommittedStateAsync(WindowState expectedState, TimeSpan timeout)
+        {
+            DateTime startTime = DateTime.Now;
+            while (DateTime.Now - startTime < timeout)
+            {
+                if (_stateManager.CommittedState == expectedState && !_stateManager.IsTransitioning)
+                {
+                    return true;
+                }
+
+                await System.Threading.Tasks.Task.Delay(TransitionPollInterval);
+            }
+
+            return false;
         }
 
         private void OnWindowActivated(object sender, WindowActivatedEventArgs args)
@@ -316,7 +256,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             StartInitialSlideIn();
         }
 
-        private async void OnActivationChanged(object sender, WindowActivatedEventArgs args)
+        private void OnActivationChanged(object sender, WindowActivatedEventArgs args)
         {
             // 防重入检查
             if (_stateManager.IsTransitioning)
@@ -332,12 +272,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 currentState != WindowState.NotCreated &&
                 currentState != WindowState.Pinned)
             {
-                // 使用 StateManager 创建转换计划
-                var plan = _stateManager.CreatePlan(WindowState.Hidden, "Window deactivated");
-                if (plan != null)
-                {
-                    // 计划已创建，OnWindowStateChanged 会自动执行副作用
-                }
+                _ = TryRequestTransition(WindowState.Hidden, "Window deactivated", nameof(OnActivationChanged));
             }
         }
 
@@ -356,52 +291,18 @@ namespace Docked_AI.Features.MainWindow.Visibility
             }
         }
 
-        private void ShowWindow()
+        private void StartShowAnimation()
         {
             _window.AppWindow.IsShownInSwitchers = false;
             _backdropService.EnsureAcrylicBackdrop(_window);
-
-            var currentState = _stateManager.CurrentState;
-
-            if (currentState == WindowState.Pinned)
-            {
-                ShowPinnedDock();
-                return;
-            }
-
             _titleBarService.ConfigureStandardWindow(_window);
-
             MoveWindowToStandardDock(prepareForShow: true);
-
-            _window.Activate();
-            Tray.WindowHelper.SetForegroundWindow(_window);
+            ActivateAndFocusWindow();
             _animationController.StartShow();
         }
 
-        private void HideWindow()
+        private void StartHideAnimation()
         {
-            _ = HideWindowAsync();
-        }
-
-        private async System.Threading.Tasks.Task HideWindowAsync()
-        {
-            bool wasMaximized = false;
-            if (_window.AppWindow.Presenter.Kind == Microsoft.UI.Windowing.AppWindowPresenterKind.Overlapped)
-            {
-                var presenter = _window.AppWindow.Presenter as Microsoft.UI.Windowing.OverlappedPresenter;
-                if (presenter != null && presenter.State == Microsoft.UI.Windowing.OverlappedPresenterState.Maximized)
-                {
-                    wasMaximized = true;
-                    presenter.Restore();
-                }
-            }
-
-            // 如果窗口是最大化状态，等待还原动画完成
-            if (wasMaximized)
-            {
-                await System.Threading.Tasks.Task.Delay(500);
-            }
-
             RemoveAppBar();
             SetTopMost(false);
 
@@ -414,6 +315,31 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _state.TargetY = _state.WorkArea.Top + _state.Margin;
             _state.CurrentY = _state.TargetY;
             _animationController.StartHide();
+        }
+
+        private void ApplyPinnedMode()
+        {
+            _window.AppWindow.IsShownInSwitchers = false;
+            ApplyPinnedWindowStyle();
+            ApplyPinnedBounds();
+            _backdropService.EnsureMicaBackdrop(_window);
+            ActivateAndFocusWindow();
+        }
+
+        private void RestoreStandardMode()
+        {
+            RemoveAppBar();
+            RestoreStandardWindowStyle();
+            _titleBarService.ConfigureStandardWindow(_window);
+            _backdropService.EnsureAcrylicBackdrop(_window);
+            MoveWindowToStandardDock(prepareForShow: false);
+            SetTopMost(false);
+        }
+
+        private void ActivateAndFocusWindow()
+        {
+            _window.Activate();
+            Tray.WindowHelper.SetForegroundWindow(_window);
         }
 
         private void OnAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
@@ -434,30 +360,6 @@ namespace Docked_AI.Features.MainWindow.Visibility
             {
                 ApplyPinnedBounds();
             }
-        }
-
-        private void ShowPinnedDock()
-        {
-            _window.AppWindow.IsShownInSwitchers = false;
-            
-            ApplyPinnedWindowStyle();
-            
-            ApplyPinnedBounds();
-            
-            _backdropService.EnsureMicaBackdrop(_window);
-
-            _window.Activate();
-            Tray.WindowHelper.SetForegroundWindow(_window);
-        }
-
-        private void RestoreStandardDock()
-        {
-            RemoveAppBar();
-            RestoreStandardWindowStyle();
-            _titleBarService.ConfigureStandardWindow(_window);
-            _backdropService.EnsureAcrylicBackdrop(_window);
-            MoveWindowToStandardDock(prepareForShow: false);
-            SetTopMost(false);
         }
 
         private void MoveWindowToStandardDock(bool prepareForShow)
@@ -875,93 +777,57 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         private async System.Threading.Tasks.Task ExecuteHideAnimationAsync()
         {
-            // 执行隐藏动画
-            _layoutService.Refresh(_state);
-            _state.CurrentX = _state.TargetX;
-            _state.CurrentY = _state.TargetY;
-
-            _layoutService.PrepareForHide(_state);
-            _state.TargetX = _state.ScreenWidth;
-            _state.TargetY = _state.WorkArea.Top + _state.Margin;
-            _state.CurrentY = _state.TargetY;
-            _animationController.StartHide();
-            await System.Threading.Tasks.Task.Delay(300); // 等待动画完成
+            StartHideAnimation();
+            await System.Threading.Tasks.Task.Delay(SlideAnimationDelay);
         }
 
         private async System.Threading.Tasks.Task ExecuteShowAnimationAsync()
         {
-            // 执行显示动画
-            _window.AppWindow.IsShownInSwitchers = false;
-            _backdropService.EnsureAcrylicBackdrop(_window);
-            _titleBarService.ConfigureStandardWindow(_window);
-
-            MoveWindowToStandardDock(prepareForShow: true);
-
-            _window.Activate();
-            Tray.WindowHelper.SetForegroundWindow(_window);
-            _animationController.StartShow();
-            await System.Threading.Tasks.Task.Delay(300); // 等待动画完成
+            StartShowAnimation();
+            await System.Threading.Tasks.Task.Delay(SlideAnimationDelay);
         }
 
         private async System.Threading.Tasks.Task ApplyPinnedModeAsync()
         {
-            // 应用固定模式（可能包含动画）
-            _window.AppWindow.IsShownInSwitchers = false;
-
-            ApplyPinnedWindowStyle();
-
-            ApplyPinnedBounds();
-
-            _backdropService.EnsureMicaBackdrop(_window);
-
-            _window.Activate();
-            Tray.WindowHelper.SetForegroundWindow(_window);
-            await System.Threading.Tasks.Task.Delay(100); // 等待样式应用完成
+            ApplyPinnedMode();
+            await System.Threading.Tasks.Task.Delay(PinnedModeDelay);
         }
 
         private async System.Threading.Tasks.Task ApplyMaximizedModeAsync()
         {
-            // 应用最大化模式
             if (_window.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
             {
                 presenter.Maximize();
             }
-            await System.Threading.Tasks.Task.Delay(200); // 等待最大化动画完成
+
+            await System.Threading.Tasks.Task.Delay(MaximizedModeDelay);
         }
 
         private async System.Threading.Tasks.Task RestoreFromPinnedModeAsync()
         {
-            // 从固定模式还原
-            RemoveAppBar();
-            RestoreStandardWindowStyle();
-            _titleBarService.ConfigureStandardWindow(_window);
-            _backdropService.EnsureAcrylicBackdrop(_window);
-            MoveWindowToStandardDock(prepareForShow: false);
-            SetTopMost(false);
-            await System.Threading.Tasks.Task.Delay(100); // 等待样式还原完成
+            RestoreStandardMode();
+            await System.Threading.Tasks.Task.Delay(PinnedModeDelay);
         }
 
         private async System.Threading.Tasks.Task RestoreFromMaximizedModeAsync()
         {
-            // 从最大化还原
             if (_window.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
             {
                 presenter.Restore();
             }
-            await System.Threading.Tasks.Task.Delay(200); // 等待还原动画完成
+
+            await System.Threading.Tasks.Task.Delay(MaximizedModeDelay);
         }
 
         private void OnWindowClosed(object sender, WindowEventArgs args)
         {
-            // 清理事件订阅，避免内存泄漏
+            _window.Activated -= OnWindowActivated;
+            _window.Activated -= OnActivationChanged;
+            _window.Closed -= OnWindowClosed;
+            _window.AppWindow.Changed -= OnAppWindowChanged;
             _stateManager.StateChanged -= OnWindowStateChanged;
-
-            // ViewModel 取消订阅
             _viewModel.UnsubscribeFromStateManager(_stateManager);
-
-            // 释放 StateManager（拥有所有权）
             _stateManager.Dispose();
-
             RemoveAppBar();
         }
 
