@@ -101,7 +101,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             {
                 CoreWebView2EnvironmentOptions options = new()
                 {
-                    Language = GetWebViewLanguage()
+                    Language = GetWebViewLanguage(),
+                    AdditionalBrowserArguments = "--enable-features=msEdgeFluentOverlayScrollbar --enable-smooth-scrolling"
                 };
                 CoreWebView2Environment environment = await CoreWebView2Environment.CreateWithOptionsAsync(
                     browserExecutableFolder: null,
