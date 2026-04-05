@@ -1,4 +1,3 @@
-using Docked_AI.Features.MainWindow.Placement;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -37,17 +36,17 @@ namespace Docked_AI.Features.MainWindow.Appearance
                 appWindow.TitleBar.ButtonForegroundColor = Colors.Transparent;
                 appWindow.TitleBar.ButtonInactiveForegroundColor = Colors.Transparent;
 
-                int cornerPreference = Win32WindowApi.DWMWCP_DEFAULT;
-                _ = Win32WindowApi.DwmSetWindowAttribute(
+                int cornerPreference = AppearanceWin32Api.DWMWCP_DEFAULT;
+                _ = AppearanceWin32Api.DwmSetWindowAttribute(
                     hWnd,
-                    Win32WindowApi.DWMWA_WINDOW_CORNER_PREFERENCE,
+                    AppearanceWin32Api.DWMWA_WINDOW_CORNER_PREFERENCE,
                     ref cornerPreference,
                     sizeof(int));
 
-                int borderColor = Win32WindowApi.DWMWA_COLOR_DEFAULT;
-                _ = Win32WindowApi.DwmSetWindowAttribute(
+                int borderColor = AppearanceWin32Api.DWMWA_COLOR_DEFAULT;
+                _ = AppearanceWin32Api.DwmSetWindowAttribute(
                     hWnd,
-                    Win32WindowApi.DWMWA_BORDER_COLOR,
+                    AppearanceWin32Api.DWMWA_BORDER_COLOR,
                     ref borderColor,
                     sizeof(int));
             }
@@ -82,17 +81,17 @@ namespace Docked_AI.Features.MainWindow.Appearance
                 // 不要扩展内容到标题栏区域，因为我们要完全移除标题栏
                 appWindow.TitleBar.ExtendsContentIntoTitleBar = false;
 
-                int cornerPreference = Win32WindowApi.DWMWCP_DONOTROUND;
-                _ = Win32WindowApi.DwmSetWindowAttribute(
+                int cornerPreference = AppearanceWin32Api.DWMWCP_DONOTROUND;
+                _ = AppearanceWin32Api.DwmSetWindowAttribute(
                     hWnd,
-                    Win32WindowApi.DWMWA_WINDOW_CORNER_PREFERENCE,
+                    AppearanceWin32Api.DWMWA_WINDOW_CORNER_PREFERENCE,
                     ref cornerPreference,
                     sizeof(int));
 
-                int borderColor = Win32WindowApi.DWMWA_COLOR_NONE;
-                _ = Win32WindowApi.DwmSetWindowAttribute(
+                int borderColor = AppearanceWin32Api.DWMWA_COLOR_NONE;
+                _ = AppearanceWin32Api.DwmSetWindowAttribute(
                     hWnd,
-                    Win32WindowApi.DWMWA_BORDER_COLOR,
+                    AppearanceWin32Api.DWMWA_BORDER_COLOR,
                     ref borderColor,
                     sizeof(int));
             }

@@ -13,9 +13,9 @@ namespace Docked_AI.Features.MainWindow.Placement
 
         public void Refresh(WindowLayoutState state)
         {
-            state.ScreenHeight = Win32WindowApi.GetSystemMetrics(Win32WindowApi.SM_CYSCREEN);
-            state.ScreenWidth = Win32WindowApi.GetSystemMetrics(Win32WindowApi.SM_CXSCREEN);
-            Win32WindowApi.SystemParametersInfo(Win32WindowApi.SPI_GETWORKAREA, 0, ref state.WorkArea, 0);
+            state.ScreenHeight = PlacementWin32Api.GetSystemMetrics(PlacementWin32Api.SM_CYSCREEN);
+            state.ScreenWidth = PlacementWin32Api.GetSystemMetrics(PlacementWin32Api.SM_CXSCREEN);
+            PlacementWin32Api.SystemParametersInfo(PlacementWin32Api.SPI_GETWORKAREA, 0, ref state.WorkArea, 0);
 
             int availableWidth = state.WorkArea.Right - state.WorkArea.Left - (state.Margin * 2);
             if (state.WindowWidth <= 0)

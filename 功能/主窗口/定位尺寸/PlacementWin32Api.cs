@@ -1,0 +1,26 @@
+using System.Runtime.InteropServices;
+
+namespace Docked_AI.Features.MainWindow.Placement
+{
+    internal static class PlacementWin32Api
+    {
+        [DllImport("user32.dll")]
+        internal static extern int GetSystemMetrics(int nIndex);
+
+        [DllImport("user32.dll")]
+        internal static extern bool SystemParametersInfo(int uAction, int uParam, ref RECT lpvParam, int fuWinIni);
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+        internal const int SM_CXSCREEN = 0;
+        internal const int SM_CYSCREEN = 1;
+        internal const int SPI_GETWORKAREA = 0x0030;
+    }
+}

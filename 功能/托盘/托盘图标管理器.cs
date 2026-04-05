@@ -295,8 +295,14 @@ namespace Docked_AI.Features.Tray
         /// </summary>
         private void ToggleExistingWindow()
         {
+            var mainWindow = _mainWindow;
+            if (mainWindow == null)
+            {
+                return;
+            }
+
             // 使用接口解耦，支持多种窗口类型（插件窗口、浮动窗口等）
-            if (_mainWindow is IWindowToggle toggleWindow)
+            if (mainWindow is IWindowToggle toggleWindow)
             {
                 toggleWindow.ToggleWindow();
 
@@ -306,14 +312,14 @@ namespace Docked_AI.Features.Tray
 
                 if (isVisible)
                 {
-                    WindowHelper.SetForegroundWindow(_mainWindow);
+                    WindowHelper.SetForegroundWindow(mainWindow);
                 }
             }
             else
             {
                 // 降级处理：如果窗口不支持 IWindowToggle，直接激活窗口
-                _mainWindow.Activate();
-                WindowHelper.SetForegroundWindow(_mainWindow);
+                mainWindow.Activate();
+                WindowHelper.SetForegroundWindow(mainWindow);
             }
         }
 

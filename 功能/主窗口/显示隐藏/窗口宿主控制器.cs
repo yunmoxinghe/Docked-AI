@@ -30,7 +30,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
         private IntPtr _baseWindowStyle;
         private IntPtr _baseExtendedWindowStyle;
         private IntPtr _originalWindowProc;
-        private readonly Win32WindowApi.WindowProc _windowProcDelegate;
+        private readonly VisibilityWin32Api.WindowProc _windowProcDelegate;
 
         private const int DefaultAnimationTimeoutMs = 2000;
 
@@ -43,7 +43,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _titleBarService = new TitleBarService();
             _backdropService = new BackdropService();
             _animationController = new SlideAnimationController(_window, _state);
-            _appBarMessageId = Win32WindowApi.RegisterWindowMessage("DockedAI_AppBarMessage");
+            _appBarMessageId = VisibilityWin32Api.RegisterWindowMessage("DockedAI_AppBarMessage");
             _windowProcDelegate = WindowProc;
             _animationTimeoutMs = animationTimeoutMs;
 
@@ -481,23 +481,23 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _layoutService.Refresh(_state);
             RegisterAppBarIfNeeded();
 
-            Win32WindowApi.APPBARDATA appBarData = CreateAppBarData();
+            VisibilityWin32Api.APPBARDATA appBarData = CreateAppBarData();
             int desiredWidth = _state.WindowWidth;
 
-            appBarData.uEdge = Win32WindowApi.ABE_RIGHT;
+            appBarData.uEdge = VisibilityWin32Api.ABE_RIGHT;
             appBarData.rc.Top = _state.WorkArea.Top;
             appBarData.rc.Bottom = _state.WorkArea.Bottom;
             appBarData.rc.Right = _state.WorkArea.Right;
             appBarData.rc.Left = appBarData.rc.Right - desiredWidth;
 
-            _ = Win32WindowApi.SHAppBarMessage(Win32WindowApi.ABM_QUERYPOS, ref appBarData);
+            _ = VisibilityWin32Api.SHAppBarMessage(VisibilityWin32Api.ABM_QUERYPOS, ref appBarData);
 
             appBarData.rc.Top = _state.WorkArea.Top;
             appBarData.rc.Bottom = _state.WorkArea.Bottom;
             appBarData.rc.Right = _state.WorkArea.Right;
             appBarData.rc.Left = appBarData.rc.Right - desiredWidth;
 
-            _ = Win32WindowApi.SHAppBarMessage(Win32WindowApi.ABM_SETPOS, ref appBarData);
+            _ = VisibilityWin32Api.SHAppBarMessage(VisibilityWin32Api.ABM_SETPOS, ref appBarData);
 
             int width = Math.Max(_state.MinWindowWidth, appBarData.rc.Right - appBarData.rc.Left);
             int height = Math.Max(1, appBarData.rc.Bottom - appBarData.rc.Top);
@@ -528,14 +528,14 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 return;
             }
 
-            _ = Win32WindowApi.SetWindowPos(
+            _ = VisibilityWin32Api.SetWindowPos(
                 _hwnd,
-                isTopMost ? Win32WindowApi.HWND_TOPMOST : Win32WindowApi.HWND_NOTOPMOST,
+                isTopMost ? VisibilityWin32Api.HWND_TOPMOST : VisibilityWin32Api.HWND_NOTOPMOST,
                 _state.TargetX,
                 (int)_state.TargetY,
                 _state.WindowWidth,
                 _state.WindowHeight,
-                Win32WindowApi.SWP_SHOWWINDOW);
+                VisibilityWin32Api.SWP_SHOWWINDOW);
         }
 
         private void EnsureWindowHandle()
@@ -555,7 +555,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             }
 
             IntPtr newWindowProc = System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate(_windowProcDelegate);
-            _originalWindowProc = Win32WindowApi.SetWindowLongPtr(_hwnd, Win32WindowApi.GWLP_WNDPROC, newWindowProc);
+            _originalWindowProc = VisibilityWin32Api.SetWindowProc(_hwnd, newWindowProc);
             _isWindowSubclassed = _originalWindowProc != IntPtr.Zero;
         }
 
@@ -580,8 +580,8 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 presenter.IsMinimizable = false;
             }
 
-            IntPtr currentStyle = Win32WindowApi.GetWindowLongPtr(_hwnd, Win32WindowApi.GWL_STYLE);
-            IntPtr currentExtendedStyle = Win32WindowApi.GetWindowLongPtr(_hwnd, Win32WindowApi.GWL_EXSTYLE);
+            IntPtr currentStyle = AppearanceWin32Api.GetWindowLongPtr(_hwnd, AppearanceWin32Api.GWL_STYLE);
+            IntPtr currentExtendedStyle = AppearanceWin32Api.GetWindowLongPtr(_hwnd, AppearanceWin32Api.GWL_EXSTYLE);
             if (!_hasCapturedBaseWindowStyle)
             {
                 _baseWindowStyle = currentStyle;
@@ -595,50 +595,50 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
             int style = currentStyle.ToInt32();
             // 移除所有边框和标题栏相关样式
-            style &= ~Win32WindowApi.WS_OVERLAPPEDWINDOW;
-            style &= ~Win32WindowApi.WS_CAPTION;
-            style &= ~Win32WindowApi.WS_SYSMENU;
-            style &= ~Win32WindowApi.WS_THICKFRAME;
-            style &= ~Win32WindowApi.WS_BORDER;
-            style &= ~Win32WindowApi.WS_DLGFRAME;
+            style &= ~AppearanceWin32Api.WS_OVERLAPPEDWINDOW;
+            style &= ~AppearanceWin32Api.WS_CAPTION;
+            style &= ~AppearanceWin32Api.WS_SYSMENU;
+            style &= ~AppearanceWin32Api.WS_THICKFRAME;
+            style &= ~AppearanceWin32Api.WS_BORDER;
+            style &= ~AppearanceWin32Api.WS_DLGFRAME;
             // 只保留 POPUP 和 VISIBLE
-            style |= Win32WindowApi.WS_POPUP;
-            style |= Win32WindowApi.WS_VISIBLE;
+            style |= AppearanceWin32Api.WS_POPUP;
+            style |= AppearanceWin32Api.WS_VISIBLE;
 
             int extendedStyle = currentExtendedStyle.ToInt32();
-            extendedStyle &= ~Win32WindowApi.WS_EX_DLGMODALFRAME;
-            extendedStyle &= ~Win32WindowApi.WS_EX_WINDOWEDGE;
-            extendedStyle &= ~Win32WindowApi.WS_EX_CLIENTEDGE;
-            extendedStyle &= ~Win32WindowApi.WS_EX_STATICEDGE;
+            extendedStyle &= ~AppearanceWin32Api.WS_EX_DLGMODALFRAME;
+            extendedStyle &= ~AppearanceWin32Api.WS_EX_WINDOWEDGE;
+            extendedStyle &= ~AppearanceWin32Api.WS_EX_CLIENTEDGE;
+            extendedStyle &= ~AppearanceWin32Api.WS_EX_STATICEDGE;
 
-            _ = Win32WindowApi.SetWindowLongPtr(_hwnd, Win32WindowApi.GWL_STYLE, new IntPtr(style));
-            _ = Win32WindowApi.SetWindowLongPtr(_hwnd, Win32WindowApi.GWL_EXSTYLE, new IntPtr(extendedStyle));
+            _ = AppearanceWin32Api.SetWindowLongPtr(_hwnd, AppearanceWin32Api.GWL_STYLE, new IntPtr(style));
+            _ = AppearanceWin32Api.SetWindowLongPtr(_hwnd, AppearanceWin32Api.GWL_EXSTYLE, new IntPtr(extendedStyle));
 
             // 关键：使用 DwmExtendFrameIntoClientArea 扩展框架到客户区
-            Win32WindowApi.MARGINS margins = new Win32WindowApi.MARGINS { cxLeftWidth = 0, cxRightWidth = 0, cyTopHeight = 0, cyBottomHeight = 0 };
-            _ = Win32WindowApi.DwmExtendFrameIntoClientArea(_hwnd, ref margins);
+            AppearanceWin32Api.MARGINS margins = new AppearanceWin32Api.MARGINS { cxLeftWidth = 0, cxRightWidth = 0, cyTopHeight = 0, cyBottomHeight = 0 };
+            _ = AppearanceWin32Api.DwmExtendFrameIntoClientArea(_hwnd, ref margins);
 
             // DWM 属性设置
-            int cornerPreference = Win32WindowApi.DWMWCP_DONOTROUND;
-            _ = Win32WindowApi.DwmSetWindowAttribute(
+            int cornerPreference = AppearanceWin32Api.DWMWCP_DONOTROUND;
+            _ = AppearanceWin32Api.DwmSetWindowAttribute(
                 _hwnd,
-                Win32WindowApi.DWMWA_WINDOW_CORNER_PREFERENCE,
+                AppearanceWin32Api.DWMWA_WINDOW_CORNER_PREFERENCE,
                 ref cornerPreference,
                 sizeof(int));
 
             // 移除边框颜色
-            int borderColor = Win32WindowApi.DWMWA_COLOR_NONE;
-            _ = Win32WindowApi.DwmSetWindowAttribute(
+            int borderColor = AppearanceWin32Api.DWMWA_COLOR_NONE;
+            _ = AppearanceWin32Api.DwmSetWindowAttribute(
                 _hwnd,
-                Win32WindowApi.DWMWA_BORDER_COLOR,
+                AppearanceWin32Api.DWMWA_BORDER_COLOR,
                 ref borderColor,
                 sizeof(int));
 
             // 设置标题栏颜色为完全透明（ARGB: 0x01000000 - 几乎透明的黑色，让 Acrylic 透过）
             int captionColor = 0x01000000;
-            _ = Win32WindowApi.DwmSetWindowAttribute(
+            _ = AppearanceWin32Api.DwmSetWindowAttribute(
                 _hwnd,
-                Win32WindowApi.DWMWA_CAPTION_COLOR,
+                AppearanceWin32Api.DWMWA_CAPTION_COLOR,
                 ref captionColor,
                 sizeof(int));
 
@@ -655,10 +655,10 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 return;
             }
 
-            _ = Win32WindowApi.SetWindowLongPtr(_hwnd, Win32WindowApi.GWL_STYLE, _baseWindowStyle);
+            _ = AppearanceWin32Api.SetWindowLongPtr(_hwnd, AppearanceWin32Api.GWL_STYLE, _baseWindowStyle);
             if (_hasCapturedBaseExtendedWindowStyle)
             {
-                _ = Win32WindowApi.SetWindowLongPtr(_hwnd, Win32WindowApi.GWL_EXSTYLE, _baseExtendedWindowStyle);
+                _ = AppearanceWin32Api.SetWindowLongPtr(_hwnd, AppearanceWin32Api.GWL_EXSTYLE, _baseExtendedWindowStyle);
             }
             RefreshWindowFrame();
         }
@@ -671,21 +671,21 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 return;
             }
 
-            _ = Win32WindowApi.SetWindowPos(
+            _ = VisibilityWin32Api.SetWindowPos(
                 _hwnd,
                 IntPtr.Zero,
                 0,
                 0,
                 0,
                 0,
-                Win32WindowApi.SWP_NOSIZE |
-                Win32WindowApi.SWP_NOMOVE |
-                Win32WindowApi.SWP_NOZORDER |
-                Win32WindowApi.SWP_NOACTIVATE |
-                Win32WindowApi.SWP_FRAMECHANGED);
+                VisibilityWin32Api.SWP_NOSIZE |
+                VisibilityWin32Api.SWP_NOMOVE |
+                VisibilityWin32Api.SWP_NOZORDER |
+                VisibilityWin32Api.SWP_NOACTIVATE |
+                VisibilityWin32Api.SWP_FRAMECHANGED);
         }
 
-        private void ApplyPinnedWindowFrame(Win32WindowApi.RECT approvedRect)
+        private void ApplyPinnedWindowFrame(PlacementWin32Api.RECT approvedRect)
         {
             EnsureWindowHandle();
             if (_hwnd == IntPtr.Zero)
@@ -695,9 +695,9 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
             ApplyWindowRect(approvedRect);
 
-            if (TryGetExtendedFrameBounds(out Win32WindowApi.RECT actualBounds))
+            if (TryGetExtendedFrameBounds(out PlacementWin32Api.RECT actualBounds))
             {
-                Win32WindowApi.RECT correctedRect = new()
+                PlacementWin32Api.RECT correctedRect = new()
                 {
                     Left = approvedRect.Left + (approvedRect.Left - actualBounds.Left),
                     Top = approvedRect.Top + (approvedRect.Top - actualBounds.Top),
@@ -717,22 +717,22 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _state.WindowHeight = Math.Max(1, approvedRect.Bottom - approvedRect.Top);
         }
 
-        private void ApplyWindowRect(Win32WindowApi.RECT rect)
+        private void ApplyWindowRect(PlacementWin32Api.RECT rect)
         {
             int width = Math.Max(_state.MinWindowWidth, rect.Right - rect.Left);
             int height = Math.Max(1, rect.Bottom - rect.Top);
 
-            _ = Win32WindowApi.SetWindowPos(
+            _ = VisibilityWin32Api.SetWindowPos(
                 _hwnd,
-                Win32WindowApi.HWND_TOPMOST,
+                VisibilityWin32Api.HWND_TOPMOST,
                 rect.Left,
                 rect.Top,
                 width,
                 height,
-                Win32WindowApi.SWP_SHOWWINDOW);
+                VisibilityWin32Api.SWP_SHOWWINDOW);
         }
 
-        private bool TryGetExtendedFrameBounds(out Win32WindowApi.RECT bounds)
+        private bool TryGetExtendedFrameBounds(out PlacementWin32Api.RECT bounds)
         {
             EnsureWindowHandle();
             if (_hwnd == IntPtr.Zero)
@@ -741,11 +741,11 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 return false;
             }
 
-            int hr = Win32WindowApi.DwmGetWindowAttribute(
+            int hr = AppearanceWin32Api.DwmGetWindowAttribute(
                 _hwnd,
-                Win32WindowApi.DWMWA_EXTENDED_FRAME_BOUNDS,
+                AppearanceWin32Api.DWMWA_EXTENDED_FRAME_BOUNDS,
                 out bounds,
-                System.Runtime.InteropServices.Marshal.SizeOf<Win32WindowApi.RECT>());
+                System.Runtime.InteropServices.Marshal.SizeOf<PlacementWin32Api.RECT>());
 
             return hr >= 0;
         }
@@ -757,8 +757,8 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 return;
             }
 
-            Win32WindowApi.APPBARDATA appBarData = CreateAppBarData();
-            _ = Win32WindowApi.SHAppBarMessage(Win32WindowApi.ABM_NEW, ref appBarData);
+            VisibilityWin32Api.APPBARDATA appBarData = CreateAppBarData();
+            _ = VisibilityWin32Api.SHAppBarMessage(VisibilityWin32Api.ABM_NEW, ref appBarData);
             _isAppBarRegistered = true;
         }
 
@@ -769,17 +769,17 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 return;
             }
 
-            Win32WindowApi.APPBARDATA appBarData = CreateAppBarData();
-            _ = Win32WindowApi.SHAppBarMessage(Win32WindowApi.ABM_REMOVE, ref appBarData);
+            VisibilityWin32Api.APPBARDATA appBarData = CreateAppBarData();
+            _ = VisibilityWin32Api.SHAppBarMessage(VisibilityWin32Api.ABM_REMOVE, ref appBarData);
             _isAppBarRegistered = false;
         }
 
-        private Win32WindowApi.APPBARDATA CreateAppBarData()
+        private VisibilityWin32Api.APPBARDATA CreateAppBarData()
         {
             EnsureWindowHandle();
-            return new Win32WindowApi.APPBARDATA
+            return new VisibilityWin32Api.APPBARDATA
             {
-                cbSize = (uint)System.Runtime.InteropServices.Marshal.SizeOf<Win32WindowApi.APPBARDATA>(),
+                cbSize = (uint)System.Runtime.InteropServices.Marshal.SizeOf<VisibilityWin32Api.APPBARDATA>(),
                 hWnd = _hwnd,
                 uCallbackMessage = _appBarMessageId
             };
@@ -970,7 +970,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             var currentState = _stateManager.CurrentState;
             if (currentState == WindowState.Pinned)
             {
-                if (msg == Win32WindowApi.WM_NCCALCSIZE)
+                if (msg == VisibilityWin32Api.WM_NCCALCSIZE)
                 {
                     System.Diagnostics.Debug.WriteLine($"WM_NCCALCSIZE: wParam={wParam}, lParam={lParam}");
                     
@@ -984,20 +984,20 @@ namespace Docked_AI.Features.MainWindow.Visibility
                     return IntPtr.Zero;
                 }
 
-                if (msg == Win32WindowApi.WM_NCPAINT)
+                if (msg == VisibilityWin32Api.WM_NCPAINT)
                 {
                     System.Diagnostics.Debug.WriteLine("WM_NCPAINT: Blocking non-client paint");
                     return IntPtr.Zero;
                 }
 
-                if (msg == Win32WindowApi.WM_NCACTIVATE)
+                if (msg == VisibilityWin32Api.WM_NCACTIVATE)
                 {
                     System.Diagnostics.Debug.WriteLine("WM_NCACTIVATE: Returning 1 without drawing");
                     return new IntPtr(1);
                 }
             }
 
-            return Win32WindowApi.CallWindowProc(_originalWindowProc, hWnd, msg, wParam, lParam);
+            return VisibilityWin32Api.CallWindowProc(_originalWindowProc, hWnd, msg, wParam, lParam);
         }
     }
 }

@@ -67,20 +67,20 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
                 if (!_isVisible)
                 {
-                    Win32WindowApi.ShowWindow(WinRT.Interop.WindowNative.GetWindowHandle(_window), Win32WindowApi.SW_HIDE);
+                    VisibilityWin32Api.ShowWindow(WinRT.Interop.WindowNative.GetWindowHandle(_window), VisibilityWin32Api.SW_HIDE);
                 }
             }
 
             if (_hwnd != IntPtr.Zero)
             {
-                _ = Win32WindowApi.SetWindowPos(
+                _ = VisibilityWin32Api.SetWindowPos(
                     _hwnd,
                     IntPtr.Zero,
                     newX,
                     (int)_state.CurrentY,
                     0,
                     0,
-                    Win32WindowApi.SWP_NOSIZE | Win32WindowApi.SWP_NOZORDER | Win32WindowApi.SWP_NOACTIVATE | Win32WindowApi.SWP_NOOWNERZORDER);
+                    VisibilityWin32Api.SWP_NOSIZE | VisibilityWin32Api.SWP_NOZORDER | VisibilityWin32Api.SWP_NOACTIVATE | VisibilityWin32Api.SWP_NOOWNERZORDER);
             }
             else
             {

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Docked_AI.Features.AppEntry;
 using Docked_AI.Features.Tray;
 using Docked_AI.Features.AppEntry.NormalLaunch;
 using Docked_AI.Features.AppEntry.AutoLaunch;
@@ -153,8 +154,8 @@ namespace Docked_AI
                         // Try to bring the other process's window to foreground.
                         if (!process.HasExited && process.MainWindowHandle != IntPtr.Zero)
                         {
-                            ShowWindow(process.MainWindowHandle, SW_SHOWNORMAL);
-                            SetForegroundWindow(process.MainWindowHandle);
+                            AppEntryWin32Api.ShowWindow(process.MainWindowHandle, AppEntryWin32Api.SW_SHOWNORMAL);
+                            AppEntryWin32Api.SetForegroundWindow(process.MainWindowHandle);
                             break;
                         }
                     }
@@ -165,15 +166,6 @@ namespace Docked_AI
                 LogException("ActivateExistingInstance", ex);
             }
         }
-
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
-
-        private const int SW_SHOWNORMAL = 1;
-        private const int SW_HIDE = 0;
 
         private void ExitApplication()
         {
@@ -212,7 +204,7 @@ namespace Docked_AI
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(_keepAliveWindow);
             if (hwnd != IntPtr.Zero)
             {
-                ShowWindow(hwnd, SW_HIDE);
+                AppEntryWin32Api.ShowWindow(hwnd, AppEntryWin32Api.SW_HIDE);
             }
         }
 
