@@ -9,6 +9,7 @@ using Docked_AI.Features.Tray;
 using Docked_AI.Features.AppEntry.NormalLaunch;
 using Docked_AI.Features.AppEntry.AutoLaunch;
 using Docked_AI.Features.AppEntry.ShareLaunch;
+using Docked_AI.Features.MainWindow.Entry;
 using Windows.Graphics;
 using Windows.ApplicationModel.Activation;
 using Windows.ApplicationModel.DataTransfer;
@@ -106,7 +107,7 @@ namespace Docked_AI
 
             if (_window == null)
             {
-                _window = new MainWindow();
+                _window = MainWindowFactory.Create();
             }
 
             await _shareLaunchHandler.HandleAsync(shareArgs, _window);
@@ -124,11 +125,7 @@ namespace Docked_AI
 
         private void ShowMainWindow()
         {
-            if (_window == null || _window.Content == null)
-            {
-                _window = new MainWindow();
-            }
-
+            _window = MainWindowFactory.GetOrCreate(_window);
             _window.Activate();
         }
 

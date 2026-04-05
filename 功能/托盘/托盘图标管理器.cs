@@ -12,6 +12,8 @@ using Microsoft.UI.Xaml.Controls;
 using Docked_AI.Features.Localization;
 // 引入全局快捷键管理器
 using Docked_AI.Features.Hotkey;
+// 引入主窗口工厂类
+using Docked_AI.Features.MainWindow.Entry;
 
 namespace Docked_AI.Features.Tray
 {
@@ -252,31 +254,12 @@ namespace Docked_AI.Features.Tray
         /// <returns>窗口是否有效</returns>
         private bool IsWindowValid()
         {
-            try
+            bool isValid = MainWindowFactory.IsWindowValid(_mainWindow);
+            if (!isValid)
             {
-                // 检查窗口引用是否存在
-                if (_mainWindow == null)
-                {
-                    return false;
-                }
-
-                // 检查窗口句柄是否有效（更严谨的判断）
-                var windowHandle = WinRT.Interop.WindowNative.GetWindowHandle(_mainWindow);
-                if (windowHandle == IntPtr.Zero)
-                {
-                    _mainWindow = null;
-                    return false;
-                }
-
-                // 检查窗口内容是否存在
-                return _mainWindow.Content != null;
-            }
-            catch
-            {
-                // 如果发生异常，认为窗口无效
                 _mainWindow = null;
-                return false;
             }
+            return isValid;
         }
 
         /// <summary>
@@ -284,9 +267,8 @@ namespace Docked_AI.Features.Tray
         /// </summary>
         private void CreateAndShowWindow()
         {
-            // 使用窗口工厂创建窗口（如果提供），否则创建默认窗口
-            _mainWindow = _windowFactory?.Invoke() ?? new global::Docked_AI.MainWindow();
-            _mainWindow.Activate();
+            // 使用窗口工厂创建窗口（如果提供），否则使用主窗口工厂创建默认窗口
+            _mainWindow = _windowFactory?.Invoke() ?? MainWindowFactory.CreateAndActivate();
             WindowHelper.SetForegroundWindow(_mainWindow);
         }
 
