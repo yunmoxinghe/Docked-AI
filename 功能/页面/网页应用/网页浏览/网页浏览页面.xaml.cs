@@ -19,7 +19,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
     public sealed partial class WebBrowserPage : Page
     {
         private const string TintMessageType = "docked_ai_tint";
-        private const string PreferredWebViewLanguage = "zh-CN";
         private const byte BarBackgroundAlpha = 236;
 
         private Uri? _pendingNavigationUri;
@@ -243,13 +242,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private static string GetWebViewLanguage()
         {
-            string uiLanguage = CultureInfo.CurrentUICulture.Name;
-            if (uiLanguage.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
-            {
-                return uiLanguage;
-            }
-
-            return PreferredWebViewLanguage;
+            return CultureInfo.CurrentUICulture.Name;
         }
 
         private void CoreWebView2_DocumentTitleChanged(object? sender, object e)
