@@ -102,7 +102,15 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 CoreWebView2EnvironmentOptions options = new()
                 {
                     Language = GetWebViewLanguage(),
-                    AdditionalBrowserArguments = "--enable-features=msEdgeFluentOverlayScrollbar --enable-smooth-scrolling"
+                    // 优化触摸板滚动体验的浏览器参数
+                    AdditionalBrowserArguments = string.Join(" ", new[]
+                    {
+                        "--enable-features=msEdgeFluentOverlayScrollbar",
+                        "--enable-smooth-scrolling",
+                        "--enable-gpu-rasterization",
+                        "--enable-zero-copy",
+                        "--disable-features=msExperimentalScrolling"
+                    })
                 };
                 CoreWebView2Environment environment = await CoreWebView2Environment.CreateWithOptionsAsync(
                     browserExecutableFolder: null,
@@ -113,6 +121,11 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 if (WebView.CoreWebView2 is not null)
                 {
                     WebView.CoreWebView2.Settings.IsWebMessageEnabled = true;
+                    
+                    // 优化触摸板和滚动体验
+                    WebView.CoreWebView2.Settings.IsSwipeNavigationEnabled = true;
+                    WebView.CoreWebView2.Settings.IsZoomControlEnabled = true;
+                    
                     WebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
                     WebView.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
                     WebView.CoreWebView2.HistoryChanged += CoreWebView2_HistoryChanged;

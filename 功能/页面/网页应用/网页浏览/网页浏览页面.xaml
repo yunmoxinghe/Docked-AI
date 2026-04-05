@@ -58,7 +58,8 @@
             x:Name="WebView"
             Grid.Row="1"
             HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch" />
+            VerticalAlignment="Stretch"
+            DefaultBackgroundColor="Transparent" />
 
         <Border
             x:Name="BottomBarHost"
