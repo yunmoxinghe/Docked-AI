@@ -8,6 +8,7 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Docked_AI
 {
@@ -19,9 +20,17 @@ namespace Docked_AI
 
         public WindowState CurrentWindowState => _viewModel.CurrentState;
 
+        [DllImport("dwmapi.dll")]
+        private static extern int DwmSetWindowAttribute(IntPtr hwnd, uint attr, ref int pvAttr, uint size);
+
         public MainWindow()
         {
             InitializeComponent();
+
+            // 第一帧就是亚克力，告别白闪 ✨
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+            int acrylic = 3; // DWMSBT_TRANSIENTWINDOW
+            DwmSetWindowAttribute(hwnd, 38, ref acrylic, sizeof(int));
 
             _viewModel = new MainWindowViewModel();
             if (Content is FrameworkElement rootElement)
