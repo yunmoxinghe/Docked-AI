@@ -1,6 +1,7 @@
 ﻿using Docked_AI.Features.MainWindow.State;
 using Docked_AI.Features.MainWindow.Appearance;
 using Docked_AI.Features.MainWindow.Placement;
+using Docked_AI.Features.MainWindow.Entry;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Windowing;
 using System;
@@ -64,6 +65,52 @@ namespace Docked_AI.Features.MainWindow.Visibility
         }
 
         /// <summary>
+        /// 标记初始化完成，解除事件屏蔽
+        /// 由托盘管理器在窗口创建完成后调用
+        /// </summary>
+        public void SetInitializingComplete()
+        {
+            System.Diagnostics.Debug.WriteLine("WindowHostController: Initialization complete");
+        }
+
+        /// <summary>
+        /// 请求执行首次显示（由托盘图标点击触发）
+        /// 利用 DWM 的首次 Show 动画，简单优雅
+        /// </summary>
+        public void RequestSlideIn()
+        {
+            if (_animationStarted)
+            {
+                System.Diagnostics.Debug.WriteLine("RequestSlideIn: Already shown, ignoring");
+                return;
+            }
+
+            _animationStarted = true;
+            System.Diagnostics.Debug.WriteLine("RequestSlideIn: Showing window with DWM animation");
+
+            // 1. 确保窗口在目标停靠位置
+            _layoutService.Refresh(_state);
+            _window.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(
+                (int)_state.TargetX, 
+                (int)_state.TargetY, 
+                _state.WindowWidth, 
+                _state.WindowHeight));
+            
+            // 2. Show —— DWM 创建动画自动触发 ✨
+            _window.AppWindow.Show();
+            
+            // 3. 激活并获取焦点
+            ActivateAndFocusWindow();
+            
+            // 4. 更新状态到 Windowed
+            var plan = _stateManager.CreatePlan(WindowState.Windowed, "Initial window shown");
+            if (plan != null)
+            {
+                _stateManager.CommitTransition(plan.TransitionId);
+            }
+        }
+
+        /// <summary>
         /// 切换窗口显示/隐藏状态
         /// 使用 StateManager.CreatePlan 统一管理状态转换
         /// 支持直接转换：Pinned/Maximized -> Hidden（内部自动执行组合副作用）
@@ -80,14 +127,24 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         private void InitializeWindow()
         {
+            // 先获取窗口句柄
+            _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(_window);
+            
+            // Activate() 之前只设置大小和位置，不要 Show/Hide
+            // 让 Activate() 作为唯一的"首次显示"触发点
+            _layoutService.Refresh(_state);
+            _window.AppWindow.IsShownInSwitchers = false;
+            
+            // 直接设置到目标停靠位置（不需要屏幕外起始位置）
+            _window.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(
+                (int)_state.TargetX, 
+                (int)_state.TargetY, 
+                _state.WindowWidth, 
+                _state.WindowHeight));
+
+            // 配置标题栏和背景
             _titleBarService.ConfigureStandardWindow(_window);
             _backdropService.EnsureAcrylicBackdrop(_window);
-
-            _layoutService.Refresh(_state);
-            _state.CurrentX = _state.ScreenWidth;
-            _state.CurrentY = _state.TargetY;
-            _window.AppWindow.IsShownInSwitchers = false;
-            _window.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32((int)_state.CurrentX, (int)_state.CurrentY, _state.WindowWidth, _state.WindowHeight));
 
             _window.Activated += OnWindowActivated;
             _window.Activated += OnActivationChanged;
@@ -242,18 +299,9 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 return;
             }
 
-            _animationStarted = true;
-            _window.Activated -= OnWindowActivated;
-
-            _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(_window);
-            if (_hwnd == IntPtr.Zero)
-            {
-                return;
-            }
-
-            _titleBarService.ConfigureStandardWindow(_window);
-            _backdropService.EnsureAcrylicBackdrop(_window);
-            StartInitialSlideIn();
+            // 正常情况下不应该走到这里
+            // 首次显示应该由 RequestSlideIn() 触发
+            System.Diagnostics.Debug.WriteLine("OnWindowActivated: Unexpected activation");
         }
 
         private void OnActivationChanged(object sender, WindowActivatedEventArgs args)

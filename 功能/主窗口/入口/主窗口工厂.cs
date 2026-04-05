@@ -1,5 +1,7 @@
 using Microsoft.UI.Xaml;
 using System;
+using System.Runtime.InteropServices;
+using Windows.Graphics;
 
 namespace Docked_AI.Features.MainWindow.Entry
 {
@@ -15,7 +17,10 @@ namespace Docked_AI.Features.MainWindow.Entry
         public static global::Docked_AI.MainWindow CreateAndActivate()
         {
             var window = new global::Docked_AI.MainWindow();
-            window.Activate();
+            
+            // 不在这里调用 Activate()，避免闪烁
+            // 让调用方（托盘图标管理器）在准备好后再激活
+            
             return window;
         }
 

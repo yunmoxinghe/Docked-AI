@@ -4,6 +4,7 @@ using Docked_AI.Features.MainWindowContent.Linker;
 using Docked_AI.Features.Tray;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -160,6 +161,16 @@ namespace Docked_AI
         public void TogglePinnedDock()
         {
             _windowController.TogglePinnedDock();
+        }
+
+        public void SetInitializingComplete()
+        {
+            _windowController.SetInitializingComplete();
+        }
+
+        public void RequestSlideIn()
+        {
+            _windowController.RequestSlideIn();
         }
 
         private void OnDockToggleRequested(object? sender, System.EventArgs e)

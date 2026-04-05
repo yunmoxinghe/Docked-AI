@@ -18,5 +18,17 @@ namespace Docked_AI.Features.Tray
         /// 获取窗口当前状态
         /// </summary>
         WindowState CurrentWindowState { get; }
+
+        /// <summary>
+        /// 标记初始化完成
+        /// 由托盘管理器在窗口创建完成后调用
+        /// </summary>
+        void SetInitializingComplete();
+
+        /// <summary>
+        /// 请求执行首次显示
+        /// 利用 DWM 的首次 Show 动画，简单优雅
+        /// </summary>
+        void RequestSlideIn();
     }
 }

@@ -2,6 +2,8 @@
 using System;
 // 引入文件路径操作
 using System.IO;
+// 引入运行时互操作
+using System.Runtime.InteropServices;
 // 引入 DevWinUI 库，提供系统托盘图标功能
 using DevWinUI;
 // 引入 WinUI 窗口类型
@@ -13,6 +15,7 @@ using Docked_AI.Features.Localization;
 // 引入全局快捷键管理器
 using Docked_AI.Features.Hotkey;
 // 引入主窗口工厂类
+using Docked_AI.Features.MainWindow.Entry;
 using Docked_AI.Features.MainWindow.Entry;
 
 namespace Docked_AI.Features.Tray
@@ -268,8 +271,18 @@ namespace Docked_AI.Features.Tray
         private void CreateAndShowWindow()
         {
             // 使用窗口工厂创建窗口（如果提供），否则使用主窗口工厂创建默认窗口
-            _mainWindow = _windowFactory?.Invoke() ?? MainWindowFactory.CreateAndActivate();
-            WindowHelper.SetForegroundWindow(_mainWindow);
+            // 注意：不要在这里调用 Activate()，让 RequestSlideIn() 来触发首次显示
+            _mainWindow = _windowFactory?.Invoke() ?? MainWindowFactory.Create();
+            
+            // 标记初始化完成
+            if (_mainWindow is IWindowToggle windowToggle)
+            {
+                windowToggle.SetInitializingComplete();
+                System.Diagnostics.Debug.WriteLine("TrayIconManager: Initialization complete, requesting first show");
+                
+                // 触发首次显示，利用 DWM 的创建动画 ✨
+                windowToggle.RequestSlideIn();
+            }
         }
 
         /// <summary>
