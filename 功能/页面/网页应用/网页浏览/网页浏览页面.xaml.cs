@@ -44,7 +44,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             RefreshButton.Foreground = _bottomBarForegroundBrush;
             CopyUrlButton.Foreground = _bottomBarForegroundBrush;
             OpenExternalButton.Foreground = _bottomBarForegroundBrush;
-            UrlText.Foreground = _bottomBarForegroundBrush;
 
             Loaded += WebBrowserPage_Loaded;
             Unloaded += WebBrowserPage_Unloaded;

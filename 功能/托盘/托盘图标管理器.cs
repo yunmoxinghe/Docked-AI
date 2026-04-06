@@ -1,4 +1,4 @@
-﻿// 引入系统基础类型和异常处理
+﻿﻿// 引入系统基础类型和异常处理
 using System;
 // 引入文件路径操作
 using System.IO;
@@ -15,7 +15,6 @@ using Docked_AI.Features.Localization;
 // 引入全局快捷键管理器
 using Docked_AI.Features.Hotkey;
 // 引入主窗口工厂类
-using Docked_AI.Features.MainWindow.Entry;
 using Docked_AI.Features.MainWindow.Entry;
 
 namespace Docked_AI.Features.Tray
