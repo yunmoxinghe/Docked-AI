@@ -1,4 +1,5 @@
-ResourcePack=C:\Users\gold\source\repos\yunmoxinghe\Docked-AI\bin\ARM64\Release\net8.0-windows10.0.19041.0\win-arm64\Docked AI_1.1.7.0_scale-100.msix
-ResourcePack=C:\Users\gold\source\repos\yunmoxinghe\Docked-AI\bin\ARM64\Release\net8.0-windows10.0.19041.0\win-arm64\Docked AI_1.1.7.0_scale-125.msix
-ResourcePack=C:\Users\gold\source\repos\yunmoxinghe\Docked-AI\bin\ARM64\Release\net8.0-windows10.0.19041.0\win-arm64\Docked AI_1.1.7.0_scale-150.msix
-ResourcePack=C:\Users\gold\source\repos\yunmoxinghe\Docked-AI\bin\ARM64\Release\net8.0-windows10.0.19041.0\win-arm64\Docked AI_1.1.7.0_scale-400.msix
+MainPackage=C:\Users\gold\source\repos\yunmoxinghe\Docked-AI\bin\ARM64\Release\net8.0-windows10.0.19041.0\win-arm64\Docked AI_1.1.8.0_arm64.msix
+ResourcePack=C:\Users\gold\source\repos\yunmoxinghe\Docked-AI\bin\ARM64\Release\net8.0-windows10.0.19041.0\win-arm64\Docked AI_1.1.8.0_scale-100.msix
+ResourcePack=C:\Users\gold\source\repos\yunmoxinghe\Docked-AI\bin\ARM64\Release\net8.0-windows10.0.19041.0\win-arm64\Docked AI_1.1.8.0_scale-125.msix
+ResourcePack=C:\Users\gold\source\repos\yunmoxinghe\Docked-AI\bin\ARM64\Release\net8.0-windows10.0.19041.0\win-arm64\Docked AI_1.1.8.0_scale-150.msix
+ResourcePack=C:\Users\gold\source\repos\yunmoxinghe\Docked-AI\bin\ARM64\Release\net8.0-windows10.0.19041.0\win-arm64\Docked AI_1.1.8.0_scale-400.msix
