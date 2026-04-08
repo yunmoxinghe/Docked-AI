@@ -70,7 +70,7 @@ public class AnimationEngine
 
         while (true)
         {
-            // 检查取消令牌
+            // 🔴 关键修复：在循环开始时立即检查取消令牌
             cancellationToken.ThrowIfCancellationRequested();
 
             // 根据真实时间计算进度（而非帧数）
@@ -82,7 +82,27 @@ public class AnimationEngine
 
             // 插值所有属性
             var current = Lerp(from, to, easedProgress);
-            onProgress(current);
+            
+            // 🔴 关键修复：在调用回调前再次检查取消令牌
+            // 这确保即使在计算过程中取消，也能立即响应
+            cancellationToken.ThrowIfCancellationRequested();
+            
+            // 🔴 关键修复：保护回调调用，确保回调中的异常不会被吞掉
+            // 但允许 OperationCanceledException 正常传播
+            try
+            {
+                onProgress(current);
+            }
+            catch (OperationCanceledException)
+            {
+                // 允许取消异常传播
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // 其他异常包装后重新抛出，保留堆栈跟踪
+                throw new InvalidOperationException($"Animation progress callback failed: {ex.Message}", ex);
+            }
 
             // 动画完成
             if (progress >= 1.0) break;
@@ -129,7 +149,7 @@ public class AnimationEngine
 
         while (true)
         {
-            // 检查取消令牌
+            // 🔴 关键修复：在循环开始时立即检查取消令牌
             cancellationToken.ThrowIfCancellationRequested();
 
             var deltaTime = 0.016;  // ~60 FPS
@@ -151,13 +171,47 @@ public class AnimationEngine
 
             // 插值所有属性
             var current = Lerp(from, to, progress);
-            onProgress(current);
+            
+            // 🔴 关键修复：在调用回调前再次检查取消令牌
+            // 这确保即使在计算过程中取消，也能立即响应
+            cancellationToken.ThrowIfCancellationRequested();
+            
+            // 🔴 关键修复：保护回调调用，确保回调中的异常不会被吞掉
+            // 但允许 OperationCanceledException 正常传播
+            try
+            {
+                onProgress(current);
+            }
+            catch (OperationCanceledException)
+            {
+                // 允许取消异常传播
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // 其他异常包装后重新抛出，保留堆栈跟踪
+                throw new InvalidOperationException($"Animation progress callback failed: {ex.Message}", ex);
+            }
 
             // 检查稳定条件：速度和位移都足够小
             if (Math.Abs(velocity) < velocityThreshold && Math.Abs(displacement) < displacementThreshold)
             {
+                // 🔴 关键修复：在最终回调前检查取消令牌
+                cancellationToken.ThrowIfCancellationRequested();
+                
                 // 确保最终状态精确到达目标
-                onProgress(to);
+                try
+                {
+                    onProgress(to);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException($"Animation progress callback failed: {ex.Message}", ex);
+                }
                 break;
             }
 

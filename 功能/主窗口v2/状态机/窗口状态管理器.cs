@@ -299,6 +299,15 @@ public class WindowStateManager
         
         try
         {
+            // 🔴 关键修复：确保 _currentCts 不为 null
+            // 如果是第一次运行循环，_currentCts 可能为 null
+            // 这会导致 ExecuteTransitionAsync 使用 CancellationToken.None（永远不会被取消）
+            if (_currentCts == null)
+            {
+                _currentCts = new CancellationTokenSource();
+                System.Diagnostics.Debug.WriteLine("[StateManager] Initialized _currentCts in RunStateMachineLoop");
+            }
+            
             while (_latestTarget != CurrentState)
             {
                 var target = _latestTarget;
@@ -394,6 +403,15 @@ public class WindowStateManager
         // 2️⃣ 执行动画（从当前视觉状态插值到目标视觉状态）
         var animationCts = _currentCts; // 快照当前 CTS
         
+        // 🔴 关键修复：确保 animationCts 不为 null
+        // 虽然 RunStateMachineLoop 已经初始化了 _currentCts，但为了防御性编程，这里再次检查
+        if (animationCts == null)
+        {
+            System.Diagnostics.Debug.WriteLine("[StateManager] Warning: animationCts is null, creating new CTS");
+            animationCts = new CancellationTokenSource();
+            _currentCts = animationCts;
+        }
+        
         try
         {
             // 动画系统统一执行插值，实时更新 _currentVisual
@@ -406,7 +424,7 @@ public class WindowStateManager
                     _currentVisual = visual;
                     ApplyVisualToWindow(visual); // 应用到实际窗口
                 },
-                cancellationToken: animationCts?.Token ?? CancellationToken.None
+                cancellationToken: animationCts.Token  // 🔴 修复：直接使用 Token，不再使用 ?? CancellationToken.None
             );
         }
         finally
@@ -629,8 +647,11 @@ public class WindowStateManager
         }
         catch (Exception ex)
         {
-            // 记录错误但不抛出异常，避免中断动画
-            System.Diagnostics.Debug.WriteLine($"Error applying visual state to window: {ex.Message}");
+            // 🔴 关键修复：记录错误并重新抛出
+            // 这会导致动画引擎的 onProgress 回调抛出异常
+            // 动画引擎会将其包装为 InvalidOperationException 并传播
+            // 最终会被 ExecuteTransitionAsync 的 catch 块捕获
+            System.Diagnostics.Debug.WriteLine($"[StateManager] Error applying visual state to window: {ex.Message}");
             throw; // 重新抛出以便上层处理
         }
     }
