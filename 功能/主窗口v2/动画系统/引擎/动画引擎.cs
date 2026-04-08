@@ -88,7 +88,17 @@ public class AnimationEngine
             if (progress >= 1.0) break;
 
             // 等待下一帧（约 60 FPS）
-            await Task.Delay(16, cancellationToken);
+            // 重要：必须传递 cancellationToken 以便动画能被立即打断
+            try
+            {
+                await Task.Delay(16, cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                // Task.Delay 被取消时会抛出 TaskCanceledException
+                // 将其转换为 OperationCanceledException 以保持一致性
+                throw new OperationCanceledException(cancellationToken);
+            }
         }
     }
 
@@ -152,7 +162,17 @@ public class AnimationEngine
             }
 
             // 等待下一帧（约 60 FPS）
-            await Task.Delay(16, cancellationToken);
+            // 重要：必须传递 cancellationToken 以便动画能被立即打断
+            try
+            {
+                await Task.Delay(16, cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                // Task.Delay 被取消时会抛出 TaskCanceledException
+                // 将其转换为 OperationCanceledException 以保持一致性
+                throw new OperationCanceledException(cancellationToken);
+            }
         }
     }
 
