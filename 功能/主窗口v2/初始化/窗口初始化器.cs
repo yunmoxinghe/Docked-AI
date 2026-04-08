@@ -32,14 +32,14 @@ public static class WindowInitializer
         if (window == null)
             throw new ArgumentNullException(nameof(window));
 
+        // 1. 创建 WindowContext（集中管理 HWND 和核心引用）
+        var context = new WindowContext(window);
+
         // 如果需要启动时隐藏，在 Activate() 之前设置 Opacity=0
         if (startHidden)
         {
-            window.Opacity = 0;
+            WindowService.SetOpacity(context.GetHwnd(), 0.0);
         }
-
-        // 1. 创建 WindowContext（集中管理 HWND 和核心引用）
-        var context = new WindowContext(window);
 
         // 2. 创建 AnimationEngine（统一动画引擎）
         var animationEngine = new AnimationEngine();
