@@ -14,6 +14,17 @@ public class WindowContext
     private readonly Window _window;
     private IntPtr _hwnd;
     private WindowVisualState _currentVisual;
+    
+    /// <summary>
+    /// AppBar 注册状态（由 SidebarWindow 使用）
+    /// 使用实例字段而非静态字段，因为每个窗口有独立的 AppBar 状态
+    /// </summary>
+    private bool _isAppBarRegistered = false;
+    
+    /// <summary>
+    /// 浮窗是否启用了大小调整（由 FloatingWindow 使用）
+    /// </summary>
+    private bool _isResizeEnabled = false;
 
     /// <summary>
     /// 创建窗口上下文
@@ -25,6 +36,32 @@ public class WindowContext
         _window = window ?? throw new ArgumentNullException(nameof(window));
         _hwnd = IntPtr.Zero;
         _currentVisual = new WindowVisualState();
+    }
+    
+    /// <summary>
+    /// 获取 AppBar 注册状态
+    /// </summary>
+    public bool IsAppBarRegistered => _isAppBarRegistered;
+    
+    /// <summary>
+    /// 设置 AppBar 注册状态
+    /// </summary>
+    public void SetAppBarRegistered(bool registered)
+    {
+        _isAppBarRegistered = registered;
+    }
+    
+    /// <summary>
+    /// 获取大小调整启用状态
+    /// </summary>
+    public bool IsResizeEnabled => _isResizeEnabled;
+    
+    /// <summary>
+    /// 设置大小调整启用状态
+    /// </summary>
+    public void SetResizeEnabled(bool enabled)
+    {
+        _isResizeEnabled = enabled;
     }
 
     /// <summary>

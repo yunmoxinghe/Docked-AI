@@ -61,8 +61,6 @@ public class SidebarWindow : IWindowState
         };
     }
 
-    private bool _isAppBarRegistered = false;
-
     /// <summary>
     /// 进入边栏状态时的生命周期钩子
     /// 设置窗口可见、可交互、禁用大小调整、注册为 AppBar 占用屏幕工作区
@@ -70,10 +68,10 @@ public class SidebarWindow : IWindowState
     /// 幂等性保证：
     /// - ShowWindow 可以安全地多次调用（Win32 API 本身是幂等的）
     /// - DisableResize 可以安全地多次调用（只是设置窗口样式标志）
-    /// - RegisterAppBar 使用标志防止重复注册，确保幂等性
+    /// - RegisterAppBar 使用 WindowContext 中的标志防止重复注册，确保幂等性
     /// 
     /// 注意：当动画被打断时，OnEnter 可能被多次调用而 OnExit 未被调用。
-    /// 本实现使用 _isAppBarRegistered 标志防止重复注册 AppBar，确保资源不会泄漏。
+    /// 本实现使用 _context.IsAppBarRegistered 标志（在 WindowContext 中持久化）防止重复注册。
     /// </summary>
     public void OnEnter()
     {
@@ -85,14 +83,14 @@ public class SidebarWindow : IWindowState
         // ✅ 幂等操作：DisableResize 只是设置窗口样式标志，可以多次调用
         WindowService.DisableResize(hwnd);
         
-        // ⚠️ 需要防护：RegisterAppBar 不应该重复调用
-        // 使用标志防止重复注册
-        if (!_isAppBarRegistered)
+        // ⚠️ 使用 WindowContext 中的标志防止重复注册
+        // 这确保即使窗口形态实例被重新创建，状态也不会丢失
+        if (!_context.IsAppBarRegistered)
         {
             // 通过 SHAppBarMessage 注册为 AppBar，占用屏幕工作区
             // 停靠在右边缘，宽度为 400 像素
             WindowService.RegisterAppBar(hwnd, AppBarEdge.Right, 400);
-            _isAppBarRegistered = true;
+            _context.SetAppBarRegistered(true);
         }
     }
 
@@ -102,6 +100,7 @@ public class SidebarWindow : IWindowState
     /// 
     /// 注意：当动画被打断时，OnExit 不会被调用。
     /// 因此，下一次 OnEnter 必须能够处理 AppBar 已经注册的情况。
+    /// 由于状态存储在 WindowContext 中，即使实例被重新创建也能正确处理。
     /// </summary>
     public void OnExit()
     {
@@ -109,10 +108,10 @@ public class SidebarWindow : IWindowState
         var hwnd = _context.GetHwnd();
         
         // 只有在已注册的情况下才取消注册
-        if (_isAppBarRegistered)
+        if (_context.IsAppBarRegistered)
         {
             WindowService.UnregisterAppBar(hwnd);
-            _isAppBarRegistered = false;
+            _context.SetAppBarRegistered(false);
         }
     }
 }

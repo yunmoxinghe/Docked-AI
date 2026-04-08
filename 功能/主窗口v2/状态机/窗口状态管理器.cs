@@ -7,6 +7,7 @@ using Docked_AI.功能.主窗口v2.动画系统.视觉状态;
 using Docked_AI.功能.主窗口v2.动画系统.策略;
 using Docked_AI.功能.主窗口v2.服务层;
 using Docked_AI.功能.主窗口v2.窗口形态;
+using Docked_AI.功能.主窗口v2.基础设施.日志;
 
 namespace Docked_AI.功能.主窗口v2.状态机;
 
@@ -118,6 +119,18 @@ public class WindowStateManager
     /// </summary>
     private bool _isDisabled = false;
     
+    // - 日志记录器 -
+    
+    /// <summary>
+    /// 状态转换日志记录器
+    /// </summary>
+    private readonly StateTransitionLogger? _stateLogger;
+    
+    /// <summary>
+    /// 资源管理日志记录器
+    /// </summary>
+    private readonly ResourceManagementLogger? _resourceLogger;
+    
     // - 事件 -
     
     /// <summary>
@@ -153,16 +166,25 @@ public class WindowStateManager
     /// <param name="animationEngine">动画引擎</param>
     /// <param name="context">窗口上下文</param>
     /// <param name="animationPolicy">全局动画策略（可选）</param>
+    /// <param name="logger">日志记录器（可选）</param>
     /// <exception cref="ArgumentNullException">当必需参数为 null 时抛出</exception>
     public WindowStateManager(
         DispatcherQueue dispatcher,
         AnimationEngine animationEngine,
         WindowContext context,
-        IAnimationPolicy? animationPolicy = null)
+        IAnimationPolicy? animationPolicy = null,
+        ILogger? logger = null)
     {
         _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _animationPolicy = animationPolicy;
+        
+        // 初始化日志记录器
+        if (logger != null)
+        {
+            _stateLogger = new StateTransitionLogger(logger);
+            _resourceLogger = new ResourceManagementLogger(logger);
+        }
         
         // 尝试初始化动画引擎，如果失败则使用降级模式
         try
@@ -219,8 +241,22 @@ public class WindowStateManager
         
         // 🎯 原子替换并取消旧的 CTS（避免对已 Dispose 的 CTS 调用 Cancel）
         var oldCts = Interlocked.Exchange(ref _currentCts, new CancellationTokenSource());
+        
+        // 记录 CTS 创建和替换
+        _resourceLogger?.LogCtsCreated($"TransitionTo({target})");
+        if (oldCts != null)
+        {
+            _resourceLogger?.LogCtsReplaced($"TransitionTo({target})");
+            _resourceLogger?.LogCtsCancelled($"Old CTS for previous transition");
+        }
+        
         oldCts?.Cancel();
         oldCts?.Dispose();
+        
+        if (oldCts != null)
+        {
+            _resourceLogger?.LogCtsDisposed($"Old CTS for previous transition");
+        }
         
         // 如果状态机循环未运行，则启动它
         if (!_isRunning)
@@ -319,6 +355,7 @@ public class WindowStateManager
                 
                 // 记录转换开始
                 System.Diagnostics.Debug.WriteLine($"[StateManager] Transition started: {from} → {target}");
+                _stateLogger?.LogTransitionStarted(from, target);
                 
                 try
                 {
@@ -335,6 +372,7 @@ public class WindowStateManager
                     TransitioningTo = null;
                     
                     System.Diagnostics.Debug.WriteLine($"[StateManager] Transition completed: {from} → {target}");
+                    _stateLogger?.LogStateChanged(from, target);
                     StateChanged?.Invoke(from, target);
                 }
                 catch (OperationCanceledException)
@@ -358,6 +396,7 @@ public class WindowStateManager
                     
                     System.Diagnostics.Debug.WriteLine($"[StateManager] Transition cancelled: {from} → {target}");
                     System.Diagnostics.Debug.WriteLine($"[StateManager] Note: OnExit was not called for state {from}");
+                    _stateLogger?.LogTransitionCancelled(from, target);
                     TransitioningTo = null;
                     continue;
                 }
@@ -429,10 +468,20 @@ public class WindowStateManager
         }
         finally
         {
-            // 只释放"自己这一轮"的 CTS（防止误释放新一轮的 CTS）
+            // 🔴 关键修复：始终释放 animationCts
+            // 无论动画是成功完成还是被打断，都要释放这一轮创建的 CTS
+            // animationCts 是通过快照获取的，持有它自己的取消能力
+            // 即使 _currentCts 已被新调用替换，这个 CTS 仍然需要释放
+            if (animationCts != null)
+            {
+                _resourceLogger?.LogCtsDisposed($"Animation CTS for {from} → {target}");
+                animationCts.Dispose();
+            }
+            
+            // 只有当这个 CTS 就是当前的 _currentCts 时，才清空引用
+            // 否则可能有新的 CTS 已经替换了它
             if (animationCts == _currentCts)
             {
-                animationCts?.Dispose();
                 _currentCts = null;
             }
         }
@@ -472,6 +521,9 @@ public class WindowStateManager
         // 触发 TransitionFailed 事件
         TransitionFailed?.Invoke(from, target, ex);
         
+        // 记录转换失败
+        _stateLogger?.LogTransitionFailed(from, target, ex);
+        
         // 清除过渡状态
         TransitioningTo = null;
         
@@ -479,6 +531,7 @@ public class WindowStateManager
         if (_failureCount <= MaxRetries)
         {
             System.Diagnostics.Debug.WriteLine($"[StateManager] Retrying transition ({_failureCount}/{MaxRetries})...");
+            _stateLogger?.LogRetryAttempt(from, target, _failureCount, MaxRetries);
             
             // 延迟后重试
             await Task.Delay(RetryDelayMs);
@@ -500,6 +553,7 @@ public class WindowStateManager
         {
             // 重试次数用尽，恢复到上次稳定状态
             System.Diagnostics.Debug.WriteLine($"[StateManager] Max retries exceeded. Reverting to last stable state: {_lastStableState}");
+            _stateLogger?.LogRevertToSafeState(_lastStableState);
             
             // 重置失败计数器
             _failureCount = 0;
@@ -512,6 +566,7 @@ public class WindowStateManager
             if (_consecutiveFailures > MaxConsecutiveFailures)
             {
                 System.Diagnostics.Debug.WriteLine($"[StateManager] Critical failure: {_consecutiveFailures} consecutive failures. Disabling automatic transitions.");
+                _stateLogger?.LogCriticalFailure(_consecutiveFailures);
                 
                 // 禁用自动转换
                 _isDisabled = true;
@@ -604,6 +659,9 @@ public class WindowStateManager
     /// <summary>
     /// 应用视觉状态到实际窗口
     /// 从 WindowContext 获取 HWND，调用 WindowService 方法应用所有视觉属性
+    /// 
+    /// 重要：此方法在动画的每一帧被调用，必须保持轻量和容错
+    /// Win32 API 调用失败不应该中断动画，应该记录日志并继续
     /// </summary>
     /// <param name="visual">要应用的视觉状态</param>
     private void ApplyVisualToWindow(WindowVisualState visual)
@@ -615,31 +673,67 @@ public class WindowStateManager
             // 验证 HWND 是否有效
             if (hwnd == IntPtr.Zero)
             {
-                throw new InvalidOperationException("Window handle (HWND) is invalid");
+                System.Diagnostics.Debug.WriteLine("[StateManager] Warning: HWND is zero, skipping visual update");
+                return;
             }
             
-            // 应用窗口位置和尺寸
-            WindowService.SetWindowBounds(
-                hwnd,
-                (int)visual.Bounds.X,
-                (int)visual.Bounds.Y,
-                (int)visual.Bounds.Width,
-                (int)visual.Bounds.Height
-            );
+            // 应用窗口位置和尺寸（关键操作）
+            try
+            {
+                WindowService.SetWindowBounds(
+                    hwnd,
+                    (int)visual.Bounds.X,
+                    (int)visual.Bounds.Y,
+                    (int)visual.Bounds.Width,
+                    (int)visual.Bounds.Height
+                );
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[StateManager] Warning: SetWindowBounds failed: {ex.Message}");
+            }
             
-            // 应用圆角半径
-            WindowService.SetCornerRadius(hwnd, (int)visual.CornerRadius);
+            // 应用圆角半径（非关键操作）
+            try
+            {
+                WindowService.SetCornerRadius(hwnd, (int)visual.CornerRadius);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[StateManager] Warning: SetCornerRadius failed: {ex.Message}");
+            }
             
-            // 应用不透明度
-            WindowService.SetOpacity(hwnd, visual.Opacity);
+            // 应用不透明度（非关键操作）
+            try
+            {
+                WindowService.SetOpacity(hwnd, visual.Opacity);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[StateManager] Warning: SetOpacity failed: {ex.Message}");
+            }
             
-            // 应用置顶状态
-            WindowService.SetTopmost(hwnd, visual.IsTopmost);
+            // 应用置顶状态（非关键操作）
+            try
+            {
+                WindowService.SetTopmost(hwnd, visual.IsTopmost);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[StateManager] Warning: SetTopmost failed: {ex.Message}");
+            }
             
-            // 应用扩展样式
+            // 应用扩展样式（非关键操作）
             if (visual.ExtendedStyle != 0)
             {
-                WindowService.SetExtendedStyle(hwnd, visual.ExtendedStyle);
+                try
+                {
+                    WindowService.SetExtendedStyle(hwnd, visual.ExtendedStyle);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[StateManager] Warning: SetExtendedStyle failed: {ex.Message}");
+                }
             }
             
             // 更新 WindowContext 的当前视觉缓存
@@ -647,12 +741,9 @@ public class WindowStateManager
         }
         catch (Exception ex)
         {
-            // 🔴 关键修复：记录错误并重新抛出
-            // 这会导致动画引擎的 onProgress 回调抛出异常
-            // 动画引擎会将其包装为 InvalidOperationException 并传播
-            // 最终会被 ExecuteTransitionAsync 的 catch 块捕获
-            System.Diagnostics.Debug.WriteLine($"[StateManager] Error applying visual state to window: {ex.Message}");
-            throw; // 重新抛出以便上层处理
+            // 记录异常但不抛出，确保动画能够继续
+            // 这对于打断动画至关重要：如果这里抛出异常，会导致整个动画中断
+            System.Diagnostics.Debug.WriteLine($"[StateManager] Warning: ApplyVisualToWindow failed: {ex.Message}");
         }
     }
     
