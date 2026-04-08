@@ -190,6 +190,173 @@ class SpringConfig
 - 动画系统从"当前视觉状态"插值到"目标视觉状态"，无需反向动画
 - 循环条件：`while (_latestTarget != CurrentState)` - 语义清晰，无隐式状态
 
+### 4.0 创建和初始化
+
+WindowStateManager 需要多个依赖才能正常工作，包括 DispatcherQueue、AnimationEngine、IAnimationPolicy 等。以下是创建和初始化的完整流程。
+
+#### 4.0.1 依赖注入示例
+
+```csharp
+// 在 App.xaml.cs 或 MainWindow 构造函数中创建依赖
+
+// 1. 创建 WindowContext（集中管理 HWND 和核心引用）
+var windowContext = new WindowContext(mainWindow);
+
+// 2. 创建 AnimationEngine（统一动画引擎）
+var animationEngine = new AnimationEngine();
+
+// 3. 创建 IAnimationPolicy（可选，用于统一管理动画参数）
+var animationPolicy = new DefaultAnimationPolicy();
+
+// 4. 创建 WindowService（Win32 API 抽象层，静态类无需实例化）
+// WindowService 是静态类，直接使用即可
+
+// 5. 创建 WindowStateManager（状态机）
+var stateManager = new WindowStateManager(
+    dispatcher: DispatcherQueue.GetForCurrentThread(),
+    animationEngine: animationEngine,
+    animationPolicy: animationPolicy,  // 可选参数
+    context: windowContext
+);
+```
+
+#### 4.0.2 WindowStateManager 构造函数定义
+
+```csharp
+class WindowStateManager
+{
+    public WindowStateManager(
+        DispatcherQueue dispatcher,
+        AnimationEngine animationEngine,
+        WindowContext context,
+        IAnimationPolicy? animationPolicy = null
+    ) {
+        _dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+        _animationEngine = animationEngine ?? throw new ArgumentNullException(nameof(animationEngine));
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _animationPolicy = animationPolicy;
+        
+        // 初始化状态
+        CurrentState = WindowState.Initializing;
+        _lastStableState = WindowState.Initializing;
+        _currentVisual = context.GetCurrentVisual();
+    }
+    
+    // ... 其他成员
+}
+```
+
+#### 4.0.3 生命周期管理建议
+
+**方案 1：在 App.xaml.cs 中创建单例**
+
+```csharp
+public partial class App : Application
+{
+    public static WindowStateManager StateManager { get; private set; }
+    
+    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    {
+        // 使用 MainWindowFactory 创建窗口（不激活）
+        var window = MainWindowFactory.Create();
+        
+        // 在 Activate() 之前创建 WindowStateManager
+        var context = new WindowContext(window);
+        var animationEngine = new AnimationEngine();
+        var animationPolicy = new DefaultAnimationPolicy();
+        
+        StateManager = new WindowStateManager(
+            dispatcher: DispatcherQueue.GetForCurrentThread(),
+            animationEngine: animationEngine,
+            animationPolicy: animationPolicy,
+            context: context
+        );
+        
+        // 调用 Activate() 显示窗口
+        window.Activate();
+        
+        // 第一帧完成后，转换到目标状态
+        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, () => {
+            StateManager.TransitionTo(WindowState.Floating);
+        });
+    }
+}
+```
+
+**方案 2：在 MainWindow 构造函数中创建**
+
+```csharp
+public sealed partial class MainWindow : Window
+{
+    private readonly WindowStateManager _stateManager;
+    
+    public MainWindow()
+    {
+        this.InitializeComponent();
+        
+        // 创建依赖
+        var context = new WindowContext(this);
+        var animationEngine = new AnimationEngine();
+        var animationPolicy = new DefaultAnimationPolicy();
+        
+        // 创建状态管理器
+        _stateManager = new WindowStateManager(
+            dispatcher: DispatcherQueue.GetForCurrentThread(),
+            animationEngine: animationEngine,
+            animationPolicy: animationPolicy,
+            context: context
+        );
+        
+        // 订阅事件
+        _stateManager.StateChanged += OnStateChanged;
+        _stateManager.TransitionStarted += OnTransitionStarted;
+        _stateManager.TransitionFailed += OnTransitionFailed;
+    }
+    
+    private void OnStateChanged(WindowState from, WindowState to)
+    {
+        // 处理状态变化
+    }
+    
+    private void OnTransitionStarted(WindowState from, WindowState to)
+    {
+        // 显示转换指示器
+    }
+    
+    private void OnTransitionFailed(WindowState from, WindowState to, Exception ex)
+    {
+        // 处理转换失败
+    }
+}
+```
+
+#### 4.0.4 初始化顺序
+
+正确的初始化顺序如下：
+
+1. **使用 MainWindowFactory 创建窗口**（但不调用 Activate()）
+   ```csharp
+   var window = MainWindowFactory.Create();
+   ```
+2. **创建 WindowContext**（传入 MainWindow 实例）
+3. **创建 AnimationEngine**
+4. **创建 IAnimationPolicy**（可选）
+5. **创建 WindowStateManager**（传入所有依赖）
+6. **订阅事件**（StateChanged、TransitionStarted、TransitionFailed）
+7. **调用 window.Activate()**（WinUI3 强制显示窗口）
+8. **在第一帧完成后调用 TransitionTo**（转换到目标状态）
+
+**关键注意事项：**
+
+- 使用 MainWindowFactory.Create() 而非直接 new MainWindow()，以便统一管理窗口创建
+- WindowStateManager 必须在 Activate() 之前创建，以便在窗口显示前完成初始化
+- Activate() 调用后窗口已显示，状态为 Initializing
+- 使用 DispatcherQueue.TryEnqueue 在第一帧完成后执行状态转换
+- 如果需要启动时隐藏窗口，应在 Activate() 之前设置 Opacity=0
+- MainWindowFactory 提供了窗口有效性检查（IsWindowValid）和获取或创建逻辑（GetOrCreate）
+
+### 4.1 字段和属性定义
+
 ```csharp
 class WindowStateManager
 {
@@ -198,7 +365,8 @@ class WindowStateManager
     public WindowState CurrentState { get; private set; }
     
     // 上一个稳定状态（用于动画参数计算）
-    private WindowState _lastStableState;
+    // 初始值为 Initializing，表示应用启动时的初始状态
+    private WindowState _lastStableState = WindowState.Initializing;
     
     // 正在转换到的目标状态（只读，null 表示没有正在进行的转换）
     public WindowState? TransitioningTo { get; private set; }
@@ -224,12 +392,18 @@ class WindowStateManager
 
     // - 事件 -
     // 状态切换完成后广播（含所有动画已结束）
-    // 参数：from=切换前状态，to=切换后状态
+    // 参数：from=切换前的稳定状态（即动画开始时的 CurrentState），to=切换后状态
+    // 注意：from 是"上一个稳定状态"，而不是"上一个请求的状态"
+    // 例如：快速切换 Floating → Fullscreen → Sidebar 时，最终广播 StateChanged(Floating, Sidebar)
     public event Action<WindowState, WindowState>? StateChanged;
     
     // 开始转换到新状态时广播
     // 参数：from=当前状态，to=目标状态
     public event Action<WindowState, WindowState>? TransitionStarted;
+    
+    // 状态转换失败时广播
+    // 参数：from=起始状态，to=目标状态，exception=异常信息
+    public event Action<WindowState, WindowState, Exception>? TransitionFailed;
 
     // - 方法 -
     // 请求切换到目标状态（立即返回，不等待动画完成）
@@ -394,6 +568,17 @@ private async Task RunStateMachineLoop() {
 - **过渡状态可见**：通过 `TransitioningTo` 属性和 `TransitionStarted` 事件，外部可以实时了解转换进度
 - **视觉连贯性**：所有过渡都在统一视觉空间中插值，无跳变
 
+**StateChanged 事件的 from 参数语义说明：**
+
+在上述示例中，最终的 StateChanged 事件是 `StateChanged(Hidden, Sidebar)`，而不是 `StateChanged(Fullscreen, Sidebar)`。这是因为：
+
+1. **from 参数是"上一个稳定状态"**：即动画开始时的 `CurrentState`（Hidden），而不是"上一个请求的状态"（Fullscreen）
+2. **中间请求被压缩**：Floating 和 Fullscreen 请求被快速压缩，从未成为稳定状态
+3. **语义一致性**：StateChanged 的 from 参数始终等于该转换开始时的 `_lastStableState`
+4. **实际意义**：这反映了窗口的真实状态变化历史——窗口从 Hidden 状态直接过渡到 Sidebar 状态，中间的 Floating 和 Fullscreen 只是"意图"，从未实际稳定过
+
+这种设计确保了 StateChanged 事件准确反映窗口的实际状态历史，而不是用户的请求历史。
+
 ### 4.4 资源管理策略
 
 **CancellationTokenSource 的所有权模型：**
@@ -460,23 +645,292 @@ static class WindowService
     // - DWM -
     // 设置 DWM 属性（如圆角、亚克力参数）
     public static void SetDwmAttribute(IntPtr hwnd, int attribute, int value) { }
+
+    // - AppBar 管理 -
+    // 注册窗口为 AppBar（占用屏幕工作区）
+    // 使用 SHAppBarMessage(ABM_NEW, ...) 和 SHAppBarMessage(ABM_SETPOS, ...)
+    public static void RegisterAppBar(IntPtr hwnd, AppBarEdge edge, int size) { }
+    // 取消 AppBar 注册
+    // 使用 SHAppBarMessage(ABM_REMOVE, ...)
+    public static void UnregisterAppBar(IntPtr hwnd) { }
+    
+    // - 窗口大小调整控制 -
+    // 启用窗口大小调整（设置 IsResizable = true）
+    public static void EnableResize(IntPtr hwnd) { }
+    // 禁用窗口大小调整（设置 IsResizable = false）
+    public static void DisableResize(IntPtr hwnd) { }
+    
+    // - 焦点管理 -
+    // 将窗口设置为前台窗口并获得输入焦点
+    // 返回值：true 表示成功，false 表示失败（受系统限制）
+    public static bool SetForegroundWindow(IntPtr hwnd) { }
+    // 将窗口提升到 Z 轴顶部
+    public static bool BringWindowToTop(IntPtr hwnd) { }
+    // 闪烁窗口以吸引用户注意（降级方案）
+    // flags: FLASHW_* 常量组合
+    // count: 闪烁次数（0 表示持续闪烁）
+    // timeout: 闪烁间隔（毫秒，0 表示使用默认值）
+    public static bool FlashWindowEx(IntPtr hwnd, uint flags, uint count, uint timeout) { }
+    // 获取当前前台窗口
+    public static IntPtr GetForegroundWindow() { }
+    // 获取窗口所属线程 ID
+    public static uint GetWindowThreadProcessId(IntPtr hwnd, out uint processId) { }
+    // 尝试将窗口带到前台（组合策略）
+    public static bool TryBringToFront(Window window) { }
+}
+
+/// <summary>
+/// AppBar 边缘位置枚举
+/// </summary>
+enum AppBarEdge
+{
+    Left = 0,
+    Top = 1,
+    Right = 2,
+    Bottom = 3
 }
 ```
 
-## 六、首次创建流程 (Initializing状态)
+**文件组织：**
+
+WindowService 的实现按功能模块拆分到不同的文件中：
+
+```
+服务层/
+├── 窗口服务.cs                    // WindowService 主类（静态类）
+├── 窗口上下文.cs                  // WindowContext
+├── 线程调度器.cs                  // ThreadDispatcher
+├── 窗口钩子.cs                    // WindowHook
+└── Win32互操作/
+    ├── DWM互操作.cs               // DWM API 封装
+    ├── 窗口样式互操作.cs          // 窗口样式相关 API
+    ├── 窗口位置互操作.cs          // 位置和尺寸相关 API
+    ├── 显示器管理器.cs            // 多显示器支持
+    └── 焦点管理互操作.cs          // 焦点管理相关 API
+                                    // (SetForegroundWindow, BringWindowToTop, 
+                                    //  FlashWindowEx, GetForegroundWindow, 
+                                    //  GetWindowThreadProcessId)
+```
+
+**设计原则：**
+- WindowService 是静态类，所有方法都是静态方法
+- 按功能模块拆分文件，每个文件负责一类 Win32 API 的封装
+- 焦点管理互操作.cs 专门负责焦点相关的 Win32 API 封装和 TryBringToFront 实现
+- 所有 Win32 API 调用都通过 WindowService 统一暴露，上层不直接调用 P/Invoke
+
+## 六、WindowContext（窗口上下文）
+
+WindowContext 是一个集中管理窗口实例、HWND 和当前视觉状态的上下文对象。它解决了多个模块需要访问相同窗口信息的问题，避免了重复传递参数和循环依赖。
+
+### 6.1 职责说明
+
+WindowContext 的主要职责包括：
+
+1. **集中管理窗口引用**：持有 MainWindow 实例，提供统一的访问接口
+2. **HWND 管理**：缓存窗口句柄（HWND），避免重复获取
+3. **视觉状态访问**：提供当前窗口的实时视觉状态快照
+4. **依赖注入桥梁**：作为各模块之间的依赖注入桥梁，解耦模块间的直接依赖
+
+### 6.2 为什么需要 WindowContext
+
+**问题场景：**
+
+在没有 WindowContext 的情况下，各个模块（WindowStateManager、AnimationEngine、各窗口形态实现）都需要直接访问 MainWindow 实例和 HWND，导致：
+
+1. **参数传递冗余**：每个方法都需要传递 window 和 hwnd 参数
+2. **循环依赖风险**：WindowStateManager 需要 Window，Window 需要 WindowStateManager
+3. **职责不清**：不清楚谁负责管理 HWND 的生命周期
+4. **测试困难**：难以 mock 窗口实例进行单元测试
+
+**解决方案：**
+
+引入 WindowContext 作为中间层，集中管理所有窗口相关的引用和状态，各模块只需要依赖 WindowContext 即可。
+
+### 6.3 接口定义
+
+```csharp
+/// <summary>
+/// 窗口上下文，集中管理窗口实例、HWND 和当前视觉状态
+/// </summary>
+class WindowContext
+{
+    private readonly Window _window;
+    private IntPtr _hwnd;
+    private WindowVisualState _currentVisual;
+
+    public WindowContext(Window window)
+    {
+        _window = window ?? throw new ArgumentNullException(nameof(window));
+        _hwnd = IntPtr.Zero;
+        _currentVisual = new WindowVisualState();
+    }
+
+    /// <summary>
+    /// 获取窗口实例
+    /// </summary>
+    public Window GetWindow() => _window;
+
+    /// <summary>
+    /// 获取窗口句柄（HWND）
+    /// 如果尚未获取，则自动获取并缓存
+    /// </summary>
+    public IntPtr GetHwnd()
+    {
+        if (_hwnd == IntPtr.Zero)
+        {
+            _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(_window);
+        }
+        return _hwnd;
+    }
+
+    /// <summary>
+    /// 获取当前窗口的实时视觉状态
+    /// </summary>
+    public WindowVisualState GetCurrentVisual()
+    {
+        // 从窗口读取当前的实际视觉状态
+        var hwnd = GetHwnd();
+        var bounds = WindowService.GetWindowBounds(hwnd);
+        var opacity = _window.Opacity;
+        // ... 读取其他属性
+
+        _currentVisual = new WindowVisualState
+        {
+            Bounds = bounds,
+            CornerRadius = GetCurrentCornerRadius(),
+            Opacity = opacity,
+            IsTopmost = WindowService.IsTopmost(hwnd),
+            ExtendedStyle = WindowService.GetExtendedStyle(hwnd)
+        };
+
+        return _currentVisual;
+    }
+
+    /// <summary>
+    /// 更新当前视觉状态缓存
+    /// 由 AnimationEngine 在动画过程中调用
+    /// </summary>
+    public void UpdateCurrentVisual(WindowVisualState visual)
+    {
+        _currentVisual = visual;
+    }
+
+    private double GetCurrentCornerRadius()
+    {
+        // 从窗口读取当前圆角半径
+        // 实现取决于具体的 UI 框架
+        return 0.0;
+    }
+}
+```
+
+### 6.4 使用示例
+
+**在 WindowStateManager 中使用：**
+
+```csharp
+class WindowStateManager
+{
+    private readonly WindowContext _context;
+
+    public WindowStateManager(
+        DispatcherQueue dispatcher,
+        AnimationEngine animationEngine,
+        WindowContext context,
+        IAnimationPolicy? animationPolicy = null
+    ) {
+        _context = context;
+        // ... 其他初始化
+    }
+
+    private void ApplyVisualToWindow(WindowVisualState visual)
+    {
+        var hwnd = _context.GetHwnd();
+        WindowService.SetWindowBounds(hwnd, visual.Bounds);
+        WindowService.SetTopmost(hwnd, visual.IsTopmost);
+        // ... 应用其他属性
+        
+        _context.UpdateCurrentVisual(visual);
+    }
+}
+```
+
+**在窗口形态实现中使用：**
+
+```csharp
+class FloatingWindow : IWindowState
+{
+    private readonly WindowContext _context;
+
+    public FloatingWindow(WindowContext context)
+    {
+        _context = context;
+    }
+
+    public WindowVisualState GetTargetVisual()
+    {
+        // 使用 context 获取当前视觉状态
+        var currentVisual = _context.GetCurrentVisual();
+        
+        // 基于当前状态计算目标状态
+        return new WindowVisualState
+        {
+            Bounds = CalculateFloatingBounds(),
+            CornerRadius = 12,
+            Opacity = 1.0,
+            IsTopmost = true,
+            ExtendedStyle = WS_EX_TOOLWINDOW
+        };
+    }
+
+    public void OnEnter()
+    {
+        var window = _context.GetWindow();
+        window.IsVisible = true;
+        window.IsHitTestVisible = true;
+    }
+}
+```
+
+### 6.5 设计优势
+
+1. **解耦**：各模块只依赖 WindowContext，不直接依赖 Window 或 HWND
+2. **集中管理**：所有窗口相关的引用和状态都在一处管理
+3. **易于测试**：可以轻松 mock WindowContext 进行单元测试
+4. **性能优化**：HWND 只获取一次并缓存，避免重复调用 Win32 API
+5. **状态同步**：通过 UpdateCurrentVisual 确保视觉状态缓存与实际窗口同步
+
+## 七、首次创建流程 (Initializing状态)
 
 WinUI3 要求调用 Activate() 才能获取 HWND，且内部会强制显示窗口，行为无法拦截。
 
-**关键设计原则：Activate() 后窗口保持显示，不应隐藏**
+**关键设计原则：使用 MainWindowFactory 延迟激活，避免闪烁**
+
+当前实现采用 `MainWindowFactory` 来管理窗口创建和激活流程：
 
 ```csharp
-// App启动时执行
-var window = new MainWindow();
+// 使用 MainWindowFactory 创建窗口（不激活）
+var window = MainWindowFactory.Create();
 
 // 在 Activate() 之前完成所有初始化设置
-// 例如：设置初始位置、尺寸、样式等
-WindowService.SetInitialBounds(window.GetHwnd(), initialBounds);
-WindowService.SetInitialStyle(window.GetHwnd());
+// 创建 WindowContext
+var context = new WindowContext(window);
+
+// 创建 AnimationEngine 和 AnimationPolicy
+var animationEngine = new AnimationEngine();
+var animationPolicy = new DefaultAnimationPolicy();
+
+// 创建 WindowStateManager
+var stateManager = new WindowStateManager(
+    dispatcher: DispatcherQueue.GetForCurrentThread(),
+    animationEngine: animationEngine,
+    animationPolicy: animationPolicy,
+    context: context
+);
+
+// 订阅事件
+stateManager.StateChanged += OnStateChanged;
+stateManager.TransitionStarted += OnTransitionStarted;
 
 // 调用 Activate() - WinUI3 强制显示窗口
 window.Activate(); // 此时窗口可见，视为 Initializing 状态
@@ -489,6 +943,12 @@ DispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, () => {
 });
 ```
 
+**MainWindowFactory 职责：**
+- `Create()`: 创建窗口但不激活，避免闪烁
+- `CreateAndActivate()`: 创建并激活窗口（用于特殊场景）
+- `GetOrCreate()`: 获取或创建有效的窗口实例
+- `IsWindowValid()`: 检查窗口是否有效
+
 **重要说明：**
 - Initializing 是唯一起点，代表 WinUI3 内部的初始化阶段
 - Activate() 调用后窗口已显示，不应该转换到 Hidden 状态
@@ -498,7 +958,7 @@ DispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, () => {
 **如果确实需要启动时隐藏窗口：**
 
 ```csharp
-var window = new MainWindow();
+var window = MainWindowFactory.Create();
 
 // 方案1：在 Activate() 前设置初始透明度为 0
 window.Opacity = 0;
@@ -518,32 +978,91 @@ DispatcherQueue.TryEnqueue(DispatcherQueuePriority.High, () => {
 // （需要在 Activate() 前获取 HWND，可能需要特殊处理）
 ```
 
-| 触发时机 | 应用启动，new Window() + Activate() 调用时 |
+| 触发时机 | 应用启动，MainWindowFactory.Create() + Activate() 调用时 |
 |---------|----------------------------------------|
 | 持续时长 | 第一帧渲染完成前（WinUI3 内部控制） |
 | 退出方式 | 转换到目标可见状态（通常是 Floating/Fullscreen/Sidebar） |
 | 限制 | 唯一起点，不可从其他任何状态转入 |
 | 特殊情况 | 如需启动时隐藏，应在 Activate() 前设置 Opacity=0 或 Win32 样式 |
 
-## 七、表现层各形态说明
+## 八、表现层各形态说明
 
 三个窗口形态各自实现 IWindowState接口，定义目标视觉和动画偏好，互不依赖。
 
-### 7.1 FloatingWindow - 浮窗模式
+### 8.1 FloatingWindow - 浮窗模式
 
-小型悬浮窗口，可自由拖动。
+可调整大小的悬浮窗口，通过与屏幕边缘的距离来定位。
+
+**默认边距配置：**
+- 窗口与屏幕顶部距离：10 像素
+- 窗口与任务栏（底部）距离：10 像素
+- 窗口与屏幕右侧距离：10 像素
+- 默认尺寸：400 x 600 像素（首次启动时）
 
 ```csharp
 class FloatingWindow : IWindowState
 {
+    private readonly WindowContext _context;
+    private readonly IWindowPositionService _positionService;
+
+    public FloatingWindow(WindowContext context, IWindowPositionService positionService) {
+        _context = context;
+        _positionService = positionService;
+    }
+
     public WindowVisualState GetTargetVisual() {
-        return new WindowVisualState {
-            Bounds = new Rect(100, 100, 400, 600),
-            CornerRadius = 12,
-            Opacity = 1.0,
-            IsTopmost = true,
-            ExtendedStyle = WS_EX_TOOLWINDOW
-        };
+        // 获取上次停留位置和尺寸，如果没有则使用默认值
+        var lastPosition = _positionService.GetLastFloatingPosition();
+        
+        if (lastPosition != null) {
+            // 根据保存的边缘距离和当前屏幕尺寸计算位置
+            var screen = GetCurrentScreen();
+            var rightDistance = lastPosition.RightDistance;
+            var bottomDistance = lastPosition.BottomDistance;
+            var width = lastPosition.Width;
+            var height = lastPosition.Height;
+            
+            // 确保窗口在屏幕范围内
+            var x = Math.Max(0, screen.Bounds.Right - rightDistance - width);
+            var y = Math.Max(0, screen.Bounds.Bottom - bottomDistance - height);
+            
+            return new WindowVisualState {
+                Bounds = new Rect(x, y, width, height),
+                CornerRadius = 12,
+                Opacity = 1.0,
+                IsTopmost = true,
+                ExtendedStyle = WS_EX_TOOLWINDOW
+            };
+        else
+        {
+            // 首次启动，停靠在屏幕右侧（与旧代码保持一致）
+            var hwnd = _context.GetHwnd();
+            var (monitorBounds, workArea) = WindowService.GetCurrentScreen(hwnd);
+            
+            const int defaultMargin = 10;
+            const int defaultWidth = 400;
+            const int defaultHeight = 600;
+            
+            // 停靠在屏幕右侧，距离右边缘 10 像素
+            var x = workArea.Right - defaultWidth - defaultMargin;
+            var y = workArea.Top + defaultMargin;
+            
+            return new WindowVisualState
+            {
+                Bounds = new Rect(x, y, defaultWidth, defaultHeight),
+                CornerRadius = 12,
+                Opacity = 1.0,
+                IsTopmost = true,
+                ExtendedStyle = WS_EX_TOOLWINDOW
+            };
+        }
+    }
+
+    private Rect CalculateCenteredPosition(int width, int height) {
+        var screen = GetCurrentScreen();
+        var x = (screen.Bounds.Width - width) / 2 + screen.Bounds.X;
+        var y = (screen.Bounds.Height - height) / 2 + screen.Bounds.Y;
+        return new Rect(x, y, width, height);
     }
 
     public AnimationSpec GetAnimationSpec(WindowVisualState from, WindowVisualState to) {
@@ -561,25 +1080,50 @@ class FloatingWindow : IWindowState
 
     public void OnEnter() {
         // 进入浮窗模式前，确保窗口可见和可交互
+        var window = _context.GetWindow();
         window.IsVisible = true;
         window.IsHitTestVisible = true;
+        
+        // 启用窗口大小调整
+        var hwnd = _context.GetHwnd();
+        WindowService.EnableResize(hwnd);
+        
+        // 确保窗口获得焦点
+        window.Activate();
+        WindowService.SetForegroundWindow(hwnd);
     }
 
     public void OnExit() {
-        // 离开浮窗模式时无需特殊处理
+        // 保存当前位置、尺寸和边缘距离以便下次恢复
+        var currentVisual = _context.GetCurrentVisual();
+        var screen = GetCurrentScreen();
+        
+        var rightDistance = screen.Bounds.Right - currentVisual.Bounds.Right;
+        var bottomDistance = screen.Bounds.Bottom - currentVisual.Bounds.Bottom;
+        
+        _positionService.SaveFloatingPosition(
+            currentVisual.Bounds.Width,
+            currentVisual.Bounds.Height,
+            rightDistance,
+            bottomDistance
+        );
+        
+        // 禁用窗口大小调整
+        var hwnd = _context.GetHwnd();
+        WindowService.DisableResize(hwnd);
     }
 }
 ```
 
 | 属性 | 描述 |
 |------|------|
-| 目标位置 | 屏幕左上角偏移 (100, 100) |
-| 目标尺寸 | 400x600 |
+| 目标位置 | 根据保存的边缘距离计算（如果有），否则停靠在工作区右侧 |
+| 目标尺寸 | 上次保存的尺寸（如果有），否则宽度为工作区宽度的 1/3（最小 380px），高度为工作区高度减去上下边距 |
 | 圆角 | 12px |
 | 不透明度 | 1.0（完全不透明）|
-| 特殊行为 | 支持拖动，置顶显示 |
+| 特殊行为 | 可调整大小，置顶显示，退出时保存位置、尺寸和边缘距离 |
 
-### 7.2 FullscreenWindow - 全屏模式
+### 8.2 FullscreenWindow - 全屏模式
 
 覆盖整个屏幕的展开视图。
 
@@ -618,8 +1162,18 @@ class FullscreenWindow : IWindowState
     }
 
     public void OnEnter() {
+        var window = _context.GetWindow();
         window.IsVisible = true;
         window.IsHitTestVisible = true;
+        
+        // 禁用窗口大小调整
+        var hwnd = _context.GetHwnd();
+        WindowService.DisableResize(hwnd);
+        
+        // 确保窗口获得焦点
+        window.Activate();
+        WindowService.SetForegroundWindow(hwnd);
+        
         // 可选：隐藏任务栏
     }
 
@@ -637,13 +1191,19 @@ class FullscreenWindow : IWindowState
 | 不透明度 | 1.0（完全不透明）|
 | 特殊行为 | 支持多显示器，进入时隐藏任务栏 |
 
-### 7.3 SidebarWindow - 边栏模式
+### 8.3 SidebarWindow - 边栏模式
 
 吸附在屏幕边缘的固定侧边栏。
 
 ```csharp
 class SidebarWindow : IWindowState
 {
+    private readonly WindowContext _context;
+
+    public SidebarWindow(WindowContext context) {
+        _context = context;
+    }
+
     public WindowVisualState GetTargetVisual() {
         var screen = GetCurrentScreen();
         return new WindowVisualState {
@@ -651,7 +1211,7 @@ class SidebarWindow : IWindowState
             CornerRadius = 0,
             Opacity = 1.0,
             IsTopmost = false,
-            ExtendedStyle = WS_EX_APPBAR
+            ExtendedStyle = 0
         };
     }
 
@@ -663,13 +1223,23 @@ class SidebarWindow : IWindowState
     }
 
     public void OnEnter() {
+        var window = _context.GetWindow();
         window.IsVisible = true;
         window.IsHitTestVisible = true;
-        // 注册为 AppBar，占用屏幕工作区
+        
+        // 禁用窗口大小调整
+        var hwnd = _context.GetHwnd();
+        WindowService.DisableResize(hwnd);
+        
+        // 通过 SHAppBarMessage 注册为 AppBar，占用屏幕工作区
+        var hwnd = _context.GetHwnd();
+        WindowService.RegisterAppBar(hwnd, AppBarEdge.Right, 400);
     }
 
     public void OnExit() {
         // 取消 AppBar 注册
+        var hwnd = _context.GetHwnd();
+        WindowService.UnregisterAppBar(hwnd);
     }
 }
 ```
@@ -682,18 +1252,25 @@ class SidebarWindow : IWindowState
 | 不透明度 | 1.0（完全不透明）|
 | 特殊行为 | 注册为 AppBar，占用屏幕工作区 |
 
-### 7.4 HiddenWindow - 隐藏状态
+### 8.4 HiddenWindow - 隐藏状态
 
 窗口完全隐藏，不可见也不可交互。
 
 ```csharp
 class HiddenWindow : IWindowState
 {
+    private readonly WindowContext _context;
+
+    public HiddenWindow(WindowContext context) {
+        _context = context;
+    }
+
     public WindowVisualState GetTargetVisual() {
         // 保持当前位置和尺寸，只改变透明度
+        var currentVisual = _context.GetCurrentVisual();
         return new WindowVisualState {
-            Bounds = _currentVisual.Bounds,
-            CornerRadius = _currentVisual.CornerRadius,
+            Bounds = currentVisual.Bounds,
+            CornerRadius = currentVisual.CornerRadius,
             Opacity = 0.0,  // 完全透明
             IsTopmost = false,
             ExtendedStyle = 0
@@ -709,10 +1286,18 @@ class HiddenWindow : IWindowState
 
     public void OnEnter() {
         // 动画开始前不改变 IsVisible，让渐隐动画可见
+        // 
+        // 【设计决策说明】
+        // OnEnter 为空是故意的设计，原因如下：
+        // 1. RunStateMachineLoop 在动画开始前调用 OnEnter()
+        // 2. 如果在 OnEnter 中设置 IsVisible = false，渐隐动画将不可见
+        // 3. 因此保持 IsVisible = true，让用户能看到 Opacity 从 1.0 → 0.0 的渐隐效果
+        // 4. 动画完成后，OnExit 会将窗口从视觉树中移除
     }
 
     public void OnExit() {
         // 动画完成后，从视觉树中移除
+        var window = _context.GetWindow();
         window.IsVisible = false;
         window.IsHitTestVisible = false;
     }
@@ -731,18 +1316,149 @@ class HiddenWindow : IWindowState
 2. 动画: Opacity 1.0 → 0.0（渐隐）
 3. OnExit: 设置 IsVisible = false（从视觉树移除）
 
-## 八、AnimationEngine（统一动画引擎）
+### 8.5 焦点管理机制
+
+为了确保窗口在浮窗和全屏状态下能够可靠地获得输入焦点，系统使用了多层焦点管理策略。
+
+#### 8.5.1 焦点管理的必要性
+
+WinUI3 提供了 `window.Activate()` 方法来激活窗口，但这个方法在某些场景下不够可靠：
+
+**WinUI3 内置能力的局限性：**
+- `window.Activate()` 和 `AppWindow.Show()` 本质上只是"请求激活"，而不是强制获得焦点
+- 当窗口从隐藏状态恢复时，`Activate()` 经常无法获得焦点
+- 从托盘图标恢复窗口时，用户期望窗口立即可交互，但 `Activate()` 通常会失败
+
+**Windows 系统的前台窗口规则（Foreground Lock）：**
+
+Windows 系统对前台窗口切换有严格限制，只有以下情况才允许窗口获得前台焦点：
+- 用户刚刚与窗口交互过（点击、键盘输入）
+- 进程当前就是前台进程
+- 系统认为进程"有资格"（在时间窗口内）
+
+**典型失败场景：**
+- 用户点击托盘图标（属于 Shell 进程）
+- 应用窗口是后台进程
+- 调用 `Activate()` → Windows 拒绝："你没资格抢焦点"
+- 结果：窗口显示了，但焦点没过来
+
+**解决方案：**
+
+需要结合 WinUI3 的 `Activate()` 和 Win32 API 来提高焦点获取的成功率，并提供降级方案。
+
+#### 8.5.2 焦点管理实现
+
+**WindowService 提供的焦点管理函数：**
+
+```csharp
+static class WindowService
+{
+    // 将窗口设置为前台窗口并获得输入焦点
+    public static bool SetForegroundWindow(IntPtr hwnd) { }
+    
+    // 将窗口提升到 Z 轴顶部
+    public static bool BringWindowToTop(IntPtr hwnd) { }
+    
+    // 闪烁窗口以吸引用户注意（降级方案）
+    public static bool FlashWindowEx(IntPtr hwnd, uint flags, uint count, uint timeout) { }
+    
+    // 获取当前前台窗口
+    public static IntPtr GetForegroundWindow() { }
+    
+    // 获取窗口所属线程 ID
+    public static uint GetWindowThreadProcessId(IntPtr hwnd, out uint processId) { }
+}
+```
+
+**推荐的焦点管理策略（多层兜底）：**
+
+```csharp
+/// <summary>
+/// 尝试将窗口带到前台并获得焦点
+/// 使用多层策略提高成功率
+/// </summary>
+public static bool TryBringToFront(Window window)
+{
+    var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+    
+    // 第一层：使用 WinUI3 内置方法
+    // 在大多数情况下有效，但不保证获得前台焦点
+    window.Activate();
+    
+    // 第二层：使用 Win32 SetForegroundWindow
+    // 成功率比 Activate() 高，但仍然受系统限制
+    bool success = WindowService.SetForegroundWindow(hwnd);
+    
+    if (!success)
+    {
+        // 第三层：降级方案 - 闪烁窗口吸引用户注意
+        // 符合 Windows UX 规范，不强制抢焦点
+        WindowService.FlashWindowEx(hwnd, 
+            FLASHW_ALL | FLASHW_TIMERNOFG, 
+            3,  // 闪烁 3 次
+            0); // 使用默认闪烁频率
+    }
+    
+    return success;
+}
+```
+
+**关键常量定义：**
+
+```csharp
+// FlashWindowEx 标志
+const uint FLASHW_STOP = 0;        // 停止闪烁
+const uint FLASHW_CAPTION = 0x1;   // 闪烁标题栏
+const uint FLASHW_TRAY = 0x2;      // 闪烁任务栏按钮
+const uint FLASHW_ALL = 0x3;       // 闪烁标题栏和任务栏
+const uint FLASHW_TIMER = 0x4;     // 持续闪烁直到窗口获得焦点
+const uint FLASHW_TIMERNOFG = 0xC; // 持续闪烁直到用户点击
+```
+
+**在窗口形态中的使用：**
+
+FloatingWindow 和 FullscreenWindow 的 `OnEnter` 钩子中调用焦点管理：
+
+```csharp
+public void OnEnter() {
+    var window = _context.GetWindow();
+    window.IsVisible = true;
+    window.IsHitTestVisible = true;
+    
+    // 尝试获得焦点（使用多层策略）
+    var hwnd = _context.GetHwnd();
+    bool success = WindowService.TryBringToFront(window);
+    
+    // 如果焦点获取失败，窗口会闪烁以吸引用户注意
+    // 这符合 Windows UX 规范，不会强制抢焦点
+}
+```
+
+**关键设计点：**
+- WinUI3 的 `window.Activate()` 是第一道防线，在大多数情况下有效
+- Win32 的 `SetForegroundWindow` 是第二道防线，提高成功率
+- `FlashWindowEx` 是降级方案，当无法获得焦点时闪烁窗口吸引用户注意
+- 这种策略符合 Windows UX 规范，不会强制抢占用户焦点
+- 焦点管理在 `OnEnter` 钩子中执行，确保窗口显示时尝试获得焦点
+- 从 Hidden 状态恢复时，用户可以立即与窗口交互（如果焦点获取成功）
+- 这种混合方案结合了 WinUI3 的简洁性和 Win32 的可靠性
+
+**不推荐的方案：**
+- ❌ `AttachThreadInput`：虽然可以提高焦点获取成功率，但有副作用（可能造成输入混乱、稳定性风险），不推荐作为常规方案
+- ❌ `SendInput` 模拟用户输入：虽然成功率高，但可能被安全软件拦截，且不符合 Windows 规范
+
+## 九、AnimationEngine（统一动画引擎）
 
 负责执行所有视觉状态插值，支持线性插值（LERP）和 Spring 物理模拟。
 
-### 8.1 核心职责
+### 9.1 核心职责
 
 - 从当前视觉状态平滑过渡到目标视觉状态
 - 支持多种插值策略（线性、缓动函数、Spring）
 - 实时更新窗口外观
 - 响应取消信号，立即停止动画
 
-### 8.2 接口设计
+### 9.2 接口设计
 
 ```csharp
 class AnimationEngine
@@ -807,7 +1523,45 @@ class AnimationEngine
     ) {
         // Spring 物理模拟实现
         // 使用 spec.Spring.Stiffness 和 spec.Spring.Damping
-        // ...
+        
+        var stopwatch = Stopwatch.StartNew();
+        var velocity = 0.0;  // 初始速度
+        var displacement = 1.0;  // 初始位移（归一化）
+        
+        // Spring 稳定阈值：当速度和位移都足够小时，认为动画完成
+        const double velocityThreshold = 0.5;  // 速度阈值（像素/秒）
+        const double displacementThreshold = 0.5;  // 位移阈值（像素）
+        
+        while (true) {
+            cancellationToken.ThrowIfCancellationRequested();
+            
+            var elapsed = stopwatch.Elapsed;
+            var deltaTime = 0.016;  // ~60 FPS
+            
+            // Spring 物理计算（简化版）
+            var springForce = -spec.Spring.Stiffness * displacement;
+            var dampingForce = -spec.Spring.Damping * velocity;
+            var acceleration = springForce + dampingForce;
+            
+            velocity += acceleration * deltaTime;
+            displacement += velocity * deltaTime;
+            
+            // 计算当前进度（1.0 - displacement，因为 displacement 从 1.0 趋向 0.0）
+            var progress = Math.Max(0.0, Math.Min(1.0, 1.0 - displacement));
+            
+            // 插值所有属性
+            var current = Lerp(from, to, progress);
+            onProgress(current);
+            
+            // 检查稳定条件：速度和位移都足够小
+            if (Math.Abs(velocity) < velocityThreshold && Math.Abs(displacement) < displacementThreshold) {
+                // 确保最终状态精确到达目标
+                onProgress(to);
+                break;
+            }
+            
+            await Task.Delay(16, cancellationToken); // ~60 FPS
+        }
     }
 
     private WindowVisualState Lerp(WindowVisualState from, WindowVisualState to, double t) {
@@ -835,7 +1589,7 @@ class AnimationEngine
 - ✅ 新方式（时间驱动）：根据 Stopwatch 计算真实进度
 - 优势：即使掉帧，动画仍然准时完成，只是少几帧，不会变慢
 
-### 8.3 设计优势
+### 9.3 设计优势
 
 - **统一控制**：所有动画逻辑集中在一处，易于调试和优化
 - **可扩展**：支持添加新的插值策略（如弹性、回弹等）
@@ -843,7 +1597,7 @@ class AnimationEngine
 - **全局策略**：可轻松实现全局动画速度调整、性能模式等
 - **时间精度**：使用 Stopwatch 确保动画时长准确，不受帧率波动影响
 
-### 8.4 动画引擎演进路线
+### 9.4 动画引擎演进路线
 
 **Phase 1（当前实现）：Task.Delay + Stopwatch**
 - ✅ 实现简单，行为正确
@@ -867,11 +1621,11 @@ class AnimationEngine
 - 状态机只负责"发命令"，不参与具体插值
 - 通过 IAnimationDriver 抽象，支持多种引擎实现
 
-## 九、全局动画策略（IAnimationPolicy）
+## 十、全局动画策略（IAnimationPolicy）
 
 为了解决快速切换状态时动画参数不一致的问题，引入全局动画策略层。
 
-### 9.1 接口定义
+### 10.1 接口定义
 
 ```csharp
 /// <summary>
@@ -882,14 +1636,15 @@ interface IAnimationPolicy
     /// <summary>
     /// 根据状态转换和当前视觉状态，解析出最终的动画规格
     /// </summary>
-    /// <param name="fromState">起始稳定状态（非中间状态）</param>
+    /// <param name="fromState">起始稳定状态（非中间状态）
+    /// 注意：fromState 可能是 Initializing，实现需要能处理这种情况</param>
     /// <param name="toState">目标状态</param>
     /// <param name="currentVisual">当前实际视觉状态（可能是中间状态）</param>
     AnimationSpec Resolve(WindowState fromState, WindowState toState, WindowVisualState currentVisual);
 }
 ```
 
-### 9.2 默认策略实现
+### 10.2 默认策略实现
 
 ```csharp
 class DefaultAnimationPolicy : IAnimationPolicy
@@ -953,6 +1708,13 @@ class DefaultAnimationPolicy : IAnimationPolicy
     {
         return (from, to) switch
         {
+            // 处理 Initializing 状态的转换
+            (WindowState.Initializing, WindowState.Fullscreen) => TransitionType.EnterFullscreen,
+            (WindowState.Initializing, WindowState.Sidebar) => TransitionType.DockToSidebar,
+            (WindowState.Initializing, WindowState.Floating) => TransitionType.Float,
+            (WindowState.Initializing, WindowState.Hidden) => TransitionType.Hide,
+            
+            // 处理其他状态的转换
             (_, WindowState.Fullscreen) => TransitionType.EnterFullscreen,
             (WindowState.Fullscreen, _) => TransitionType.ExitFullscreen,
             (_, WindowState.Sidebar) => TransitionType.DockToSidebar,
@@ -976,7 +1738,7 @@ enum TransitionType
 }
 ```
 
-### 9.3 设计优势
+### 10.3 设计优势
 
 - **一致性**：同样的状态转换，每次动画参数都相同
 - **可预测性**：用户体验稳定，不会因中间状态而变化
@@ -984,7 +1746,7 @@ enum TransitionType
 - **语义化**：使用 TransitionType 而非数值差异，更符合设计意图
 - **防抖动**：快速切换时自动使用短动画，避免"情绪不稳定"
 
-### 9.4 使用方式
+### 10.4 使用方式
 
 在 WindowStateManager 中注入策略：
 
@@ -999,11 +1761,11 @@ var stateManager = new WindowStateManager(
 1. 如果提供了 IAnimationPolicy，优先使用策略的 Resolve 方法
 2. 否则，回退到各状态实现的 GetAnimationSpec 方法
 
-## 十、过渡状态使用场景
+## 十一、过渡状态使用场景
 
 `TransitioningTo` 属性和 `TransitionStarted` 事件为外部模块提供了实时的转换进度信息。
 
-### 10.1 典型使用场景
+### 11.1 典型使用场景
 
 **1. UI 状态指示器**
 ```csharp
@@ -1017,17 +1779,7 @@ stateManager.StateChanged += (from, to) => {
 };
 ```
 
-**2. 功能禁用/启用**
-```csharp
-// 根据过渡状态禁用冲突操作
-bool CanDrag() {
-    // 只有在稳定的 Floating 状态下才能拖动
-    return stateManager.CurrentState == WindowState.Floating 
-        && stateManager.TransitioningTo == null;
-}
-```
-
-**3. 资源预加载**
+**2. 资源预加载**
 ```csharp
 // 提前准备目标状态所需的资源
 stateManager.TransitionStarted += (from, to) => {
@@ -1037,7 +1789,7 @@ stateManager.TransitionStarted += (from, to) => {
 };
 ```
 
-**4. 日志和遥测**
+**3. 日志和遥测**
 ```csharp
 // 记录完整的状态转换生命周期
 stateManager.TransitionStarted += (from, to) => {
@@ -1049,13 +1801,278 @@ stateManager.StateChanged += (from, to) => {
 };
 ```
 
-### 10.2 状态查询最佳实践
+### 11.2 状态查询最佳实践
 
 - **判断是否稳定**: `TransitioningTo == null` 表示没有正在进行的转换
 - **判断目标状态**: 使用 `TransitioningTo ?? CurrentState` 获取"最终会到达的状态"
-- **避免在转换中修改状态**: 如果 `TransitioningTo != null`，避免调用 `TransitionTo()`，除非确实需要打断
 
-## 十一、正确性属性
+## 十二、迁移指南
+
+本节提供从旧的主窗口代码迁移到新架构的详细指南，帮助开发者平滑过渡。
+
+### 12.1 迁移步骤概览
+
+建议采用渐进式迁移策略，分阶段完成重构，每个阶段都保持系统可运行：
+
+**阶段 1：抽取 WindowService（Win32 抽象层）**
+- 识别所有直接调用 Win32 API 的代码
+- 将这些调用封装到 WindowService 静态方法中
+- 替换旧代码中的 Win32 API 调用为 WindowService 方法调用
+- 验证功能正常
+
+**阶段 2：引入 WindowContext**
+- 创建 WindowContext 类
+- 将窗口实例和 HWND 的管理迁移到 WindowContext
+- 更新各模块使用 WindowContext 而非直接访问窗口
+
+**阶段 3：引入 WindowStateManager**
+- 创建 WindowStateManager 和 WindowState 枚举
+- 实现状态转换逻辑和动画调度
+- 保持旧的窗口操作方法作为适配层，内部调用 WindowStateManager
+
+**阶段 4：实现各窗口形态**
+- 创建 FloatingWindow、FullscreenWindow、SidebarWindow、HiddenWindow 类
+- 实现 IWindowState 接口
+- 将旧的窗口布局逻辑迁移到各形态的 GetTargetVisual 方法
+
+**阶段 5：引入 AnimationEngine**
+- 创建 AnimationEngine 和 WindowVisualState
+- 将旧的动画逻辑迁移到统一的插值引擎
+- 替换旧的动画代码为 AnimationEngine 调用
+
+**阶段 6：清理旧代码**
+- 移除旧的窗口操作方法和适配层
+- 移除旧的动画代码
+- 更新所有调用点直接使用新 API
+
+### 12.2 旧代码到新代码的映射关系
+
+以下是常见旧代码模式到新架构的映射：
+
+| 旧代码模式 | 新架构代码 | 说明 |
+|-----------|-----------|------|
+| `EnterFullscreen()` | `stateManager.TransitionTo(WindowState.Fullscreen)` | 进入全屏模式 |
+| `ExitFullscreen()` | `stateManager.TransitionTo(WindowState.Floating)` | 退出全屏到浮窗 |
+| `DockToSidebar()` | `stateManager.TransitionTo(WindowState.Sidebar)` | 停靠到边栏 |
+| `UndockFromSidebar()` | `stateManager.TransitionTo(WindowState.Floating)` | 取消停靠 |
+| `HideWindow()` | `stateManager.TransitionTo(WindowState.Hidden)` | 隐藏窗口 |
+| `ShowWindow()` | `stateManager.TransitionTo(WindowState.Floating)` | 显示窗口（恢复到浮窗） |
+| `if (isFullscreen) { ... }` | `if (stateManager.CurrentState == WindowState.Fullscreen) { ... }` | 状态查询 |
+| `SetWindowPos(hwnd, ...)` | `WindowService.MoveWindow(hwnd, x, y)` | 移动窗口 |
+| `SetWindowLong(hwnd, GWL_EXSTYLE, ...)` | `WindowService.SetExtendedStyle(hwnd, style)` | 设置扩展样式 |
+| `DwmSetWindowAttribute(hwnd, ...)` | `WindowService.SetDwmAttribute(hwnd, attr, value)` | 设置 DWM 属性 |
+| 手动实现的动画循环 | `AnimationEngine.Animate(from, to, spec, onProgress, ct)` | 统一动画引擎 |
+
+### 12.3 具体迁移示例
+
+#### 示例 1：迁移全屏切换逻辑
+
+**旧代码：**
+
+```csharp
+private bool _isFullscreen = false;
+
+public void ToggleFullscreen()
+{
+    if (_isFullscreen)
+    {
+        // 退出全屏
+        var hwnd = GetHwnd();
+        SetWindowLong(hwnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+        SetWindowPos(hwnd, HWND_NOTOPMOST, 100, 100, 800, 600, SWP_SHOWWINDOW);
+        _isFullscreen = false;
+    }
+    else
+    {
+        // 进入全屏
+        var hwnd = GetHwnd();
+        var screen = GetCurrentScreen();
+        SetWindowLong(hwnd, GWL_STYLE, WS_POPUP);
+        SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, screen.Width, screen.Height, SWP_SHOWWINDOW);
+        _isFullscreen = true;
+    }
+}
+```
+
+**新代码：**
+
+```csharp
+public void ToggleFullscreen()
+{
+    if (_stateManager.CurrentState == WindowState.Fullscreen)
+    {
+        _stateManager.TransitionTo(WindowState.Floating);
+    }
+    else
+    {
+        _stateManager.TransitionTo(WindowState.Fullscreen);
+    }
+}
+```
+
+#### 示例 2：迁移边栏停靠逻辑
+
+**旧代码：**
+
+```csharp
+private bool _isDocked = false;
+
+public void DockToSidebar()
+{
+    var hwnd = GetHwnd();
+    var screen = GetCurrentScreen();
+    
+    // 注册 AppBar
+    var abd = new APPBARDATA();
+    abd.cbSize = Marshal.SizeOf(abd);
+    abd.hWnd = hwnd;
+    abd.uEdge = ABE_RIGHT;
+    abd.rc = new RECT { left = screen.Right - 400, top = 0, right = screen.Right, bottom = screen.Height };
+    SHAppBarMessage(ABM_NEW, ref abd);
+    SHAppBarMessage(ABM_SETPOS, ref abd);
+    
+    // 移动窗口
+    SetWindowPos(hwnd, HWND_NOTOPMOST, abd.rc.left, abd.rc.top, 400, screen.Height, SWP_SHOWWINDOW);
+    
+    _isDocked = true;
+}
+
+public void UndockFromSidebar()
+{
+    var hwnd = GetHwnd();
+    
+    // 取消 AppBar 注册
+    var abd = new APPBARDATA();
+    abd.cbSize = Marshal.SizeOf(abd);
+    abd.hWnd = hwnd;
+    SHAppBarMessage(ABM_REMOVE, ref abd);
+    
+    // 恢复到浮窗
+    SetWindowPos(hwnd, HWND_TOPMOST, 100, 100, 400, 600, SWP_SHOWWINDOW);
+    
+    _isDocked = false;
+}
+```
+
+**新代码：**
+
+```csharp
+public void DockToSidebar()
+{
+    _stateManager.TransitionTo(WindowState.Sidebar);
+}
+
+public void UndockFromSidebar()
+{
+    _stateManager.TransitionTo(WindowState.Floating);
+}
+```
+
+AppBar 注册逻辑已迁移到 SidebarWindow.OnEnter/OnExit 钩子中。
+
+#### 示例 3：迁移动画逻辑
+
+**旧代码：**
+
+```csharp
+private async Task AnimateFadeIn()
+{
+    for (double opacity = 0.0; opacity <= 1.0; opacity += 0.05)
+    {
+        this.Opacity = opacity;
+        await Task.Delay(16);  // ~60 FPS
+    }
+    this.Opacity = 1.0;
+}
+
+private async Task AnimateFadeOut()
+{
+    for (double opacity = 1.0; opacity >= 0.0; opacity -= 0.05)
+    {
+        this.Opacity = opacity;
+        await Task.Delay(16);  // ~60 FPS
+    }
+    this.Opacity = 0.0;
+    this.Visibility = Visibility.Collapsed;
+}
+```
+
+**新代码：**
+
+动画逻辑已迁移到 AnimationEngine 和各窗口形态的 GetAnimationSpec 方法中，无需手动编写动画循环。
+
+```csharp
+// 显示窗口（渐显）
+_stateManager.TransitionTo(WindowState.Floating);
+
+// 隐藏窗口（渐隐）
+_stateManager.TransitionTo(WindowState.Hidden);
+```
+
+### 12.4 迁移过程中的注意事项
+
+#### 12.4.1 保持向后兼容性
+
+在迁移过程中，建议保留旧的公共 API 作为适配层，内部调用新的 WindowStateManager：
+
+```csharp
+// 旧的公共 API（保留以保持向后兼容）
+[Obsolete("请使用 StateManager.TransitionTo(WindowState.Fullscreen) 替代")]
+public void EnterFullscreen()
+{
+    _stateManager.TransitionTo(WindowState.Fullscreen);
+}
+
+[Obsolete("请使用 StateManager.TransitionTo(WindowState.Floating) 替代")]
+public void ExitFullscreen()
+{
+    _stateManager.TransitionTo(WindowState.Floating);
+}
+```
+
+这样可以确保现有的调用代码不会立即中断，给团队时间逐步更新调用点。
+
+#### 12.4.2 测试策略
+
+每个迁移阶段都应该有对应的测试：
+
+1. **单元测试**：测试新模块的核心逻辑（如 WindowStateManager 的状态转换验证）
+2. **集成测试**：测试新旧代码的交互（如适配层是否正确调用新 API）
+3. **手动测试**：测试实际的窗口行为（如全屏切换、边栏停靠、动画效果）
+4. **回归测试**：确保旧功能在迁移后仍然正常工作
+
+#### 12.4.3 性能监控
+
+在迁移过程中，监控以下性能指标：
+
+- **状态转换延迟**：从调用 TransitionTo 到动画开始的时间
+- **动画帧率**：动画执行过程中的实际帧率
+- **内存使用**：确保没有资源泄漏（特别是 CancellationTokenSource）
+- **CPU 使用**：动画执行时的 CPU 占用率
+
+#### 12.4.4 常见陷阱
+
+1. **忘记订阅事件**：确保在创建 WindowStateManager 后订阅 StateChanged、TransitionStarted 等事件
+2. **在 Activate() 后隐藏窗口**：应该在 Activate() 之前设置 Opacity=0，而不是之后调用 TransitionTo(Hidden)
+3. **在转换期间修改状态**：避免在 TransitioningTo != null 时调用 TransitionTo，除非确实需要打断
+4. **忘记释放资源**：确保在窗口关闭时释放 WindowStateManager 和相关资源
+5. **混用旧新 API**：避免同时使用旧的窗口操作方法和新的 WindowStateManager，容易导致状态不一致
+
+#### 12.4.5 迁移检查清单
+
+- [ ] 所有 Win32 API 调用已封装到 WindowService
+- [ ] 所有窗口实例和 HWND 访问已迁移到 WindowContext
+- [ ] 所有状态转换逻辑已迁移到 WindowStateManager
+- [ ] 所有窗口布局逻辑已迁移到各窗口形态的 GetTargetVisual
+- [ ] 所有动画逻辑已迁移到 AnimationEngine
+- [ ] 所有事件订阅已正确设置
+- [ ] 所有旧的公共 API 已标记为 Obsolete
+- [ ] 单元测试覆盖率达到 80% 以上
+- [ ] 手动测试所有窗口状态切换场景
+- [ ] 性能指标符合预期
+- [ ] 文档已更新
+
+## 十三、正确性属性
 
 *属性是系统在所有有效执行中都应该保持为真的特征或行为——本质上是关于系统应该做什么的形式化陈述。属性是人类可读规范和机器可验证正确性保证之间的桥梁。*
 
@@ -1171,50 +2188,15 @@ stateManager.StateChanged += (from, to) => {
 
 **验证需求: 需求 14.2**
 
-## 十二、待定/备注
-
-- WindowService函数列表随开发推进持续补充，当前仅列出已确认需要的部分。
-- 各状态实现类的具体动画参数（时长、缓动函数等）不在本文档范围内，可在实现时根据实际效果调整。
-- Initializing→ Hidden的时机（DispatcherQueue优先级）如出现闪烁问题，需进一步调研。可考虑在 Activate() 前通过 Win32 API 预设窗口样式或初始透明度。
-
-**动画引擎优化路线：**
-- Phase 1（当前）：Task.Delay + Stopwatch 时间驱动
-- Phase 2（中期）：DispatcherQueueTimer 或 CompositionTarget.Rendering
-- Phase 3（成熟）：关键动画迁移到 CompositionAnimation，通过 IAnimationDriver 抽象支持多引擎
-
-**首次创建流程：**
-- Activate() 调用后窗口已显示，不应该再隐藏
-- 通常从 Initializing 转换到 Floating/Fullscreen/Sidebar
-- 如需启动时隐藏（如托盘应用），应在 Activate() 前设置 Opacity=0 或 Win32 样式
-- 避免 Activate() 后立即隐藏导致的闪烁问题
-
-**全局动画策略：**
-- 考虑添加全局动画速度调整功能（如性能模式、无障碍模式）
-- 考虑添加动画曲线可视化工具，方便调试和调优
-
-**资源管理优化：**
-- 当前 CancellationTokenSource 采用"快照 + 条件释放"模式，安全但可能轻微泄漏
-- 未来可优化为更严格的所有权模型（TransitionTo 负责释放旧 CTS）
-
-**动画语义层（高级特性）：**
-- 引入 TransitionType 枚举，完全基于语义而非数值差异
-- 与系统级动画保持一致（Windows/macOS 风格）
-- 需要重构状态机，将转换类型作为一等公民
-
-**测试策略：**
-- WinUI3 UI 层需要手动测试
-- 状态机逻辑可通过 mock IWindowService 进行单元测试（可选优化）
-
-
 ### 属性 19: 转换期间视觉指示器存在性
 
 *对于任意*正在进行的状态转换（TransitioningTo != null），UI 应该包含视觉指示器元素（如加载动画或进度条），且在转换完成后（TransitioningTo == null）应该自动移除
 
-**验证需求: 需求 21.1, 21.3, 21.4**
+**验证需求: 需求 21.1, 21.3**
 
 ### 属性 20: 禁用操作的用户反馈
 
-*对于任意*被禁用的操作（如在非 Floating 状态下拖动窗口），当用户尝试执行该操作时，系统应该显示临时提示信息说明操作不可用的原因
+*对于任意*被禁用的操作，当用户尝试执行该操作时，系统应该显示临时提示信息说明操作不可用的原因
 
 **验证需求: 需求 21.2**
 
@@ -1228,7 +2210,7 @@ stateManager.StateChanged += (from, to) => {
 
 *对于任意*正在进行的状态转换，如果用户尝试触发新的状态转换，系统应该显示简短的通知消息（如"请稍候，正在切换窗口模式"）
 
-**验证需求: 需求 21.6**
+**验证需求: 需求 21.4**
 
 ### 属性 23: 异常捕获和日志记录
 
@@ -1320,10 +2302,46 @@ stateManager.StateChanged += (from, to) => {
 
 *对于任意*正在进行的状态转换（TransitioningTo != null），所有触发状态转换的 UI 控件（按钮、快捷键等）应该显示禁用状态或加载指示器
 
-**验证需求: 需求 23.6**
+**验证需求: 需求 21.6, 23.6**
 
 ### 属性 38: 转换完成后 UI 控件视觉更新
 
 *对于任意*状态转换完成后（TransitioningTo == null），所有 UI 控件的视觉状态应该正确反映当前窗口状态（如全屏按钮在 Fullscreen 状态下显示"退出全屏"文本或图标）
 
 **验证需求: 需求 23.7**
+
+## 十四、待定/备注
+
+- WindowService函数列表随开发推进持续补充，当前仅列出已确认需要的部分。
+- 各状态实现类的具体动画参数（时长、缓动函数等）不在本文档范围内，可在实现时根据实际效果调整。
+- Initializing→ Hidden的时机（DispatcherQueue优先级）如出现闪烁问题，需进一步调研。可考虑在 Activate() 前通过 Win32 API 预设窗口样式或初始透明度。
+
+**动画引擎优化路线：**
+- Phase 1（当前）：Task.Delay + Stopwatch 时间驱动
+- Phase 2（中期）：DispatcherQueueTimer 或 CompositionTarget.Rendering
+- Phase 3（成熟）：关键动画迁移到 CompositionAnimation，通过 IAnimationDriver 抽象支持多引擎
+
+**首次创建流程：**
+- Activate() 调用后窗口已显示，不应该再隐藏
+- 通常从 Initializing 转换到 Floating/Fullscreen/Sidebar
+- 如需启动时隐藏（如托盘应用），应在 Activate() 前设置 Opacity=0 或 Win32 样式
+- 避免 Activate() 后立即隐藏导致的闪烁问题
+
+**全局动画策略：**
+- 考虑添加全局动画速度调整功能（如性能模式、无障碍模式）
+- 考虑添加动画曲线可视化工具，方便调试和调优
+
+**资源管理优化：**
+- 当前 CancellationTokenSource 采用"快照 + 条件释放"模式，安全但可能轻微泄漏
+- 未来可优化为更严格的所有权模型（TransitionTo 负责释放旧 CTS）
+
+**动画语义层（高级特性）：**
+- 引入 TransitionType 枚举，完全基于语义而非数值差异
+- 与系统级动画保持一致（Windows/macOS 风格）
+- 需要重构状态机，将转换类型作为一等公民
+
+**测试策略：**
+- WinUI3 UI 层需要手动测试
+- 状态机逻辑可通过 mock IWindowService 进行单元测试
+- 动画引擎可通过 mock 时间源进行单元测试
+- 各窗口形态实现可独立单元测试
