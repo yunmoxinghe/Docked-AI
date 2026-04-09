@@ -10,7 +10,7 @@
     <SplashScreenSource>E:\OneDrive - zlbx3\桌面\Sparkles.png</SplashScreenSource>
     <PackageLogoSource>E:\OneDrive - zlbx3\桌面\Sparkles.png</PackageLogoSource>
     <AppxShowAllApps>False</AppxShowAllApps>
-    <UapAppxPackageBuildMode>SideloadOnly</UapAppxPackageBuildMode>
+    <UapAppxPackageBuildMode>StoreOnly</UapAppxPackageBuildMode>
     <AppxBuildConfigurationSelection>x86|x64|arm64</AppxBuildConfigurationSelection>
     <PackageOptionalProjectsInIdeBuilds>False</PackageOptionalProjectsInIdeBuilds>
   </PropertyGroup>

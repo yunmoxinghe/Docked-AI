@@ -66,7 +66,7 @@
     <ApplicationIcon>Assets\Sparkles.ico</ApplicationIcon>
     <GenerateTemporaryStoreCertificate>False</GenerateTemporaryStoreCertificate>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
-    <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
+    <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
     <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
     <GenerateTestArtifacts>False</GenerateTestArtifacts>
@@ -76,6 +76,5 @@
     <AppxSymbolPackageEnabled>false</AppxSymbolPackageEnabled>
     <AppxPackageDir>AppPackages\</AppxPackageDir>
     <UapAppxPackageBuildMode>StoreUpload</UapAppxPackageBuildMode>
-    <PackageCertificateKeyFile>Docked AI_TemporaryKey.pfx</PackageCertificateKeyFile>
   </PropertyGroup>
 </Project>

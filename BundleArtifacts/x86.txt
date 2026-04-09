@@ -1,1 +1,0 @@
-MainPackage=C:\Users\gold\source\repos\yunmoxinghe\Docked-AI\bin\x86\Release\net8.0-windows10.0.19041.0\win-x86\Docked AI_1.1.8.0_x86.msix
