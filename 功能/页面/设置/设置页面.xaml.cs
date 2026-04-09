@@ -52,6 +52,16 @@ namespace Docked_AI.Features.Pages.Settings
             _ = InitializeStartupSettingsAsync();
         }
 
+        private string GetGitHubLinkText()
+        {
+            return LocalizationHelper.GetString("SettingsPage_GitHubLink/Content");
+        }
+
+        private string GetFeedbackLinkText()
+        {
+            return LocalizationHelper.GetString("SettingsPage_FeedbackLink/Content");
+        }
+
         private async System.Threading.Tasks.Task InitializeStartupSettingsAsync()
         {
             try
