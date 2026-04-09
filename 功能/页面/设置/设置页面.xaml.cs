@@ -222,6 +222,15 @@ namespace Docked_AI.Features.Pages.Settings
             await Launcher.LaunchUriAsync(uri);
         }
 
+        private void OnLanguageCardClick(object sender, RoutedEventArgs e)
+        {
+            // 点击语言设置卡片时，打开 ComboBox 的下拉菜单
+            if (LanguageComboBox != null)
+            {
+                LanguageComboBox.IsDropDownOpen = true;
+            }
+        }
+
         private async void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
         {
             // 确保 XamlRoot 已初始化

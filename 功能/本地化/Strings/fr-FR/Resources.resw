@@ -130,18 +130,6 @@
   <data name="SettingsPage_AppDetailsHeader.Header" xml:space="preserve">
     <value>Détails de l'application</value>
   </data>
-  <data name="SettingsPage_AppDetail1.Text" xml:space="preserve">
-    <value>Développé avec le framework WinUI 3</value>
-  </data>
-  <data name="SettingsPage_AppDetail2.Text" xml:space="preserve">
-    <value>Ancrage intelligent des fenêtres avec animations fluides</value>
-  </data>
-  <data name="SettingsPage_AppDetail3.Text" xml:space="preserve">
-    <value>Gestion intégrée des raccourcis d'applications web</value>
-  </data>
-  <data name="SettingsPage_AppDetail4.Text" xml:space="preserve">
-    <value>Conforme aux directives de conception Windows 11</value>
-  </data>
   <data name="SettingsPage_LinksHeader.Header" xml:space="preserve">
     <value>Liens connexes</value>
   </data>

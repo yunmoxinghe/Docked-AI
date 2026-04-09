@@ -131,18 +131,6 @@
   <data name="SettingsPage_AppDetailsHeader.Header" xml:space="preserve">
     <value>应用详情</value>
   </data>
-  <data name="SettingsPage_AppDetail1.Text" xml:space="preserve">
-    <value>基于 WinUI 3 框架开发</value>
-  </data>
-  <data name="SettingsPage_AppDetail2.Text" xml:space="preserve">
-    <value>支持智能窗口停靠与滑动动画</value>
-  </data>
-  <data name="SettingsPage_AppDetail3.Text" xml:space="preserve">
-    <value>集成网页应用快捷方式管理</value>
-  </data>
-  <data name="SettingsPage_AppDetail4.Text" xml:space="preserve">
-    <value>遵循 Windows 11 设计规范</value>
-  </data>
   <data name="SettingsPage_LinksHeader.Header" xml:space="preserve">
     <value>相关链接</value>
   </data>

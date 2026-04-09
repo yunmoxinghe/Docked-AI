@@ -130,18 +130,6 @@
   <data name="SettingsPage_AppDetailsHeader.Header" xml:space="preserve">
     <value>App-Details</value>
   </data>
-  <data name="SettingsPage_AppDetail1.Text" xml:space="preserve">
-    <value>Entwickelt mit WinUI 3 Framework</value>
-  </data>
-  <data name="SettingsPage_AppDetail2.Text" xml:space="preserve">
-    <value>Intelligentes Fenster-Docking mit flüssigen Animationen</value>
-  </data>
-  <data name="SettingsPage_AppDetail3.Text" xml:space="preserve">
-    <value>Integrierte Web-App-Verknüpfungsverwaltung</value>
-  </data>
-  <data name="SettingsPage_AppDetail4.Text" xml:space="preserve">
-    <value>Folgt den Windows 11 Designrichtlinien</value>
-  </data>
   <data name="SettingsPage_LinksHeader.Header" xml:space="preserve">
     <value>Verwandte Links</value>
   </data>

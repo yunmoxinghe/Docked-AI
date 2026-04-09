@@ -130,18 +130,6 @@
   <data name="SettingsPage_AppDetailsHeader.Header" xml:space="preserve">
     <value>앱 세부정보</value>
   </data>
-  <data name="SettingsPage_AppDetail1.Text" xml:space="preserve">
-    <value>WinUI 3 프레임워크로 개발</value>
-  </data>
-  <data name="SettingsPage_AppDetail2.Text" xml:space="preserve">
-    <value>스마트 창 도킹 및 부드러운 애니메이션</value>
-  </data>
-  <data name="SettingsPage_AppDetail3.Text" xml:space="preserve">
-    <value>웹 앱 바로가기 관리 통합</value>
-  </data>
-  <data name="SettingsPage_AppDetail4.Text" xml:space="preserve">
-    <value>Windows 11 디자인 가이드라인 준수</value>
-  </data>
   <data name="SettingsPage_LinksHeader.Header" xml:space="preserve">
     <value>관련 링크</value>
   </data>

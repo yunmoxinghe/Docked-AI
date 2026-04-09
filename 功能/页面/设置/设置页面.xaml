@@ -108,7 +108,10 @@
                         </controls:SettingsExpander.Items>
                     </controls:SettingsExpander>
 
-                    <controls:SettingsCard x:Uid="SettingsPage_LanguageHeader">
+                    <controls:SettingsCard x:Uid="SettingsPage_LanguageHeader"
+                                      IsClickEnabled="True"
+                                      Click="OnLanguageCardClick"
+                                      IsActionIconVisible="False">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xF2B7;"/>
                         </controls:SettingsCard.HeaderIcon>
@@ -138,17 +141,6 @@
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                         
                         <controls:SettingsExpander.Items>
-                            <controls:SettingsCard x:Uid="SettingsPage_AppDetailsHeader"
-                                              HorizontalContentAlignment="Left"
-                                              ContentAlignment="Left">
-                                <StackPanel Margin="-12,0,0,0" Orientation="Vertical" Spacing="4">
-                                    <TextBlock x:Uid="SettingsPage_AppDetail1" FontSize="14"/>
-                                    <TextBlock x:Uid="SettingsPage_AppDetail2" FontSize="14"/>
-                                    <TextBlock x:Uid="SettingsPage_AppDetail3" FontSize="14"/>
-                                    <TextBlock x:Uid="SettingsPage_AppDetail4" FontSize="14"/>
-                                </StackPanel>
-                            </controls:SettingsCard>
-                            
                             <controls:SettingsCard x:Uid="SettingsPage_LinksHeader"
                                               HorizontalContentAlignment="Left"
                                               ContentAlignment="Left">
