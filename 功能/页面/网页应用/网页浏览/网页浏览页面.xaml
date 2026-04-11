@@ -85,48 +85,54 @@
             Background="{ThemeResource LayerFillColorDefaultBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0">
-            <StackPanel Orientation="Horizontal">
-                <controls:AppBarButton
-                    x:Name="BackButton"
-                    Click="BackButton_Click"
-                    LabelPosition="Collapsed">
-                    <controls:AppBarButton.Icon>
-                        <SymbolIcon Symbol="Back" />
-                    </controls:AppBarButton.Icon>
-                </controls:AppBarButton>
-                <controls:AppBarButton
-                    x:Name="ForwardButton"
-                    Click="ForwardButton_Click"
-                    LabelPosition="Collapsed">
-                    <controls:AppBarButton.Icon>
-                        <SymbolIcon Symbol="Forward" />
-                    </controls:AppBarButton.Icon>
-                </controls:AppBarButton>
-                <controls:AppBarButton
-                    x:Name="RefreshButton"
-                    Click="RefreshButton_Click"
-                    LabelPosition="Collapsed">
-                    <controls:AppBarButton.Icon>
-                        <SymbolIcon Symbol="Refresh" />
-                    </controls:AppBarButton.Icon>
-                </controls:AppBarButton>
-                <controls:AppBarButton
-                    x:Name="CopyUrlButton"
-                    Click="CopyUrlButton_Click"
-                    LabelPosition="Collapsed">
-                    <controls:AppBarButton.Icon>
-                        <SymbolIcon Symbol="Copy" />
-                    </controls:AppBarButton.Icon>
-                </controls:AppBarButton>
-                <controls:AppBarButton
-                    x:Name="OpenExternalButton"
-                    Click="OpenExternalButton_Click"
-                    LabelPosition="Collapsed">
-                    <controls:AppBarButton.Icon>
-                        <SymbolIcon Symbol="World" />
-                    </controls:AppBarButton.Icon>
-                </controls:AppBarButton>
-            </StackPanel>
+            <Grid HorizontalAlignment="Center">
+                <StackPanel 
+                    x:Name="BottomButtonsPanel"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                    <controls:AppBarButton
+                        x:Name="BackButton"
+                        Click="BackButton_Click"
+                        LabelPosition="Collapsed">
+                        <controls:AppBarButton.Icon>
+                            <SymbolIcon Symbol="Back" />
+                        </controls:AppBarButton.Icon>
+                    </controls:AppBarButton>
+                    <controls:AppBarButton
+                        x:Name="ForwardButton"
+                        Click="ForwardButton_Click"
+                        LabelPosition="Collapsed">
+                        <controls:AppBarButton.Icon>
+                            <SymbolIcon Symbol="Forward" />
+                        </controls:AppBarButton.Icon>
+                    </controls:AppBarButton>
+                    <controls:AppBarButton
+                        x:Name="RefreshButton"
+                        Click="RefreshButton_Click"
+                        LabelPosition="Collapsed">
+                        <controls:AppBarButton.Icon>
+                            <SymbolIcon Symbol="Refresh" />
+                        </controls:AppBarButton.Icon>
+                    </controls:AppBarButton>
+                    <controls:AppBarButton
+                        x:Name="CopyUrlButton"
+                        Click="CopyUrlButton_Click"
+                        LabelPosition="Collapsed">
+                        <controls:AppBarButton.Icon>
+                            <SymbolIcon Symbol="Copy" />
+                        </controls:AppBarButton.Icon>
+                    </controls:AppBarButton>
+                    <controls:AppBarButton
+                        x:Name="OpenExternalButton"
+                        Click="OpenExternalButton_Click"
+                        LabelPosition="Collapsed">
+                        <controls:AppBarButton.Icon>
+                            <SymbolIcon Symbol="World" />
+                        </controls:AppBarButton.Icon>
+                    </controls:AppBarButton>
+                </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </Page>

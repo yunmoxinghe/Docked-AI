@@ -51,6 +51,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             // 设置自适应间距
             ApplyResponsiveSpacing();
             SizeChanged += (s, e) => ApplyResponsiveSpacing();
+            BottomBarHost.SizeChanged += (s, e) => ApplyBottomBarResponsiveLayout();
 
             Loaded += WebBrowserPage_Loaded;
             Unloaded += WebBrowserPage_Unloaded;
@@ -66,6 +67,96 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
             TopBarGrid.Padding = new Thickness(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding);
             TitleStackPanel.Margin = new Thickness(stackPanelMargin, 0, stackPanelMargin, 0);
+        }
+
+        private void ApplyBottomBarResponsiveLayout()
+        {
+            if (BottomBarHost.ActualWidth <= 0)
+            {
+                return;
+            }
+
+            // 获取所有按钮
+            var buttons = new[]
+            {
+                BackButton,
+                ForwardButton,
+                RefreshButton,
+                CopyUrlButton,
+                OpenExternalButton
+            };
+
+            const int buttonCount = 5;
+            const double minButtonWidth = 40.0;
+            const double maxButtonWidth = 68.0;
+            const double minSpacing = 2.0;
+            const double maxSpacing = 16.0;
+            const double containerPadding = 16.0; // 容器左右内边距
+
+            double availableWidth = BottomBarHost.ActualWidth - (containerPadding * 2);
+
+            // 计算最优按钮宽度和间距
+            // 公式: availableWidth = (buttonWidth * buttonCount) + (spacing * (buttonCount - 1))
+            // 优先保证按钮宽度，然后分配间距
+
+            double buttonWidth;
+            double spacing;
+
+            // 尝试使用最大按钮宽度
+            double maxTotalButtonWidth = maxButtonWidth * buttonCount;
+            double remainingWidth = availableWidth - maxTotalButtonWidth;
+
+            if (remainingWidth >= minSpacing * (buttonCount - 1))
+            {
+                // 空间充足，使用最大按钮宽度
+                buttonWidth = maxButtonWidth;
+                spacing = Math.Min(maxSpacing, remainingWidth / (buttonCount - 1));
+            }
+            else
+            {
+                // 空间不足，需要缩小按钮
+                // 先尝试使用最小间距
+                double minTotalSpacing = minSpacing * (buttonCount - 1);
+                double widthForButtons = availableWidth - minTotalSpacing;
+                buttonWidth = widthForButtons / buttonCount;
+
+                if (buttonWidth >= minButtonWidth)
+                {
+                    // 按钮宽度在合理范围内
+                    spacing = minSpacing;
+                }
+                else
+                {
+                    // 极端情况：使用最小按钮宽度
+                    buttonWidth = minButtonWidth;
+                    double totalButtonWidth = buttonWidth * buttonCount;
+                    spacing = Math.Max(0, (availableWidth - totalButtonWidth) / (buttonCount - 1));
+                }
+            }
+
+            // 应用计算结果
+            foreach (var button in buttons)
+            {
+                button.Width = buttonWidth;
+                button.MinWidth = minButtonWidth;
+            }
+
+            // 设置间距（通过 Margin 实现）
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                if (i == 0)
+                {
+                    buttons[i].Margin = new Thickness(0, 0, spacing / 2, 0);
+                }
+                else if (i == buttons.Length - 1)
+                {
+                    buttons[i].Margin = new Thickness(spacing / 2, 0, 0, 0);
+                }
+                else
+                {
+                    buttons[i].Margin = new Thickness(spacing / 2, 0, spacing / 2, 0);
+                }
+            }
         }
 
         protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
