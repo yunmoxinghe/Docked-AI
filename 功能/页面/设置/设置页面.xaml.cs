@@ -10,7 +10,6 @@ using Windows.ApplicationModel;
 using Docked_AI.Features.Localization;
 using Docked_AI.Features.AppEntry.AutoLaunch;
 using Docked_AI.Features.Hotkey;
-using Docked_AI.Features.Pages.Test;
 using Docked_AI.Features.Settings;
 using Windows.UI.Core;
 
@@ -233,12 +232,6 @@ namespace Docked_AI.Features.Pages.Settings
         {
             var uri = new Uri("https://github.com/yunmoxinghe/Docked-AI/blob/main/LICENSE");
             await Launcher.LaunchUriAsync(uri);
-        }
-
-        private void OnTestPageClick(object sender, RoutedEventArgs e)
-        {
-            // 导航到测试页面
-            Frame.Navigate(typeof(WebView2RoundedCornerTestPage));
         }
 
         private void LoadExperimentalSettings()
