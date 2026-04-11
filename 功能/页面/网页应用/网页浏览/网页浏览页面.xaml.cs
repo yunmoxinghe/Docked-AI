@@ -91,33 +91,34 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             const double maxButtonWidth = 68.0;
             const double minSpacing = 2.0;
             const double maxSpacing = 16.0;
-            const double containerPadding = 16.0; // 容器左右内边距
 
-            double availableWidth = BottomBarHost.ActualWidth - (containerPadding * 2);
+            double availableWidth = BottomBarHost.ActualWidth;
 
             // 计算最优按钮宽度和间距
-            // 公式: availableWidth = (buttonWidth * buttonCount) + (spacing * (buttonCount - 1))
-            // 优先保证按钮宽度，然后分配间距
+            // 公式: availableWidth = (sidePadding * 2) + (buttonWidth * buttonCount) + (spacing * (buttonCount - 1))
+            // 其中 sidePadding = spacing，保持一致
 
             double buttonWidth;
             double spacing;
 
             // 尝试使用最大按钮宽度
             double maxTotalButtonWidth = maxButtonWidth * buttonCount;
+            // 两侧边距 + 按钮间距 = spacing * (buttonCount + 1)
             double remainingWidth = availableWidth - maxTotalButtonWidth;
+            double calculatedSpacing = remainingWidth / (buttonCount + 1);
 
-            if (remainingWidth >= minSpacing * (buttonCount - 1))
+            if (calculatedSpacing >= minSpacing)
             {
-                // 空间充足，使用最大按钮宽度
+                // 空间充足
                 buttonWidth = maxButtonWidth;
-                spacing = Math.Min(maxSpacing, remainingWidth / (buttonCount - 1));
+                spacing = Math.Min(maxSpacing, calculatedSpacing);
             }
             else
             {
                 // 空间不足，需要缩小按钮
-                // 先尝试使用最小间距
-                double minTotalSpacing = minSpacing * (buttonCount - 1);
-                double widthForButtons = availableWidth - minTotalSpacing;
+                // 使用最小间距重新计算
+                double totalSpacing = minSpacing * (buttonCount + 1);
+                double widthForButtons = availableWidth - totalSpacing;
                 buttonWidth = widthForButtons / buttonCount;
 
                 if (buttonWidth >= minButtonWidth)
@@ -130,7 +131,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     // 极端情况：使用最小按钮宽度
                     buttonWidth = minButtonWidth;
                     double totalButtonWidth = buttonWidth * buttonCount;
-                    spacing = Math.Max(0, (availableWidth - totalButtonWidth) / (buttonCount - 1));
+                    spacing = Math.Max(0, (availableWidth - totalButtonWidth) / (buttonCount + 1));
                 }
             }
 
@@ -146,17 +147,23 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             {
                 if (i == 0)
                 {
-                    buttons[i].Margin = new Thickness(0, 0, spacing / 2, 0);
+                    // 第一个按钮：右侧有间距
+                    buttons[i].Margin = new Thickness(0, 0, spacing, 0);
                 }
                 else if (i == buttons.Length - 1)
                 {
-                    buttons[i].Margin = new Thickness(spacing / 2, 0, 0, 0);
+                    // 最后一个按钮：无间距
+                    buttons[i].Margin = new Thickness(0);
                 }
                 else
                 {
-                    buttons[i].Margin = new Thickness(spacing / 2, 0, spacing / 2, 0);
+                    // 中间按钮：右侧有间距
+                    buttons[i].Margin = new Thickness(0, 0, spacing, 0);
                 }
             }
+
+            // 设置 StackPanel 的 Padding，两侧边距等于按钮间距
+            BottomButtonsPanel.Padding = new Thickness(spacing, 0, spacing, 0);
         }
 
         protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
