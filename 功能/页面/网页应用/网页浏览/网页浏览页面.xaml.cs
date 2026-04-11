@@ -38,6 +38,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private readonly SolidColorBrush _bottomBarForegroundBrush = new();
         private readonly SolidColorBrush _topBarSecondaryForegroundBrush = new();
         private readonly SolidColorBrush _bottomBarDisabledForegroundBrush = new();
+        private readonly SolidColorBrush _bottomBarHoverForegroundBrush = new();
         private bool _isDisposed;
         private bool _useRoundedWebView;
         private Microsoft.UI.Xaml.Controls.WebView2? _activeWebView;
@@ -121,6 +122,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             {
                 _topBarForegroundBrush.Color = themeBrush.Color;
                 _bottomBarForegroundBrush.Color = themeBrush.Color;
+                System.Diagnostics.Debug.WriteLine($"[InitializeForegroundColors] 从主题获取: {themeBrush.Color}");
             }
             else
             {
@@ -129,6 +131,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 var defaultColor = theme == ApplicationTheme.Dark ? Colors.White : Colors.Black;
                 _topBarForegroundBrush.Color = defaultColor;
                 _bottomBarForegroundBrush.Color = defaultColor;
+                System.Diagnostics.Debug.WriteLine($"[InitializeForegroundColors] 使用默认: {defaultColor}, 主题: {theme}");
             }
 
             // 初始化次要前景色（用于URL和图标）
@@ -154,24 +157,30 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 && disabledResource is SolidColorBrush disabledBrush)
             {
                 _bottomBarDisabledForegroundBrush.Color = disabledBrush.Color;
+                System.Diagnostics.Debug.WriteLine($"[InitializeForegroundColors] 禁用颜色从主题: {disabledBrush.Color}");
             }
             else
             {
-                // 回退：使用主色的40%透明度
+                // 回退：使用主色的60%透明度（提高可见度）
                 var baseColor = _bottomBarForegroundBrush.Color;
                 _bottomBarDisabledForegroundBrush.Color = Windows.UI.Color.FromArgb(
-                    (byte)(baseColor.A * 0.4),
+                    (byte)(baseColor.A * 0.6),
                     baseColor.R,
                     baseColor.G,
                     baseColor.B
                 );
+                System.Diagnostics.Debug.WriteLine($"[InitializeForegroundColors] 禁用颜色计算: {_bottomBarDisabledForegroundBrush.Color}");
             }
+            
+            // 初始化悬停状态颜色（比正常状态稍亮）
+            _bottomBarHoverForegroundBrush.Color = AdjustColorBrightness(_bottomBarForegroundBrush.Color, 0.15);
+            System.Diagnostics.Debug.WriteLine($"[InitializeForegroundColors] 悬停颜色: {_bottomBarHoverForegroundBrush.Color}");
         }
 
         private void SetButtonStateColors(AppBarButton button)
         {
             // 设置按钮的悬停、按下和禁用状态颜色
-            button.Resources["AppBarButtonForegroundPointerOver"] = _bottomBarForegroundBrush;
+            button.Resources["AppBarButtonForegroundPointerOver"] = _bottomBarHoverForegroundBrush;
             button.Resources["AppBarButtonForegroundPressed"] = _bottomBarForegroundBrush;
             button.Resources["AppBarButtonForegroundDisabled"] = _bottomBarDisabledForegroundBrush;
         }
@@ -816,6 +825,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             SolidColorBrush background = isTop ? _topBarBackgroundBrush : _bottomBarBackgroundBrush;
             SolidColorBrush foreground = isTop ? _topBarForegroundBrush : _bottomBarForegroundBrush;
 
+            System.Diagnostics.Debug.WriteLine($"[ApplyBarTint] isTop={isTop}, 背景色={tinted}, 采样色={sampledColor}");
+
             // 改进的防闪烁逻辑：
             // 只在首次接收且颜色与当前背景相同（仍是初始透明状态）时过滤纯白
             // 这样可以避免白色主题网站的颜色跳变
@@ -830,6 +841,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 if (isCurrentlyTransparent && isPureWhite)
                 {
                     // 首次加载时忽略纯白色，保持透明，等待真实内容加载
+                    System.Diagnostics.Debug.WriteLine("[ApplyBarTint] 首次加载忽略纯白色");
                     return;
                 }
                 
@@ -841,6 +853,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             AnimateColorChange(background, tinted);
             
             var contrastColor = GetContrastingForeground(sampledColor);
+            
+            System.Diagnostics.Debug.WriteLine($"[ApplyBarTint] 对比色={contrastColor}");
             
             // 使用动画平滑过渡前景色
             AnimateColorChange(foreground, contrastColor);
@@ -858,14 +872,105 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
             else
             {
+                // 更新底部栏的悬停状态颜色
+                // 根据背景亮度决定是变亮还是变暗
+                double luminance = CalculateLuminance(sampledColor);
+                double adjustFactor = luminance < LuminanceThreshold ? 0.2 : -0.2; // 暗背景变亮，亮背景变暗
+                var hoverColor = AdjustColorBrightness(contrastColor, adjustFactor);
+                
+                System.Diagnostics.Debug.WriteLine($"[ApplyBarTint] 底部栏 - 背景亮度={luminance:F3}, 对比色={contrastColor}, 悬停色={hoverColor}");
+                AnimateColorChange(_bottomBarHoverForegroundBrush, hoverColor);
+                
                 // 更新底部栏的禁用状态颜色
+                // 使用更高的不透明度以确保在白色背景上可见
                 var disabledColor = Windows.UI.Color.FromArgb(
-                    (byte)(contrastColor.A * 0.4),
+                    (byte)(contrastColor.A * 0.6),  // 提高到 60% 不透明度
                     contrastColor.R,
                     contrastColor.G,
                     contrastColor.B
                 );
+                System.Diagnostics.Debug.WriteLine($"[ApplyBarTint] 底部栏 - 禁用颜色={disabledColor}");
                 AnimateColorChange(_bottomBarDisabledForegroundBrush, disabledColor);
+                
+                // 强制更新按钮的Resources和Foreground（确保立即生效）
+                UpdateButtonResources();
+            }
+        }
+
+        /// <summary>
+        /// 强制更新所有按钮的Resources和Foreground
+        /// </summary>
+        private void UpdateButtonResources()
+        {
+            var buttons = new[] { BackButton, ForwardButton, RefreshButton, CopyUrlButton, OpenExternalButton };
+            var icons = new[] { BackIcon, ForwardIcon, RefreshIcon, CopyIcon, OpenExternalIcon };
+            
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                var button = buttons[i];
+                var icon = icons[i];
+                
+                if (button != null)
+                {
+                    // 更新Resources
+                    button.Resources["AppBarButtonForegroundPointerOver"] = _bottomBarHoverForegroundBrush;
+                    button.Resources["AppBarButtonForegroundPressed"] = _bottomBarForegroundBrush;
+                    button.Resources["AppBarButtonForegroundDisabled"] = _bottomBarDisabledForegroundBrush;
+                    
+                    // 直接更新Foreground以确保立即生效
+                    button.Foreground = _bottomBarForegroundBrush;
+                    
+                    // 同时更新Icon的Foreground
+                    if (icon != null)
+                    {
+                        icon.Foreground = _bottomBarForegroundBrush;
+                    }
+                    
+                    // 强制刷新视觉状态
+                    VisualStateManager.GoToState(button, "Normal", false);
+                }
+            }
+            System.Diagnostics.Debug.WriteLine($"[UpdateButtonResources] 按钮已更新 - 正常色={_bottomBarForegroundBrush.Color}, 悬停色={_bottomBarHoverForegroundBrush.Color}, 禁用色={_bottomBarDisabledForegroundBrush.Color}");
+        }
+
+        /// <summary>
+        /// 计算颜色的相对亮度
+        /// </summary>
+        private static double CalculateLuminance(Windows.UI.Color color)
+        {
+            double r = color.R / 255.0;
+            double g = color.G / 255.0;
+            double b = color.B / 255.0;
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        }
+
+        /// <summary>
+        /// 调整颜色亮度
+        /// </summary>
+        /// <param name="color">原始颜色</param>
+        /// <param name="factor">调整因子，正数变亮，负数变暗</param>
+        private static Windows.UI.Color AdjustColorBrightness(Windows.UI.Color color, double factor)
+        {
+            if (factor > 0)
+            {
+                // 变亮：向白色混合
+                return Windows.UI.Color.FromArgb(
+                    color.A,
+                    (byte)Math.Min(255, color.R + (255 - color.R) * factor),
+                    (byte)Math.Min(255, color.G + (255 - color.G) * factor),
+                    (byte)Math.Min(255, color.B + (255 - color.B) * factor)
+                );
+            }
+            else
+            {
+                // 变暗：向黑色混合
+                factor = -factor;
+                return Windows.UI.Color.FromArgb(
+                    color.A,
+                    (byte)Math.Max(0, color.R * (1 - factor)),
+                    (byte)Math.Max(0, color.G * (1 - factor)),
+                    (byte)Math.Max(0, color.B * (1 - factor))
+                );
             }
         }
 

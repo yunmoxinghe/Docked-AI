@@ -131,7 +131,7 @@
                         Click="BackButton_Click"
                         LabelPosition="Collapsed">
                         <controls:AppBarButton.Icon>
-                            <SymbolIcon Symbol="Back" />
+                            <SymbolIcon Symbol="Back" x:Name="BackIcon" />
                         </controls:AppBarButton.Icon>
                     </controls:AppBarButton>
                     <controls:AppBarButton
@@ -139,7 +139,7 @@
                         Click="ForwardButton_Click"
                         LabelPosition="Collapsed">
                         <controls:AppBarButton.Icon>
-                            <SymbolIcon Symbol="Forward" />
+                            <SymbolIcon Symbol="Forward" x:Name="ForwardIcon" />
                         </controls:AppBarButton.Icon>
                     </controls:AppBarButton>
                     <controls:AppBarButton
@@ -147,7 +147,7 @@
                         Click="RefreshButton_Click"
                         LabelPosition="Collapsed">
                         <controls:AppBarButton.Icon>
-                            <SymbolIcon Symbol="Refresh" />
+                            <SymbolIcon Symbol="Refresh" x:Name="RefreshIcon" />
                         </controls:AppBarButton.Icon>
                     </controls:AppBarButton>
                     <controls:AppBarButton
@@ -155,7 +155,7 @@
                         Click="CopyUrlButton_Click"
                         LabelPosition="Collapsed">
                         <controls:AppBarButton.Icon>
-                            <SymbolIcon Symbol="Copy" />
+                            <SymbolIcon Symbol="Copy" x:Name="CopyIcon" />
                         </controls:AppBarButton.Icon>
                     </controls:AppBarButton>
                     <controls:AppBarButton
@@ -163,7 +163,7 @@
                         Click="OpenExternalButton_Click"
                         LabelPosition="Collapsed">
                         <controls:AppBarButton.Icon>
-                            <SymbolIcon Symbol="World" />
+                            <SymbolIcon Symbol="World" x:Name="OpenExternalIcon" />
                         </controls:AppBarButton.Icon>
                     </controls:AppBarButton>
                 </StackPanel>
