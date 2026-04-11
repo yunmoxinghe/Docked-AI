@@ -51,7 +51,6 @@
                         TextWrapping="NoWrap" />
                     <TextBlock
                         x:Name="UrlText"
-                        Opacity="0.72"
                         TextTrimming="CharacterEllipsis"
                         TextWrapping="NoWrap"
                         ToolTipService.ToolTip="">
@@ -73,6 +72,12 @@
             </Grid>
         </Border>
 
+        <!-- 中心区域背景 -->
+        <Border
+            x:Name="CenterAreaBackground"
+            Grid.Row="1"
+            Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" />
+
         <controls:WebView2
             x:Name="WebView"
             Grid.Row="1"
@@ -83,7 +88,7 @@
         <Border
             x:Name="RoundedWebViewContainer"
             Grid.Row="1"
-            Background="Transparent"
+            Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
             Visibility="Collapsed">
             <controls:WebView2
                 x:Name="RoundedWebView"

@@ -33,6 +33,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private readonly SolidColorBrush _bottomBarBackgroundBrush = new(Colors.Transparent);
         private readonly SolidColorBrush _topBarForegroundBrush = new();
         private readonly SolidColorBrush _bottomBarForegroundBrush = new();
+        private readonly SolidColorBrush _topBarSecondaryForegroundBrush = new();
+        private readonly SolidColorBrush _bottomBarDisabledForegroundBrush = new();
         private bool _isDisposed;
         private bool _useRoundedWebView;
         private Microsoft.UI.Xaml.Controls.WebView2? _activeWebView;
@@ -51,12 +53,21 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             TopBarHost.Background = _topBarBackgroundBrush;
             BottomBarHost.Background = _bottomBarBackgroundBrush;
             TitleText.Foreground = _topBarForegroundBrush;
+            UrlText.Foreground = _topBarSecondaryForegroundBrush;
+            SiteIconFallback.Foreground = _topBarSecondaryForegroundBrush;
 
             BackButton.Foreground = _bottomBarForegroundBrush;
             ForwardButton.Foreground = _bottomBarForegroundBrush;
             RefreshButton.Foreground = _bottomBarForegroundBrush;
             CopyUrlButton.Foreground = _bottomBarForegroundBrush;
             OpenExternalButton.Foreground = _bottomBarForegroundBrush;
+
+            // 设置按钮的悬停和禁用状态颜色
+            SetButtonStateColors(BackButton);
+            SetButtonStateColors(ForwardButton);
+            SetButtonStateColors(RefreshButton);
+            SetButtonStateColors(CopyUrlButton);
+            SetButtonStateColors(OpenExternalButton);
 
             // 设置自适应间距
             ApplyResponsiveSpacing();
@@ -109,6 +120,50 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 _topBarForegroundBrush.Color = defaultColor;
                 _bottomBarForegroundBrush.Color = defaultColor;
             }
+
+            // 初始化次要前景色（用于URL和图标）
+            if (Application.Current.Resources.TryGetValue("TextFillColorSecondaryBrush", out object? secondaryResource) 
+                && secondaryResource is SolidColorBrush secondaryBrush)
+            {
+                _topBarSecondaryForegroundBrush.Color = secondaryBrush.Color;
+            }
+            else
+            {
+                // 回退：使用主色的70%透明度
+                var baseColor = _topBarForegroundBrush.Color;
+                _topBarSecondaryForegroundBrush.Color = Windows.UI.Color.FromArgb(
+                    (byte)(baseColor.A * 0.7),
+                    baseColor.R,
+                    baseColor.G,
+                    baseColor.B
+                );
+            }
+
+            // 初始化禁用状态颜色
+            if (Application.Current.Resources.TryGetValue("TextFillColorDisabledBrush", out object? disabledResource) 
+                && disabledResource is SolidColorBrush disabledBrush)
+            {
+                _bottomBarDisabledForegroundBrush.Color = disabledBrush.Color;
+            }
+            else
+            {
+                // 回退：使用主色的40%透明度
+                var baseColor = _bottomBarForegroundBrush.Color;
+                _bottomBarDisabledForegroundBrush.Color = Windows.UI.Color.FromArgb(
+                    (byte)(baseColor.A * 0.4),
+                    baseColor.R,
+                    baseColor.G,
+                    baseColor.B
+                );
+            }
+        }
+
+        private void SetButtonStateColors(AppBarButton button)
+        {
+            // 设置按钮的悬停、按下和禁用状态颜色
+            button.Resources["AppBarButtonForegroundPointerOver"] = _bottomBarForegroundBrush;
+            button.Resources["AppBarButtonForegroundPressed"] = _bottomBarForegroundBrush;
+            button.Resources["AppBarButtonForegroundDisabled"] = _bottomBarDisabledForegroundBrush;
         }
 
         private void OnRoundedWebViewSettingsChanged(object? sender, EventArgs e)
@@ -558,7 +613,29 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             SolidColorBrush foreground = isTop ? _topBarForegroundBrush : _bottomBarForegroundBrush;
 
             background.Color = tinted;
-            foreground.Color = GetContrastingForeground(sampledColor);
+            var contrastColor = GetContrastingForeground(sampledColor);
+            foreground.Color = contrastColor;
+
+            // 更新次要前景色（用于URL和图标）
+            if (isTop)
+            {
+                _topBarSecondaryForegroundBrush.Color = Windows.UI.Color.FromArgb(
+                    (byte)(contrastColor.A * 0.7),
+                    contrastColor.R,
+                    contrastColor.G,
+                    contrastColor.B
+                );
+            }
+            else
+            {
+                // 更新底部栏的禁用状态颜色
+                _bottomBarDisabledForegroundBrush.Color = Windows.UI.Color.FromArgb(
+                    (byte)(contrastColor.A * 0.4),
+                    contrastColor.R,
+                    contrastColor.G,
+                    contrastColor.B
+                );
+            }
         }
 
         private static Windows.UI.Color GetContrastingForeground(Windows.UI.Color background)
