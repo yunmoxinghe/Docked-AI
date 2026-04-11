@@ -20,16 +20,17 @@
             x:Name="TopBarHost"
             Grid.Row="0"
             CornerRadius="4,4,0,0"
-            Background="Transparent"
+            Background="#01000000"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-            BorderThickness="0">
+            BorderThickness="0"
+            PointerPressed="TopBarHost_PointerPressed">
             <Grid x:Name="TopBarGrid">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Viewbox Width="20" Height="20" VerticalAlignment="Center">
+                <Viewbox Width="20" Height="20" VerticalAlignment="Center" IsHitTestVisible="False">
                     <Grid Width="20" Height="20">
                         <Image
                             x:Name="SiteIconImage"
@@ -46,7 +47,8 @@
                 <StackPanel
                     x:Name="TitleStackPanel"
                     Grid.Column="1"
-                    VerticalAlignment="Center">
+                    VerticalAlignment="Center"
+                    IsHitTestVisible="False">
                     <TextBlock
                         x:Name="TitleText"
                         TextTrimming="CharacterEllipsis"
@@ -71,7 +73,8 @@
                     IsIndeterminate="True"
                     Visibility="Collapsed"
                     Height="2"
-                    Margin="0,0,0,-2" />
+                    Margin="0,0,0,-2"
+                    IsHitTestVisible="False" />
             </Grid>
         </Border>
 

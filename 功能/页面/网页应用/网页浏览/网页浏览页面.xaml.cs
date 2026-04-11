@@ -27,13 +27,17 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private const double PercentageMax = 100.0;
         private const double ColorChannelMax = 255.0;
         private const int ColorTransitionDurationMs = 300; // 颜色过渡动画时长
+        
+        // 双击检测相关
+        private DateTime _lastClickTime = DateTime.MinValue;
+        private const int DoubleClickMaxDelayMs = 500; // 双击最大间隔时间（毫秒）
 
         private Uri? _pendingNavigationUri;
         private bool _isWebViewReady;
         private WebAppShortcut? _currentShortcut;
 
-        private readonly SolidColorBrush _topBarBackgroundBrush = new(Colors.Transparent);
-        private readonly SolidColorBrush _bottomBarBackgroundBrush = new(Colors.Transparent);
+        private readonly SolidColorBrush _topBarBackgroundBrush = new(Windows.UI.Color.FromArgb(1, 0, 0, 0)); // 几乎透明但能接收事件
+        private readonly SolidColorBrush _bottomBarBackgroundBrush = new(Windows.UI.Color.FromArgb(1, 0, 0, 0)); // 几乎透明但能接收事件
         private readonly SolidColorBrush _topBarForegroundBrush = new();
         private readonly SolidColorBrush _bottomBarForegroundBrush = new();
         private readonly SolidColorBrush _topBarSecondaryForegroundBrush = new();
@@ -464,6 +468,24 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             
             // 同步动态圆角
             SyncDynamicCorners();
+            
+            // 确保 TopBarHost 可以接收双击事件
+            System.Diagnostics.Debug.WriteLine("========================================");
+            System.Diagnostics.Debug.WriteLine("[WebBrowserPage_Loaded] 检查 TopBarHost 状态:");
+            System.Diagnostics.Debug.WriteLine($"  Background: {TopBarHost.Background}");
+            if (TopBarHost.Background is SolidColorBrush brush)
+            {
+                System.Diagnostics.Debug.WriteLine($"  Background Color: A={brush.Color.A}, R={brush.Color.R}, G={brush.Color.G}, B={brush.Color.B}");
+            }
+            System.Diagnostics.Debug.WriteLine($"  IsDoubleTapEnabled: {TopBarHost.IsDoubleTapEnabled}");
+            System.Diagnostics.Debug.WriteLine($"  IsTapEnabled: {TopBarHost.IsTapEnabled}");
+            System.Diagnostics.Debug.WriteLine("========================================");
+            
+            // 添加单击测试
+            TopBarHost.Tapped += (s, args) =>
+            {
+                System.Diagnostics.Debug.WriteLine("[TopBarHost] 单击事件触发");
+            };
         }
 
         private void WebBrowserPage_Unloaded(object sender, RoutedEventArgs e)
@@ -821,6 +843,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void ApplyBarTint(bool isTop, Windows.UI.Color sampledColor)
         {
+            // 确保Alpha值至少为1，以便接收指针事件
             var tinted = Windows.UI.Color.FromArgb(byte.MaxValue, sampledColor.R, sampledColor.G, sampledColor.B);
             SolidColorBrush background = isTop ? _topBarBackgroundBrush : _bottomBarBackgroundBrush;
             SolidColorBrush foreground = isTop ? _topBarForegroundBrush : _bottomBarForegroundBrush;
@@ -832,15 +855,16 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             // 这样可以避免白色主题网站的颜色跳变
             if (!_hasReceivedFirstTint)
             {
-                bool isCurrentlyTransparent = background.Color.A == 0 || 
-                    (background.Color.R == 0 && background.Color.G == 0 && background.Color.B == 0);
+                // 检查是否为初始状态（Alpha=1的黑色）
+                bool isCurrentlyInitial = background.Color.A <= 1 && 
+                    background.Color.R == 0 && background.Color.G == 0 && background.Color.B == 0;
                 
                 bool isPureWhite = sampledColor.R == 255 && sampledColor.G == 255 && sampledColor.B == 255;
                 
-                // 只有在当前是透明状态且采样到纯白时才过滤
-                if (isCurrentlyTransparent && isPureWhite)
+                // 只有在当前是初始状态且采样到纯白时才过滤
+                if (isCurrentlyInitial && isPureWhite)
                 {
-                    // 首次加载时忽略纯白色，保持透明，等待真实内容加载
+                    // 首次加载时忽略纯白色，保持初始状态，等待真实内容加载
                     System.Diagnostics.Debug.WriteLine("[ApplyBarTint] 首次加载忽略纯白色");
                     return;
                 }
@@ -1184,6 +1208,156 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
 
             await Launcher.LaunchUriAsync(uri);
+        }
+
+        private void TopBarHost_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            var now = DateTime.Now;
+            var timeSinceLastClick = (now - _lastClickTime).TotalMilliseconds;
+            
+            System.Diagnostics.Debug.WriteLine($"[TopBarHost_PointerPressed] 点击事件触发，距离上次点击: {timeSinceLastClick}ms");
+            
+            if (timeSinceLastClick <= DoubleClickMaxDelayMs && timeSinceLastClick > 0)
+            {
+                // 检测到双击
+                System.Diagnostics.Debug.WriteLine("========================================");
+                System.Diagnostics.Debug.WriteLine("[TopBarHost_PointerPressed] ✓ 检测到双击！");
+                System.Diagnostics.Debug.WriteLine("========================================");
+                
+                HandleDoubleClick();
+                _lastClickTime = DateTime.MinValue; // 重置，避免三击被识别为双击
+            }
+            else
+            {
+                // 单击
+                _lastClickTime = now;
+            }
+        }
+        
+        private void HandleDoubleClick()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[HandleDoubleClick] 开始处理双击");
+                
+                // 方法1: 直接触发导航栏的 WindowStateToggleRequested 事件
+                // 从当前页面向上遍历找到 Linker，然后访问 NavBarInstance
+                DependencyObject? current = this;
+                while (current != null)
+                {
+                    current = VisualTreeHelper.GetParent(current);
+                    
+                    // 查找 Linker 类型
+                    if (current?.GetType().Name == "Linker")
+                    {
+                        System.Diagnostics.Debug.WriteLine("[HandleDoubleClick] 找到 Linker");
+                        
+                        // 通过反射获取 NavBarInstance 属性
+                        var navBarProperty = current.GetType().GetProperty("NavBarInstance");
+                        if (navBarProperty != null)
+                        {
+                            var navBar = navBarProperty.GetValue(current);
+                            System.Diagnostics.Debug.WriteLine($"[HandleDoubleClick] 获取到 NavBarInstance: {navBar?.GetType().Name ?? "null"}");
+                            
+                            if (navBar != null)
+                            {
+                                // 获取 WindowStateToggleRequested 事件并触发
+                                var eventField = navBar.GetType().GetField("WindowStateToggleRequested",
+                                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                                
+                                if (eventField != null)
+                                {
+                                    var eventDelegate = eventField.GetValue(navBar) as MulticastDelegate;
+                                    if (eventDelegate != null)
+                                    {
+                                        System.Diagnostics.Debug.WriteLine("[HandleDoubleClick] ✓ 触发 WindowStateToggleRequested 事件");
+                                        eventDelegate.DynamicInvoke(navBar, EventArgs.Empty);
+                                        return;
+                                    }
+                                }
+                                
+                                // 备用方法：直接调用事件触发方法
+                                var raiseMethod = navBar.GetType().GetMethod("OnWindowStateToggleRequested",
+                                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                                if (raiseMethod != null)
+                                {
+                                    System.Diagnostics.Debug.WriteLine("[HandleDoubleClick] ✓ 调用 OnWindowStateToggleRequested 方法");
+                                    raiseMethod.Invoke(navBar, null);
+                                    return;
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+                
+                // 方法2: 直接调用主窗口的 ToggleWindowState
+                System.Diagnostics.Debug.WriteLine("[HandleDoubleClick] 尝试直接调用主窗口方法");
+                var window = GetMainWindowInstance();
+                if (window is Docked_AI.MainWindow mainWindow)
+                {
+                    System.Diagnostics.Debug.WriteLine("[HandleDoubleClick] ✓ 找到主窗口，调用 ToggleWindowState");
+                    mainWindow.ToggleWindowState();
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[HandleDoubleClick] ✗ 窗口类型不匹配: {window?.GetType().Name ?? "null"}");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[HandleDoubleClick] ✗ 异常: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[HandleDoubleClick] 堆栈: {ex.StackTrace}");
+            }
+        }
+
+        private void TopBarHost_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("========================================");
+            System.Diagnostics.Debug.WriteLine("[TopBarHost_DoubleTapped] 双击事件触发！");
+            System.Diagnostics.Debug.WriteLine($"[TopBarHost_DoubleTapped] Sender: {sender?.GetType().Name}");
+            System.Diagnostics.Debug.WriteLine($"[TopBarHost_DoubleTapped] OriginalSource: {e.OriginalSource?.GetType().Name}");
+            System.Diagnostics.Debug.WriteLine("========================================");
+            
+            HandleDoubleClick();
+        }
+
+        private Window? GetMainWindowInstance()
+        {
+            try
+            {
+                // 方法1: 使用公共属性
+                if (Application.Current is App app)
+                {
+                    var window = app.MainWindow;
+                    System.Diagnostics.Debug.WriteLine($"[GetMainWindowInstance] 从 App.MainWindow 获取: {window?.GetType().Name ?? "null"}");
+                    if (window != null)
+                    {
+                        return window;
+                    }
+                }
+                
+                // 方法2: 从 App.Current 获取主窗口（备用）
+                System.Diagnostics.Debug.WriteLine("[GetMainWindowInstance] 尝试从 App._window 字段获取");
+                if (Application.Current is App app2)
+                {
+                    var windowField = typeof(App).GetField("_window", 
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (windowField != null)
+                    {
+                        var window = windowField.GetValue(app2) as Window;
+                        System.Diagnostics.Debug.WriteLine($"[GetMainWindowInstance] 从 App._window 获取: {window?.GetType().Name ?? "null"}");
+                        return window;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GetMainWindowInstance] 异常: {ex.Message}");
+            }
+            
+            System.Diagnostics.Debug.WriteLine("[GetMainWindowInstance] 所有方法都失败了");
+            return null;
         }
 
         private void DisposeWebView()

@@ -33,6 +33,11 @@ namespace Docked_AI
         private ShareLaunchHandler? _shareLaunchHandler;
 
         /// <summary>
+        /// 获取主窗口实例（用于内部访问）
+        /// </summary>
+        public Window? MainWindow => _window;
+
+        /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>
