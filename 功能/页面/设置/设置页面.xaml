@@ -149,7 +149,7 @@
                         Description="启用实验性功能（可能不稳定）"
                         IsExpanded="False">
                         <controls:SettingsExpander.HeaderIcon>
-                            <FontIcon Glyph="&#xE7BA;" />
+                            <FontIcon Glyph="&#xF196;" />
                         </controls:SettingsExpander.HeaderIcon>
                         
                         <controls:SettingsExpander.Items>

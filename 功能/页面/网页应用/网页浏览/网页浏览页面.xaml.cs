@@ -31,8 +31,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private readonly SolidColorBrush _topBarBackgroundBrush = new(Colors.Transparent);
         private readonly SolidColorBrush _bottomBarBackgroundBrush = new(Colors.Transparent);
-        private readonly SolidColorBrush _topBarForegroundBrush = new(Colors.Black);
-        private readonly SolidColorBrush _bottomBarForegroundBrush = new(Colors.Black);
+        private readonly SolidColorBrush _topBarForegroundBrush = new();
+        private readonly SolidColorBrush _bottomBarForegroundBrush = new();
         private bool _isDisposed;
         private bool _useRoundedWebView;
         private Microsoft.UI.Xaml.Controls.WebView2? _activeWebView;
@@ -44,6 +44,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             // 根据设置决定使用哪个 WebView
             _useRoundedWebView = ExperimentalSettings.EnableRoundedWebView;
             UpdateWebViewVisibility();
+
+            // 初始化前景色为主题默认文本颜色
+            InitializeForegroundColors();
 
             TopBarHost.Background = _topBarBackgroundBrush;
             BottomBarHost.Background = _bottomBarBackgroundBrush;
@@ -86,6 +89,25 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 WebView.Visibility = Visibility.Visible;
                 RoundedWebViewContainer.Visibility = Visibility.Collapsed;
                 _activeWebView = WebView;
+            }
+        }
+
+        private void InitializeForegroundColors()
+        {
+            // 从主题资源获取默认文本颜色
+            if (Application.Current.Resources.TryGetValue("TextFillColorPrimaryBrush", out object? resource) 
+                && resource is SolidColorBrush themeBrush)
+            {
+                _topBarForegroundBrush.Color = themeBrush.Color;
+                _bottomBarForegroundBrush.Color = themeBrush.Color;
+            }
+            else
+            {
+                // 回退：根据当前主题选择黑色或白色
+                var theme = Application.Current.RequestedTheme;
+                var defaultColor = theme == ApplicationTheme.Dark ? Colors.White : Colors.Black;
+                _topBarForegroundBrush.Color = defaultColor;
+                _bottomBarForegroundBrush.Color = defaultColor;
             }
         }
 
