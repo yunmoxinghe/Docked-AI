@@ -22,7 +22,11 @@
             SizeChanged="ContentFrame_SizeChanged">
             <controls:Frame.ContentTransitions>
                 <TransitionCollection>
-                    <animations:NavigationThemeTransition />
+                    <animations:NavigationThemeTransition>
+                        <animations:NavigationThemeTransition.DefaultNavigationTransitionInfo>
+                            <animations:DrillInNavigationTransitionInfo />
+                        </animations:NavigationThemeTransition.DefaultNavigationTransitionInfo>
+                    </animations:NavigationThemeTransition>
                 </TransitionCollection>
             </controls:Frame.ContentTransitions>
         </controls:Frame>
