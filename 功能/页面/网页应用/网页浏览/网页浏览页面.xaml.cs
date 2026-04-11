@@ -19,7 +19,10 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
     public sealed partial class WebBrowserPage : Page
     {
         private const string TintMessageType = "docked_ai_tint";
-        private const byte BarBackgroundAlpha = 255;
+        private const double LuminanceThreshold = 140.0;
+        private const double MinOpacity = 0.01;
+        private const double PercentageMax = 100.0;
+        private const double ColorChannelMax = 255.0;
 
         private Uri? _pendingNavigationUri;
         private bool _isWebViewReady;
@@ -45,8 +48,24 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             CopyUrlButton.Foreground = _bottomBarForegroundBrush;
             OpenExternalButton.Foreground = _bottomBarForegroundBrush;
 
+            // 设置自适应间距
+            ApplyResponsiveSpacing();
+            SizeChanged += (s, e) => ApplyResponsiveSpacing();
+
             Loaded += WebBrowserPage_Loaded;
             Unloaded += WebBrowserPage_Unloaded;
+        }
+
+        private void ApplyResponsiveSpacing()
+        {
+            // 根据窗口宽度计算自适应间距
+            double width = ActualWidth;
+            double horizontalPadding = Math.Max(8, Math.Min(16, width * 0.02));
+            double verticalPadding = 8;
+            double stackPanelMargin = Math.Max(8, Math.Min(16, width * 0.015));
+
+            TopBarGrid.Padding = new Thickness(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding);
+            TitleStackPanel.Margin = new Thickness(stackPanelMargin, 0, stackPanelMargin, 0);
         }
 
         protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
@@ -182,24 +201,28 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
   }
   function effectiveBg(el) {
     let cur = el;
+    const minAlpha = 0.01;
     while (cur && cur !== document) {
       const bg = cssToRgbaArray(getComputedStyle(cur).backgroundColor);
-      if (bg && bg[3] > 0.01) return bg;
+      if (bg && bg[3] > minAlpha) return bg;
       cur = cur.parentElement;
     }
     const bodyBg = cssToRgbaArray(getComputedStyle(document.body).backgroundColor);
-    if (bodyBg && bodyBg[3] > 0.01) return bodyBg;
+    if (bodyBg && bodyBg[3] > minAlpha) return bodyBg;
     const htmlBg = cssToRgbaArray(getComputedStyle(document.documentElement).backgroundColor);
-    if (htmlBg && htmlBg[3] > 0.01) return htmlBg;
+    if (htmlBg && htmlBg[3] > minAlpha) return htmlBg;
     return [255, 255, 255, 1];
   }
   function sampleAtY(y) {
-    const x = Math.max(1, Math.floor(window.innerWidth / 2));
+    const minX = 1;
+    const x = Math.max(minX, Math.floor(window.innerWidth / 2));
     const el = document.elementFromPoint(x, y);
     return effectiveBg(el);
   }
   function rgbaToCss(rgba) {
-    const a = Math.max(0, Math.min(1, rgba[3]));
+    const minAlpha = 0;
+    const maxAlpha = 1;
+    const a = Math.max(minAlpha, Math.min(maxAlpha, rgba[3]));
     return `rgba(${Math.round(rgba[0])},${Math.round(rgba[1])},${Math.round(rgba[2])},${a})`;
   }
   function post(topCss, bottomCss) {
@@ -212,8 +235,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
   }
   function sendNow() {
     state.scheduled = false;
-    const top = rgbaToCss(sampleAtY(1));
-    const bottom = rgbaToCss(sampleAtY(Math.max(1, window.innerHeight - 2)));
+    const minY = 1;
+    const top = rgbaToCss(sampleAtY(minY));
+    const bottom = rgbaToCss(sampleAtY(Math.max(minY, window.innerHeight - 2)));
     if (top === state.lastTop && bottom === state.lastBottom) return;
     state.lastTop = top;
     state.lastBottom = bottom;
@@ -317,7 +341,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void ApplyBarTint(bool isTop, Windows.UI.Color sampledColor)
         {
-            var tinted = Windows.UI.Color.FromArgb(BarBackgroundAlpha, sampledColor.R, sampledColor.G, sampledColor.B);
+            var tinted = Windows.UI.Color.FromArgb(byte.MaxValue, sampledColor.R, sampledColor.G, sampledColor.B);
             SolidColorBrush background = isTop ? _topBarBackgroundBrush : _bottomBarBackgroundBrush;
             SolidColorBrush foreground = isTop ? _topBarForegroundBrush : _bottomBarForegroundBrush;
 
@@ -329,7 +353,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         {
             // Relative luminance (sRGB) approximation; good enough for choosing black/white.
             double luminance = 0.2126 * background.R + 0.7152 * background.G + 0.0722 * background.B;
-            return luminance < 140 ? Colors.White : Colors.Black;
+            return luminance < LuminanceThreshold ? Colors.White : Colors.Black;
         }
 
         private static bool TryParseCssColor(string? cssColor, out Windows.UI.Color color)
@@ -365,19 +389,21 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     return false;
                 }
 
-                color = Windows.UI.Color.FromArgb(255, r, g, b);
+                color = Windows.UI.Color.FromArgb(byte.MaxValue, r, g, b);
                 return true;
             }
 
             if (s.StartsWith('#'))
             {
                 string hex = s.Substring(1);
-                if (hex.Length == 6 &&
-                    byte.TryParse(hex.Substring(0, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte r) &&
-                    byte.TryParse(hex.Substring(2, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte g) &&
-                    byte.TryParse(hex.Substring(4, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte b))
+                const int hexColorLength = 6;
+                const int hexByteLength = 2;
+                if (hex.Length == hexColorLength &&
+                    byte.TryParse(hex.Substring(0, hexByteLength), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte r) &&
+                    byte.TryParse(hex.Substring(hexByteLength, hexByteLength), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte g) &&
+                    byte.TryParse(hex.Substring(hexByteLength * 2, hexByteLength), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte b))
                 {
-                    color = Windows.UI.Color.FromArgb(255, r, g, b);
+                    color = Windows.UI.Color.FromArgb(byte.MaxValue, r, g, b);
                     return true;
                 }
             }
@@ -396,8 +422,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     return false;
                 }
 
-                percent = Math.Max(0, Math.Min(100, percent));
-                value = (byte)Math.Round(percent / 100 * 255);
+                percent = Math.Max(0, Math.Min(PercentageMax, percent));
+                value = (byte)Math.Round(percent / PercentageMax * ColorChannelMax);
                 return true;
             }
 
@@ -406,7 +432,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 return false;
             }
 
-            raw = Math.Max(0, Math.Min(255, raw));
+            raw = Math.Max(0, Math.Min(ColorChannelMax, raw));
             value = (byte)Math.Round(raw);
             return true;
         }

@@ -17,44 +17,50 @@
         <Border
             x:Name="TopBarHost"
             Grid.Row="0"
-            Padding="12,10"
-            Background="#FF202020"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0">
-            <Grid>
+            <Grid x:Name="TopBarGrid">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Grid Width="22" Height="22" VerticalAlignment="Center">
-                    <Image
-                        x:Name="SiteIconImage"
-                        Width="22"
-                        Height="22"
-                        Stretch="UniformToFill"
-                        Visibility="Collapsed" />
-                    <FontIcon
-                        x:Name="SiteIconFallback"
-                        Glyph="&#xE774;"
-                        FontSize="16"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center" />
-                </Grid>
+                <Viewbox Width="20" Height="20" VerticalAlignment="Center">
+                    <Grid Width="20" Height="20">
+                        <Image
+                            x:Name="SiteIconImage"
+                            Stretch="UniformToFill"
+                            Visibility="Collapsed" />
+                        <FontIcon
+                            x:Name="SiteIconFallback"
+                            Glyph="&#xE774;"
+                            FontSize="16"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                    </Grid>
+                </Viewbox>
                 <StackPanel
+                    x:Name="TitleStackPanel"
                     Grid.Column="1"
-                    Margin="10,0,10,0"
                     VerticalAlignment="Center">
                     <TextBlock
                         x:Name="TitleText"
                         TextTrimming="CharacterEllipsis"
-                        FontWeight="SemiBold" />
+                        FontWeight="SemiBold"
+                        TextWrapping="NoWrap" />
                     <TextBlock
                         x:Name="UrlText"
                         Opacity="0.72"
-                        FontSize="11"
                         TextTrimming="CharacterEllipsis"
-                        ToolTipService.ToolTip="" />
+                        TextWrapping="NoWrap"
+                        ToolTipService.ToolTip="">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlockStyle}">
+                                <Setter Property="FontSize" Value="{StaticResource CaptionTextBlockFontSize}" />
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                 </StackPanel>
                 <ProgressBar
                     x:Name="LoadingProgressBar"
@@ -62,7 +68,8 @@
                     VerticalAlignment="Bottom"
                     IsIndeterminate="True"
                     Visibility="Collapsed"
-                    Height="2" />
+                    Height="2"
+                    Margin="0,0,0,-2" />
             </Grid>
         </Border>
 
@@ -70,67 +77,56 @@
             x:Name="WebView"
             Grid.Row="1"
             HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch"
-            DefaultBackgroundColor="#202020" />
+            VerticalAlignment="Stretch" />
 
         <Border
             x:Name="BottomBarHost"
             Grid.Row="2"
-            Padding="6,2"
-            Background="#FF202020"
+            Background="{ThemeResource LayerFillColorDefaultBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0">
-            <controls:CommandBar
-                x:Name="BottomCommandBar"
-                Background="Transparent"
-                DefaultLabelPosition="Collapsed">
-                <controls:CommandBar.PrimaryCommands>
-                    <controls:AppBarButton
-                        x:Name="BackButton"
-                        x:Uid="WebBrowserPage_Back"
-                        Click="BackButton_Click">
-                        <controls:AppBarButton.Icon>
-                            <SymbolIcon Symbol="Back" />
-                        </controls:AppBarButton.Icon>
-                    </controls:AppBarButton>
-                    <controls:AppBarButton
-                        x:Name="ForwardButton"
-                        x:Uid="WebBrowserPage_Forward"
-                        Click="ForwardButton_Click">
-                        <controls:AppBarButton.Icon>
-                            <SymbolIcon Symbol="Forward" />
-                        </controls:AppBarButton.Icon>
-                    </controls:AppBarButton>
-                    <controls:AppBarButton
-                        x:Name="RefreshButton"
-                        x:Uid="WebBrowserPage_Refresh"
-                        Click="RefreshButton_Click">
-                        <controls:AppBarButton.Icon>
-                            <SymbolIcon Symbol="Refresh" />
-                        </controls:AppBarButton.Icon>
-                    </controls:AppBarButton>
-                    <controls:AppBarButton
-                        x:Name="CopyUrlButton"
-                        x:Uid="WebBrowserPage_CopyUrl"
-                        Click="CopyUrlButton_Click">
-                        <controls:AppBarButton.Icon>
-                            <SymbolIcon Symbol="Copy" />
-                        </controls:AppBarButton.Icon>
-                    </controls:AppBarButton>
-                    <controls:AppBarButton
-                        x:Name="OpenExternalButton"
-                        x:Uid="WebBrowserPage_OpenExternal"
-                        Click="OpenExternalButton_Click">
-                        <controls:AppBarButton.Icon>
-                            <SymbolIcon Symbol="World" />
-                        </controls:AppBarButton.Icon>
-                    </controls:AppBarButton>
-                </controls:CommandBar.PrimaryCommands>
-
-                <controls:CommandBar.Content>
-                    <Border />
-                </controls:CommandBar.Content>
-            </controls:CommandBar>
+            <StackPanel Orientation="Horizontal">
+                <controls:AppBarButton
+                    x:Name="BackButton"
+                    Click="BackButton_Click"
+                    LabelPosition="Collapsed">
+                    <controls:AppBarButton.Icon>
+                        <SymbolIcon Symbol="Back" />
+                    </controls:AppBarButton.Icon>
+                </controls:AppBarButton>
+                <controls:AppBarButton
+                    x:Name="ForwardButton"
+                    Click="ForwardButton_Click"
+                    LabelPosition="Collapsed">
+                    <controls:AppBarButton.Icon>
+                        <SymbolIcon Symbol="Forward" />
+                    </controls:AppBarButton.Icon>
+                </controls:AppBarButton>
+                <controls:AppBarButton
+                    x:Name="RefreshButton"
+                    Click="RefreshButton_Click"
+                    LabelPosition="Collapsed">
+                    <controls:AppBarButton.Icon>
+                        <SymbolIcon Symbol="Refresh" />
+                    </controls:AppBarButton.Icon>
+                </controls:AppBarButton>
+                <controls:AppBarButton
+                    x:Name="CopyUrlButton"
+                    Click="CopyUrlButton_Click"
+                    LabelPosition="Collapsed">
+                    <controls:AppBarButton.Icon>
+                        <SymbolIcon Symbol="Copy" />
+                    </controls:AppBarButton.Icon>
+                </controls:AppBarButton>
+                <controls:AppBarButton
+                    x:Name="OpenExternalButton"
+                    Click="OpenExternalButton_Click"
+                    LabelPosition="Collapsed">
+                    <controls:AppBarButton.Icon>
+                        <SymbolIcon Symbol="World" />
+                    </controls:AppBarButton.Icon>
+                </controls:AppBarButton>
+            </StackPanel>
         </Border>
     </Grid>
 </Page>
