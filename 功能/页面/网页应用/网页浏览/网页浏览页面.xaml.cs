@@ -4,6 +4,7 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Web.WebView2.Core;
 using System;
@@ -20,10 +21,12 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
     public sealed partial class WebBrowserPage : Page
     {
         private const string TintMessageType = "docked_ai_tint";
-        private const double LuminanceThreshold = 140.0;
+        private const string ThemeColorMessageType = "docked_ai_theme_color";
+        private const double LuminanceThreshold = 0.179; // WCAG 标准阈值（归一化后）
         private const double MinOpacity = 0.01;
         private const double PercentageMax = 100.0;
         private const double ColorChannelMax = 255.0;
+        private const int ColorTransitionDurationMs = 300; // 颜色过渡动画时长
 
         private Uri? _pendingNavigationUri;
         private bool _isWebViewReady;
@@ -39,6 +42,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private bool _useRoundedWebView;
         private Microsoft.UI.Xaml.Controls.WebView2? _activeWebView;
         private bool _hasReceivedFirstTint;
+        private bool _hasAppliedThemeColor;
 
         public WebBrowserPage()
         {
@@ -88,6 +92,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             {
                 this.SizeChanged += OnPageSizeChanged;
             }
+            
+            // 监听父容器变化以同步动态圆角
+            this.SizeChanged += OnPageSizeChangedForCorners;
         }
 
         private void UpdateWebViewVisibility()
@@ -221,6 +228,80 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
             
             RoundedWebViewContainer.CornerRadius = cornerRadius;
+        }
+
+        private void OnPageSizeChangedForCorners(object sender, SizeChangedEventArgs e)
+        {
+            SyncDynamicCorners();
+        }
+
+        private void SyncDynamicCorners()
+        {
+            // 尝试从父级容器获取 CornerRadius
+            DependencyObject? parent = this.Parent;
+            CornerRadius cornerRadius = new CornerRadius(0);
+            string foundIn = "default";
+            
+            while (parent != null)
+            {
+                if (parent is Frame frame && frame.CornerRadius != new CornerRadius(0))
+                {
+                    cornerRadius = frame.CornerRadius;
+                    foundIn = $"Frame (CornerRadius={cornerRadius})";
+                    break;
+                }
+                if (parent is Border border && border.CornerRadius != new CornerRadius(0))
+                {
+                    cornerRadius = border.CornerRadius;
+                    foundIn = $"Border (CornerRadius={cornerRadius})";
+                    break;
+                }
+                if (parent is Grid grid && grid.CornerRadius != new CornerRadius(0))
+                {
+                    cornerRadius = grid.CornerRadius;
+                    foundIn = $"Grid (CornerRadius={cornerRadius})";
+                    break;
+                }
+                
+                parent = VisualTreeHelper.GetParent(parent);
+            }
+            
+            // 如果没有找到圆角，使用默认值 12
+            if (cornerRadius == new CornerRadius(0))
+            {
+                cornerRadius = new CornerRadius(12);
+            }
+            
+            // 确保最小圆角为 4
+            const double minCornerRadius = 4.0;
+            double topLeft = Math.Max(minCornerRadius, cornerRadius.TopLeft);
+            double topRight = Math.Max(minCornerRadius, cornerRadius.TopRight);
+            double bottomLeft = Math.Max(minCornerRadius, cornerRadius.BottomLeft);
+            double bottomRight = Math.Max(minCornerRadius, cornerRadius.BottomRight);
+            
+            // 直接给顶部栏和底部栏设置圆角
+            // 顶部栏：只有顶部圆角
+            TopBarHost.CornerRadius = new CornerRadius(
+                topLeft,
+                topRight,
+                0,
+                0
+            );
+            
+            // 底部栏：只有底部圆角
+            BottomBarHost.CornerRadius = new CornerRadius(
+                0,
+                0,
+                bottomRight,
+                bottomLeft
+            );
+            
+            // 调试输出
+            System.Diagnostics.Debug.WriteLine($"[SyncDynamicCorners] Found in: {foundIn}");
+            System.Diagnostics.Debug.WriteLine($"[SyncDynamicCorners] Original CornerRadius: {cornerRadius}");
+            System.Diagnostics.Debug.WriteLine($"[SyncDynamicCorners] Applied (with min=4): TopLeft={topLeft}, TopRight={topRight}, BottomLeft={bottomLeft}, BottomRight={bottomRight}");
+            System.Diagnostics.Debug.WriteLine($"[SyncDynamicCorners] TopBarHost.CornerRadius: {TopBarHost.CornerRadius}");
+            System.Diagnostics.Debug.WriteLine($"[SyncDynamicCorners] BottomBarHost.CornerRadius: {BottomBarHost.CornerRadius}");
         }
 
         private void ApplyResponsiveSpacing()
@@ -371,6 +452,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             {
                 SyncCornerRadiusFromParent();
             }
+            
+            // 同步动态圆角
+            SyncDynamicCorners();
         }
 
         private void WebBrowserPage_Unloaded(object sender, RoutedEventArgs e)
@@ -452,10 +536,17 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 return;
             }
 
+            // 增强版取色脚本：递归向上查找、支持渐变、图片背景等复杂场景
             string script = @"
 (() => {
   if (window.__dockedAiTint) return;
-  const state = { lastTop: null, lastBottom: null, scheduled: false };
+  const state = { 
+    lastTop: null, 
+    lastBottom: null, 
+    scheduled: false,
+    scrollDebounceTimer: null 
+  };
+  
   function cssToRgbaArray(css) {
     if (!css) return null;
     const m = css.match(/rgba?\(([^)]+)\)/i);
@@ -469,61 +560,131 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
     if (![r,g,b,a].every(n => Number.isFinite(n))) return null;
     return [r, g, b, a];
   }
+  
+  // 增强版：递归向上查找有效背景色
   function effectiveBg(el) {
+    if (!el) return null;
     let cur = el;
     const minAlpha = 0.01;
-    while (cur && cur !== document) {
-      const bg = cssToRgbaArray(getComputedStyle(cur).backgroundColor);
-      if (bg && bg[3] > minAlpha) return bg;
+    const maxDepth = 20; // 防止无限循环
+    let depth = 0;
+    
+    while (cur && cur !== document && depth < maxDepth) {
+      const style = getComputedStyle(cur);
+      const bg = cssToRgbaArray(style.backgroundColor);
+      
+      // 找到不透明的背景色
+      if (bg && bg[3] > minAlpha) {
+        return bg;
+      }
+      
+      // 检查是否有渐变背景（取渐变起始色）
+      const bgImage = style.backgroundImage;
+      if (bgImage && bgImage !== 'none') {
+        const gradientMatch = bgImage.match(/rgba?\([^)]+\)/i);
+        if (gradientMatch) {
+          const gradientColor = cssToRgbaArray(gradientMatch[0]);
+          if (gradientColor && gradientColor[3] > minAlpha) {
+            return gradientColor;
+          }
+        }
+      }
+      
       cur = cur.parentElement;
+      depth++;
     }
-    const bodyBg = cssToRgbaArray(getComputedStyle(document.body).backgroundColor);
-    if (bodyBg && bodyBg[3] > minAlpha) return bodyBg;
-    const htmlBg = cssToRgbaArray(getComputedStyle(document.documentElement).backgroundColor);
-    if (htmlBg && htmlBg[3] > minAlpha) return htmlBg;
-    return [255, 255, 255, 1];
+    
+    // 回退到 body
+    if (document.body) {
+      const bodyBg = cssToRgbaArray(getComputedStyle(document.body).backgroundColor);
+      if (bodyBg && bodyBg[3] > minAlpha) return bodyBg;
+    }
+    
+    // 回退到 html
+    if (document.documentElement) {
+      const htmlBg = cssToRgbaArray(getComputedStyle(document.documentElement).backgroundColor);
+      if (htmlBg && htmlBg[3] > minAlpha) return htmlBg;
+    }
+    
+    // 最终回退：返回 null 表示透明，让宿主决定
+    return null;
   }
+  
   function sampleAtY(y) {
     const minX = 1;
     const x = Math.max(minX, Math.floor(window.innerWidth / 2));
     const el = document.elementFromPoint(x, y);
     return effectiveBg(el);
   }
+  
   function rgbaToCss(rgba) {
+    if (!rgba) return null;
     const minAlpha = 0;
     const maxAlpha = 1;
     const a = Math.max(minAlpha, Math.min(maxAlpha, rgba[3]));
     return `rgba(${Math.round(rgba[0])},${Math.round(rgba[1])},${Math.round(rgba[2])},${a})`;
   }
+  
   function post(topCss, bottomCss) {
-    const msg = { type: 'docked_ai_tint', top: topCss, bottom: bottomCss, title: (document.title || '') };
+    const msg = { 
+      type: 'docked_ai_tint', 
+      top: topCss, 
+      bottom: bottomCss, 
+      title: (document.title || ''),
+      isTransparent: !topCss || !bottomCss
+    };
     try {
       window.chrome?.webview?.postMessage(JSON.stringify(msg));
     } catch (error) {
       console.warn('Failed to post tint message to host.', error);
     }
   }
+  
   function sendNow() {
     state.scheduled = false;
     const minY = 1;
-    const top = rgbaToCss(sampleAtY(minY));
-    const bottom = rgbaToCss(sampleAtY(Math.max(minY, window.innerHeight - 2)));
+    const topColor = sampleAtY(minY);
+    
+    // 滚动时只采样顶部，底部保持不变（大多数页面底部栏固定）
+    const bottomColor = sampleAtY(Math.max(minY, window.innerHeight - 2));
+    
+    const top = rgbaToCss(topColor);
+    const bottom = rgbaToCss(bottomColor);
+    
     if (top === state.lastTop && bottom === state.lastBottom) return;
     state.lastTop = top;
     state.lastBottom = bottom;
     post(top, bottom);
   }
+  
   function schedule() {
     if (state.scheduled) return;
     state.scheduled = true;
     requestAnimationFrame(sendNow);
   }
+  
+  // 滚动时使用防抖，避免频繁采样
+  function scheduleWithDebounce() {
+    if (state.scrollDebounceTimer) {
+      clearTimeout(state.scrollDebounceTimer);
+    }
+    state.scrollDebounceTimer = setTimeout(() => {
+      schedule();
+      state.scrollDebounceTimer = null;
+    }, 300); // 300ms 防抖
+  }
+  
   window.__dockedAiTint = { updateNow: schedule };
-  window.addEventListener('scroll', schedule, { passive: true });
+  
+  // 滚动使用防抖版本
+  window.addEventListener('scroll', scheduleWithDebounce, { passive: true });
+  
+  // 其他事件立即触发
   window.addEventListener('resize', schedule);
   document.addEventListener('readystatechange', schedule);
   document.addEventListener('DOMContentLoaded', schedule);
   window.addEventListener('load', schedule);
+  
   schedule();
 })();";
 
@@ -535,13 +696,17 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             LoadingProgressBar.Visibility = Visibility.Visible;
             // 重置取色状态，准备接收新页面的颜色
             _hasReceivedFirstTint = false;
+            _hasAppliedThemeColor = false;
         }
 
-        private void CoreWebView2_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+        private async void CoreWebView2_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
         {
             LoadingProgressBar.Visibility = Visibility.Collapsed;
             UpdateNavigationButtons();
             UpdateUrlText();
+            
+            // 分层取色策略：优先使用 theme-color
+            await TryApplyThemeColorAsync();
         }
 
         private void CoreWebView2_HistoryChanged(object? sender, object e)
@@ -575,7 +740,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             TitleText.Text = title;
         }
 
-        private void CoreWebView2_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+        private async void CoreWebView2_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             string json = e.TryGetWebMessageAsString();
             if (string.IsNullOrWhiteSpace(json))
@@ -587,22 +752,56 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             {
                 using JsonDocument doc = JsonDocument.Parse(json);
                 JsonElement root = doc.RootElement;
-                if (!root.TryGetProperty("type", out JsonElement typeEl) ||
-                    !string.Equals(typeEl.GetString(), TintMessageType, StringComparison.Ordinal))
+                if (!root.TryGetProperty("type", out JsonElement typeEl))
                 {
                     return;
                 }
 
-                if (root.TryGetProperty("top", out JsonElement topEl) &&
-                    TryParseCssColor(topEl.GetString(), out var topColor))
+                string messageType = typeEl.GetString() ?? string.Empty;
+
+                // 处理 theme-color 消息（优先级最高）
+                if (string.Equals(messageType, ThemeColorMessageType, StringComparison.Ordinal))
                 {
-                    ApplyBarTint(isTop: true, topColor);
+                    if (root.TryGetProperty("color", out JsonElement colorEl) &&
+                        TryParseCssColor(colorEl.GetString(), out var themeColor))
+                    {
+                        _hasAppliedThemeColor = true;
+                        ApplyBarTint(isTop: true, themeColor);
+                        ApplyBarTint(isTop: false, themeColor);
+                    }
+                    return;
                 }
 
-                if (root.TryGetProperty("bottom", out JsonElement bottomEl) &&
-                    TryParseCssColor(bottomEl.GetString(), out var bottomColor))
+                // 处理采样颜色消息
+                if (string.Equals(messageType, TintMessageType, StringComparison.Ordinal))
                 {
-                    ApplyBarTint(isTop: false, bottomColor);
+                    // 如果已经应用了 theme-color，跳过采样颜色
+                    if (_hasAppliedThemeColor)
+                    {
+                        return;
+                    }
+
+                    bool isTransparent = root.TryGetProperty("isTransparent", out JsonElement transparentEl) && 
+                                        transparentEl.GetBoolean();
+
+                    // 如果页面完全透明，尝试截图采样
+                    if (isTransparent)
+                    {
+                        await TryScreenshotSamplingAsync();
+                        return;
+                    }
+
+                    if (root.TryGetProperty("top", out JsonElement topEl) &&
+                        TryParseCssColor(topEl.GetString(), out var topColor))
+                    {
+                        ApplyBarTint(isTop: true, topColor);
+                    }
+
+                    if (root.TryGetProperty("bottom", out JsonElement bottomEl) &&
+                        TryParseCssColor(bottomEl.GetString(), out var bottomColor))
+                    {
+                        ApplyBarTint(isTop: false, bottomColor);
+                    }
                 }
             }
             catch
@@ -617,47 +816,95 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             SolidColorBrush background = isTop ? _topBarBackgroundBrush : _bottomBarBackgroundBrush;
             SolidColorBrush foreground = isTop ? _topBarForegroundBrush : _bottomBarForegroundBrush;
 
-            // 只在首次接收到颜色时过滤纯白色，避免加载初期的闪烁
-            // 之后允许白色，因为网页本身可能就是白色背景
-            if (!_hasReceivedFirstTint && sampledColor.R == 255 && sampledColor.G == 255 && sampledColor.B == 255)
+            // 改进的防闪烁逻辑：
+            // 只在首次接收且颜色与当前背景相同（仍是初始透明状态）时过滤纯白
+            // 这样可以避免白色主题网站的颜色跳变
+            if (!_hasReceivedFirstTint)
             {
-                // 首次加载时忽略纯白色，保持透明
-                return;
+                bool isCurrentlyTransparent = background.Color.A == 0 || 
+                    (background.Color.R == 0 && background.Color.G == 0 && background.Color.B == 0);
+                
+                bool isPureWhite = sampledColor.R == 255 && sampledColor.G == 255 && sampledColor.B == 255;
+                
+                // 只有在当前是透明状态且采样到纯白时才过滤
+                if (isCurrentlyTransparent && isPureWhite)
+                {
+                    // 首次加载时忽略纯白色，保持透明，等待真实内容加载
+                    return;
+                }
+                
+                // 标记已接收到第一次有效颜色
+                _hasReceivedFirstTint = true;
             }
 
-            // 标记已接收到第一次颜色
-            _hasReceivedFirstTint = true;
-
-            background.Color = tinted;
+            // 使用动画平滑过渡背景色
+            AnimateColorChange(background, tinted);
+            
             var contrastColor = GetContrastingForeground(sampledColor);
-            foreground.Color = contrastColor;
+            
+            // 使用动画平滑过渡前景色
+            AnimateColorChange(foreground, contrastColor);
 
             // 更新次要前景色（用于URL和图标）
             if (isTop)
             {
-                _topBarSecondaryForegroundBrush.Color = Windows.UI.Color.FromArgb(
+                var secondaryColor = Windows.UI.Color.FromArgb(
                     (byte)(contrastColor.A * 0.7),
                     contrastColor.R,
                     contrastColor.G,
                     contrastColor.B
                 );
+                AnimateColorChange(_topBarSecondaryForegroundBrush, secondaryColor);
             }
             else
             {
                 // 更新底部栏的禁用状态颜色
-                _bottomBarDisabledForegroundBrush.Color = Windows.UI.Color.FromArgb(
+                var disabledColor = Windows.UI.Color.FromArgb(
                     (byte)(contrastColor.A * 0.4),
                     contrastColor.R,
                     contrastColor.G,
                     contrastColor.B
                 );
+                AnimateColorChange(_bottomBarDisabledForegroundBrush, disabledColor);
             }
+        }
+
+        /// <summary>
+        /// 使用动画平滑过渡颜色
+        /// </summary>
+        private void AnimateColorChange(SolidColorBrush brush, Windows.UI.Color targetColor)
+        {
+            if (brush.Color == targetColor)
+            {
+                return; // 颜色相同，无需动画
+            }
+
+            var animation = new ColorAnimation
+            {
+                To = targetColor,
+                Duration = new Duration(TimeSpan.FromMilliseconds(ColorTransitionDurationMs)),
+                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
+            };
+
+            var storyboard = new Storyboard();
+            storyboard.Children.Add(animation);
+            Storyboard.SetTarget(animation, brush);
+            Storyboard.SetTargetProperty(animation, "Color");
+            
+            storyboard.Begin();
         }
 
         private static Windows.UI.Color GetContrastingForeground(Windows.UI.Color background)
         {
-            // Relative luminance (sRGB) approximation; good enough for choosing black/white.
-            double luminance = 0.2126 * background.R + 0.7152 * background.G + 0.0722 * background.B;
+            // WCAG 标准相对亮度公式：先归一化到 [0, 1]
+            double r = background.R / 255.0;
+            double g = background.G / 255.0;
+            double b = background.B / 255.0;
+            
+            // 相对亮度计算（sRGB）
+            double luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            
+            // 使用 WCAG 标准阈值 0.179
             return luminance < LuminanceThreshold ? Colors.White : Colors.Black;
         }
 
@@ -850,6 +1097,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             {
                 this.SizeChanged -= OnPageSizeChanged;
             }
+            
+            // 移除动态圆角监听
+            this.SizeChanged -= OnPageSizeChangedForCorners;
 
             if (_activeWebView?.CoreWebView2 is not null)
             {
@@ -878,6 +1128,183 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             _pendingNavigationUri = null;
             _currentShortcut = null;
             _isWebViewReady = false;
+        }
+
+        /// <summary>
+        /// 分层策略第一步：尝试从 meta[name="theme-color"] 获取主题色
+        /// </summary>
+        private async Task TryApplyThemeColorAsync()
+        {
+            if (_activeWebView?.CoreWebView2 is null)
+            {
+                return;
+            }
+
+            try
+            {
+                string script = @"
+(function() {
+    const meta = document.querySelector('meta[name=""theme-color""]');
+    if (meta && meta.content) {
+        return meta.content;
+    }
+    return null;
+})();";
+
+                string result = await _activeWebView.CoreWebView2.ExecuteScriptAsync(script);
+                
+                // 移除 JSON 字符串的引号
+                if (!string.IsNullOrWhiteSpace(result) && result != "null")
+                {
+                    string colorString = result.Trim('"');
+                    if (TryParseCssColor(colorString, out var themeColor))
+                    {
+                        _hasAppliedThemeColor = true;
+                        ApplyBarTint(isTop: true, themeColor);
+                        ApplyBarTint(isTop: false, themeColor);
+                        System.Diagnostics.Debug.WriteLine($"Applied theme-color: {colorString}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to get theme-color: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 分层策略终极方案：截图采样（仅在页面完全透明时使用）
+        /// </summary>
+        private async Task TryScreenshotSamplingAsync()
+        {
+            if (_activeWebView?.CoreWebView2 is null)
+            {
+                return;
+            }
+
+            try
+            {
+                using var stream = new InMemoryRandomAccessStream();
+                await _activeWebView.CoreWebView2.CapturePreviewAsync(
+                    CoreWebView2CapturePreviewImageFormat.Png, 
+                    stream);
+
+                stream.Seek(0);
+                var decoder = await Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(stream);
+                var pixelData = await decoder.GetPixelDataAsync();
+                byte[] pixels = pixelData.DetachPixelData();
+
+                uint width = decoder.PixelWidth;
+                uint height = decoder.PixelHeight;
+
+                if (width == 0 || height == 0)
+                {
+                    return;
+                }
+
+                // 采样顶部 10 行的中心区域
+                var topColor = SampleRegion(pixels, width, height, 0, 10);
+                if (topColor.HasValue)
+                {
+                    ApplyBarTint(isTop: true, topColor.Value);
+                }
+
+                // 采样底部 10 行的中心区域
+                var bottomColor = SampleRegion(pixels, width, height, (int)height - 10, (int)height);
+                if (bottomColor.HasValue)
+                {
+                    ApplyBarTint(isTop: false, bottomColor.Value);
+                }
+
+                _hasReceivedFirstTint = true;
+                System.Diagnostics.Debug.WriteLine("Applied screenshot sampling colors");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Screenshot sampling failed: {ex.Message}");
+                // Fallback 到系统主题色
+                ApplySystemAccentColor();
+            }
+        }
+
+        /// <summary>
+        /// 从像素数据中采样指定区域的平均颜色
+        /// </summary>
+        private Windows.UI.Color? SampleRegion(byte[] pixels, uint width, uint height, int startY, int endY)
+        {
+            if (pixels.Length == 0 || width == 0 || height == 0)
+            {
+                return null;
+            }
+
+            startY = Math.Max(0, startY);
+            endY = Math.Min((int)height, endY);
+
+            // 采样中心 50% 的宽度
+            int startX = (int)(width * 0.25);
+            int endX = (int)(width * 0.75);
+
+            long sumR = 0, sumG = 0, sumB = 0;
+            int count = 0;
+            int bytesPerPixel = 4; // BGRA
+
+            for (int y = startY; y < endY; y++)
+            {
+                for (int x = startX; x < endX; x++)
+                {
+                    int index = (y * (int)width + x) * bytesPerPixel;
+                    if (index + 3 < pixels.Length)
+                    {
+                        byte b = pixels[index];
+                        byte g = pixels[index + 1];
+                        byte r = pixels[index + 2];
+                        byte a = pixels[index + 3];
+
+                        // 忽略透明像素
+                        if (a > 10)
+                        {
+                            sumR += r;
+                            sumG += g;
+                            sumB += b;
+                            count++;
+                        }
+                    }
+                }
+            }
+
+            if (count == 0)
+            {
+                return null;
+            }
+
+            return Windows.UI.Color.FromArgb(
+                255,
+                (byte)(sumR / count),
+                (byte)(sumG / count),
+                (byte)(sumB / count)
+            );
+        }
+
+        /// <summary>
+        /// Fallback：应用系统强调色
+        /// </summary>
+        private void ApplySystemAccentColor()
+        {
+            try
+            {
+                // 尝试获取系统强调色
+                if (Application.Current.Resources.TryGetValue("SystemAccentColor", out object? accentResource) 
+                    && accentResource is Windows.UI.Color accentColor)
+                {
+                    ApplyBarTint(isTop: true, accentColor);
+                    ApplyBarTint(isTop: false, accentColor);
+                    System.Diagnostics.Debug.WriteLine("Applied system accent color as fallback");
+                }
+            }
+            catch
+            {
+                // 最终 fallback：保持透明
+            }
         }
     }
 }

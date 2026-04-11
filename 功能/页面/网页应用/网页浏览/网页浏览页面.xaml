@@ -7,7 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     NavigationCacheMode="Disabled">
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <Grid Background="Transparent">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="40" />
@@ -19,7 +19,8 @@
         <Border
             x:Name="TopBarHost"
             Grid.Row="0"
-            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            CornerRadius="4,4,0,0"
+            Background="Transparent"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0">
             <Grid x:Name="TopBarGrid">
@@ -78,19 +79,19 @@
         <Border
             x:Name="TopBarExtension"
             Grid.Row="1"
-            Background="{ThemeResource LayerFillColorDefaultBrush}" />
+            Background="Transparent" />
 
         <!-- 中心区域背景 -->
         <Border
             x:Name="CenterAreaBackground"
             Grid.Row="2"
-            Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" />
+            Background="Transparent" />
 
         <!-- 底部栏上方的自适应色块 -->
         <Border
             x:Name="BottomBarExtension"
             Grid.Row="3"
-            Background="{ThemeResource LayerFillColorDefaultBrush}" />
+            Background="Transparent" />
 
         <controls:WebView2
             x:Name="WebView"
@@ -115,7 +116,8 @@
         <Border
             x:Name="BottomBarHost"
             Grid.Row="4"
-            Background="{ThemeResource LayerFillColorDefaultBrush}"
+            CornerRadius="0,0,4,4"
+            Background="Transparent"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0">
             <Grid HorizontalAlignment="Center">
