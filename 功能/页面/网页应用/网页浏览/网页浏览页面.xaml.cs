@@ -38,6 +38,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private bool _isDisposed;
         private bool _useRoundedWebView;
         private Microsoft.UI.Xaml.Controls.WebView2? _activeWebView;
+        private bool _hasReceivedFirstTint;
 
         public WebBrowserPage()
         {
@@ -51,7 +52,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             InitializeForegroundColors();
 
             TopBarHost.Background = _topBarBackgroundBrush;
+            TopBarExtension.Background = _topBarBackgroundBrush;
             BottomBarHost.Background = _bottomBarBackgroundBrush;
+            BottomBarExtension.Background = _bottomBarBackgroundBrush;
             TitleText.Foreground = _topBarForegroundBrush;
             UrlText.Foreground = _topBarSecondaryForegroundBrush;
             SiteIconFallback.Foreground = _topBarSecondaryForegroundBrush;
@@ -530,6 +533,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private void CoreWebView2_NavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
         {
             LoadingProgressBar.Visibility = Visibility.Visible;
+            // 重置取色状态，准备接收新页面的颜色
+            _hasReceivedFirstTint = false;
         }
 
         private void CoreWebView2_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
@@ -611,6 +616,17 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             var tinted = Windows.UI.Color.FromArgb(byte.MaxValue, sampledColor.R, sampledColor.G, sampledColor.B);
             SolidColorBrush background = isTop ? _topBarBackgroundBrush : _bottomBarBackgroundBrush;
             SolidColorBrush foreground = isTop ? _topBarForegroundBrush : _bottomBarForegroundBrush;
+
+            // 只在首次接收到颜色时过滤纯白色，避免加载初期的闪烁
+            // 之后允许白色，因为网页本身可能就是白色背景
+            if (!_hasReceivedFirstTint && sampledColor.R == 255 && sampledColor.G == 255 && sampledColor.B == 255)
+            {
+                // 首次加载时忽略纯白色，保持透明
+                return;
+            }
+
+            // 标记已接收到第一次颜色
+            _hasReceivedFirstTint = true;
 
             background.Color = tinted;
             var contrastColor = GetContrastingForeground(sampledColor);

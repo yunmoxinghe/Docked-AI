@@ -10,7 +10,9 @@
     <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="40" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="40" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -72,15 +74,28 @@
             </Grid>
         </Border>
 
+        <!-- 顶部栏下方的自适应色块 -->
+        <Border
+            x:Name="TopBarExtension"
+            Grid.Row="1"
+            Background="{ThemeResource LayerFillColorDefaultBrush}" />
+
         <!-- 中心区域背景 -->
         <Border
             x:Name="CenterAreaBackground"
-            Grid.Row="1"
+            Grid.Row="2"
             Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" />
+
+        <!-- 底部栏上方的自适应色块 -->
+        <Border
+            x:Name="BottomBarExtension"
+            Grid.Row="3"
+            Background="{ThemeResource LayerFillColorDefaultBrush}" />
 
         <controls:WebView2
             x:Name="WebView"
             Grid.Row="1"
+            Grid.RowSpan="3"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch" />
 
@@ -88,6 +103,7 @@
         <Border
             x:Name="RoundedWebViewContainer"
             Grid.Row="1"
+            Grid.RowSpan="3"
             Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
             Visibility="Collapsed">
             <controls:WebView2
@@ -98,7 +114,7 @@
 
         <Border
             x:Name="BottomBarHost"
-            Grid.Row="2"
+            Grid.Row="4"
             Background="{ThemeResource LayerFillColorDefaultBrush}"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0">
