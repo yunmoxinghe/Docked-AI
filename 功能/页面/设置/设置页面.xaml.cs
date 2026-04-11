@@ -10,6 +10,8 @@ using Windows.ApplicationModel;
 using Docked_AI.Features.Localization;
 using Docked_AI.Features.AppEntry.AutoLaunch;
 using Docked_AI.Features.Hotkey;
+using Docked_AI.Features.Pages.Test;
+using Docked_AI.Features.Settings;
 using Windows.UI.Core;
 
 namespace Docked_AI.Features.Pages.Settings
@@ -47,6 +49,7 @@ namespace Docked_AI.Features.Pages.Settings
             // 不再需要 InitializeLanguageComboBox，因为 XAML 中已经设置了 Content
             LoadLanguageSettings();
             LoadHotkeySettings();
+            LoadExperimentalSettings();
             
             // Initialize startup settings asynchronously
             _ = InitializeStartupSettingsAsync();
@@ -231,6 +234,37 @@ namespace Docked_AI.Features.Pages.Settings
             var uri = new Uri("https://github.com/yunmoxinghe/Docked-AI/blob/main/LICENSE");
             await Launcher.LaunchUriAsync(uri);
         }
+
+        private void OnTestPageClick(object sender, RoutedEventArgs e)
+        {
+            // 导航到测试页面
+            Frame.Navigate(typeof(WebView2RoundedCornerTestPage));
+        }
+
+        private void LoadExperimentalSettings()
+        {
+            // 暂时取消事件订阅，避免在初始化时触发
+            RoundedWebViewToggle.Toggled -= OnRoundedWebViewToggled;
+            
+            RoundedWebViewToggle.IsOn = ExperimentalSettings.EnableRoundedWebView;
+            
+            // 重新订阅事件
+            RoundedWebViewToggle.Toggled += OnRoundedWebViewToggled;
+        }
+
+        private void OnRoundedWebViewToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggle)
+            {
+                ExperimentalSettings.EnableRoundedWebView = toggle.IsOn;
+                
+                // 通知应用更新 WebView2 圆角设置
+                RoundedWebViewSettingsChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        // Event to notify when rounded webview settings change
+        public static event EventHandler? RoundedWebViewSettingsChanged;
 
         private void OnLanguageCardClick(object sender, RoutedEventArgs e)
         {

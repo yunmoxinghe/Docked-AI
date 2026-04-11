@@ -129,6 +129,40 @@
                         </ComboBox>
                     </controls:SettingsCard>
                     
+                    <!-- 测试页面入口 -->
+                    <controls:SettingsCard 
+                        Header="WebView2 圆角测试"
+                        Description="测试 WebView2 的圆角显示效果"
+                        IsClickEnabled="True"
+                        Click="OnTestPageClick">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE8FD;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <controls:SettingsCard.ActionIcon>
+                            <FontIcon Glyph="&#xE8A7;"/>
+                        </controls:SettingsCard.ActionIcon>
+                    </controls:SettingsCard>
+
+                    <!-- 实验特性 -->
+                    <controls:SettingsExpander 
+                        Header="实验特性"
+                        Description="启用实验性功能（可能不稳定）"
+                        IsExpanded="False">
+                        <controls:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE7BA;" />
+                        </controls:SettingsExpander.HeaderIcon>
+                        
+                        <controls:SettingsExpander.Items>
+                            <controls:SettingsCard 
+                                Header="WebView2 圆角"
+                                Description="为网页浏览器启用圆角效果，圆角大小自动同步上层容器">
+                                <ToggleSwitch 
+                                    x:Name="RoundedWebViewToggle"
+                                    Toggled="OnRoundedWebViewToggled"/>
+                            </controls:SettingsCard>
+                        </controls:SettingsExpander.Items>
+                    </controls:SettingsExpander>
+                    
                     <controls:SettingsExpander x:Name="AboutAppExpander"
                                           x:Uid="SettingsPage_AboutHeader"
                                           IsExpanded="False">

@@ -91,6 +91,18 @@
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch" />
 
+        <!-- 圆角容器（实验特性） -->
+        <Border
+            x:Name="RoundedWebViewContainer"
+            Grid.Row="1"
+            Background="Transparent"
+            Visibility="Collapsed">
+            <controls:WebView2
+                x:Name="RoundedWebView"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch" />
+        </Border>
+
         <Border
             x:Name="BottomBarHost"
             Grid.Row="2"

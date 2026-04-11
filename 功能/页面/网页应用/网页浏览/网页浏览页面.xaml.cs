@@ -1,4 +1,5 @@
 using Docked_AI.Features.Pages.WebApp.Shared;
+using Docked_AI.Features.Settings;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -33,10 +34,16 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private readonly SolidColorBrush _topBarForegroundBrush = new(Colors.Black);
         private readonly SolidColorBrush _bottomBarForegroundBrush = new(Colors.Black);
         private bool _isDisposed;
+        private bool _useRoundedWebView;
+        private Microsoft.UI.Xaml.Controls.WebView2? _activeWebView;
 
         public WebBrowserPage()
         {
             InitializeComponent();
+
+            // 根据设置决定使用哪个 WebView
+            _useRoundedWebView = ExperimentalSettings.EnableRoundedWebView;
+            UpdateWebViewVisibility();
 
             TopBarHost.Background = _topBarBackgroundBrush;
             BottomBarHost.Background = _bottomBarBackgroundBrush;
@@ -55,6 +62,85 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
             Loaded += WebBrowserPage_Loaded;
             Unloaded += WebBrowserPage_Unloaded;
+            
+            // 监听设置变化
+            Pages.Settings.SettingsPage.RoundedWebViewSettingsChanged += OnRoundedWebViewSettingsChanged;
+            
+            // 监听 Frame 的 SizeChanged 以同步圆角
+            if (_useRoundedWebView)
+            {
+                this.SizeChanged += OnPageSizeChanged;
+            }
+        }
+
+        private void UpdateWebViewVisibility()
+        {
+            if (_useRoundedWebView)
+            {
+                WebView.Visibility = Visibility.Collapsed;
+                RoundedWebViewContainer.Visibility = Visibility.Visible;
+                _activeWebView = RoundedWebView;
+            }
+            else
+            {
+                WebView.Visibility = Visibility.Visible;
+                RoundedWebViewContainer.Visibility = Visibility.Collapsed;
+                _activeWebView = WebView;
+            }
+        }
+
+        private void OnRoundedWebViewSettingsChanged(object? sender, EventArgs e)
+        {
+            // 设置改变时，需要重新加载页面才能生效
+            // 这里只是更新标志，实际切换需要重新导航
+            _useRoundedWebView = ExperimentalSettings.EnableRoundedWebView;
+        }
+
+        private void OnPageSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (!_useRoundedWebView)
+            {
+                return;
+            }
+
+            // 同步上层 Frame 的圆角到 Border
+            SyncCornerRadiusFromParent();
+        }
+
+        private void SyncCornerRadiusFromParent()
+        {
+            // 尝试从父级 Frame 获取 CornerRadius
+            DependencyObject? parent = this.Parent;
+            CornerRadius cornerRadius = new CornerRadius(0);
+            
+            while (parent != null)
+            {
+                if (parent is Frame frame && frame.CornerRadius != new CornerRadius(0))
+                {
+                    cornerRadius = frame.CornerRadius;
+                    break;
+                }
+                if (parent is Border border && border.CornerRadius != new CornerRadius(0))
+                {
+                    cornerRadius = border.CornerRadius;
+                    break;
+                }
+                if (parent is Grid grid && grid.CornerRadius != new CornerRadius(0))
+                {
+                    cornerRadius = grid.CornerRadius;
+                    break;
+                }
+                
+                parent = VisualTreeHelper.GetParent(parent);
+            }
+            
+            // 如果没有找到圆角，使用默认值 12
+            if (cornerRadius == new CornerRadius(0))
+            {
+                cornerRadius = new CornerRadius(12);
+            }
+            
+            RoundedWebViewContainer.CornerRadius = cornerRadius;
         }
 
         private void ApplyResponsiveSpacing()
@@ -199,6 +285,12 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             Loaded -= WebBrowserPage_Loaded;
             await EnsureWebViewInitializedAsync();
             TryNavigatePendingUri();
+            
+            // 如果使用圆角 WebView，同步圆角
+            if (_useRoundedWebView)
+            {
+                SyncCornerRadiusFromParent();
+            }
         }
 
         private void WebBrowserPage_Unloaded(object sender, RoutedEventArgs e)
@@ -208,7 +300,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private async Task EnsureWebViewInitializedAsync()
         {
-            if (_isWebViewReady)
+            if (_isWebViewReady || _activeWebView == null)
             {
                 return;
             }
@@ -232,21 +324,21 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     browserExecutableFolder: null,
                     userDataFolder: null,
                     options: options);
-                await WebView.EnsureCoreWebView2Async(environment);
+                await _activeWebView.EnsureCoreWebView2Async(environment);
 
-                if (WebView.CoreWebView2 is not null)
+                if (_activeWebView.CoreWebView2 is not null)
                 {
-                    WebView.CoreWebView2.Settings.IsWebMessageEnabled = true;
+                    _activeWebView.CoreWebView2.Settings.IsWebMessageEnabled = true;
                     
                     // 优化触摸板和滚动体验
-                    WebView.CoreWebView2.Settings.IsSwipeNavigationEnabled = true;
-                    WebView.CoreWebView2.Settings.IsZoomControlEnabled = true;
+                    _activeWebView.CoreWebView2.Settings.IsSwipeNavigationEnabled = true;
+                    _activeWebView.CoreWebView2.Settings.IsZoomControlEnabled = true;
                     
-                    WebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
-                    WebView.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
-                    WebView.CoreWebView2.HistoryChanged += CoreWebView2_HistoryChanged;
-                    WebView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
-                    WebView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
+                    _activeWebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
+                    _activeWebView.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
+                    _activeWebView.CoreWebView2.HistoryChanged += CoreWebView2_HistoryChanged;
+                    _activeWebView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
+                    _activeWebView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
                     await EnsureTintScriptInstalledAsync();
                 }
             }
@@ -263,19 +355,19 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void TryNavigatePendingUri()
         {
-            if (!_isWebViewReady || _pendingNavigationUri is null)
+            if (!_isWebViewReady || _pendingNavigationUri is null || _activeWebView == null)
             {
                 return;
             }
 
-            WebView.Source = _pendingNavigationUri;
+            _activeWebView.Source = _pendingNavigationUri;
             UrlText.Text = _pendingNavigationUri.AbsoluteUri;
             _pendingNavigationUri = null;
         }
 
         private async Task EnsureTintScriptInstalledAsync()
         {
-            if (WebView.CoreWebView2 is null)
+            if (_activeWebView?.CoreWebView2 is null)
             {
                 return;
             }
@@ -355,7 +447,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
   schedule();
 })();";
 
-            await WebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(script);
+            await _activeWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(script);
         }
 
         private void CoreWebView2_NavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
@@ -382,12 +474,12 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void CoreWebView2_DocumentTitleChanged(object? sender, object e)
         {
-            if (WebView.CoreWebView2 is null)
+            if (_activeWebView?.CoreWebView2 is null)
             {
                 return;
             }
 
-            string title = WebView.CoreWebView2.DocumentTitle ?? string.Empty;
+            string title = _activeWebView.CoreWebView2.DocumentTitle ?? string.Empty;
             if (string.IsNullOrWhiteSpace(title))
             {
                 if (_currentShortcut is not null && !string.IsNullOrWhiteSpace(_currentShortcut.Name))
@@ -537,13 +629,14 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void UpdateNavigationButtons()
         {
-            BackButton.IsEnabled = WebView.CanGoBack;
-            ForwardButton.IsEnabled = WebView.CanGoForward;
+            if (_activeWebView == null) return;
+            BackButton.IsEnabled = _activeWebView.CanGoBack;
+            ForwardButton.IsEnabled = _activeWebView.CanGoForward;
         }
 
         private void UpdateUrlText()
         {
-            Uri? uri = WebView.Source;
+            Uri? uri = _activeWebView?.Source;
             UrlText.Text = uri?.AbsoluteUri ?? string.Empty;
         }
 
@@ -582,28 +675,28 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            if (WebView.CanGoBack)
+            if (_activeWebView != null && _activeWebView.CanGoBack)
             {
-                WebView.GoBack();
+                _activeWebView.GoBack();
             }
         }
 
         private void ForwardButton_Click(object sender, RoutedEventArgs e)
         {
-            if (WebView.CanGoForward)
+            if (_activeWebView != null && _activeWebView.CanGoForward)
             {
-                WebView.GoForward();
+                _activeWebView.GoForward();
             }
         }
 
         private void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
-            WebView.Reload();
+            _activeWebView?.Reload();
         }
 
         private void CopyUrlButton_Click(object sender, RoutedEventArgs e)
         {
-            Uri? uri = WebView.Source;
+            Uri? uri = _activeWebView?.Source;
             if (uri is null)
             {
                 return;
@@ -617,7 +710,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private async void OpenExternalButton_Click(object sender, RoutedEventArgs e)
         {
-            Uri? uri = WebView.Source;
+            Uri? uri = _activeWebView?.Source;
             if (uri is null)
             {
                 return;
@@ -636,18 +729,24 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             _isDisposed = true;
             Loaded -= WebBrowserPage_Loaded;
             Unloaded -= WebBrowserPage_Unloaded;
-
-            if (WebView.CoreWebView2 is not null)
+            Pages.Settings.SettingsPage.RoundedWebViewSettingsChanged -= OnRoundedWebViewSettingsChanged;
+            
+            if (_useRoundedWebView)
             {
-                WebView.CoreWebView2.WebMessageReceived -= CoreWebView2_WebMessageReceived;
-                WebView.CoreWebView2.DocumentTitleChanged -= CoreWebView2_DocumentTitleChanged;
-                WebView.CoreWebView2.HistoryChanged -= CoreWebView2_HistoryChanged;
-                WebView.CoreWebView2.NavigationStarting -= CoreWebView2_NavigationStarting;
-                WebView.CoreWebView2.NavigationCompleted -= CoreWebView2_NavigationCompleted;
+                this.SizeChanged -= OnPageSizeChanged;
+            }
+
+            if (_activeWebView?.CoreWebView2 is not null)
+            {
+                _activeWebView.CoreWebView2.WebMessageReceived -= CoreWebView2_WebMessageReceived;
+                _activeWebView.CoreWebView2.DocumentTitleChanged -= CoreWebView2_DocumentTitleChanged;
+                _activeWebView.CoreWebView2.HistoryChanged -= CoreWebView2_HistoryChanged;
+                _activeWebView.CoreWebView2.NavigationStarting -= CoreWebView2_NavigationStarting;
+                _activeWebView.CoreWebView2.NavigationCompleted -= CoreWebView2_NavigationCompleted;
 
                 try
                 {
-                    WebView.CoreWebView2.Stop();
+                    _activeWebView.CoreWebView2.Stop();
                 }
                 catch
                 {
@@ -655,8 +754,12 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 }
             }
 
-            WebView.Source = null;
-            WebView.Close();
+            if (_activeWebView != null)
+            {
+                _activeWebView.Source = null;
+                _activeWebView.Close();
+            }
+            
             _pendingNavigationUri = null;
             _currentShortcut = null;
             _isWebViewReady = false;
