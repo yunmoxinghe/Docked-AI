@@ -19,7 +19,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
     public sealed partial class WebBrowserPage : Page
     {
         private const string TintMessageType = "docked_ai_tint";
-        private const byte BarBackgroundAlpha = 236;
+        private const byte BarBackgroundAlpha = 255;
 
         private Uri? _pendingNavigationUri;
         private bool _isWebViewReady;

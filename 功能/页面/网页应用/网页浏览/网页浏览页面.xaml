@@ -18,7 +18,7 @@
             x:Name="TopBarHost"
             Grid.Row="0"
             Padding="12,10"
-            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            Background="#FF202020"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0">
             <Grid>
@@ -71,13 +71,13 @@
             Grid.Row="1"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
-            DefaultBackgroundColor="Transparent" />
+            DefaultBackgroundColor="#202020" />
 
         <Border
             x:Name="BottomBarHost"
             Grid.Row="2"
             Padding="6,2"
-            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            Background="#FF202020"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0">
             <controls:CommandBar
