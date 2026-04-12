@@ -101,7 +101,49 @@
             Grid.Row="1"
             Grid.RowSpan="3"
             HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch" />
+            VerticalAlignment="Stretch">
+            <controls:WebView2.ContextFlyout>
+                <MenuFlyout x:Name="WebViewContextMenu">
+                    <MenuFlyoutItem x:Name="BackMenuItem" Text="后退" Click="BackMenuItem_Click">
+                        <MenuFlyoutItem.Icon>
+                            <SymbolIcon Symbol="Back" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem x:Name="ForwardMenuItem" Text="前进" Click="ForwardMenuItem_Click">
+                        <MenuFlyoutItem.Icon>
+                            <SymbolIcon Symbol="Forward" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem x:Name="RefreshMenuItem" Text="刷新" Click="RefreshMenuItem_Click">
+                        <MenuFlyoutItem.Icon>
+                            <SymbolIcon Symbol="Refresh" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutSeparator />
+                    <MenuFlyoutItem x:Name="CopyMenuItem" Text="复制" Click="CopyMenuItem_Click">
+                        <MenuFlyoutItem.Icon>
+                            <SymbolIcon Symbol="Copy" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem x:Name="CopyLinkMenuItem" Text="复制链接地址" Click="CopyLinkMenuItem_Click" IsEnabled="False">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE71B;" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutSeparator />
+                    <MenuFlyoutItem x:Name="CopyUrlMenuItem" Text="复制页面地址" Click="CopyUrlMenuItem_Click">
+                        <MenuFlyoutItem.Icon>
+                            <FontIcon Glyph="&#xE8C8;" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                    <MenuFlyoutItem x:Name="OpenExternalMenuItem" Text="在浏览器中打开" Click="OpenExternalMenuItem_Click">
+                        <MenuFlyoutItem.Icon>
+                            <SymbolIcon Symbol="World" />
+                        </MenuFlyoutItem.Icon>
+                    </MenuFlyoutItem>
+                </MenuFlyout>
+            </controls:WebView2.ContextFlyout>
+        </controls:WebView2>
 
         <!-- 圆角容器（实验特性） -->
         <Border
@@ -113,7 +155,49 @@
             <controls:WebView2
                 x:Name="RoundedWebView"
                 HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch" />
+                VerticalAlignment="Stretch">
+                <controls:WebView2.ContextFlyout>
+                    <MenuFlyout x:Name="RoundedWebViewContextMenu">
+                        <MenuFlyoutItem x:Name="BackMenuItem2" Text="后退" Click="BackMenuItem_Click">
+                            <MenuFlyoutItem.Icon>
+                                <SymbolIcon Symbol="Back" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutItem x:Name="ForwardMenuItem2" Text="前进" Click="ForwardMenuItem_Click">
+                            <MenuFlyoutItem.Icon>
+                                <SymbolIcon Symbol="Forward" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutItem x:Name="RefreshMenuItem2" Text="刷新" Click="RefreshMenuItem_Click">
+                            <MenuFlyoutItem.Icon>
+                                <SymbolIcon Symbol="Refresh" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem x:Name="CopyMenuItem2" Text="复制" Click="CopyMenuItem_Click">
+                            <MenuFlyoutItem.Icon>
+                                <SymbolIcon Symbol="Copy" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutItem x:Name="CopyLinkMenuItem2" Text="复制链接地址" Click="CopyLinkMenuItem_Click" IsEnabled="False">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE71B;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem x:Name="CopyUrlMenuItem2" Text="复制页面地址" Click="CopyUrlMenuItem_Click">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE8C8;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutItem x:Name="OpenExternalMenuItem2" Text="在浏览器中打开" Click="OpenExternalMenuItem_Click">
+                            <MenuFlyoutItem.Icon>
+                                <SymbolIcon Symbol="World" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                    </MenuFlyout>
+                </controls:WebView2.ContextFlyout>
+            </controls:WebView2>
         </Border>
 
         <Border

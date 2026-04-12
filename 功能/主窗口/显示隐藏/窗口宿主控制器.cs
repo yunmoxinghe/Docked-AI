@@ -501,12 +501,15 @@ namespace Docked_AI.Features.MainWindow.Visibility
         {
             if (_isWindowSubclassed || _hwnd == IntPtr.Zero)
             {
+                System.Diagnostics.Debug.WriteLine($"TrySubclassWindow: Skipped (already subclassed={_isWindowSubclassed}, hwnd={_hwnd})");
                 return;
             }
 
             IntPtr newWindowProc = System.Runtime.InteropServices.Marshal.GetFunctionPointerForDelegate(_windowProcDelegate);
             _originalWindowProc = VisibilityWin32Api.SetWindowProc(_hwnd, newWindowProc);
             _isWindowSubclassed = _originalWindowProc != IntPtr.Zero;
+            
+            System.Diagnostics.Debug.WriteLine($"TrySubclassWindow: Subclassed={_isWindowSubclassed}, OriginalProc={_originalWindowProc}, NewProc={newWindowProc}");
         }
 
         private void ApplyPinnedWindowStyle()
@@ -882,6 +885,15 @@ namespace Docked_AI.Features.MainWindow.Visibility
         private IntPtr WindowProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
         {
             var currentState = _stateManager.CurrentState;
+            
+            // 添加调试输出，验证 WindowProc 是否被调用
+            if (msg == VisibilityWin32Api.WM_NCCALCSIZE || 
+                msg == VisibilityWin32Api.WM_NCPAINT || 
+                msg == VisibilityWin32Api.WM_NCACTIVATE)
+            {
+                System.Diagnostics.Debug.WriteLine($"WindowProc: msg=0x{msg:X}, currentState={currentState}");
+            }
+            
             if (currentState == WindowState.Pinned)
             {
                 if (msg == VisibilityWin32Api.WM_NCCALCSIZE)

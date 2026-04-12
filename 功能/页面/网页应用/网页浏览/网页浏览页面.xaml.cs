@@ -35,6 +35,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private Uri? _pendingNavigationUri;
         private bool _isWebViewReady;
         private WebAppShortcut? _currentShortcut;
+        private string? _contextMenuSelectedText;
+        private string? _contextMenuLinkUrl;
 
         private readonly SolidColorBrush _topBarBackgroundBrush = new(Windows.UI.Color.FromArgb(1, 0, 0, 0)); // 几乎透明但能接收事件
         private readonly SolidColorBrush _bottomBarBackgroundBrush = new(Windows.UI.Color.FromArgb(1, 0, 0, 0)); // 几乎透明但能接收事件
@@ -534,11 +536,15 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     // 禁用状态栏（悬停链接时左下角不显示 URL）
                     _activeWebView.CoreWebView2.Settings.IsStatusBarEnabled = false;
                     
+                    // 禁用默认右键菜单
+                    _activeWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+                    
                     _activeWebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
                     _activeWebView.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
                     _activeWebView.CoreWebView2.HistoryChanged += CoreWebView2_HistoryChanged;
                     _activeWebView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
                     _activeWebView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
+                    _activeWebView.CoreWebView2.ContextMenuRequested += CoreWebView2_ContextMenuRequested;
                     await EnsureTintScriptInstalledAsync();
                 }
             }
@@ -1215,6 +1221,163 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             await Launcher.LaunchUriAsync(uri);
         }
 
+        // ==================== 右键菜单相关方法 ====================
+
+        private void CoreWebView2_ContextMenuRequested(object? sender, CoreWebView2ContextMenuRequestedEventArgs e)
+        {
+            // 清除默认菜单项
+            e.MenuItems.Clear();
+            
+            // 获取链接地址
+            _contextMenuLinkUrl = e.ContextMenuTarget.LinkUri;
+            
+            // 获取选中的文本
+            _contextMenuSelectedText = e.ContextMenuTarget.SelectionText;
+            
+            // 根据当前使用的 WebView 更新对应的菜单项
+            if (_useRoundedWebView)
+            {
+                CopyMenuItem2.IsEnabled = true;
+                CopyLinkMenuItem2.IsEnabled = !string.IsNullOrEmpty(_contextMenuLinkUrl);
+            }
+            else
+            {
+                CopyMenuItem.IsEnabled = true;
+                CopyLinkMenuItem.IsEnabled = !string.IsNullOrEmpty(_contextMenuLinkUrl);
+            }
+            
+            // 显示自定义菜单
+            var flyout = _activeWebView?.ContextFlyout as MenuFlyout;
+            if (flyout != null)
+            {
+                flyout.ShowAt(_activeWebView, new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions
+                {
+                    Position = new Windows.Foundation.Point(e.Location.X, e.Location.Y)
+                });
+            }
+        }
+
+        private void BackMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (_activeWebView != null && _activeWebView.CanGoBack)
+            {
+                _activeWebView.GoBack();
+            }
+        }
+
+        private void ForwardMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (_activeWebView != null && _activeWebView.CanGoForward)
+            {
+                _activeWebView.GoForward();
+            }
+        }
+
+        private void RefreshMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            _activeWebView?.Reload();
+        }
+
+        private async void CopyMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // 如果已经有缓存的选中文本，直接使用
+                if (!string.IsNullOrEmpty(_contextMenuSelectedText))
+                {
+                    var dataPackage = new DataPackage();
+                    dataPackage.SetText(_contextMenuSelectedText);
+                    Clipboard.SetContent(dataPackage);
+                    Clipboard.Flush();
+                    return;
+                }
+
+                // 否则，实时从网页获取选中的文本
+                if (_activeWebView?.CoreWebView2 != null)
+                {
+                    string script = "window.getSelection().toString()";
+                    string result = await _activeWebView.CoreWebView2.ExecuteScriptAsync(script);
+                    
+                    // 反序列化 JSON 字符串
+                    string? selectedText = null;
+                    if (result.Length >= 2 && result.StartsWith("\"") && result.EndsWith("\""))
+                    {
+                        selectedText = System.Text.Json.JsonSerializer.Deserialize<string>(result);
+                    }
+                    else if (!string.IsNullOrEmpty(result) && result != "null")
+                    {
+                        selectedText = result;
+                    }
+
+                    if (!string.IsNullOrEmpty(selectedText))
+                    {
+                        var dataPackage = new DataPackage();
+                        dataPackage.SetText(selectedText);
+                        Clipboard.SetContent(dataPackage);
+                        Clipboard.Flush();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to copy text: {ex.Message}");
+            }
+        }
+
+        private void CopyLinkMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(_contextMenuLinkUrl))
+            {
+                return;
+            }
+
+            try
+            {
+                var dataPackage = new DataPackage();
+                dataPackage.SetText(_contextMenuLinkUrl);
+                Clipboard.SetContent(dataPackage);
+                Clipboard.Flush();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to copy link: {ex.Message}");
+            }
+        }
+
+        private void CopyUrlMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Uri? uri = _activeWebView?.Source;
+            if (uri is null)
+            {
+                return;
+            }
+
+            try
+            {
+                var dataPackage = new DataPackage();
+                dataPackage.SetText(uri.AbsoluteUri);
+                Clipboard.SetContent(dataPackage);
+                Clipboard.Flush();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to copy URL: {ex.Message}");
+            }
+        }
+
+        private async void OpenExternalMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Uri? uri = _activeWebView?.Source;
+            if (uri is null)
+            {
+                return;
+            }
+
+            await Launcher.LaunchUriAsync(uri);
+        }
+
+        // ==================== 右键菜单相关方法结束 ====================
+
         private void TopBarHost_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
             var now = DateTime.Now;
@@ -1392,6 +1555,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 _activeWebView.CoreWebView2.HistoryChanged -= CoreWebView2_HistoryChanged;
                 _activeWebView.CoreWebView2.NavigationStarting -= CoreWebView2_NavigationStarting;
                 _activeWebView.CoreWebView2.NavigationCompleted -= CoreWebView2_NavigationCompleted;
+                _activeWebView.CoreWebView2.ContextMenuRequested -= CoreWebView2_ContextMenuRequested;
 
                 try
                 {
