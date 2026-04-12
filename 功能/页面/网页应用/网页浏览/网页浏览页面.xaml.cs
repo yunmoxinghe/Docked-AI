@@ -527,7 +527,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     
                     // 优化触摸板和滚动体验
                     _activeWebView.CoreWebView2.Settings.IsSwipeNavigationEnabled = true;
-                    _activeWebView.CoreWebView2.Settings.IsZoomControlEnabled = true;
+                    
+                    // 禁用触摸板缩放
+                    _activeWebView.CoreWebView2.Settings.IsZoomControlEnabled = false;
                     
                     _activeWebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
                     _activeWebView.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
