@@ -531,6 +531,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     // 禁用触摸板缩放
                     _activeWebView.CoreWebView2.Settings.IsZoomControlEnabled = false;
                     
+                    // 禁用状态栏（悬停链接时左下角不显示 URL）
+                    _activeWebView.CoreWebView2.Settings.IsStatusBarEnabled = false;
+                    
                     _activeWebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
                     _activeWebView.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
                     _activeWebView.CoreWebView2.HistoryChanged += CoreWebView2_HistoryChanged;
