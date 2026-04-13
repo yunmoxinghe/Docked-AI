@@ -83,18 +83,21 @@ namespace Docked_AI
                 }
 
                 // Check if this is an auto-launch scenario
-                if (_autoLaunchHandler.IsAutoLaunch())
+                bool isAutoLaunch = _autoLaunchHandler.IsAutoLaunch();
+                if (isAutoLaunch)
                 {
                     _ = _autoLaunchHandler.HandleAsync();
                 }
 
                 // Handle normal launch
-                _normalLaunchHandler.Handle(ExitApplication);
+                // 从图标启动时（非自启动），自动显示主窗口
+                _normalLaunchHandler.Handle(ExitApplication, shouldShowWindow: !isAutoLaunch);
                 _trayIconManager = _normalLaunchHandler.TrayIconManager;
                 EnsureKeepAliveWindow();
 
-                // Don't show the main window initially.
-                // The window will only be shown when the user clicks the tray icon.
+                // 优化说明：
+                // - 自启动时：不显示窗口，只在托盘运行
+                // - 图标启动时：自动显示主窗口，提供更好的用户体验
             }
             catch (Exception ex)
             {
