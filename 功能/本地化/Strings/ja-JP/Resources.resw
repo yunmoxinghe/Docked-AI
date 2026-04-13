@@ -115,6 +115,12 @@
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
     <value>アプリの表示言語を選択</value>
   </data>
+  <data name="SettingsPage_LanguageSelectHeader.Header" xml:space="preserve">
+    <value>言語を選択</value>
+  </data>
+  <data name="SettingsPage_LanguageSelectHeader.Description" xml:space="preserve">
+    <value>変更を有効にするには再起動が必要です</value>
+  </data>
   <data name="SettingsPage_AboutHeader.Header" xml:space="preserve">
     <value>Docked-AI</value>
   </data>
@@ -278,28 +284,28 @@
   </data>
   
   <!-- 言語オプション -->
-  <data name="Language_SimplifiedChinese.Content" xml:space="preserve">
+  <data name="Language_SimplifiedChinese.Text" xml:space="preserve">
     <value>简体中文</value>
   </data>
-  <data name="Language_TraditionalChinese.Content" xml:space="preserve">
+  <data name="Language_TraditionalChinese.Text" xml:space="preserve">
     <value>繁體中文</value>
   </data>
-  <data name="Language_English.Content" xml:space="preserve">
+  <data name="Language_English.Text" xml:space="preserve">
     <value>English</value>
   </data>
-  <data name="Language_Japanese.Content" xml:space="preserve">
+  <data name="Language_Japanese.Text" xml:space="preserve">
     <value>日本語</value>
   </data>
-  <data name="Language_Korean.Content" xml:space="preserve">
+  <data name="Language_Korean.Text" xml:space="preserve">
     <value>한국어</value>
   </data>
-  <data name="Language_French.Content" xml:space="preserve">
+  <data name="Language_French.Text" xml:space="preserve">
     <value>Français</value>
   </data>
-  <data name="Language_German.Content" xml:space="preserve">
+  <data name="Language_German.Text" xml:space="preserve">
     <value>Deutsch</value>
   </data>
-  <data name="Language_Spanish.Content" xml:space="preserve">
+  <data name="Language_Spanish.Text" xml:space="preserve">
     <value>Español</value>
   </data>
   

@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Windows.System;
 using Windows.Globalization;
@@ -52,8 +53,7 @@ namespace Docked_AI.Features.Pages.Settings
             Loaded += OnLoaded;
             SizeChanged += OnSizeChanged;
             Unloaded += OnUnloaded;
-            // 不再需要 InitializeLanguageComboBox，因为 XAML 中已经设置了 Content
-            LoadLanguageSettings();
+            
             LoadHotkeySettings();
             LoadExperimentalSettings();
             
@@ -96,81 +96,125 @@ namespace Docked_AI.Features.Pages.Settings
 
             System.Diagnostics.Debug.WriteLine($"[LoadLanguageSettings] Current language: {currentLanguage}");
 
-            // 暂时取消事件订阅，避免在初始化时触发
-            LanguageComboBox.SelectionChanged -= OnLanguageChanged;
-
-            bool found = false;
+            // 更新所有语言按钮的视觉状态
+            UpdateLanguageButtonStates(currentLanguage);
             
-            // 第一步：尝试精确匹配
-            foreach (ComboBoxItem item in LanguageComboBox.Items)
+            // 更新右侧显示的当前语言文本
+            UpdateCurrentLanguageText(currentLanguage);
+        }
+
+        private void UpdateCurrentLanguageText(string currentLanguage)
+        {
+            // 检查控件是否已初始化
+            if (CurrentLanguageText == null)
             {
-                var itemTag = item.Tag?.ToString();
-                System.Diagnostics.Debug.WriteLine($"  Checking: Tag={itemTag}, Content={item.Content}");
-                if (itemTag == currentLanguage)
-                {
-                    LanguageComboBox.SelectedItem = item;
-                    found = true;
-                    System.Diagnostics.Debug.WriteLine($"  ✓ Matched! Selected: {item.Content}");
-                    break;
-                }
+                return;
             }
 
-            // 第二步：尝试匹配 zh-Hant-TW -> zh-TW 这种情况
-            if (!found && currentLanguage.Contains("-"))
+            var languageMap = new Dictionary<string, string>
+            {
+                { "zh-CN", "简体中文" },
+                { "zh-TW", "繁體中文" },
+                { "en-US", "English" },
+                { "ja-JP", "日本語" },
+                { "ko-KR", "한국어" },
+                { "fr-FR", "Français" },
+                { "de-DE", "Deutsch" },
+                { "es-ES", "Español" }
+            };
+
+            string languageName = currentLanguage;
+            
+            // 尝试精确匹配
+            if (languageMap.ContainsKey(currentLanguage))
+            {
+                languageName = languageMap[currentLanguage];
+            }
+            // 尝试匹配 zh-Hant-TW -> zh-TW
+            else if (currentLanguage.Contains("-"))
             {
                 var parts = currentLanguage.Split('-');
-                if (parts.Length == 3) // 例如 zh-Hant-TW
+                if (parts.Length == 3)
                 {
-                    var simplifiedTag = $"{parts[0]}-{parts[2]}"; // zh-TW
-                    System.Diagnostics.Debug.WriteLine($"  No exact match, trying simplified tag: {simplifiedTag}");
-                    foreach (ComboBoxItem item in LanguageComboBox.Items)
+                    var simplifiedTag = $"{parts[0]}-{parts[2]}";
+                    if (languageMap.ContainsKey(simplifiedTag))
                     {
-                        var itemTag = item.Tag?.ToString();
-                        if (itemTag == simplifiedTag)
+                        languageName = languageMap[simplifiedTag];
+                    }
+                }
+            }
+
+            CurrentLanguageText.Text = languageName;
+        }
+
+        private void UpdateLanguageButtonStates(string currentLanguage)
+        {
+            var buttons = new[]
+            {
+                LanguageButton_zhCN,
+                LanguageButton_zhTW,
+                LanguageButton_enUS,
+                LanguageButton_jaJP,
+                LanguageButton_koKR,
+                LanguageButton_frFR,
+                LanguageButton_deDE,
+                LanguageButton_esES
+            };
+
+            foreach (var button in buttons)
+            {
+                if (button == null) continue;
+
+                try
+                {
+                    var buttonTag = button.Tag?.ToString();
+                    bool isSelected = false;
+
+                    // 精确匹配
+                    if (buttonTag == currentLanguage)
+                    {
+                        isSelected = true;
+                    }
+                    // 匹配 zh-Hant-TW -> zh-TW
+                    else if (currentLanguage.Contains("-"))
+                    {
+                        var parts = currentLanguage.Split('-');
+                        if (parts.Length == 3)
                         {
-                            LanguageComboBox.SelectedItem = item;
-                            found = true;
-                            System.Diagnostics.Debug.WriteLine($"  ✓ Matched by simplified tag! Selected: {item.Content}");
-                            break;
+                            var simplifiedTag = $"{parts[0]}-{parts[2]}";
+                            if (buttonTag == simplifiedTag)
+                            {
+                                isSelected = true;
+                            }
                         }
                     }
-                }
-            }
 
-            // 第三步：尝试匹配语言代码（忽略地区）
-            if (!found)
-            {
-                var languageCode = currentLanguage.Split('-')[0];
-                System.Diagnostics.Debug.WriteLine($"  No match yet, trying language code: {languageCode}");
-                foreach (ComboBoxItem item in LanguageComboBox.Items)
-                {
-                    var itemTag = item.Tag?.ToString();
-                    if (itemTag?.StartsWith(languageCode + "-") == true)
+                    // 设置选中状态的视觉效果
+                    if (isSelected)
                     {
-                        LanguageComboBox.SelectedItem = item;
-                        found = true;
-                        System.Diagnostics.Debug.WriteLine($"  ✓ Matched by code! Selected: {item.Content}");
-                        break;
+                        button.BorderBrush = (Brush)Application.Current.Resources["AccentFillColorDefaultBrush"];
+                        button.BorderThickness = new Thickness(2);
+                    }
+                    else
+                    {
+                        button.BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"];
+                        button.BorderThickness = new Thickness(1);
                     }
                 }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[UpdateLanguageButtonStates] Error updating button: {ex.Message}");
+                }
             }
-
-            if (!found)
-            {
-                System.Diagnostics.Debug.WriteLine("  ✗ No match found, defaulting to index 0");
-                LanguageComboBox.SelectedIndex = 0;
-            }
-
-            System.Diagnostics.Debug.WriteLine($"[LoadLanguageSettings] Final selection: {(LanguageComboBox.SelectedItem as ComboBoxItem)?.Content}");
-
-            // 重新订阅事件
-            LanguageComboBox.SelectionChanged += OnLanguageChanged;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             UpdateVisualStateAndDiagnostic();
             LoadVersionInfo();
+            
+            // 在页面加载完成后初始化语言设置
+            LoadLanguageSettings();
             
             // 初始化滚动状态：检查当前滚动位置并同步 _isBlurPanelVisible 标志
             var scrollOffset = SettingsScrollViewer.VerticalOffset;
@@ -407,16 +451,7 @@ namespace Docked_AI.Features.Pages.Settings
         // Event to notify when WinUI context menu settings change
         public static event EventHandler? WinUIContextMenuSettingsChanged;
 
-        private void OnLanguageCardClick(object sender, RoutedEventArgs e)
-        {
-            // 点击语言设置卡片时，打开 ComboBox 的下拉菜单
-            if (LanguageComboBox != null)
-            {
-                LanguageComboBox.IsDropDownOpen = true;
-            }
-        }
-
-        private async void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
+        private async void OnLanguageButtonClick(object sender, RoutedEventArgs e)
         {
             // 确保 XamlRoot 已初始化
             if (this.XamlRoot == null)
@@ -424,9 +459,9 @@ namespace Docked_AI.Features.Pages.Settings
                 return;
             }
 
-            if (LanguageComboBox.SelectedItem is ComboBoxItem selectedItem)
+            if (sender is Button button)
             {
-                var languageTag = selectedItem.Tag?.ToString();
+                var languageTag = button.Tag?.ToString();
                 if (!string.IsNullOrEmpty(languageTag))
                 {
                     var currentLanguage = ApplicationLanguages.PrimaryLanguageOverride;
@@ -438,6 +473,12 @@ namespace Docked_AI.Features.Pages.Settings
                     if (languageTag != currentLanguage)
                     {
                         ApplicationLanguages.PrimaryLanguageOverride = languageTag;
+                        
+                        // 更新按钮视觉状态
+                        UpdateLanguageButtonStates(languageTag);
+                        
+                        // 更新右侧显示的当前语言文本
+                        UpdateCurrentLanguageText(languageTag);
                         
                         var dialog = new ContentDialog
                         {

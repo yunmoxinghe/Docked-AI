@@ -73,26 +73,214 @@
                             Toggled="OnToggleSwitched"/>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard x:Uid="SettingsPage_LanguageHeader"
-                                      IsClickEnabled="True"
-                                      Click="OnLanguageCardClick"
-                                      IsActionIconVisible="False">
-                        <controls:SettingsCard.HeaderIcon>
+                    <controls:SettingsExpander x:Name="LanguageExpander"
+                                          x:Uid="SettingsPage_LanguageHeader"
+                                          IsExpanded="False">
+                        <controls:SettingsExpander.HeaderIcon>
                             <FontIcon Glyph="&#xF2B7;"/>
-                        </controls:SettingsCard.HeaderIcon>
-                        <ComboBox x:Name="LanguageComboBox" 
-                                  MinWidth="200"
-                                  SelectionChanged="OnLanguageChanged">
-                            <ComboBoxItem Tag="zh-CN" x:Uid="Language_SimplifiedChinese"/>
-                            <ComboBoxItem Tag="zh-TW" x:Uid="Language_TraditionalChinese"/>
-                            <ComboBoxItem Tag="en-US" x:Uid="Language_English"/>
-                            <ComboBoxItem Tag="ja-JP" x:Uid="Language_Japanese"/>
-                            <ComboBoxItem Tag="ko-KR" x:Uid="Language_Korean"/>
-                            <ComboBoxItem Tag="fr-FR" x:Uid="Language_French"/>
-                            <ComboBoxItem Tag="de-DE" x:Uid="Language_German"/>
-                            <ComboBoxItem Tag="es-ES" x:Uid="Language_Spanish"/>
-                        </ComboBox>
-                    </controls:SettingsCard>
+                        </controls:SettingsExpander.HeaderIcon>
+                        
+                        <TextBlock x:Name="CurrentLanguageText" 
+                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        
+                        <controls:SettingsExpander.Items>
+                            <controls:SettingsCard 
+                                ContentAlignment="Left"
+                                HorizontalContentAlignment="Left">
+                                <VariableSizedWrapGrid Orientation="Horizontal" 
+                                                      ItemWidth="84"
+                                                      ItemHeight="100">
+                                    <!-- 简体中文 -->
+                                    <StackPanel Spacing="4">
+                                        <Button 
+                                            x:Name="LanguageButton_zhCN"
+                                            Tag="zh-CN"
+                                            Click="OnLanguageButtonClick"
+                                            Padding="12"
+                                            Width="68"
+                                            Height="68"
+                                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            HorizontalAlignment="Center">
+                                            <FontIcon Glyph="&#xE98A;" FontSize="32"/>
+                                        </Button>
+                                        <TextBlock Text="简体中文"
+                                                 FontSize="12" 
+                                                 TextAlignment="Center"
+                                                 TextWrapping="Wrap"
+                                                 HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                    
+                                    <!-- 繁体中文 -->
+                                    <StackPanel Spacing="4">
+                                        <Button 
+                                            x:Name="LanguageButton_zhTW"
+                                            Tag="zh-TW"
+                                            Click="OnLanguageButtonClick"
+                                            Padding="12"
+                                            Width="68"
+                                            Height="68"
+                                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            HorizontalAlignment="Center">
+                                            <FontIcon Glyph="&#xE88C;" FontSize="32"/>
+                                        </Button>
+                                        <TextBlock Text="繁體中文"
+                                                 FontSize="12" 
+                                                 TextAlignment="Center"
+                                                 TextWrapping="Wrap"
+                                                 HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                    
+                                    <!-- English -->
+                                    <StackPanel Spacing="4">
+                                        <Button 
+                                            x:Name="LanguageButton_enUS"
+                                            Tag="en-US"
+                                            Click="OnLanguageButtonClick"
+                                            Padding="12"
+                                            Width="68"
+                                            Height="68"
+                                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            HorizontalAlignment="Center">
+                                            <TextBlock Text="A" FontSize="32" FontWeight="SemiBold" 
+                                                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Button>
+                                        <TextBlock Text="English"
+                                                 FontSize="12" 
+                                                 TextAlignment="Center"
+                                                 TextWrapping="Wrap"
+                                                 HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                    
+                                    <!-- 日本語 -->
+                                    <StackPanel Spacing="4">
+                                        <Button 
+                                            x:Name="LanguageButton_jaJP"
+                                            Tag="ja-JP"
+                                            Click="OnLanguageButtonClick"
+                                            Padding="12"
+                                            Width="68"
+                                            Height="68"
+                                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            HorizontalAlignment="Center">
+                                            <FontIcon Glyph="&#xEC45;" FontSize="32"/>
+                                        </Button>
+                                        <TextBlock Text="日本語"
+                                                 FontSize="12" 
+                                                 TextAlignment="Center"
+                                                 TextWrapping="Wrap"
+                                                 HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                    
+                                    <!-- 한국어 -->
+                                    <StackPanel Spacing="4">
+                                        <Button 
+                                            x:Name="LanguageButton_koKR"
+                                            Tag="ko-KR"
+                                            Click="OnLanguageButtonClick"
+                                            Padding="12"
+                                            Width="68"
+                                            Height="68"
+                                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            HorizontalAlignment="Center">
+                                            <FontIcon Glyph="&#xE88B;" FontSize="32"/>
+                                        </Button>
+                                        <TextBlock Text="한국어"
+                                                 FontSize="12" 
+                                                 TextAlignment="Center"
+                                                 TextWrapping="Wrap"
+                                                 HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                    
+                                    <!-- Français -->
+                                    <StackPanel Spacing="4">
+                                        <Button 
+                                            x:Name="LanguageButton_frFR"
+                                            Tag="fr-FR"
+                                            Click="OnLanguageButtonClick"
+                                            Padding="12"
+                                            Width="68"
+                                            Height="68"
+                                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            HorizontalAlignment="Center">
+                                            <TextBlock Text="F" FontSize="32" FontWeight="SemiBold" 
+                                                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Button>
+                                        <TextBlock Text="Français"
+                                                 FontSize="12" 
+                                                 TextAlignment="Center"
+                                                 TextWrapping="Wrap"
+                                                 HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                    
+                                    <!-- Deutsch -->
+                                    <StackPanel Spacing="4">
+                                        <Button 
+                                            x:Name="LanguageButton_deDE"
+                                            Tag="de-DE"
+                                            Click="OnLanguageButtonClick"
+                                            Padding="12"
+                                            Width="68"
+                                            Height="68"
+                                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            HorizontalAlignment="Center">
+                                            <TextBlock Text="D" FontSize="32" FontWeight="SemiBold" 
+                                                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Button>
+                                        <TextBlock Text="Deutsch"
+                                                 FontSize="12" 
+                                                 TextAlignment="Center"
+                                                 TextWrapping="Wrap"
+                                                 HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                    
+                                    <!-- Español -->
+                                    <StackPanel Spacing="4">
+                                        <Button 
+                                            x:Name="LanguageButton_esES"
+                                            Tag="es-ES"
+                                            Click="OnLanguageButtonClick"
+                                            Padding="12"
+                                            Width="68"
+                                            Height="68"
+                                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="4"
+                                            HorizontalAlignment="Center">
+                                            <TextBlock Text="E" FontSize="32" FontWeight="SemiBold" 
+                                                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Button>
+                                        <TextBlock Text="Español"
+                                                 FontSize="12" 
+                                                 TextAlignment="Center"
+                                                 TextWrapping="Wrap"
+                                                 HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                </VariableSizedWrapGrid>
+                            </controls:SettingsCard>
+                        </controls:SettingsExpander.Items>
+                    </controls:SettingsExpander>
 
                     <!-- 交互设置 -->
                     <TextBlock 
