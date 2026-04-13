@@ -70,6 +70,28 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
 
         private void OnNavViewDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
         {
+            // 检查是否双击了按钮或图标区域
+            // 如果双击的是 NavigationViewItem 或其子元素，则不触发固定功能
+            var originalSource = e.OriginalSource as DependencyObject;
+            
+            // 向上遍历可视树，检查是否点击了 NavigationViewItem
+            while (originalSource != null)
+            {
+                if (originalSource is NavigationViewItem)
+                {
+                    // 双击了按钮区域，不触发固定功能
+                    return;
+                }
+                
+                if (originalSource == NavView)
+                {
+                    // 已经到达 NavView 根节点，说明是空白区域
+                    break;
+                }
+                
+                originalSource = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(originalSource);
+            }
+            
             // 双击侧边栏空白区域时触发固定按钮功能
             DockToggleRequested?.Invoke(this, EventArgs.Empty);
         }

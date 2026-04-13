@@ -1,9 +1,10 @@
-﻿<UserControl
+<UserControl
     x:Class="Docked_AI.Features.MainWindowContent.ContentArea.ContentArea"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
     xmlns:animations="using:Microsoft.UI.Xaml.Media.Animation"
+    xmlns:devwinui="using:DevWinUI"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
@@ -15,20 +16,47 @@
         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
         BorderThickness="1">
-        <controls:Frame
-            x:Name="ContentFrame"
-            HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch"
-            SizeChanged="ContentFrame_SizeChanged">
-            <controls:Frame.ContentTransitions>
-                <TransitionCollection>
-                    <animations:NavigationThemeTransition>
-                        <animations:NavigationThemeTransition.DefaultNavigationTransitionInfo>
-                            <animations:DrillInNavigationTransitionInfo />
-                        </animations:NavigationThemeTransition.DefaultNavigationTransitionInfo>
-                    </animations:NavigationThemeTransition>
-                </TransitionCollection>
-            </controls:Frame.ContentTransitions>
-        </controls:Frame>
+        <Grid x:Name="ContentGrid">
+            <!-- 第一层：页面内容 Frame -->
+            <controls:Frame
+                x:Name="ContentFrame"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                SizeChanged="ContentFrame_SizeChanged">
+                <controls:Frame.ContentTransitions>
+                    <TransitionCollection>
+                        <animations:NavigationThemeTransition>
+                            <animations:NavigationThemeTransition.DefaultNavigationTransitionInfo>
+                                <animations:DrillInNavigationTransitionInfo />
+                            </animations:NavigationThemeTransition.DefaultNavigationTransitionInfo>
+                        </animations:NavigationThemeTransition>
+                    </TransitionCollection>
+                </controls:Frame.ContentTransitions>
+            </controls:Frame>
+
+            <!-- 第二层：通用控件/装饰层 -->
+            <Grid
+                x:Name="OverlayLayer"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch"
+                IsHitTestVisible="False">
+                <!-- 顶部线性渐变模糊面板 -->
+                <devwinui:LinearGradientBlurPanel
+                    x:Name="TopBlurPanel"
+                    Height="48"
+                    VerticalAlignment="Top"
+                    MaxBlurAmount="20"
+                    TintColor="#DC1C1C1C"
+                    StartPoint="0,0"
+                    EndPoint="0,1"
+                    Opacity="0"
+                    Visibility="Visible"
+                    UseLayoutRounding="True">
+                    <devwinui:LinearGradientBlurPanel.RenderTransform>
+                        <TranslateTransform x:Name="TopBlurTransform" Y="-48"/>
+                    </devwinui:LinearGradientBlurPanel.RenderTransform>
+                </devwinui:LinearGradientBlurPanel>
+            </Grid>
+        </Grid>
     </Border>
 </UserControl>
