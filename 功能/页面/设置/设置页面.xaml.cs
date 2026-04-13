@@ -238,11 +238,14 @@ namespace Docked_AI.Features.Pages.Settings
         {
             // 暂时取消事件订阅，避免在初始化时触发
             RoundedWebViewToggle.Toggled -= OnRoundedWebViewToggled;
+            WinUIContextMenuToggle.Toggled -= OnWinUIContextMenuToggled;
             
             RoundedWebViewToggle.IsOn = ExperimentalSettings.EnableRoundedWebView;
+            WinUIContextMenuToggle.IsOn = ExperimentalSettings.EnableWinUIContextMenu;
             
             // 重新订阅事件
             RoundedWebViewToggle.Toggled += OnRoundedWebViewToggled;
+            WinUIContextMenuToggle.Toggled += OnWinUIContextMenuToggled;
         }
 
         private void OnRoundedWebViewToggled(object sender, RoutedEventArgs e)
@@ -256,8 +259,22 @@ namespace Docked_AI.Features.Pages.Settings
             }
         }
 
+        private void OnWinUIContextMenuToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggle)
+            {
+                ExperimentalSettings.EnableWinUIContextMenu = toggle.IsOn;
+                
+                // 通知应用更新右键菜单设置
+                WinUIContextMenuSettingsChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
         // Event to notify when rounded webview settings change
         public static event EventHandler? RoundedWebViewSettingsChanged;
+
+        // Event to notify when WinUI context menu settings change
+        public static event EventHandler? WinUIContextMenuSettingsChanged;
 
         private void OnLanguageCardClick(object sender, RoutedEventArgs e)
         {

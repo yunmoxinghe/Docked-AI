@@ -59,6 +59,15 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             _useRoundedWebView = ExperimentalSettings.EnableRoundedWebView;
             UpdateWebViewVisibility();
 
+            // 根据设置配置右键菜单（在 WebView 初始化之前）
+            bool useWinUIContextMenu = ExperimentalSettings.EnableWinUIContextMenu;
+            if (!useWinUIContextMenu)
+            {
+                // 如果不使用 WinUI 右键菜单，移除 ContextFlyout
+                WebView.ContextFlyout = null;
+                RoundedWebView.ContextFlyout = null;
+            }
+
             // 初始化前景色为主题默认文本颜色
             InitializeForegroundColors();
 
@@ -93,6 +102,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             
             // 监听设置变化
             Pages.Settings.SettingsPage.RoundedWebViewSettingsChanged += OnRoundedWebViewSettingsChanged;
+            Pages.Settings.SettingsPage.WinUIContextMenuSettingsChanged += OnWinUIContextMenuSettingsChanged;
             
             // 监听 Frame 的 SizeChanged 以同步圆角
             if (_useRoundedWebView)
@@ -196,6 +206,77 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             // 设置改变时，需要重新加载页面才能生效
             // 这里只是更新标志，实际切换需要重新导航
             _useRoundedWebView = ExperimentalSettings.EnableRoundedWebView;
+        }
+
+        private void OnWinUIContextMenuSettingsChanged(object? sender, EventArgs e)
+        {
+            // 设置改变时，更新右键菜单配置
+            bool useWinUIContextMenu = ExperimentalSettings.EnableWinUIContextMenu;
+            
+            // 更新两个 WebView 的配置
+            if (WebView?.CoreWebView2 != null)
+            {
+                WebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = !useWinUIContextMenu;
+                UpdateContextMenuForWebView(WebView, useWinUIContextMenu);
+            }
+            
+            if (RoundedWebView?.CoreWebView2 != null)
+            {
+                RoundedWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = !useWinUIContextMenu;
+                UpdateContextMenuForWebView(RoundedWebView, useWinUIContextMenu);
+            }
+        }
+
+        private void UpdateContextMenuConfiguration(bool useWinUIContextMenu)
+        {
+            // 配置当前激活的 WebView
+            if (_activeWebView != null)
+            {
+                UpdateContextMenuForWebView(_activeWebView, useWinUIContextMenu);
+            }
+        }
+
+        private void UpdateContextMenuForWebView(Microsoft.UI.Xaml.Controls.WebView2 webView, bool useWinUIContextMenu)
+        {
+            if (webView == null)
+            {
+                return;
+            }
+
+            // 如果 CoreWebView2 已初始化，配置事件订阅
+            if (webView.CoreWebView2 != null)
+            {
+                // 先移除事件订阅（避免重复订阅）
+                webView.CoreWebView2.ContextMenuRequested -= CoreWebView2_ContextMenuRequested;
+                
+                if (useWinUIContextMenu)
+                {
+                    // 启用 WinUI 右键菜单：订阅事件
+                    webView.CoreWebView2.ContextMenuRequested += CoreWebView2_ContextMenuRequested;
+                }
+            }
+            
+            // 配置 ContextFlyout
+            if (useWinUIContextMenu)
+            {
+                // 恢复 ContextFlyout（如果之前被移除）
+                if (webView.ContextFlyout == null)
+                {
+                    if (webView == WebView)
+                    {
+                        webView.ContextFlyout = WebViewContextMenu;
+                    }
+                    else if (webView == RoundedWebView)
+                    {
+                        webView.ContextFlyout = RoundedWebViewContextMenu;
+                    }
+                }
+            }
+            else
+            {
+                // 禁用 WinUI 右键菜单：移除 ContextFlyout
+                webView.ContextFlyout = null;
+            }
         }
 
         private void OnPageSizeChanged(object sender, SizeChangedEventArgs e)
@@ -536,15 +617,19 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     // 禁用状态栏（悬停链接时左下角不显示 URL）
                     _activeWebView.CoreWebView2.Settings.IsStatusBarEnabled = false;
                     
-                    // 禁用默认右键菜单
-                    _activeWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+                    // 根据设置决定是否禁用默认右键菜单
+                    bool useWinUIContextMenu = ExperimentalSettings.EnableWinUIContextMenu;
+                    _activeWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = !useWinUIContextMenu;
                     
                     _activeWebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
                     _activeWebView.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
                     _activeWebView.CoreWebView2.HistoryChanged += CoreWebView2_HistoryChanged;
                     _activeWebView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
                     _activeWebView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
-                    _activeWebView.CoreWebView2.ContextMenuRequested += CoreWebView2_ContextMenuRequested;
+                    
+                    // 根据设置配置右键菜单
+                    UpdateContextMenuConfiguration(useWinUIContextMenu);
+                    
                     await EnsureTintScriptInstalledAsync();
                 }
             }
@@ -1539,6 +1624,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             Loaded -= WebBrowserPage_Loaded;
             Unloaded -= WebBrowserPage_Unloaded;
             Pages.Settings.SettingsPage.RoundedWebViewSettingsChanged -= OnRoundedWebViewSettingsChanged;
+            Pages.Settings.SettingsPage.WinUIContextMenuSettingsChanged -= OnWinUIContextMenuSettingsChanged;
             
             if (_useRoundedWebView)
             {

@@ -164,6 +164,13 @@
                                     x:Name="RoundedWebViewToggle"
                                     Toggled="OnRoundedWebViewToggled"/>
                             </controls:SettingsCard>
+                            <controls:SettingsCard 
+                                Header="WinUI 右键菜单"
+                                Description="为网页浏览器启用 WinUI 风格的右键菜单（默认使用浏览器原生菜单）">
+                                <ToggleSwitch 
+                                    x:Name="WinUIContextMenuToggle"
+                                    Toggled="OnWinUIContextMenuToggled"/>
+                            </controls:SettingsCard>
                         </controls:SettingsExpander.Items>
                     </controls:SettingsExpander>
 
