@@ -63,6 +63,15 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             WebAppEventBus.ShortcutCreated += OnShortcutCreated;
             Unloaded += (_, _) => WebAppEventBus.ShortcutCreated -= OnShortcutCreated;
             Loaded += NavigationBar_Loaded;
+            
+            // 添加双击空白区域触发固定按钮
+            NavView.DoubleTapped += OnNavViewDoubleTapped;
+        }
+
+        private void OnNavViewDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+        {
+            // 双击侧边栏空白区域时触发固定按钮功能
+            DockToggleRequested?.Invoke(this, EventArgs.Empty);
         }
 
         public void UpdateWindowStateIcon(bool isMaximized)
