@@ -4,7 +4,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
     xmlns:animations="using:Microsoft.UI.Xaml.Media.Animation"
-    xmlns:devwinui="using:DevWinUI"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
@@ -39,24 +38,7 @@
                 x:Name="OverlayLayer"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
-                IsHitTestVisible="False">
-                <!-- 顶部线性渐变模糊面板 -->
-                <devwinui:LinearGradientBlurPanel
-                    x:Name="TopBlurPanel"
-                    Height="48"
-                    VerticalAlignment="Top"
-                    MaxBlurAmount="20"
-                    TintColor="#DC1C1C1C"
-                    StartPoint="0,0"
-                    EndPoint="0,1"
-                    Opacity="0"
-                    Visibility="Visible"
-                    UseLayoutRounding="True">
-                    <devwinui:LinearGradientBlurPanel.RenderTransform>
-                        <TranslateTransform x:Name="TopBlurTransform" Y="-48"/>
-                    </devwinui:LinearGradientBlurPanel.RenderTransform>
-                </devwinui:LinearGradientBlurPanel>
-            </Grid>
+                IsHitTestVisible="False" />
         </Grid>
     </Border>
 </UserControl>

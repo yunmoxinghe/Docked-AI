@@ -4,16 +4,13 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Windows.System;
 using Windows.Globalization;
-using Windows.ApplicationModel.Resources.Core;
 using Windows.ApplicationModel;
 using Docked_AI.Features.Localization;
 using Docked_AI.Features.AppEntry.AutoLaunch;
 using Docked_AI.Features.Hotkey;
 using Docked_AI.Features.Settings;
-using Docked_AI.Features.MainWindowContent.ContentArea;
 using Windows.UI.Core;
 
 namespace Docked_AI.Features.Pages.Settings
@@ -26,10 +23,6 @@ namespace Docked_AI.Features.Pages.Settings
         private const double MaxHorizontalMargin = 36;
         private double _lastAppliedMargin = -1;
         private double _lastMeasuredWidth = -1;
-
-        // 标题滚动检测
-        private const double TitleScrollThreshold = 76; // 40 (顶部间距) + 36 (标题高度的一部分)
-        private bool _isBlurPanelVisible = false;
 
         // ViewModel for startup settings
         public StartupSettingsViewModel ViewModel { get; }
@@ -52,13 +45,9 @@ namespace Docked_AI.Features.Pages.Settings
             InitializeComponent();
             Loaded += OnLoaded;
             SizeChanged += OnSizeChanged;
-            Unloaded += OnUnloaded;
             
             LoadHotkeySettings();
             LoadExperimentalSettings();
-            
-            // 监听滚动事件
-            SettingsScrollViewer.ViewChanged += OnScrollViewChanged;
             
             // Initialize startup settings asynchronously
             _ = InitializeStartupSettingsAsync();
@@ -215,127 +204,6 @@ namespace Docked_AI.Features.Pages.Settings
             
             // 在页面加载完成后初始化语言设置
             LoadLanguageSettings();
-            
-            // 初始化滚动状态：检查当前滚动位置并同步 _isBlurPanelVisible 标志
-            var scrollOffset = SettingsScrollViewer.VerticalOffset;
-            _isBlurPanelVisible = scrollOffset > TitleScrollThreshold;
-            
-            System.Diagnostics.Debug.WriteLine($"[SettingsPage] OnLoaded - Initial scroll offset: {scrollOffset}, _isBlurPanelVisible: {_isBlurPanelVisible}");
-        }
-
-        private void OnUnloaded(object sender, RoutedEventArgs e)
-        {
-            SettingsScrollViewer.ViewChanged -= OnScrollViewChanged;
-            
-            // 重置状态标志，确保下次加载时从干净的状态开始
-            _isBlurPanelVisible = false;
-            
-            System.Diagnostics.Debug.WriteLine($"[SettingsPage] OnUnloaded - Reset _isBlurPanelVisible to false");
-        }
-
-        private void OnScrollViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
-        {
-            var scrollOffset = SettingsScrollViewer.VerticalOffset;
-            
-            // 当滚动超过阈值时显示模糊面板，否则隐藏
-            if (scrollOffset > TitleScrollThreshold && !_isBlurPanelVisible)
-            {
-                _isBlurPanelVisible = true;
-                ShowTopBlurPanel();
-            }
-            else if (scrollOffset <= TitleScrollThreshold && _isBlurPanelVisible)
-            {
-                _isBlurPanelVisible = false;
-                HideTopBlurPanel();
-            }
-        }
-
-        private void ShowTopBlurPanel()
-        {
-            try
-            {
-                // 调试：检查 Frame 的父级层次
-                System.Diagnostics.Debug.WriteLine($"[SettingsPage] ShowTopBlurPanel called");
-                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Frame: {Frame}");
-                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Frame.Parent: {Frame?.Parent}");
-                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Frame.Parent type: {Frame?.Parent?.GetType().FullName}");
-                
-                // 方法1: 直接通过 Frame.Parent
-                if (Frame?.Parent is MainWindowContent.ContentArea.ContentArea content1)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[SettingsPage] Found ContentArea via Frame.Parent");
-                    content1.ShowTopBlurPanel();
-                    return;
-                }
-                
-                // 方法2: 通过 XamlRoot 查找
-                if (this.XamlRoot?.Content is FrameworkElement root)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[SettingsPage] Searching via XamlRoot...");
-                    var content2 = FindContentAreaInVisualTree(root);
-                    if (content2 != null)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[SettingsPage] Found ContentArea via visual tree");
-                        content2.ShowTopBlurPanel();
-                        return;
-                    }
-                }
-                
-                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Failed to find ContentArea");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[SettingsPage] ShowTopBlurPanel error: {ex}");
-            }
-        }
-
-        private void HideTopBlurPanel()
-        {
-            try
-            {
-                // 方法1: 直接通过 Frame.Parent
-                if (Frame?.Parent is MainWindowContent.ContentArea.ContentArea content1)
-                {
-                    content1.HideTopBlurPanel();
-                    return;
-                }
-                
-                // 方法2: 通过 XamlRoot 查找
-                if (this.XamlRoot?.Content is FrameworkElement root)
-                {
-                    var content2 = FindContentAreaInVisualTree(root);
-                    if (content2 != null)
-                    {
-                        content2.HideTopBlurPanel();
-                        return;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[SettingsPage] HideTopBlurPanel error: {ex}");
-            }
-        }
-        
-        private MainWindowContent.ContentArea.ContentArea? FindContentAreaInVisualTree(DependencyObject element)
-        {
-            if (element is MainWindowContent.ContentArea.ContentArea contentArea)
-            {
-                return contentArea;
-            }
-            
-            int childCount = VisualTreeHelper.GetChildrenCount(element);
-            for (int i = 0; i < childCount; i++)
-            {
-                var child = VisualTreeHelper.GetChild(element, i);
-                var result = FindContentAreaInVisualTree(child);
-                if (result != null)
-                {
-                    return result;
-                }
-            }
-            
-            return null;
         }
 
         private void LoadVersionInfo()
