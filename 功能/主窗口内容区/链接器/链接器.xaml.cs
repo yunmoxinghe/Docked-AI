@@ -31,6 +31,7 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             NavBar.DockToggleRequested += OnDockToggleRequested;
             NavBar.WindowStateToggleRequested += OnWindowStateToggleRequested;
             NavBar.ShortcutRemoved += OnShortcutRemoved;
+            NavBar.WebAppRestartRequested += OnWebAppRestartRequested;
         }
 
         private void OnPageCloseRequested(object? sender, string shortcutId)
@@ -49,6 +50,12 @@ namespace Docked_AI.Features.MainWindowContent.Linker
         {
             // 清除对应的缓存页面
             ContentHost.RemoveCachedPage(shortcutId);
+        }
+
+        private async void OnWebAppRestartRequested(object? sender, string shortcutId)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Linker] 收到重启请求: {shortcutId}");
+            await ContentHost.RestartCurrentTabAsync();
         }
 
         private void ContentHost_Navigated(object? sender, NavigationEventArgs e)
@@ -100,6 +107,14 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             {
                 NavBar.SelectHomeItem();
             }
+        }
+
+        /// <summary>
+        /// 重启当前标签页
+        /// </summary>
+        public async System.Threading.Tasks.Task RestartCurrentTabAsync()
+        {
+            await ContentHost.RestartCurrentTabAsync();
         }
     }
 }

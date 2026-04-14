@@ -1067,7 +1067,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private void UpdateButtonResources()
         {
             var buttons = new[] { BackButton, ForwardButton, RefreshButton, CopyUrlButton, OpenExternalButton };
-            var icons = new[] { BackIcon, ForwardIcon, RefreshIcon, CopyIcon, OpenExternalIcon };
+            var icons = new IconElement[] { BackIcon, ForwardIcon, RefreshIcon, CopyIcon, OpenExternalIcon };
             
             for (int i = 0; i < buttons.Length; i++)
             {

@@ -265,6 +265,74 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         /// </summary>
         public int GetCachedPageCount() => _pageCacheManager.CachedPageCount;
 
+        /// <summary>
+        /// 重启当前标签页（销毁并重建 WebView）
+        /// </summary>
+        public async System.Threading.Tasks.Task RestartCurrentTabAsync()
+        {
+            System.Diagnostics.Debug.WriteLine("[ContentArea] RestartCurrentTabAsync 被调用");
+            
+            // 检查当前页面是否是 WebBrowserPage
+            if (_currentPage is not WebBrowserPage currentWebBrowserPage)
+            {
+                System.Diagnostics.Debug.WriteLine("[ContentArea] 当前页面不是 WebBrowserPage，无法重启");
+                return;
+            }
+
+            // 获取当前页面的参数（通过反射或缓存键）
+            string? currentCacheKey = null;
+            WebAppShortcut? currentShortcut = null;
+            
+            // 从缓存管理器中找到当前页面的缓存键
+            foreach (var cacheKey in _pageCacheManager.GetCachedPageKeys())
+            {
+                var cachedPage = _pageCacheManager.GetCachedPage(cacheKey);
+                if (ReferenceEquals(cachedPage, currentWebBrowserPage))
+                {
+                    currentCacheKey = cacheKey;
+                    
+                    // 从缓存键提取 shortcutId
+                    if (cacheKey.StartsWith("WebBrowser_"))
+                    {
+                        string shortcutId = cacheKey.Substring("WebBrowser_".Length);
+                        
+                        // 从存储中加载 shortcut
+                        var shortcuts = await WebAppShortcutStore.LoadAsync();
+                        currentShortcut = shortcuts.FirstOrDefault(s => s.Id == shortcutId);
+                    }
+                    break;
+                }
+            }
+
+            if (currentShortcut == null || currentCacheKey == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[ContentArea] 无法找到当前标签的信息");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] 准备重启标签: {currentShortcut.Name} ({currentShortcut.Id})");
+
+            // Step 1: 移除旧的缓存页面
+            _pageCacheManager.RemovePage(currentCacheKey);
+            
+            // Step 2: 注销 WebView
+            WebViewManager.UnregisterWebView(currentShortcut.Id);
+            
+            System.Diagnostics.Debug.WriteLine("[ContentArea] 已清理旧实例");
+
+            // Step 3: 显示加载状态（可选）
+            // 这里可以添加一个 Loading UI
+            
+            // 给一点时间让旧实例完全释放
+            await System.Threading.Tasks.Task.Delay(100);
+
+            // Step 4: 重新导航到同一个页面（会创建新实例）
+            System.Diagnostics.Debug.WriteLine("[ContentArea] 创建新实例");
+            Navigate(typeof(WebBrowserPage), currentShortcut);
+            
+            System.Diagnostics.Debug.WriteLine("[ContentArea] 标签重启完成");
+        }
+
         private void ContentFrame_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (e.NewSize.Width <= 0 || e.NewSize.Height <= 0)

@@ -26,6 +26,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         public event EventHandler? DockToggleRequested;
         public event EventHandler? WindowStateToggleRequested;
         public event EventHandler<string>? ShortcutRemoved; // 快捷方式被移除事件
+        public event EventHandler<string>? WebAppRestartRequested; // 网页应用重启请求事件
 
         public void UpdateDockToggleIcon(bool isPinned)
         {
@@ -313,8 +314,20 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                 string shortcutId = tagText["webapp:".Length..];
                 if (_webShortcuts.TryGetValue(shortcutId, out WebAppShortcut? shortcut))
                 {
-                    NavView.SelectedItem = args.InvokedItemContainer;
-                    NavigationRequested?.Invoke(this, new NavigationRequest(typeof(WebBrowserPage), shortcut));
+                    // 检查是否点击的是当前已选中的项
+                    bool isAlreadySelected = _lastSelectedNavigationItem == args.InvokedItemContainer;
+                    
+                    if (isAlreadySelected)
+                    {
+                        // 已选中，触发重启（不改变选中状态，不触发 SelectionChanged）
+                        System.Diagnostics.Debug.WriteLine($"[NavigationBar] 点击已选中的标签，触发重启: {shortcut.Name}");
+                        WebAppRestartRequested?.Invoke(this, shortcutId);
+                    }
+                    else
+                    {
+                        // 切换到其他标签，更新选中状态（会触发 SelectionChanged）
+                        NavView.SelectedItem = args.InvokedItemContainer;
+                    }
                 }
                 return;
             }
@@ -359,6 +372,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                 if (_webShortcuts.TryGetValue(shortcutId, out WebAppShortcut? shortcut))
                 {
                     _lastSelectedNavigationItem = args.SelectedItemContainer;
+                    // 只在切换标签时触发导航（ItemInvoked 已经处理了重启逻辑）
                     NavigationRequested?.Invoke(this, new NavigationRequest(typeof(WebBrowserPage), shortcut));
                 }
                 return;
