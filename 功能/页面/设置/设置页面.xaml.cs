@@ -48,6 +48,7 @@ namespace Docked_AI.Features.Pages.Settings
             
             LoadHotkeySettings();
             LoadExperimentalSettings();
+            LoadWebSettings();
             
             // Initialize startup settings asynchronously
             _ = InitializeStartupSettingsAsync();
@@ -318,6 +319,32 @@ namespace Docked_AI.Features.Pages.Settings
 
         // Event to notify when WinUI context menu settings change
         public static event EventHandler? WinUIContextMenuSettingsChanged;
+
+        private void LoadWebSettings()
+        {
+            // 暂时取消事件订阅，避免在初始化时触发
+            MaxWebViewCountBox.ValueChanged -= OnMaxWebViewCountChanged;
+            
+            MaxWebViewCountBox.Value = ExperimentalSettings.MaxWebViewCount;
+            
+            // 重新订阅事件
+            MaxWebViewCountBox.ValueChanged += OnMaxWebViewCountChanged;
+        }
+
+        private void OnMaxWebViewCountChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
+        {
+            if (!double.IsNaN(args.NewValue))
+            {
+                int newValue = (int)args.NewValue;
+                ExperimentalSettings.MaxWebViewCount = newValue;
+                
+                // 通知应用更新 WebView 数量限制
+                MaxWebViewCountSettingsChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        // Event to notify when max webview count settings change
+        public static event EventHandler? MaxWebViewCountSettingsChanged;
 
         private async void OnLanguageButtonClick(object sender, RoutedEventArgs e)
         {

@@ -289,6 +289,26 @@
   <data name="SettingsPage_TouchpadSettingsHeader.Description" xml:space="preserve">
     <value>在下方相关设置中的高级手势设置中可以选择自定义快捷方式将触摸板手势映射为快捷键</value>
   </data>
+  <data name="SettingsPage_MaxWebViewHeader.Header" xml:space="preserve">
+    <value>WebView 数量限制</value>
+  </data>
+  <data name="SettingsPage_MaxWebViewHeader.Description" xml:space="preserve">
+    <value>设置同时可以打开的网页浏览器数量（1-20）</value>
+  </data>
+  
+  <!-- 导航栏 WebView 限制提示 -->
+  <data name="Nav_WebViewLimitTitle" xml:space="preserve">
+    <value>已达到浏览器数量限制</value>
+  </data>
+  <data name="Nav_WebViewLimitMessage" xml:space="preserve">
+    <value>当前最多可以同时打开 {0} 个网页浏览器，已打开 {1} 个。请关闭一些浏览器后再试，或在设置中调整数量限制。</value>
+  </data>
+  <data name="Nav_WebViewLimitClose" xml:space="preserve">
+    <value>知道了</value>
+  </data>
+  <data name="WebBrowser_CloseButton" xml:space="preserve">
+    <value>关闭此页面</value>
+  </data>
   
   <!-- 语言选项 -->
   <data name="Language_SimplifiedChinese.Text" xml:space="preserve">

@@ -282,6 +282,23 @@
   <data name="SettingsPage_TouchpadSettingsHeader.Description" xml:space="preserve">
     <value>在下方相關設定中的進階手勢設定中可以選擇自訂快速鍵將觸控板手勢對應為快速鍵</value>
   </data>
+  <data name="SettingsPage_MaxWebViewHeader.Header" xml:space="preserve">
+    <value>WebView 數量限制</value>
+  </data>
+  <data name="SettingsPage_MaxWebViewHeader.Description" xml:space="preserve">
+    <value>設定同時可以開啟的網頁瀏覽器數量（1-20）</value>
+  </data>
+  
+  <!-- 導航欄 WebView 限制提示 -->
+  <data name="Nav_WebViewLimitTitle" xml:space="preserve">
+    <value>已達到瀏覽器數量限制</value>
+  </data>
+  <data name="Nav_WebViewLimitMessage" xml:space="preserve">
+    <value>目前最多可以同時開啟 {0} 個網頁瀏覽器，已開啟 {1} 個。請關閉一些瀏覽器後再試，或在設定中調整數量限制。</value>
+  </data>
+  <data name="Nav_WebViewLimitClose" xml:space="preserve">
+    <value>知道了</value>
+  </data>
   
   <!-- 語言選項 -->
   <data name="Language_SimplifiedChinese.Text" xml:space="preserve">

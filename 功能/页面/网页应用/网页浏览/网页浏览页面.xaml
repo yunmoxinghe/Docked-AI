@@ -66,6 +66,22 @@
                         </TextBlock.Style>
                     </TextBlock>
                 </StackPanel>
+                <Button
+                    x:Name="CloseButton"
+                    Grid.Column="2"
+                    Width="32"
+                    Height="32"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    VerticalAlignment="Center"
+                    Click="CloseButton_Click"
+                    ToolTipService.ToolTip="关闭此页面">
+                    <FontIcon 
+                        Glyph="&#xE711;" 
+                        FontSize="12"
+                        Foreground="{x:Bind _topBarForegroundBrush, Mode=OneWay}"/>
+                </Button>
                 <ProgressBar
                     x:Name="LoadingProgressBar"
                     Grid.ColumnSpan="3"

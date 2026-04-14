@@ -26,9 +26,29 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             InitializeComponent();
             ContentHost.Navigate(typeof(HomePage));
             ContentHost.Navigated += ContentHost_Navigated;
+            ContentHost.PageCloseRequested += OnPageCloseRequested;
             NavBar.NavigationRequested += OnNavigationRequested;
             NavBar.DockToggleRequested += OnDockToggleRequested;
             NavBar.WindowStateToggleRequested += OnWindowStateToggleRequested;
+            NavBar.ShortcutRemoved += OnShortcutRemoved;
+        }
+
+        private void OnPageCloseRequested(object? sender, string shortcutId)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Linker] 收到页面关闭请求: {shortcutId}");
+            
+            // 清除缓存和注销 WebView
+            ContentHost.RemoveCachedPage(shortcutId);
+            
+            // 导航回主页
+            ContentHost.Navigate(typeof(HomePage));
+            NavBar.SelectHomeItem();
+        }
+
+        private void OnShortcutRemoved(object? sender, string shortcutId)
+        {
+            // 清除对应的缓存页面
+            ContentHost.RemoveCachedPage(shortcutId);
         }
 
         private void ContentHost_Navigated(object? sender, NavigationEventArgs e)

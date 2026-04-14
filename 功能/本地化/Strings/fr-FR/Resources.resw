@@ -282,6 +282,23 @@
   <data name="SettingsPage_TouchpadSettingsHeader.Description" xml:space="preserve">
     <value>Dans Gestes avancés sous Paramètres associés, vous pouvez sélectionner des raccourcis personnalisés pour mapper les gestes du pavé tactile aux touches de raccourci</value>
   </data>
+  <data name="SettingsPage_MaxWebViewHeader.Header" xml:space="preserve">
+    <value>Limite du nombre de WebView</value>
+  </data>
+  <data name="SettingsPage_MaxWebViewHeader.Description" xml:space="preserve">
+    <value>Définir le nombre maximum de navigateurs Web pouvant être ouverts simultanément (1-20)</value>
+  </data>
+  
+  <!-- Barre de navigation Limite WebView -->
+  <data name="Nav_WebViewLimitTitle" xml:space="preserve">
+    <value>Limite de navigateurs atteinte</value>
+  </data>
+  <data name="Nav_WebViewLimitMessage" xml:space="preserve">
+    <value>Vous pouvez ouvrir jusqu'à {0} navigateurs Web en même temps. Actuellement {1} sont ouverts. Veuillez fermer certains navigateurs ou ajuster la limite dans les paramètres.</value>
+  </data>
+  <data name="Nav_WebViewLimitClose" xml:space="preserve">
+    <value>OK</value>
+  </data>
   
   <!-- Options de langue -->
   <data name="Language_SimplifiedChinese.Text" xml:space="preserve">

@@ -288,6 +288,23 @@
   <data name="SettingsPage_TouchpadSettingsHeader.Description" xml:space="preserve">
     <value>In Advanced gestures under Related settings below, you can select custom shortcuts to map touchpad gestures to hotkeys</value>
   </data>
+  <data name="SettingsPage_MaxWebViewHeader.Header" xml:space="preserve">
+    <value>WebView Count Limit</value>
+  </data>
+  <data name="SettingsPage_MaxWebViewHeader.Description" xml:space="preserve">
+    <value>Set the maximum number of web browsers that can be opened simultaneously (1-20)</value>
+  </data>
+  
+  <!-- Navigation Bar WebView Limit -->
+  <data name="Nav_WebViewLimitTitle" xml:space="preserve">
+    <value>Browser Limit Reached</value>
+  </data>
+  <data name="Nav_WebViewLimitMessage" xml:space="preserve">
+    <value>You can open up to {0} web browsers at the same time. Currently {1} are open. Please close some browsers or adjust the limit in settings.</value>
+  </data>
+  <data name="Nav_WebViewLimitClose" xml:space="preserve">
+    <value>OK</value>
+  </data>
   
   <!-- Language Options -->
   <data name="Language_SimplifiedChinese.Text" xml:space="preserve">

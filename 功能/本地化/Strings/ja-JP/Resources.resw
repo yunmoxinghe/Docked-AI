@@ -282,6 +282,23 @@
   <data name="SettingsPage_TouchpadSettingsHeader.Description" xml:space="preserve">
     <value>下部の関連設定にある高度なジェスチャ設定で、カスタムショートカットを選択してタッチパッドジェスチャをホットキーにマッピングできます</value>
   </data>
+  <data name="SettingsPage_MaxWebViewHeader.Header" xml:space="preserve">
+    <value>WebView 数量制限</value>
+  </data>
+  <data name="SettingsPage_MaxWebViewHeader.Description" xml:space="preserve">
+    <value>同時に開くことができるウェブブラウザの最大数を設定します（1-20）</value>
+  </data>
+  
+  <!-- ナビゲーションバー WebView 制限 -->
+  <data name="Nav_WebViewLimitTitle" xml:space="preserve">
+    <value>ブラウザ数の制限に達しました</value>
+  </data>
+  <data name="Nav_WebViewLimitMessage" xml:space="preserve">
+    <value>同時に最大 {0} 個のウェブブラウザを開くことができます。現在 {1} 個が開いています。いくつかのブラウザを閉じるか、設定で制限を調整してください。</value>
+  </data>
+  <data name="Nav_WebViewLimitClose" xml:space="preserve">
+    <value>OK</value>
+  </data>
   
   <!-- 言語オプション -->
   <data name="Language_SimplifiedChinese.Text" xml:space="preserve">

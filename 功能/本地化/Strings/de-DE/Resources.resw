@@ -282,6 +282,23 @@
   <data name="SettingsPage_TouchpadSettingsHeader.Description" xml:space="preserve">
     <value>In den erweiterten Gesteneinstellungen unter Verwandte Einstellungen können Sie benutzerdefinierte Tastenkombinationen auswählen, um Touchpad-Gesten auf Hotkeys zu mappen</value>
   </data>
+  <data name="SettingsPage_MaxWebViewHeader.Header" xml:space="preserve">
+    <value>WebView-Anzahlbegrenzung</value>
+  </data>
+  <data name="SettingsPage_MaxWebViewHeader.Description" xml:space="preserve">
+    <value>Legen Sie die maximale Anzahl der gleichzeitig geöffneten Webbrowser fest (1-20)</value>
+  </data>
+  
+  <!-- Navigationsleiste WebView-Limit -->
+  <data name="Nav_WebViewLimitTitle" xml:space="preserve">
+    <value>Browser-Limit erreicht</value>
+  </data>
+  <data name="Nav_WebViewLimitMessage" xml:space="preserve">
+    <value>Sie können bis zu {0} Webbrowser gleichzeitig öffnen. Derzeit sind {1} geöffnet. Bitte schließen Sie einige Browser oder passen Sie das Limit in den Einstellungen an.</value>
+  </data>
+  <data name="Nav_WebViewLimitClose" xml:space="preserve">
+    <value>OK</value>
+  </data>
   
   <!-- Sprachoptionen -->
   <data name="Language_SimplifiedChinese.Text" xml:space="preserve">

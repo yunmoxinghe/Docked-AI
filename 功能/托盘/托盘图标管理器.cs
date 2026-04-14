@@ -156,8 +156,8 @@ namespace Docked_AI.Features.Tray
             {
                 // 从本地化资源获取菜单文本
                 Text = LocalizationHelper.GetString("TrayMenu_OpenWindow"),
-                // 设置菜单图标（开始符号）
-                Icon = new SymbolIcon(Symbol.GoToStart)
+                // 设置菜单图标（窗口符号）
+                Icon = new FontIcon { Glyph = "\uE78B" }
             };
             // 绑定点击事件，点击时显示主窗口
             openItem.Click += OnOpenWindowClicked;

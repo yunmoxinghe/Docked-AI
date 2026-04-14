@@ -1,5 +1,6 @@
 using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.Settings;
+using Docked_AI.Features.MainWindowContent.ContentArea;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -18,7 +19,7 @@ using Windows.System;
 
 namespace Docked_AI.Features.Pages.WebApp.Browser
 {
-    public sealed partial class WebBrowserPage : Page
+    public sealed partial class WebBrowserPage : Page, INavigationAware
     {
         private const string TintMessageType = "docked_ai_tint";
         private const string ThemeColorMessageType = "docked_ai_theme_color";
@@ -50,10 +51,14 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private Microsoft.UI.Xaml.Controls.WebView2? _activeWebView;
         private bool _hasReceivedFirstTint;
         private bool _hasAppliedThemeColor;
+        private string? _instanceId; // WebView 实例唯一标识符
 
         public WebBrowserPage()
         {
             InitializeComponent();
+
+            // 生成唯一实例 ID
+            _instanceId = Guid.NewGuid().ToString();
 
             // 根据设置决定使用哪个 WebView
             _useRoundedWebView = ExperimentalSettings.EnableRoundedWebView;
@@ -533,13 +538,46 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
         {
-            DisposeWebView();
             base.OnNavigatedFrom(e);
+        }
+
+        // INavigationAware 实现
+        void INavigationAware.OnNavigatedTo(object? parameter)
+        {
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] INavigationAware.OnNavigatedTo called for cached page");
+            // 缓存页面被重新激活时，不需要做特殊处理
+            // WebView 和所有状态都已保留
+        }
+
+        void INavigationAware.OnNavigatedFrom()
+        {
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] INavigationAware.OnNavigatedFrom called");
+            // 页面被切换走时，不需要做特殊处理
+            // 保持 WebView 活跃状态以便快速切换回来
         }
 
         private async void WebBrowserPage_Loaded(object sender, RoutedEventArgs e)
         {
-            Loaded -= WebBrowserPage_Loaded;
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] Loaded 事件触发");
+            
+            // 注册 WebView 实例（仅在首次加载时）
+            // 使用 shortcut.Id 作为实例 ID，这样可以与缓存键对应
+            if (_currentShortcut != null && !WebViewManager.IsRegistered(_currentShortcut.Id))
+            {
+                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 未注册，尝试注册: {_currentShortcut.Id}");
+                
+                if (!WebViewManager.RegisterWebView(_currentShortcut.Id))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 无法注册 WebView，已达到数量限制");
+                    // 不显示弹窗，因为这是内部状态管理
+                    return;
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 已注册，跳过注册步骤");
+            }
+            
             await EnsureWebViewInitializedAsync();
             TryNavigatePendingUri();
             
@@ -573,7 +611,13 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void WebBrowserPage_Unloaded(object sender, RoutedEventArgs e)
         {
-            DisposeWebView();
+            // 注意：由于页面会被缓存，Unloaded 在页面从 Frame 移除时也会触发
+            // 但我们不应该在这里注销 WebView，因为页面还在缓存中
+            // 只有在页面真正被销毁时才注销（通过 RemoveCachedPage 触发）
+            
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] Unloaded 事件触发，但不注销 WebView（页面可能被缓存）");
+            
+            // 不调用 DisposeWebView，保持 WebView 活跃
         }
 
         private async Task EnsureWebViewInitializedAsync()
@@ -1267,6 +1311,21 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 _activeWebView.GoBack();
             }
         }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            // 关闭当前页面
+            if (_currentShortcut != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 用户点击关闭按钮: {_currentShortcut.Id}");
+                
+                // 触发关闭事件，通知导航栏和内容区域
+                PageCloseRequested?.Invoke(this, _currentShortcut.Id);
+            }
+        }
+
+        // 页面关闭请求事件
+        public event EventHandler<string>? PageCloseRequested;
 
         private void ForwardButton_Click(object sender, RoutedEventArgs e)
         {

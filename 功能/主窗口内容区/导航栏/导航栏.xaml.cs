@@ -25,6 +25,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         public event EventHandler<NavigationRequest>? NavigationRequested;
         public event EventHandler? DockToggleRequested;
         public event EventHandler? WindowStateToggleRequested;
+        public event EventHandler<string>? ShortcutRemoved; // 快捷方式被移除事件
 
         public void UpdateDockToggleIcon(bool isPinned)
         {
@@ -354,10 +355,10 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
 
             if (tagText.StartsWith("webapp:"))
             {
-                _lastSelectedNavigationItem = args.SelectedItemContainer;
                 string shortcutId = tagText["webapp:".Length..];
                 if (_webShortcuts.TryGetValue(shortcutId, out WebAppShortcut? shortcut))
                 {
+                    _lastSelectedNavigationItem = args.SelectedItemContainer;
                     NavigationRequested?.Invoke(this, new NavigationRequest(typeof(WebBrowserPage), shortcut));
                 }
                 return;
@@ -415,6 +416,12 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                     NavigationRequested?.Invoke(this, new NavigationRequest(typeof(HomePage), null));
                 }
             }
+
+            // 触发快捷方式移除事件，通知清除缓存
+            ShortcutRemoved?.Invoke(this, shortcutId);
+
+            // 注销 WebView 实例
+            WebViewManager.UnregisterWebView(shortcutId);
 
             _ = PersistShortcutsAsync();
         }

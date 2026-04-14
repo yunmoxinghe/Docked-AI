@@ -1,3 +1,4 @@
+using System;
 using Windows.Storage;
 
 namespace Docked_AI.Features.Settings
@@ -9,6 +10,7 @@ namespace Docked_AI.Features.Settings
     {
         private const string EnableRoundedWebViewKey = "ExperimentalFeature_EnableRoundedWebView";
         private const string EnableWinUIContextMenuKey = "ExperimentalFeature_EnableWinUIContextMenu";
+        private const string MaxWebViewCountKey = "WebSettings_MaxWebViewCount";
         
         private static readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
 
@@ -47,6 +49,27 @@ namespace Docked_AI.Features.Settings
             set
             {
                 _localSettings.Values[EnableWinUIContextMenuKey] = value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置同时打开的 WebView 最大数量
+        /// </summary>
+        public static int MaxWebViewCount
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(MaxWebViewCountKey, out object? value))
+                {
+                    return value is int intValue ? intValue : 2;
+                }
+                return 2; // 默认值为 2
+            }
+            set
+            {
+                // 限制范围在 1-20 之间
+                int clampedValue = Math.Max(1, Math.Min(20, value));
+                _localSettings.Values[MaxWebViewCountKey] = clampedValue;
             }
         }
     }

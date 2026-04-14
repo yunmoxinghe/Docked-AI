@@ -4,7 +4,10 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Navigation;
 using System;
+using System.Linq;
 using System.Numerics;
+using Docked_AI.Features.Pages.WebApp.Shared;
+using Docked_AI.Features.Pages.WebApp.Browser;
 
 namespace Docked_AI.Features.MainWindowContent.ContentArea
 {
@@ -15,6 +18,8 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         private float _currentCornerRadius = DefaultCornerRadius;
         private CompositionRoundedRectangleGeometry? _clipGeometry;
         private CompositionRoundedRectangleGeometry? _gridClipGeometry;
+        private readonly PageCacheManager _pageCacheManager;
+        private Page? _currentPage;
 
         public event EventHandler<NavigationEventArgs>? Navigated;
 
@@ -26,8 +31,33 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         public ContentArea()
         {
             InitializeComponent();
+            _pageCacheManager = new PageCacheManager(maxCacheSize: 20);
+            _pageCacheManager.PageAutoRemoved += OnPageAutoRemoved;
             ContentFrame.Navigated += ContentFrame_Navigated;
             ContentGrid.Loaded += ContentGrid_Loaded;
+        }
+
+        private void OnPageAutoRemoved(object? sender, string cacheKey)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] 页面被自动移除: {cacheKey}");
+            
+            // 从缓存键中提取 shortcutId
+            if (cacheKey.StartsWith("WebBrowser_"))
+            {
+                string shortcutId = cacheKey.Substring("WebBrowser_".Length);
+                
+                // 获取页面实例进行清理
+                var page = _pageCacheManager.GetCachedPage(cacheKey);
+                if (page is WebBrowserPage webBrowserPage)
+                {
+                    // 触发页面清理逻辑（如果有的话）
+                    System.Diagnostics.Debug.WriteLine($"[ContentArea] 清理被移除的 WebBrowserPage: {shortcutId}");
+                }
+                
+                // 注销 WebView
+                WebViewManager.UnregisterWebView(shortcutId);
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] 自动注销 WebView: {shortcutId}");
+            }
         }
 
         private void ContentGrid_Loaded(object sender, RoutedEventArgs e)
@@ -69,22 +99,171 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             }
         }
 
-        private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
-        {
-            Navigated?.Invoke(this, e);
-        }
-
         public void Navigate(Type pageType, object? parameter = null)
         {
-            if (parameter != null)
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] Navigate 被调用: {pageType.Name}");
+            
+            // 生成缓存键
+            string? cacheKey = GenerateCacheKey(pageType, parameter);
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] 缓存键: {cacheKey ?? "null"}");
+            
+            // 如果是 WebBrowserPage，检查 WebView 数量限制
+            if (pageType == typeof(WebBrowserPage) && !string.IsNullOrEmpty(cacheKey))
             {
-                ContentFrame.Navigate(pageType, parameter);
+                string shortcutId = cacheKey.Substring("WebBrowser_".Length);
+                
+                // 如果该 WebView 已经注册，直接使用缓存
+                if (WebViewManager.IsRegistered(shortcutId))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ContentArea] WebView 已注册，使用缓存");
+                }
+                // 如果未注册但已达到限制，需要先移除最久未使用的页面
+                else if (!WebViewManager.CanCreateNew())
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ContentArea] WebView 数量已达限制 ({WebViewManager.ActiveCount}/{WebViewManager.MaxCount})，触发 LRU 移除");
+                    
+                    // 获取按 LRU 顺序排列的缓存键（从最新到最旧）
+                    var cachedKeysInOrder = _pageCacheManager.GetCachedPageKeysInLRUOrder().ToList();
+                    
+                    // 从后往前找到最久未使用的 WebBrowser 页面（不是当前要打开的）
+                    string? oldestWebBrowserKey = null;
+                    for (int i = cachedKeysInOrder.Count - 1; i >= 0; i--)
+                    {
+                        var key = cachedKeysInOrder[i];
+                        if (key.StartsWith("WebBrowser_") && key != cacheKey)
+                        {
+                            oldestWebBrowserKey = key;
+                            break;
+                        }
+                    }
+                    
+                    if (oldestWebBrowserKey != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ContentArea] 移除最久未使用的页面: {oldestWebBrowserKey}");
+                        string oldShortcutId = oldestWebBrowserKey.Substring("WebBrowser_".Length);
+                        
+                        // 先注销 WebView
+                        WebViewManager.UnregisterWebView(oldShortcutId);
+                        
+                        // 再移除页面缓存
+                        _pageCacheManager.RemovePage(oldestWebBrowserKey);
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[ContentArea] 警告：未找到可移除的 WebBrowser 页面");
+                    }
+                }
+            }
+            
+            // 检查是否已缓存
+            if (!string.IsNullOrEmpty(cacheKey) && _pageCacheManager.IsPageCached(cacheKey))
+            {
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] 页面已缓存，直接使用");
+                
+                // 从缓存获取页面
+                Page cachedPage = _pageCacheManager.GetOrCreatePage(pageType, parameter, cacheKey);
+                
+                // 直接设置内容（跳过 Frame 导航）
+                ContentFrame.Content = cachedPage;
+                _currentPage = cachedPage;
+                
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] 已设置缓存页面到 Frame.Content");
+                
+                // 手动调用 OnNavigatedTo
+                if (cachedPage is INavigationAware navigationAware)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ContentArea] 调用 INavigationAware.OnNavigatedTo");
+                    navigationAware.OnNavigatedTo(parameter);
+                }
             }
             else
             {
-                ContentFrame.Navigate(pageType);
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] 首次导航，使用 Frame.Navigate");
+                
+                // 首次导航，使用 Frame.Navigate 触发正常流程
+                if (parameter != null)
+                {
+                    ContentFrame.Navigate(pageType, parameter);
+                }
+                else
+                {
+                    ContentFrame.Navigate(pageType);
+                }
             }
         }
+
+        private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
+        {
+            // Frame 导航完成后，将页面加入缓存
+            if (ContentFrame.Content is Page page)
+            {
+                string? cacheKey = GenerateCacheKey(e.SourcePageType, e.Parameter);
+                
+                if (!string.IsNullOrEmpty(cacheKey))
+                {
+                    // 将新创建的页面加入缓存
+                    _pageCacheManager.AddPageToCache(cacheKey, page);
+                    System.Diagnostics.Debug.WriteLine($"[ContentArea] 页面已缓存: {cacheKey}");
+                }
+                
+                _currentPage = page;
+                
+                // 如果是 WebBrowserPage，订阅关闭事件
+                if (page is WebBrowserPage webBrowserPage)
+                {
+                    webBrowserPage.PageCloseRequested += OnPageCloseRequested;
+                }
+            }
+            
+            Navigated?.Invoke(this, e);
+        }
+
+        private void OnPageCloseRequested(object? sender, string shortcutId)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] 收到页面关闭请求: {shortcutId}");
+            
+            // 触发关闭事件，通知 Linker
+            PageCloseRequested?.Invoke(this, shortcutId);
+        }
+
+        // 页面关闭请求事件
+        public event EventHandler<string>? PageCloseRequested;
+
+        private string? GenerateCacheKey(Type pageType, object? parameter)
+        {
+            // WebBrowserPage 使用 shortcut.Id 作为缓存键
+            if (pageType == typeof(WebBrowserPage) && parameter is WebAppShortcut shortcut)
+            {
+                return $"WebBrowser_{shortcut.Id}";
+            }
+            
+            // 其他页面不缓存（每次都创建新实例）
+            return null;
+        }
+
+        /// <summary>
+        /// 移除指定的缓存页面
+        /// </summary>
+        public void RemoveCachedPage(string shortcutId)
+        {
+            string cacheKey = $"WebBrowser_{shortcutId}";
+            
+            // 获取页面实例以便清理（不更新访问顺序）
+            var page = _pageCacheManager.GetCachedPage(cacheKey);
+            if (page is WebBrowserPage webBrowserPage)
+            {
+                // 注销 WebView
+                WebViewManager.UnregisterWebView(shortcutId);
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] 清理缓存页面，注销 WebView: {shortcutId}");
+            }
+            
+            _pageCacheManager.RemovePage(cacheKey);
+        }
+
+        /// <summary>
+        /// 获取缓存统计信息
+        /// </summary>
+        public int GetCachedPageCount() => _pageCacheManager.CachedPageCount;
 
         private void ContentFrame_SizeChanged(object sender, SizeChangedEventArgs e)
         {

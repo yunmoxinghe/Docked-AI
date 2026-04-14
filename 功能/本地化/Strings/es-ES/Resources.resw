@@ -282,6 +282,23 @@
   <data name="SettingsPage_TouchpadSettingsHeader.Description" xml:space="preserve">
     <value>En Gestos avanzados bajo Configuración relacionada, puede seleccionar accesos directos personalizados para asignar gestos del panel táctil a teclas de acceso rápido</value>
   </data>
+  <data name="SettingsPage_MaxWebViewHeader.Header" xml:space="preserve">
+    <value>Límite de cantidad de WebView</value>
+  </data>
+  <data name="SettingsPage_MaxWebViewHeader.Description" xml:space="preserve">
+    <value>Establecer el número máximo de navegadores web que se pueden abrir simultáneamente (1-20)</value>
+  </data>
+  
+  <!-- Barra de navegación Límite de WebView -->
+  <data name="Nav_WebViewLimitTitle" xml:space="preserve">
+    <value>Límite de navegadores alcanzado</value>
+  </data>
+  <data name="Nav_WebViewLimitMessage" xml:space="preserve">
+    <value>Puede abrir hasta {0} navegadores web al mismo tiempo. Actualmente hay {1} abiertos. Cierre algunos navegadores o ajuste el límite en la configuración.</value>
+  </data>
+  <data name="Nav_WebViewLimitClose" xml:space="preserve">
+    <value>OK</value>
+  </data>
   
   <!-- Opciones de idioma -->
   <data name="Language_SimplifiedChinese.Text" xml:space="preserve">

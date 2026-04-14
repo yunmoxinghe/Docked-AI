@@ -329,6 +329,28 @@
                         </controls:SettingsExpander.Items>
                     </controls:SettingsExpander>
 
+                    <!-- 网页设置 -->
+                    <TextBlock 
+                        Text="网页"
+                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                        Margin="1,16,0,4"/>
+                    
+                    <controls:SettingsCard 
+                        x:Uid="SettingsPage_MaxWebViewHeader">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE774;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <NumberBox 
+                            x:Name="MaxWebViewCountBox"
+                            Minimum="1"
+                            Maximum="20"
+                            SpinButtonPlacementMode="Inline"
+                            SmallChange="1"
+                            LargeChange="5"
+                            Width="120"
+                            ValueChanged="OnMaxWebViewCountChanged"/>
+                    </controls:SettingsCard>
+
                     <!-- 高级设置 -->
                     <TextBlock 
                         Text="高级"
