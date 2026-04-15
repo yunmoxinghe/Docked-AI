@@ -678,16 +678,21 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     UpdateContextMenuConfiguration(useWinUIContextMenu);
                     
                     await EnsureTintScriptInstalledAsync();
+                    
+                    // 只有在 CoreWebView2 成功初始化后才设置为 ready
+                    _isWebViewReady = true;
+                    System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] WebView 初始化成功");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] CoreWebView2 为 null，初始化失败");
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"WebView initialization failed: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] WebView initialization failed: {ex.Message}");
+                _isWebViewReady = false;
                 // Fall back to default initialization behavior.
-            }
-            finally
-            {
-                _isWebViewReady = true;
             }
         }
 
@@ -1340,9 +1345,74 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
-            _activeWebView?.Reload();
+            TryReloadWebView();
         }
 
+        private async void TryReloadWebView()
+        {
+            try
+            {
+                // 检查 WebView 是否存在
+                if (_activeWebView == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("[TryReloadWebView] _activeWebView 为 null");
+                    return;
+                }
+
+                // 检查 CoreWebView2 是否已初始化
+                if (_activeWebView.CoreWebView2 == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("[TryReloadWebView] CoreWebView2 未初始化，尝试重新初始化");
+                    
+                    // 尝试重新初始化 WebView
+                    _isWebViewReady = false;
+                    await EnsureWebViewInitializedAsync();
+                    
+                    // 如果初始化成功且有待导航的 URI，则导航
+                    if (_isWebViewReady && _activeWebView.Source != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] 重新导航到: {_activeWebView.Source}");
+                        _activeWebView.Source = _activeWebView.Source;
+                    }
+                    else if (_pendingNavigationUri != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] 导航到待处理的 URI: {_pendingNavigationUri}");
+                        TryNavigatePendingUri();
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("[TryReloadWebView] 初始化后无可用的 URI");
+                    }
+                    return;
+                }
+
+                // 正常重载
+                System.Diagnostics.Debug.WriteLine("[TryReloadWebView] 执行正常重载");
+                _activeWebView.Reload();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] 重载失败: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] 堆栈: {ex.StackTrace}");
+                
+                // 如果重载失败，尝试重新导航到当前 URL
+                try
+                {
+                    if (_activeWebView?.Source != null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] 尝试重新导航到: {_activeWebView.Source}");
+                        var currentSource = _activeWebView.Source;
+                        _activeWebView.Source = null;
+                        await Task.Delay(100); // 短暂延迟
+                        _activeWebView.Source = currentSource;
+                    }
+                }
+                catch (Exception innerEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] 重新导航也失败: {innerEx.Message}");
+                }
+            }
+        }
         private void CopyUrlButton_Click(object sender, RoutedEventArgs e)
         {
             Uri? uri = _activeWebView?.Source;
@@ -1422,7 +1492,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void RefreshMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            _activeWebView?.Reload();
+            TryReloadWebView();
         }
 
         private async void CopyMenuItem_Click(object sender, RoutedEventArgs e)
