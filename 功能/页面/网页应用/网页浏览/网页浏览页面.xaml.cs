@@ -121,18 +121,36 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void UpdateWebViewVisibility()
         {
+            System.Diagnostics.Debug.WriteLine($"[UpdateWebViewVisibility] _useRoundedWebView: {_useRoundedWebView}");
+            System.Diagnostics.Debug.WriteLine($"[UpdateWebViewVisibility] WebView 是否为 null: {WebView == null}");
+            System.Diagnostics.Debug.WriteLine($"[UpdateWebViewVisibility] RoundedWebView 是否为 null: {RoundedWebView == null}");
+            
             if (_useRoundedWebView)
             {
-                WebView.Visibility = Visibility.Collapsed;
-                RoundedWebViewContainer.Visibility = Visibility.Visible;
+                if (WebView != null)
+                {
+                    WebView.Visibility = Visibility.Collapsed;
+                }
+                if (RoundedWebViewContainer != null)
+                {
+                    RoundedWebViewContainer.Visibility = Visibility.Visible;
+                }
                 _activeWebView = RoundedWebView;
             }
             else
             {
-                WebView.Visibility = Visibility.Visible;
-                RoundedWebViewContainer.Visibility = Visibility.Collapsed;
+                if (WebView != null)
+                {
+                    WebView.Visibility = Visibility.Visible;
+                }
+                if (RoundedWebViewContainer != null)
+                {
+                    RoundedWebViewContainer.Visibility = Visibility.Collapsed;
+                }
                 _activeWebView = WebView;
             }
+            
+            System.Diagnostics.Debug.WriteLine($"[UpdateWebViewVisibility] _activeWebView 设置为: {(_activeWebView == WebView ? "WebView" : _activeWebView == RoundedWebView ? "RoundedWebView" : "null")}");
         }
 
         private void InitializeForegroundColors()
@@ -545,8 +563,63 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         void INavigationAware.OnNavigatedTo(object? parameter)
         {
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] INavigationAware.OnNavigatedTo called for cached page");
-            // 缓存页面被重新激活时，不需要做特殊处理
-            // WebView 和所有状态都已保留
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] _activeWebView 是否为 null: {_activeWebView == null}");
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] _isWebViewReady: {_isWebViewReady}");
+            
+            // 缓存页面被重新激活时，检查 WebView 状态
+            if (_activeWebView == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 缓存页面激活时 _activeWebView 为 null，尝试重新获取");
+                
+                // 重新根据设置获取正确的 WebView 实例
+                _useRoundedWebView = ExperimentalSettings.EnableRoundedWebView;
+                UpdateWebViewVisibility();
+                
+                if (_activeWebView != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 已重新获取 WebView 实例: {(_useRoundedWebView ? "RoundedWebView" : "WebView")}");
+                    
+                    // 如果 WebView 未初始化，触发初始化
+                    if (!_isWebViewReady || _activeWebView.CoreWebView2 == null)
+                    {
+                        System.Diagnostics.Debug.WriteLine("[WebBrowserPage] WebView 需要初始化，触发异步初始化");
+                        _ = EnsureWebViewInitializedAsync().ContinueWith(t =>
+                        {
+                            if (t.IsCompletedSuccessfully)
+                            {
+                                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] WebView 初始化完成");
+                                TryNavigatePendingUri();
+                            }
+                            else
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 初始化失败: {t.Exception?.Message}");
+                            }
+                        });
+                    }
+                }
+            }
+            else if (_activeWebView.CoreWebView2 == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] CoreWebView2 为 null，可能需要重新初始化");
+                
+                // 触发异步初始化
+                _ = EnsureWebViewInitializedAsync().ContinueWith(t =>
+                {
+                    if (t.IsCompletedSuccessfully)
+                    {
+                        System.Diagnostics.Debug.WriteLine("[WebBrowserPage] CoreWebView2 重新初始化完成");
+                        TryNavigatePendingUri();
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] CoreWebView2 重新初始化失败: {t.Exception?.Message}");
+                    }
+                });
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] WebView 状态正常，无需特殊处理");
+            }
         }
 
         void INavigationAware.OnNavigatedFrom()
@@ -1352,13 +1425,30 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         {
             try
             {
-                // 检查 WebView 是否存在
+                System.Diagnostics.Debug.WriteLine("[TryReloadWebView] 开始重载流程");
+                System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] _activeWebView 是否为 null: {_activeWebView == null}");
+                System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] _isWebViewReady: {_isWebViewReady}");
+                
+                // 检查 WebView 是否存在，如果不存在则尝试重新获取
                 if (_activeWebView == null)
                 {
-                    System.Diagnostics.Debug.WriteLine("[TryReloadWebView] _activeWebView 为 null");
-                    return;
+                    System.Diagnostics.Debug.WriteLine("[TryReloadWebView] _activeWebView 为 null，尝试重新获取");
+                    
+                    // 重新根据设置获取正确的 WebView 实例
+                    _useRoundedWebView = ExperimentalSettings.EnableRoundedWebView;
+                    UpdateWebViewVisibility();
+                    
+                    if (_activeWebView == null)
+                    {
+                        System.Diagnostics.Debug.WriteLine("[TryReloadWebView] 无法获取 WebView 实例");
+                        return;
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] 已重新获取 WebView 实例: {(_useRoundedWebView ? "RoundedWebView" : "WebView")}");
                 }
 
+                System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] CoreWebView2 是否为 null: {_activeWebView.CoreWebView2 == null}");
+                
                 // 检查 CoreWebView2 是否已初始化
                 if (_activeWebView.CoreWebView2 == null)
                 {
@@ -1368,11 +1458,17 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     _isWebViewReady = false;
                     await EnsureWebViewInitializedAsync();
                     
+                    System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] 初始化完成，_isWebViewReady: {_isWebViewReady}");
+                    System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] CoreWebView2 是否为 null: {_activeWebView?.CoreWebView2 == null}");
+                    
                     // 如果初始化成功且有待导航的 URI，则导航
-                    if (_isWebViewReady && _activeWebView.Source != null)
+                    if (_isWebViewReady && _activeWebView?.Source != null)
                     {
                         System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] 重新导航到: {_activeWebView.Source}");
-                        _activeWebView.Source = _activeWebView.Source;
+                        var currentSource = _activeWebView.Source;
+                        _activeWebView.Source = null;
+                        await Task.Delay(50);
+                        _activeWebView.Source = currentSource;
                     }
                     else if (_pendingNavigationUri != null)
                     {
@@ -1389,6 +1485,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 // 正常重载
                 System.Diagnostics.Debug.WriteLine("[TryReloadWebView] 执行正常重载");
                 _activeWebView.Reload();
+                System.Diagnostics.Debug.WriteLine("[TryReloadWebView] 重载命令已发送");
             }
             catch (Exception ex)
             {
