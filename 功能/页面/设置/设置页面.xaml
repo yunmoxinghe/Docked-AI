@@ -288,6 +288,31 @@
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Margin="1,16,0,4"/>
 
+                    <!-- Frame 导航动画设置 -->
+                    <controls:SettingsCard 
+                        Header="页面切换动画"
+                        Description="选择页面导航时的动画效果"
+                        IsClickEnabled="True"
+                        Click="OnFrameAnimationCardClick">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE945;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <controls:SettingsCard.ActionIcon>
+                            <FontIcon Glyph="" />
+                        </controls:SettingsCard.ActionIcon>
+                        <ComboBox 
+                            x:Name="FrameAnimationComboBox"
+                            MinWidth="200"
+                            SelectionChanged="OnFrameAnimationChanged">
+                            <ComboBoxItem Tag="0">无动画</ComboBoxItem>
+                            <ComboBoxItem Tag="1">入场动画（默认）</ComboBoxItem>
+                            <ComboBoxItem Tag="2">从右侧滑入</ComboBoxItem>
+                            <ComboBoxItem Tag="3">从左侧滑入</ComboBoxItem>
+                            <ComboBoxItem Tag="4">从底部滑入</ComboBoxItem>
+                            <ComboBoxItem Tag="5">钻取动画</ComboBoxItem>
+                        </ComboBox>
+                    </controls:SettingsCard>
+
                     <!-- 全局快捷键设置 -->
                     <controls:SettingsExpander x:Name="HotkeyExpander"
                                           x:Uid="SettingsPage_HotkeyHeader"

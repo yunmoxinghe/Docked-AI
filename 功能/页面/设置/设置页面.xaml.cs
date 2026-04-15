@@ -205,6 +205,9 @@ namespace Docked_AI.Features.Pages.Settings
             
             // 在页面加载完成后初始化语言设置
             LoadLanguageSettings();
+            
+            // 初始化 Frame 动画设置
+            LoadFrameAnimationSettings();
         }
 
         private void LoadVersionInfo()
@@ -345,6 +348,42 @@ namespace Docked_AI.Features.Pages.Settings
 
         // Event to notify when max webview count settings change
         public static event EventHandler? MaxWebViewCountSettingsChanged;
+
+        private void LoadFrameAnimationSettings()
+        {
+            // 暂时取消事件订阅，避免在初始化时触发
+            FrameAnimationComboBox.SelectionChanged -= OnFrameAnimationChanged;
+            
+            var currentAnimation = ExperimentalSettings.FrameNavigationAnimation;
+            FrameAnimationComboBox.SelectedIndex = (int)currentAnimation;
+            
+            // 重新订阅事件
+            FrameAnimationComboBox.SelectionChanged += OnFrameAnimationChanged;
+        }
+
+        private void OnFrameAnimationCardClick(object sender, RoutedEventArgs e)
+        {
+            // 点击卡片时打开 ComboBox 的下拉菜单
+            FrameAnimationComboBox.IsDropDownOpen = true;
+        }
+
+        private void OnFrameAnimationChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem item)
+            {
+                if (int.TryParse(item.Tag?.ToString(), out int animationType))
+                {
+                    var newAnimation = (FrameAnimationType)animationType;
+                    ExperimentalSettings.FrameNavigationAnimation = newAnimation;
+                    
+                    // 通知应用更新 Frame 动画设置
+                    FrameAnimationSettingsChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        // Event to notify when frame animation settings change
+        public static event EventHandler? FrameAnimationSettingsChanged;
 
         private async void OnLanguageButtonClick(object sender, RoutedEventArgs e)
         {

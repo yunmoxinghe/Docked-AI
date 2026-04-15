@@ -8,6 +8,8 @@ using System.Linq;
 using System.Numerics;
 using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.Pages.WebApp.Browser;
+using Docked_AI.Features.Settings;
+using Microsoft.UI.Xaml.Media.Animation;
 
 namespace Docked_AI.Features.MainWindowContent.ContentArea
 {
@@ -35,6 +37,57 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             _pageCacheManager.PageAutoRemoved += OnPageAutoRemoved;
             ContentFrame.Navigated += ContentFrame_Navigated;
             ContentGrid.Loaded += ContentGrid_Loaded;
+            
+            // 初始化 Frame 动画
+            UpdateFrameAnimation();
+            
+            // 订阅设置变化事件
+            Pages.Settings.SettingsPage.FrameAnimationSettingsChanged += OnFrameAnimationSettingsChanged;
+        }
+
+        private void OnFrameAnimationSettingsChanged(object? sender, EventArgs e)
+        {
+            // 设置改变时更新 Frame 动画
+            UpdateFrameAnimation();
+        }
+
+        private void UpdateFrameAnimation()
+        {
+            var animationType = ExperimentalSettings.FrameNavigationAnimation;
+            var transitionInfo = GetNavigationTransitionInfo(animationType);
+            
+            // 更新 Frame 的 ContentTransitions
+            var transition = new NavigationThemeTransition
+            {
+                DefaultNavigationTransitionInfo = transitionInfo
+            };
+            
+            ContentFrame.ContentTransitions = new TransitionCollection { transition };
+            
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] Frame 动画已更新为: {animationType}");
+        }
+
+        private NavigationTransitionInfo GetNavigationTransitionInfo(FrameAnimationType animationType)
+        {
+            return animationType switch
+            {
+                FrameAnimationType.None => new SuppressNavigationTransitionInfo(),
+                FrameAnimationType.EntranceTransition => new EntranceNavigationTransitionInfo(),
+                FrameAnimationType.SlideFromRight => new SlideNavigationTransitionInfo 
+                { 
+                    Effect = SlideNavigationTransitionEffect.FromRight 
+                },
+                FrameAnimationType.SlideFromLeft => new SlideNavigationTransitionInfo 
+                { 
+                    Effect = SlideNavigationTransitionEffect.FromLeft 
+                },
+                FrameAnimationType.SlideFromBottom => new SlideNavigationTransitionInfo 
+                { 
+                    Effect = SlideNavigationTransitionEffect.FromBottom 
+                },
+                FrameAnimationType.DrillIn => new DrillInNavigationTransitionInfo(),
+                _ => new EntranceNavigationTransitionInfo()
+            };
         }
 
         private void OnPageAutoRemoved(object? sender, string cacheKey)
@@ -181,6 +234,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                 System.Diagnostics.Debug.WriteLine($"[ContentArea] 首次导航，使用 Frame.Navigate");
                 
                 // 首次导航，使用 Frame.Navigate 触发正常流程
+                // Frame 的 ContentTransitions 已经设置好，不需要传递 transition 参数
                 if (parameter != null)
                 {
                     ContentFrame.Navigate(pageType, parameter);

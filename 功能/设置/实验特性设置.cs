@@ -11,6 +11,7 @@ namespace Docked_AI.Features.Settings
         private const string EnableRoundedWebViewKey = "ExperimentalFeature_EnableRoundedWebView";
         private const string EnableWinUIContextMenuKey = "ExperimentalFeature_EnableWinUIContextMenu";
         private const string MaxWebViewCountKey = "WebSettings_MaxWebViewCount";
+        private const string FrameNavigationAnimationKey = "NavigationSettings_FrameAnimation";
         
         private static readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
 
@@ -72,5 +73,63 @@ namespace Docked_AI.Features.Settings
                 _localSettings.Values[MaxWebViewCountKey] = clampedValue;
             }
         }
+
+        /// <summary>
+        /// 获取或设置 Frame 导航动画类型
+        /// </summary>
+        public static FrameAnimationType FrameNavigationAnimation
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(FrameNavigationAnimationKey, out object? value))
+                {
+                    if (value is int intValue && Enum.IsDefined(typeof(FrameAnimationType), intValue))
+                    {
+                        return (FrameAnimationType)intValue;
+                    }
+                }
+                return FrameAnimationType.EntranceTransition; // 默认使用 EntranceTransition
+            }
+            set
+            {
+                _localSettings.Values[FrameNavigationAnimationKey] = (int)value;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Frame 导航动画类型
+    /// </summary>
+    public enum FrameAnimationType
+    {
+        /// <summary>
+        /// 无动画
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// 入场动画（默认）
+        /// </summary>
+        EntranceTransition = 1,
+
+        /// <summary>
+        /// 从右侧滑入
+        /// </summary>
+        SlideFromRight = 2,
+
+        /// <summary>
+        /// 从左侧滑入
+        /// </summary>
+        SlideFromLeft = 3,
+
+        /// <summary>
+        /// 从底部滑入
+        /// </summary>
+        SlideFromBottom = 4,
+
+        /// <summary>
+        /// 钻取动画（向前导航）
+        /// </summary>
+        DrillIn = 5
     }
 }
