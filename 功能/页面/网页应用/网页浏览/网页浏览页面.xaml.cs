@@ -647,6 +647,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     userDataFolder: null,
                     options: options);
                 await _activeWebView.EnsureCoreWebView2Async(environment);
+                
+                // 设置 WebView2 背景透明
+                _activeWebView.DefaultBackgroundColor = Microsoft.UI.Colors.Transparent;
 
                 if (_activeWebView.CoreWebView2 is not null)
                 {
