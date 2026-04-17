@@ -128,8 +128,24 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         /// </summary>
         public bool RemovePage(string cacheKey)
         {
-            if (_cachedPages.Remove(cacheKey))
+            if (_cachedPages.TryGetValue(cacheKey, out Page? page))
             {
+                // 如果是 WebBrowserPage，调用其清理方法
+                if (page is Pages.WebApp.Browser.WebBrowserPage webBrowserPage)
+                {
+                    try
+                    {
+                        webBrowserPage.DisposeWebView();
+                        System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 已调用 WebBrowserPage.DisposeWebView: {cacheKey}");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 调用 DisposeWebView 失败: {ex.Message}");
+                    }
+                }
+                
+                _cachedPages.Remove(cacheKey);
+                
                 // 从访问顺序中移除
                 if (_accessNodes.TryGetValue(cacheKey, out var node))
                 {
