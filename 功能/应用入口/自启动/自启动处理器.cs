@@ -20,23 +20,24 @@ namespace Docked_AI.Features.AppEntry.AutoLaunch
 
         /// <summary>
         /// 检查是否为自启动方式启动
-        /// 使用启动参数标识法，这是 WinUI 3 / Windows App SDK 中最可靠的方法
+        /// 通过检测应用启动时间与系统启动时间的接近程度来判断
         /// </summary>
         public bool IsAutoLaunch()
         {
             try
             {
-                var activationArgs = AppInstance.GetActivatedEventArgs();
+                // 获取系统启动时间（以毫秒为单位）
+                var systemUptime = Environment.TickCount64;
                 
-                // 检查启动参数是否包含 "--autolaunch"
-                // 这个参数在 Package.appxmanifest 的 StartupTask 配置中指定
-                if (activationArgs is ILaunchActivatedEventArgs launchArgs &&
-                    !string.IsNullOrEmpty(launchArgs.Arguments) && 
-                    launchArgs.Arguments.Contains("--autolaunch"))
+                // 如果系统启动时间小于 2 分钟（120000 毫秒），认为是开机自启动
+                // 这个时间窗口足够宽松，可以覆盖系统启动后的延迟启动
+                if (systemUptime < 120000)
                 {
+                    LogInfo($"Detected auto-launch: system uptime = {systemUptime}ms");
                     return true;
                 }
                 
+                LogInfo($"Not auto-launch: system uptime = {systemUptime}ms");
                 return false;
             }
             catch (Exception ex)

@@ -64,8 +64,7 @@
           <uap5:StartupTask
             TaskId="AppStartupTask"
             Enabled="false"
-            DisplayName="边栏助手"
-            Parameters="--autolaunch" />
+            DisplayName="边栏助手" />
         </uap5:Extension>
       </Extensions>
     </Application>
