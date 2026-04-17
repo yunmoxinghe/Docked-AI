@@ -1,8 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.ApplicationModel;
-using Windows.ApplicationModel.Activation;
+using Microsoft.Windows.AppLifecycle;
 
 namespace Docked_AI.Features.AppEntry.AutoLaunch
 {
@@ -20,24 +19,23 @@ namespace Docked_AI.Features.AppEntry.AutoLaunch
 
         /// <summary>
         /// 检查是否为自启动方式启动
-        /// 通过检测应用启动时间与系统启动时间的接近程度来判断
+        /// 使用 Windows App SDK 官方推荐的 ExtendedActivationKind.StartupTask 检测方法
         /// </summary>
         public bool IsAutoLaunch()
         {
             try
             {
-                // 获取系统启动时间（以毫秒为单位）
-                var systemUptime = Environment.TickCount64;
+                var activationArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
                 
-                // 如果系统启动时间小于 2 分钟（120000 毫秒），认为是开机自启动
-                // 这个时间窗口足够宽松，可以覆盖系统启动后的延迟启动
-                if (systemUptime < 120000)
+                // 检查激活类型是否为 StartupTask（开机自启动）
+                // 参考: https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.windows.applifecycle.extendedactivationkind
+                if (activationArgs?.Kind == ExtendedActivationKind.StartupTask)
                 {
-                    LogInfo($"Detected auto-launch: system uptime = {systemUptime}ms");
+                    LogInfo("Detected auto-launch via StartupTask activation");
                     return true;
                 }
                 
-                LogInfo($"Not auto-launch: system uptime = {systemUptime}ms");
+                LogInfo($"Not auto-launch: activation kind = {activationArgs?.Kind}");
                 return false;
             }
             catch (Exception ex)
