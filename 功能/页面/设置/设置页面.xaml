@@ -107,6 +107,7 @@
                                             <FontIcon Glyph="&#xE98A;" FontSize="32"/>
                                         </Button>
                                         <TextBlock x:Uid="Language_SimplifiedChinese"
+                                                 Text="简体中文"
                                                  FontSize="12" 
                                                  TextAlignment="Center"
                                                  TextWrapping="Wrap"
@@ -130,6 +131,7 @@
                                             <FontIcon Glyph="&#xE88C;" FontSize="32"/>
                                         </Button>
                                         <TextBlock x:Uid="Language_TraditionalChinese"
+                                                 Text="繁體中文"
                                                  FontSize="12" 
                                                  TextAlignment="Center"
                                                  TextWrapping="Wrap"
@@ -154,6 +156,7 @@
                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Button>
                                         <TextBlock x:Uid="Language_English"
+                                                 Text="English"
                                                  FontSize="12" 
                                                  TextAlignment="Center"
                                                  TextWrapping="Wrap"
@@ -177,6 +180,7 @@
                                             <FontIcon Glyph="&#xEC45;" FontSize="32"/>
                                         </Button>
                                         <TextBlock x:Uid="Language_Japanese"
+                                                 Text="日本語"
                                                  FontSize="12" 
                                                  TextAlignment="Center"
                                                  TextWrapping="Wrap"
@@ -200,6 +204,7 @@
                                             <FontIcon Glyph="&#xE88B;" FontSize="32"/>
                                         </Button>
                                         <TextBlock x:Uid="Language_Korean"
+                                                 Text="한국어"
                                                  FontSize="12" 
                                                  TextAlignment="Center"
                                                  TextWrapping="Wrap"
@@ -224,6 +229,7 @@
                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Button>
                                         <TextBlock x:Uid="Language_French"
+                                                 Text="Français"
                                                  FontSize="12" 
                                                  TextAlignment="Center"
                                                  TextWrapping="Wrap"
@@ -248,6 +254,7 @@
                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Button>
                                         <TextBlock x:Uid="Language_German"
+                                                 Text="Deutsch"
                                                  FontSize="12" 
                                                  TextAlignment="Center"
                                                  TextWrapping="Wrap"
@@ -272,6 +279,7 @@
                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Button>
                                         <TextBlock x:Uid="Language_Spanish"
+                                                 Text="Español"
                                                  FontSize="12" 
                                                  TextAlignment="Center"
                                                  TextWrapping="Wrap"
