@@ -26,6 +26,8 @@ namespace Docked_AI.Features.MainWindow.Visibility
         private bool _hasCapturedBaseWindowStyle;
         private bool _hasCapturedBaseExtendedWindowStyle;
         private bool _isWindowSubclassed;
+        private bool _isInitialShowComplete;  // 标记首次显示是否完成
+        private DateTime _initialShowCompletedTime;  // 首次显示完成的时间
         private IntPtr _hwnd;
         private readonly uint _appBarMessageId;
         private IntPtr _baseWindowStyle;
@@ -40,6 +42,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
         private static readonly TimeSpan SlideAnimationDelay = TimeSpan.FromMilliseconds(300);
         private static readonly TimeSpan PinnedModeDelay = TimeSpan.FromMilliseconds(100);
         private static readonly TimeSpan MaximizedModeDelay = TimeSpan.FromMilliseconds(200);
+        private static readonly TimeSpan InitialShowProtectionPeriod = TimeSpan.FromMilliseconds(500);  // 首次显示后的保护期
 
         public WindowHostController(Window window, MainWindowViewModel viewModel, int animationTimeoutMs = DefaultAnimationTimeoutMs)
         {
@@ -88,30 +91,44 @@ namespace Docked_AI.Features.MainWindow.Visibility
             }
 
             _animationStarted = true;
-            System.Diagnostics.Debug.WriteLine("[WindowHostController] RequestSlideIn: Showing window with DWM animation");
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] RequestSlideIn: Showing window with slide-in animation");
 
             try
             {
-                // 1. 确保窗口在目标停靠位置
+                // 1. 刷新布局信息
                 _layoutService.Refresh(_state);
-                System.Diagnostics.Debug.WriteLine($"[WindowHostController] Layout refreshed: X={_state.TargetX}, Y={_state.TargetY}, W={_state.WindowWidth}, H={_state.WindowHeight}");
+                System.Diagnostics.Debug.WriteLine($"[WindowHostController] Layout refreshed: TargetX={_state.TargetX}, TargetY={_state.TargetY}, W={_state.WindowWidth}, H={_state.WindowHeight}");
                 
+                // 2. 准备滑入动画的起始位置（屏幕右侧外）
+                _layoutService.PrepareForShow(_state);
+                System.Diagnostics.Debug.WriteLine($"[WindowHostController] Prepared for show: CurrentX={_state.CurrentX}, CurrentY={_state.CurrentY}");
+                
+                // 3. 先移动到起始位置（屏幕外）
                 _window.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(
-                    (int)_state.TargetX, 
-                    (int)_state.TargetY, 
+                    (int)_state.CurrentX,  // 屏幕外的起始位置
+                    (int)_state.CurrentY, 
                     _state.WindowWidth, 
                     _state.WindowHeight));
-                System.Diagnostics.Debug.WriteLine("[WindowHostController] Window moved and resized");
+                System.Diagnostics.Debug.WriteLine("[WindowHostController] Window moved to start position (off-screen)");
                 
-                // 2. Show —— DWM 创建动画自动触发 ✨
+                // 4. 显示窗口（此时在屏幕外，用户看不到）
                 _window.AppWindow.Show();
                 System.Diagnostics.Debug.WriteLine("[WindowHostController] AppWindow.Show() called");
                 
-                // 3. 激活并获取焦点
-                ActivateAndFocusWindow();
-                System.Diagnostics.Debug.WriteLine("[WindowHostController] Window activated and focused");
+                // 5. 激活窗口
+                _window.Activate();
+                System.Diagnostics.Debug.WriteLine("[WindowHostController] Window activated");
                 
-                // 4. 更新状态到 Windowed
+                // 6. 启动滑入动画
+                _animationController.StartShow();
+                System.Diagnostics.Debug.WriteLine("[WindowHostController] Slide-in animation started");
+                
+                // 7. 标记首次显示完成，并记录时间（用于保护期）
+                _isInitialShowComplete = true;
+                _initialShowCompletedTime = DateTime.Now;
+                System.Diagnostics.Debug.WriteLine("[WindowHostController] Initial show marked as complete");
+                
+                // 8. 更新状态到 Windowed
                 var plan = _stateManager.CreatePlan(WindowState.Windowed, "Initial window shown");
                 if (plan != null)
                 {
@@ -156,14 +173,14 @@ namespace Docked_AI.Features.MainWindow.Visibility
             // 先获取窗口句柄
             _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(_window);
             
-            // Activate() 之前只设置大小和位置，不要 Show/Hide
-            // 让 Activate() 作为唯一的"首次显示"触发点
+            // 初始化时不设置位置，避免窗口在屏幕上闪现
+            // 让 RequestSlideIn() 在首次显示时设置正确的位置和动画
             _layoutService.Refresh(_state);
             _window.AppWindow.IsShownInSwitchers = false;
             
-            // 直接设置到目标停靠位置（不需要屏幕外起始位置）
+            // 将窗口移到屏幕外，避免初始化时可见
             _window.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(
-                (int)_state.TargetX, 
+                _state.ScreenWidth + 100,  // 屏幕外
                 (int)_state.TargetY, 
                 _state.WindowWidth, 
                 _state.WindowHeight));
@@ -172,6 +189,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _titleBarService.ConfigureStandardWindow(_window);
             _backdropService.EnsureAcrylicBackdrop(_window);
 
+            // 订阅事件
             _window.Activated += OnWindowActivated;
             _window.Activated += OnActivationChanged;
             _window.Closed += OnWindowClosed;
@@ -320,14 +338,18 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         private void OnWindowActivated(object sender, WindowActivatedEventArgs args)
         {
-            if (args.WindowActivationState == WindowActivationState.Deactivated || _animationStarted)
+            // 首次显示时，忽略激活事件（由 RequestSlideIn 控制）
+            if (!_animationStarted)
             {
+                System.Diagnostics.Debug.WriteLine("OnWindowActivated: Ignoring activation before RequestSlideIn");
                 return;
             }
 
-            // 正常情况下不应该走到这里
-            // 首次显示应该由 RequestSlideIn() 触发
-            System.Diagnostics.Debug.WriteLine("OnWindowActivated: Unexpected activation");
+            // 后续的激活事件正常处理
+            if (args.WindowActivationState != WindowActivationState.Deactivated)
+            {
+                System.Diagnostics.Debug.WriteLine("OnWindowActivated: Window activated");
+            }
         }
 
         private void OnActivationChanged(object sender, WindowActivatedEventArgs args)
@@ -335,10 +357,22 @@ namespace Docked_AI.Features.MainWindow.Visibility
             // 防重入检查
             if (_stateManager.IsTransitioning)
             {
+                System.Diagnostics.Debug.WriteLine("[OnActivationChanged] Blocked: state transition in progress");
                 return;
             }
 
             var currentState = _stateManager.CurrentState;
+
+            // 首次显示后的保护期：防止动画完成后立即因失去焦点而隐藏
+            if (_isInitialShowComplete)
+            {
+                var timeSinceInitialShow = DateTime.Now - _initialShowCompletedTime;
+                if (timeSinceInitialShow < InitialShowProtectionPeriod)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[OnActivationChanged] Within protection period ({timeSinceInitialShow.TotalMilliseconds}ms < {InitialShowProtectionPeriod.TotalMilliseconds}ms), ignoring deactivation");
+                    return;
+                }
+            }
 
             // 窗口失去焦点且未固定时自动隐藏
             if (args.WindowActivationState == WindowActivationState.Deactivated &&
@@ -346,6 +380,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 currentState != WindowState.NotCreated &&
                 currentState != WindowState.Pinned)
             {
+                System.Diagnostics.Debug.WriteLine("[OnActivationChanged] Window deactivated, requesting hide");
                 _ = TryRequestTransition(WindowState.Hidden, "Window deactivated", nameof(OnActivationChanged));
             }
         }
