@@ -103,14 +103,14 @@ namespace Docked_AI.Features.Pages.Settings
 
             var languageMap = new Dictionary<string, string>
             {
-                { "zh-CN", "简体中文" },
-                { "zh-TW", "繁體中文" },
-                { "en-US", "English" },
-                { "ja-JP", "日本語" },
-                { "ko-KR", "한국어" },
-                { "fr-FR", "Français" },
-                { "de-DE", "Deutsch" },
-                { "es-ES", "Español" }
+                { "zh-CN", LocalizationHelper.GetString("Language_SimplifiedChinese") },
+                { "zh-TW", LocalizationHelper.GetString("Language_TraditionalChinese") },
+                { "en-US", LocalizationHelper.GetString("Language_English") },
+                { "ja-JP", LocalizationHelper.GetString("Language_Japanese") },
+                { "ko-KR", LocalizationHelper.GetString("Language_Korean") },
+                { "fr-FR", LocalizationHelper.GetString("Language_French") },
+                { "de-DE", LocalizationHelper.GetString("Language_German") },
+                { "es-ES", LocalizationHelper.GetString("Language_Spanish") }
             };
 
             string languageName = currentLanguage;
@@ -452,9 +452,9 @@ namespace Docked_AI.Features.Pages.Settings
                 {
                     var dialog = new ContentDialog
                     {
-                        Title = "错误",
-                        Content = "切换自启动设置时发生错误，请稍后重试。",
-                        CloseButtonText = "确定",
+                        Title = LocalizationHelper.GetString("SettingsPage_ErrorTitle"),
+                        Content = LocalizationHelper.GetString("SettingsPage_StartupToggleError"),
+                        CloseButtonText = LocalizationHelper.GetString("SettingsPage_ConfirmButton"),
                         XamlRoot = this.XamlRoot
                     };
                     await dialog.ShowAsync();
@@ -477,9 +477,9 @@ namespace Docked_AI.Features.Pages.Settings
                 {
                     var dialog = new ContentDialog
                     {
-                        Title = "错误",
-                        Content = "无法打开系统设置页面，请手动前往 Windows 设置 > 应用 > 启动。",
-                        CloseButtonText = "确定",
+                        Title = LocalizationHelper.GetString("SettingsPage_ErrorTitle"),
+                        Content = LocalizationHelper.GetString("SettingsPage_OpenSettingsError"),
+                        CloseButtonText = LocalizationHelper.GetString("SettingsPage_ConfirmButton"),
                         XamlRoot = this.XamlRoot
                     };
                     await dialog.ShowAsync();

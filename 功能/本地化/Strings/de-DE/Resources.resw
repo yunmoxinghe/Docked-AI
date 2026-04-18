@@ -58,12 +58,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  
   <!-- Allgemein -->
   <data name="AppDisplayName" xml:space="preserve">
     <value>Docked AI</value>
   </data>
-  
   <!-- Startseite -->
   <data name="HomePage_Title.Text" xml:space="preserve">
     <value>Startseite</value>
@@ -71,7 +69,6 @@
   <data name="HomePage_EmptyText.Text" xml:space="preserve">
     <value>Keine angehefteten Webseiten</value>
   </data>
-  
   <!-- Einstellungsseite -->
   <data name="SettingsPage_Title.Text" xml:space="preserve">
     <value>Einstellungen</value>
@@ -148,7 +145,6 @@
   <data name="SettingsPage_LicenseLink.Content" xml:space="preserve">
     <value>Lizenz anzeigen</value>
   </data>
-  
   <!-- Tray-Menü -->
   <data name="TrayMenu_OpenWindow" xml:space="preserve">
     <value>Hauptfenster öffnen</value>
@@ -156,7 +152,6 @@
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>Beenden</value>
   </data>
-  
   <!-- Navigation -->
   <data name="Nav_Home.Content" xml:space="preserve">
     <value>Startseite</value>
@@ -173,7 +168,6 @@
   <data name="Nav_WindowStateToggle" xml:space="preserve">
     <value>Fensterstatus umschalten</value>
   </data>
-  
   <!-- Neue Seite -->
   <data name="NewPage_Title.Text" xml:space="preserve">
     <value>Neu</value>
@@ -184,7 +178,6 @@
   <data name="NewPage_PinWebHeader.Description" xml:space="preserve">
     <value>Häufig verwendete Websites als eigenständige App-Einträge anheften.</value>
   </data>
-  
   <!-- Web-App-Seite -->
   <data name="WebAppPage_RestoreAutoIcon.Content" xml:space="preserve">
     <value>Automatisches Symbol wiederherstellen</value>
@@ -204,7 +197,6 @@
   <data name="WebAppPage_Confirm.Content" xml:space="preserve">
     <value>Bestätigen</value>
   </data>
-  
   <!-- Webbrowser-Seite -->
   <data name="WebBrowserPage_Back.Label" xml:space="preserve">
     <value>Zurück</value>
@@ -221,7 +213,6 @@
   <data name="WebBrowserPage_OpenExternal.Label" xml:space="preserve">
     <value>Extern öffnen</value>
   </data>
-  
   <!-- Web-App-Seite Statusmeldungen -->
   <data name="WebAppPage_IconRestored" xml:space="preserve">
     <value>Automatisches Symbol wiederhergestellt</value>
@@ -262,7 +253,6 @@
   <data name="WebAppPage_ShortcutCreated" xml:space="preserve">
     <value>Web-Verknüpfung erstellt</value>
   </data>
-  
   <!-- Einstellungsseite Dialog -->
   <data name="SettingsPage_RestartTitle" xml:space="preserve">
     <value>Neustart erforderlich</value>
@@ -288,7 +278,6 @@
   <data name="SettingsPage_MaxWebViewHeader.Description" xml:space="preserve">
     <value>Legen Sie die maximale Anzahl der gleichzeitig geöffneten Webbrowser fest (1-20)</value>
   </data>
-  
   <!-- Navigationsleiste WebView-Limit -->
   <data name="Nav_WebViewLimitTitle" xml:space="preserve">
     <value>Browser-Limit erreicht</value>
@@ -299,7 +288,6 @@
   <data name="Nav_WebViewLimitClose" xml:space="preserve">
     <value>OK</value>
   </data>
-  
   <!-- Sprachoptionen -->
   <data name="Language_SimplifiedChinese.Text" xml:space="preserve">
     <value>简体中文</value>
@@ -325,9 +313,119 @@
   <data name="Language_Spanish.Text" xml:space="preserve">
     <value>Español</value>
   </data>
-  
   <!-- Navigationsmenü -->
   <data name="Nav_UnpinShortcut" xml:space="preserve">
     <value>Lösen</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogRecordText.Text" xml:space="preserve">
+    <value>Klicken Sie, um die Aufnahme zu starten</value>
+  </data>
+  <data name="SettingsPage_InteractionSection.Text" xml:space="preserve">
+    <value>Interaktion</value>
+  </data>
+  <data name="SettingsPage_RoundedWebViewHeader.Header" xml:space="preserve">
+    <value>WebView2 abgerundete Ecken</value>
+  </data>
+  <data name="WebBrowser_CopyLinkMenuItem.Text" xml:space="preserve">
+    <value>Linkadresse kopieren</value>
+  </data>
+  <data name="SettingsPage_WebSection.Text" xml:space="preserve">
+    <value>Web</value>
+  </data>
+  <data name="SettingsPage_AnimationSlideBottom.Content" xml:space="preserve">
+    <value>Von unten gleiten</value>
+  </data>
+  <data name="WebBrowser_CloseButton" xml:space="preserve">
+    <value>Diese Seite schließen</value>
+  </data>
+  <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
+    <value>Über</value>
+  </data>
+  <data name="WebBrowser_RefreshMenuItem.Text" xml:space="preserve">
+    <value>Aktualisieren</value>
+  </data>
+  <data name="SettingsPage_ErrorTitle" xml:space="preserve">
+    <value>Fehler</value>
+  </data>
+  <data name="SettingsPage_StartupToggleError" xml:space="preserve">
+    <value>Beim Umschalten der Starteinstellungen ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.</value>
+  </data>
+  <data name="SettingsPage_RoundedWebViewHeader.Description" xml:space="preserve">
+    <value>Abgerundete Ecken für Webbrowser aktivieren, Eckenradius synchronisiert sich automatisch mit dem übergeordneten Container</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialog.Title" xml:space="preserve">
+    <value>Tastenkombination festlegen</value>
+  </data>
+  <data name="SettingsPage_FrameAnimationHeader.Description" xml:space="preserve">
+    <value>Animationseffekt für die Seitennavigation auswählen</value>
+  </data>
+  <data name="SettingsPage_AnimationSlideLeft.Content" xml:space="preserve">
+    <value>Von links gleiten</value>
+  </data>
+  <data name="SettingsPage_AnimationSlideRight.Content" xml:space="preserve">
+    <value>Von rechts gleiten</value>
+  </data>
+  <data name="SettingsPage_ExperimentalHeader.Description" xml:space="preserve">
+    <value>Experimentelle Funktionen aktivieren (kann instabil sein)</value>
+  </data>
+  <data name="SettingsPage_FrameAnimationHeader.Header" xml:space="preserve">
+    <value>Seitenübergangsanimation</value>
+  </data>
+  <data name="SettingsPage_GeneralSection.Text" xml:space="preserve">
+    <value>Allgemein</value>
+  </data>
+  <data name="SettingsPage_AnimationEntrance.Content" xml:space="preserve">
+    <value>Eingangsanimation (Standard)</value>
+  </data>
+  <data name="WebBrowser_CopyMenuItem.Text" xml:space="preserve">
+    <value>Kopieren</value>
+  </data>
+  <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
+    <value>WinUI-Stil-Kontextmenü für Webbrowser aktivieren (Standard verwendet natives Browsermenü)</value>
+  </data>
+  <data name="SettingsPage_OpenSettingsError" xml:space="preserve">
+    <value>Die Systemeinstellungsseite kann nicht geöffnet werden. Bitte navigieren Sie manuell zu Windows-Einstellungen &gt; Apps &gt; Start.</value>
+  </data>
+  <data name="WebBrowser_BackMenuItem.Text" xml:space="preserve">
+    <value>Zurück</value>
+  </data>
+  <data name="SettingsPage_AnimationDrill.Content" xml:space="preserve">
+    <value>Bohranimation</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogHint.Text" xml:space="preserve">
+    <value>Tipp: Mindestens eine Modifikatortaste (Strg, Alt, Umschalt oder Win) ist erforderlich</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogPrompt.Text" xml:space="preserve">
+    <value>Drücken Sie die Tastenkombination, die Sie festlegen möchten</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialog.PrimaryButtonText" xml:space="preserve">
+    <value>Bestätigen</value>
+  </data>
+  <data name="SettingsPage_ConfirmButton" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="WebBrowser_CopyUrlMenuItem.Text" xml:space="preserve">
+    <value>Seitenadresse kopieren</value>
+  </data>
+  <data name="SettingsPage_WinUIContextMenuHeader.Header" xml:space="preserve">
+    <value>WinUI-Kontextmenü</value>
+  </data>
+  <data name="SettingsPage_AdvancedSection.Text" xml:space="preserve">
+    <value>Erweitert</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialog.CloseButtonText" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
+  <data name="WebBrowser_ForwardMenuItem.Text" xml:space="preserve">
+    <value>Vorwärts</value>
+  </data>
+  <data name="SettingsPage_ExperimentalHeader.Header" xml:space="preserve">
+    <value>Experimentelle Funktionen</value>
+  </data>
+  <data name="WebBrowser_OpenExternalMenuItem.Text" xml:space="preserve">
+    <value>Im Browser öffnen</value>
+  </data>
+  <data name="SettingsPage_AnimationNone.Content" xml:space="preserve">
+    <value>Keine Animation</value>
   </data>
 </root>

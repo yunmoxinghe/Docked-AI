@@ -336,4 +336,132 @@
   <data name="Nav_UnpinShortcut" xml:space="preserve">
     <value>Unpin</value>
   </data>
+  
+  <data name="WebBrowser_CloseButton" xml:space="preserve">
+    <value>Close this page</value>
+  </data>
+  
+  <data name="WebBrowser_CloseButton" xml:space="preserve">
+    <value>Close this page</value>
+  </data>
+  
+  <!-- Web Browser Context Menu -->
+  <data name="WebBrowser_BackMenuItem.Text" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="WebBrowser_ForwardMenuItem.Text" xml:space="preserve">
+    <value>Forward</value>
+  </data>
+  <data name="WebBrowser_RefreshMenuItem.Text" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="WebBrowser_CopyMenuItem.Text" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="WebBrowser_CopyLinkMenuItem.Text" xml:space="preserve">
+    <value>Copy Link Address</value>
+  </data>
+  <data name="WebBrowser_CopyUrlMenuItem.Text" xml:space="preserve">
+    <value>Copy Page Address</value>
+  </data>
+  <data name="WebBrowser_OpenExternalMenuItem.Text" xml:space="preserve">
+    <value>Open in Browser</value>
+  </data>
+  
+  <!-- Settings Page - Section Titles -->
+  <data name="SettingsPage_GeneralSection.Text" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="SettingsPage_InteractionSection.Text" xml:space="preserve">
+    <value>Interaction</value>
+  </data>
+  <data name="SettingsPage_WebSection.Text" xml:space="preserve">
+    <value>Web</value>
+  </data>
+  <data name="SettingsPage_AdvancedSection.Text" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
+    <value>About</value>
+  </data>
+  
+  <!-- Settings Page - Frame Animation -->
+  <data name="SettingsPage_FrameAnimationHeader.Header" xml:space="preserve">
+    <value>Page Transition Animation</value>
+  </data>
+  <data name="SettingsPage_FrameAnimationHeader.Description" xml:space="preserve">
+    <value>Choose animation effect for page navigation</value>
+  </data>
+  <data name="SettingsPage_AnimationNone.Content" xml:space="preserve">
+    <value>No Animation</value>
+  </data>
+  <data name="SettingsPage_AnimationEntrance.Content" xml:space="preserve">
+    <value>Entrance Animation (Default)</value>
+  </data>
+  <data name="SettingsPage_AnimationSlideRight.Content" xml:space="preserve">
+    <value>Slide from Right</value>
+  </data>
+  <data name="SettingsPage_AnimationSlideLeft.Content" xml:space="preserve">
+    <value>Slide from Left</value>
+  </data>
+  <data name="SettingsPage_AnimationSlideBottom.Content" xml:space="preserve">
+    <value>Slide from Bottom</value>
+  </data>
+  <data name="SettingsPage_AnimationDrill.Content" xml:space="preserve">
+    <value>Drill Animation</value>
+  </data>
+  
+  <!-- Settings Page - Experimental Features -->
+  <data name="SettingsPage_ExperimentalHeader.Header" xml:space="preserve">
+    <value>Experimental Features</value>
+  </data>
+  <data name="SettingsPage_ExperimentalHeader.Description" xml:space="preserve">
+    <value>Enable experimental features (may be unstable)</value>
+  </data>
+  <data name="SettingsPage_RoundedWebViewHeader.Header" xml:space="preserve">
+    <value>WebView2 Rounded Corners</value>
+  </data>
+  <data name="SettingsPage_RoundedWebViewHeader.Description" xml:space="preserve">
+    <value>Enable rounded corners for web browser, corner radius automatically syncs with parent container</value>
+  </data>
+  <data name="SettingsPage_WinUIContextMenuHeader.Header" xml:space="preserve">
+    <value>WinUI Context Menu</value>
+  </data>
+  <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
+    <value>Enable WinUI-style context menu for web browser (default uses native browser menu)</value>
+  </data>
+  
+  <!-- Settings Page - Hotkey Dialog -->
+  <data name="SettingsPage_HotkeyDialog.Title" xml:space="preserve">
+    <value>Set Hotkey</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialog.PrimaryButtonText" xml:space="preserve">
+    <value>Confirm</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialog.CloseButtonText" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogPrompt.Text" xml:space="preserve">
+    <value>Press the hotkey combination you want to set</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogRecordText.Text" xml:space="preserve">
+    <value>Click to start recording</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogHint.Text" xml:space="preserve">
+    <value>Tip: At least one modifier key (Ctrl, Alt, Shift, or Win) is required</value>
+  </data>
+  
+  <!-- Settings Page - C# Code Strings -->
+  <data name="SettingsPage_ErrorTitle" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="SettingsPage_StartupToggleError" xml:space="preserve">
+    <value>An error occurred while toggling startup settings. Please try again later.</value>
+  </data>
+  <data name="SettingsPage_OpenSettingsError" xml:space="preserve">
+    <value>Unable to open system settings page. Please manually navigate to Windows Settings > Apps > Startup.</value>
+  </data>
+  <data name="SettingsPage_ConfirmButton" xml:space="preserve">
+    <value>OK</value>
+  </data>
 </root>

@@ -52,7 +52,7 @@
 
                     <!-- 常规设置 -->
                     <TextBlock 
-                        Text="常规"
+                        x:Uid="SettingsPage_GeneralSection"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Margin="1,16,0,4"/>
                     
@@ -106,7 +106,7 @@
                                             HorizontalAlignment="Center">
                                             <FontIcon Glyph="&#xE98A;" FontSize="32"/>
                                         </Button>
-                                        <TextBlock Text="简体中文"
+                                        <TextBlock x:Uid="Language_SimplifiedChinese"
                                                  FontSize="12" 
                                                  TextAlignment="Center"
                                                  TextWrapping="Wrap"
@@ -129,7 +129,7 @@
                                             HorizontalAlignment="Center">
                                             <FontIcon Glyph="&#xE88C;" FontSize="32"/>
                                         </Button>
-                                        <TextBlock Text="繁體中文"
+                                        <TextBlock x:Uid="Language_TraditionalChinese"
                                                  FontSize="12" 
                                                  TextAlignment="Center"
                                                  TextWrapping="Wrap"
@@ -153,7 +153,7 @@
                                             <TextBlock Text="A" FontSize="32" FontWeight="SemiBold" 
                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Button>
-                                        <TextBlock Text="English"
+                                        <TextBlock x:Uid="Language_English"
                                                  FontSize="12" 
                                                  TextAlignment="Center"
                                                  TextWrapping="Wrap"
@@ -176,7 +176,7 @@
                                             HorizontalAlignment="Center">
                                             <FontIcon Glyph="&#xEC45;" FontSize="32"/>
                                         </Button>
-                                        <TextBlock Text="日本語"
+                                        <TextBlock x:Uid="Language_Japanese"
                                                  FontSize="12" 
                                                  TextAlignment="Center"
                                                  TextWrapping="Wrap"
@@ -199,7 +199,7 @@
                                             HorizontalAlignment="Center">
                                             <FontIcon Glyph="&#xE88B;" FontSize="32"/>
                                         </Button>
-                                        <TextBlock Text="한국어"
+                                        <TextBlock x:Uid="Language_Korean"
                                                  FontSize="12" 
                                                  TextAlignment="Center"
                                                  TextWrapping="Wrap"
@@ -223,7 +223,7 @@
                                             <TextBlock Text="F" FontSize="32" FontWeight="SemiBold" 
                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Button>
-                                        <TextBlock Text="Français"
+                                        <TextBlock x:Uid="Language_French"
                                                  FontSize="12" 
                                                  TextAlignment="Center"
                                                  TextWrapping="Wrap"
@@ -247,7 +247,7 @@
                                             <TextBlock Text="D" FontSize="32" FontWeight="SemiBold" 
                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Button>
-                                        <TextBlock Text="Deutsch"
+                                        <TextBlock x:Uid="Language_German"
                                                  FontSize="12" 
                                                  TextAlignment="Center"
                                                  TextWrapping="Wrap"
@@ -271,7 +271,7 @@
                                             <TextBlock Text="E" FontSize="32" FontWeight="SemiBold" 
                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Button>
-                                        <TextBlock Text="Español"
+                                        <TextBlock x:Uid="Language_Spanish"
                                                  FontSize="12" 
                                                  TextAlignment="Center"
                                                  TextWrapping="Wrap"
@@ -284,14 +284,13 @@
 
                     <!-- 交互设置 -->
                     <TextBlock 
-                        Text="交互"
+                        x:Uid="SettingsPage_InteractionSection"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Margin="1,16,0,4"/>
 
                     <!-- Frame 导航动画设置 -->
                     <controls:SettingsCard 
-                        Header="页面切换动画"
-                        Description="选择页面导航时的动画效果"
+                        x:Uid="SettingsPage_FrameAnimationHeader"
                         IsClickEnabled="True"
                         Click="OnFrameAnimationCardClick">
                         <controls:SettingsCard.HeaderIcon>
@@ -304,12 +303,12 @@
                             x:Name="FrameAnimationComboBox"
                             MinWidth="200"
                             SelectionChanged="OnFrameAnimationChanged">
-                            <ComboBoxItem Tag="0">无动画</ComboBoxItem>
-                            <ComboBoxItem Tag="1">入场动画（默认）</ComboBoxItem>
-                            <ComboBoxItem Tag="2">从右侧滑入</ComboBoxItem>
-                            <ComboBoxItem Tag="3">从左侧滑入</ComboBoxItem>
-                            <ComboBoxItem Tag="4">从底部滑入</ComboBoxItem>
-                            <ComboBoxItem Tag="5">钻取动画</ComboBoxItem>
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationNone" Tag="0"/>
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationEntrance" Tag="1"/>
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationSlideRight" Tag="2"/>
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationSlideLeft" Tag="3"/>
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationSlideBottom" Tag="4"/>
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationDrill" Tag="5"/>
                         </ComboBox>
                     </controls:SettingsCard>
 
@@ -356,7 +355,7 @@
 
                     <!-- 网页设置 -->
                     <TextBlock 
-                        Text="网页"
+                        x:Uid="SettingsPage_WebSection"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Margin="1,16,0,4"/>
                     
@@ -378,14 +377,13 @@
 
                     <!-- 高级设置 -->
                     <TextBlock 
-                        Text="高级"
+                        x:Uid="SettingsPage_AdvancedSection"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Margin="1,16,0,4"/>
                     
                     <!-- 实验特性 -->
                     <controls:SettingsExpander 
-                        Header="实验特性"
-                        Description="启用实验性功能（可能不稳定）"
+                        x:Uid="SettingsPage_ExperimentalHeader"
                         IsExpanded="False">
                         <controls:SettingsExpander.HeaderIcon>
                             <FontIcon Glyph="&#xF196;" />
@@ -393,15 +391,13 @@
                         
                         <controls:SettingsExpander.Items>
                             <controls:SettingsCard 
-                                Header="WebView2 圆角"
-                                Description="为网页浏览器启用圆角效果，圆角大小自动同步上层容器">
+                                x:Uid="SettingsPage_RoundedWebViewHeader">
                                 <ToggleSwitch 
                                     x:Name="RoundedWebViewToggle"
                                     Toggled="OnRoundedWebViewToggled"/>
                             </controls:SettingsCard>
                             <controls:SettingsCard 
-                                Header="WinUI 右键菜单"
-                                Description="为网页浏览器启用 WinUI 风格的右键菜单（默认使用浏览器原生菜单）">
+                                x:Uid="SettingsPage_WinUIContextMenuHeader">
                                 <ToggleSwitch 
                                     x:Name="WinUIContextMenuToggle"
                                     Toggled="OnWinUIContextMenuToggled"/>
@@ -411,7 +407,7 @@
 
                     <!-- 关于 -->
                     <TextBlock 
-                        Text="关于"
+                        x:Uid="SettingsPage_AboutSection"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Margin="1,16,0,4"/>
                     
@@ -457,14 +453,12 @@
         <!-- 快捷键选择对话框 -->
         <ContentDialog
             x:Name="HotkeyDialog"
-            Title="设置快捷键"
-            PrimaryButtonText="确认"
-            CloseButtonText="取消"
+            x:Uid="SettingsPage_HotkeyDialog"
             DefaultButton="Primary"
             PrimaryButtonClick="OnHotkeyDialogPrimaryClick"
             CloseButtonClick="OnHotkeyDialogCloseClick">
             <StackPanel Spacing="16">
-                <TextBlock Text="请按下您想要设置的快捷键组合" TextWrapping="Wrap"/>
+                <TextBlock x:Uid="SettingsPage_HotkeyDialogPrompt" TextWrapping="Wrap"/>
                 
                 <ToggleButton
                     x:Name="HotkeyToggleButton"
@@ -479,14 +473,14 @@
                     PreviewKeyUp="HotkeyToggleButton_PreviewKeyUp">
                     <TextBlock
                         x:Name="HotkeyDisplayText"
-                        Text="点击开始录制"
+                        x:Uid="SettingsPage_HotkeyDialogRecordText"
                         FontSize="16"
                         TextAlignment="Center"
                         TextWrapping="Wrap"/>
                 </ToggleButton>
 
                 <TextBlock
-                    Text="提示：至少需要一个修饰键（Ctrl、Alt、Shift 或 Win）"
+                    x:Uid="SettingsPage_HotkeyDialogHint"
                     FontSize="12"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     TextWrapping="Wrap"/>

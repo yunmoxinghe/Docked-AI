@@ -58,12 +58,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  
   <!-- 通用 -->
   <data name="AppDisplayName" xml:space="preserve">
     <value>Docked AI</value>
   </data>
-  
   <!-- 首頁 -->
   <data name="HomePage_Title.Text" xml:space="preserve">
     <value>首頁</value>
@@ -71,7 +69,6 @@
   <data name="HomePage_EmptyText.Text" xml:space="preserve">
     <value>暫無已釘選的網頁</value>
   </data>
-  
   <!-- 設定頁 -->
   <data name="SettingsPage_Title.Text" xml:space="preserve">
     <value>設定</value>
@@ -148,7 +145,6 @@
   <data name="SettingsPage_LicenseLink.Content" xml:space="preserve">
     <value>檢視開源授權</value>
   </data>
-  
   <!-- 系統匣選單 -->
   <data name="TrayMenu_OpenWindow" xml:space="preserve">
     <value>開啟主視窗</value>
@@ -156,7 +152,6 @@
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>結束</value>
   </data>
-  
   <!-- 導覽列 -->
   <data name="Nav_Home.Content" xml:space="preserve">
     <value>首頁</value>
@@ -173,7 +168,6 @@
   <data name="Nav_WindowStateToggle" xml:space="preserve">
     <value>切換視窗狀態</value>
   </data>
-  
   <!-- 新增頁面 -->
   <data name="NewPage_Title.Text" xml:space="preserve">
     <value>新增</value>
@@ -184,7 +178,6 @@
   <data name="NewPage_PinWebHeader.Description" xml:space="preserve">
     <value>將常用網站釘選成獨立應用程式入口。</value>
   </data>
-  
   <!-- 網頁應用頁面 -->
   <data name="WebAppPage_RestoreAutoIcon.Content" xml:space="preserve">
     <value>還原自動圖示</value>
@@ -204,7 +197,6 @@
   <data name="WebAppPage_Confirm.Content" xml:space="preserve">
     <value>確定</value>
   </data>
-  
   <!-- 網頁瀏覽頁面 -->
   <data name="WebBrowserPage_Back.Label" xml:space="preserve">
     <value>上一頁</value>
@@ -221,7 +213,6 @@
   <data name="WebBrowserPage_OpenExternal.Label" xml:space="preserve">
     <value>外部開啟</value>
   </data>
-  
   <!-- 網頁應用頁面狀態訊息 -->
   <data name="WebAppPage_IconRestored" xml:space="preserve">
     <value>已還原自動圖示</value>
@@ -262,7 +253,6 @@
   <data name="WebAppPage_ShortcutCreated" xml:space="preserve">
     <value>已建立網頁入口</value>
   </data>
-  
   <!-- 設定頁面對話方塊 -->
   <data name="SettingsPage_RestartTitle" xml:space="preserve">
     <value>需要重新啟動</value>
@@ -288,7 +278,6 @@
   <data name="SettingsPage_MaxWebViewHeader.Description" xml:space="preserve">
     <value>設定同時可以開啟的網頁瀏覽器數量（1-20）</value>
   </data>
-  
   <!-- 導航欄 WebView 限制提示 -->
   <data name="Nav_WebViewLimitTitle" xml:space="preserve">
     <value>已達到瀏覽器數量限制</value>
@@ -299,7 +288,6 @@
   <data name="Nav_WebViewLimitClose" xml:space="preserve">
     <value>知道了</value>
   </data>
-  
   <!-- 語言選項 -->
   <data name="Language_SimplifiedChinese.Text" xml:space="preserve">
     <value>简体中文</value>
@@ -325,9 +313,119 @@
   <data name="Language_Spanish.Text" xml:space="preserve">
     <value>Español</value>
   </data>
-  
   <!-- 導覽列選單 -->
   <data name="Nav_UnpinShortcut" xml:space="preserve">
     <value>取消釘選</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogRecordText.Text" xml:space="preserve">
+    <value>點擊開始錄製</value>
+  </data>
+  <data name="SettingsPage_InteractionSection.Text" xml:space="preserve">
+    <value>互動</value>
+  </data>
+  <data name="SettingsPage_RoundedWebViewHeader.Header" xml:space="preserve">
+    <value>WebView2 圓角</value>
+  </data>
+  <data name="WebBrowser_CopyLinkMenuItem.Text" xml:space="preserve">
+    <value>複製連結位址</value>
+  </data>
+  <data name="SettingsPage_WebSection.Text" xml:space="preserve">
+    <value>網頁</value>
+  </data>
+  <data name="SettingsPage_AnimationSlideBottom.Content" xml:space="preserve">
+    <value>從底部滑入</value>
+  </data>
+  <data name="WebBrowser_CloseButton" xml:space="preserve">
+    <value>關閉此頁面</value>
+  </data>
+  <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
+    <value>關於</value>
+  </data>
+  <data name="WebBrowser_RefreshMenuItem.Text" xml:space="preserve">
+    <value>重新整理</value>
+  </data>
+  <data name="SettingsPage_ErrorTitle" xml:space="preserve">
+    <value>錯誤</value>
+  </data>
+  <data name="SettingsPage_StartupToggleError" xml:space="preserve">
+    <value>切換啟動設定時發生錯誤，請稍後重試。</value>
+  </data>
+  <data name="SettingsPage_RoundedWebViewHeader.Description" xml:space="preserve">
+    <value>為網頁瀏覽器啟用圓角效果，圓角大小自動同步上層容器</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialog.Title" xml:space="preserve">
+    <value>設定快速鍵</value>
+  </data>
+  <data name="SettingsPage_FrameAnimationHeader.Description" xml:space="preserve">
+    <value>選擇頁面導覽時的動畫效果</value>
+  </data>
+  <data name="SettingsPage_AnimationSlideLeft.Content" xml:space="preserve">
+    <value>從左側滑入</value>
+  </data>
+  <data name="SettingsPage_AnimationSlideRight.Content" xml:space="preserve">
+    <value>從右側滑入</value>
+  </data>
+  <data name="SettingsPage_ExperimentalHeader.Description" xml:space="preserve">
+    <value>啟用實驗性功能（可能不穩定）</value>
+  </data>
+  <data name="SettingsPage_FrameAnimationHeader.Header" xml:space="preserve">
+    <value>頁面切換動畫</value>
+  </data>
+  <data name="SettingsPage_GeneralSection.Text" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="SettingsPage_AnimationEntrance.Content" xml:space="preserve">
+    <value>進場動畫（預設）</value>
+  </data>
+  <data name="WebBrowser_CopyMenuItem.Text" xml:space="preserve">
+    <value>複製</value>
+  </data>
+  <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
+    <value>為網頁瀏覽器啟用 WinUI 風格的右鍵選單（預設使用瀏覽器原生選單）</value>
+  </data>
+  <data name="SettingsPage_OpenSettingsError" xml:space="preserve">
+    <value>無法開啟系統設定頁面，請手動前往 Windows 設定 &gt; 應用程式 &gt; 啟動。</value>
+  </data>
+  <data name="WebBrowser_BackMenuItem.Text" xml:space="preserve">
+    <value>上一頁</value>
+  </data>
+  <data name="SettingsPage_AnimationDrill.Content" xml:space="preserve">
+    <value>鑽取動畫</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogHint.Text" xml:space="preserve">
+    <value>提示：至少需要一個修飾鍵（Ctrl、Alt、Shift 或 Win）</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogPrompt.Text" xml:space="preserve">
+    <value>請按下您想要設定的快速鍵組合</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialog.PrimaryButtonText" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="SettingsPage_ConfirmButton" xml:space="preserve">
+    <value>確定</value>
+  </data>
+  <data name="WebBrowser_CopyUrlMenuItem.Text" xml:space="preserve">
+    <value>複製頁面位址</value>
+  </data>
+  <data name="SettingsPage_WinUIContextMenuHeader.Header" xml:space="preserve">
+    <value>WinUI 右鍵選單</value>
+  </data>
+  <data name="SettingsPage_AdvancedSection.Text" xml:space="preserve">
+    <value>進階</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialog.CloseButtonText" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="WebBrowser_ForwardMenuItem.Text" xml:space="preserve">
+    <value>下一頁</value>
+  </data>
+  <data name="SettingsPage_ExperimentalHeader.Header" xml:space="preserve">
+    <value>實驗性功能</value>
+  </data>
+  <data name="WebBrowser_OpenExternalMenuItem.Text" xml:space="preserve">
+    <value>在瀏覽器中開啟</value>
+  </data>
+  <data name="SettingsPage_AnimationNone.Content" xml:space="preserve">
+    <value>無動畫</value>
   </data>
 </root>

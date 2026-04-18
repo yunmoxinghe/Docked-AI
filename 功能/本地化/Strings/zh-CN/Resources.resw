@@ -340,4 +340,128 @@
   <data name="Nav_UnpinShortcut" xml:space="preserve">
     <value>取消固定</value>
   </data>
+  
+  <data name="WebBrowser_CloseButton" xml:space="preserve">
+    <value>关闭此页面</value>
+  </data>
+  
+  <!-- 网页浏览器右键菜单 -->
+  <data name="WebBrowser_BackMenuItem.Text" xml:space="preserve">
+    <value>后退</value>
+  </data>
+  <data name="WebBrowser_ForwardMenuItem.Text" xml:space="preserve">
+    <value>前进</value>
+  </data>
+  <data name="WebBrowser_RefreshMenuItem.Text" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="WebBrowser_CopyMenuItem.Text" xml:space="preserve">
+    <value>复制</value>
+  </data>
+  <data name="WebBrowser_CopyLinkMenuItem.Text" xml:space="preserve">
+    <value>复制链接地址</value>
+  </data>
+  <data name="WebBrowser_CopyUrlMenuItem.Text" xml:space="preserve">
+    <value>复制页面地址</value>
+  </data>
+  <data name="WebBrowser_OpenExternalMenuItem.Text" xml:space="preserve">
+    <value>在浏览器中打开</value>
+  </data>
+  
+  <!-- 设置页面 - 分组标题 -->
+  <data name="SettingsPage_GeneralSection.Text" xml:space="preserve">
+    <value>常规</value>
+  </data>
+  <data name="SettingsPage_InteractionSection.Text" xml:space="preserve">
+    <value>交互</value>
+  </data>
+  <data name="SettingsPage_WebSection.Text" xml:space="preserve">
+    <value>网页</value>
+  </data>
+  <data name="SettingsPage_AdvancedSection.Text" xml:space="preserve">
+    <value>高级</value>
+  </data>
+  <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
+    <value>关于</value>
+  </data>
+  
+  <!-- 设置页面 - Frame 动画 -->
+  <data name="SettingsPage_FrameAnimationHeader.Header" xml:space="preserve">
+    <value>页面切换动画</value>
+  </data>
+  <data name="SettingsPage_FrameAnimationHeader.Description" xml:space="preserve">
+    <value>选择页面导航时的动画效果</value>
+  </data>
+  <data name="SettingsPage_AnimationNone.Content" xml:space="preserve">
+    <value>无动画</value>
+  </data>
+  <data name="SettingsPage_AnimationEntrance.Content" xml:space="preserve">
+    <value>入场动画（默认）</value>
+  </data>
+  <data name="SettingsPage_AnimationSlideRight.Content" xml:space="preserve">
+    <value>从右侧滑入</value>
+  </data>
+  <data name="SettingsPage_AnimationSlideLeft.Content" xml:space="preserve">
+    <value>从左侧滑入</value>
+  </data>
+  <data name="SettingsPage_AnimationSlideBottom.Content" xml:space="preserve">
+    <value>从底部滑入</value>
+  </data>
+  <data name="SettingsPage_AnimationDrill.Content" xml:space="preserve">
+    <value>钻取动画</value>
+  </data>
+  
+  <!-- 设置页面 - 实验特性 -->
+  <data name="SettingsPage_ExperimentalHeader.Header" xml:space="preserve">
+    <value>实验特性</value>
+  </data>
+  <data name="SettingsPage_ExperimentalHeader.Description" xml:space="preserve">
+    <value>启用实验性功能（可能不稳定）</value>
+  </data>
+  <data name="SettingsPage_RoundedWebViewHeader.Header" xml:space="preserve">
+    <value>WebView2 圆角</value>
+  </data>
+  <data name="SettingsPage_RoundedWebViewHeader.Description" xml:space="preserve">
+    <value>为网页浏览器启用圆角效果，圆角大小自动同步上层容器</value>
+  </data>
+  <data name="SettingsPage_WinUIContextMenuHeader.Header" xml:space="preserve">
+    <value>WinUI 右键菜单</value>
+  </data>
+  <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
+    <value>为网页浏览器启用 WinUI 风格的右键菜单（默认使用浏览器原生菜单）</value>
+  </data>
+  
+  <!-- 设置页面 - 快捷键对话框 -->
+  <data name="SettingsPage_HotkeyDialog.Title" xml:space="preserve">
+    <value>设置快捷键</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialog.PrimaryButtonText" xml:space="preserve">
+    <value>确认</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialog.CloseButtonText" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogPrompt.Text" xml:space="preserve">
+    <value>请按下您想要设置的快捷键组合</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogRecordText.Text" xml:space="preserve">
+    <value>点击开始录制</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogHint.Text" xml:space="preserve">
+    <value>提示：至少需要一个修饰键（Ctrl、Alt、Shift 或 Win）</value>
+  </data>
+  
+  <!-- 设置页面 - C# 代码中使用的字符串 -->
+  <data name="SettingsPage_ErrorTitle" xml:space="preserve">
+    <value>错误</value>
+  </data>
+  <data name="SettingsPage_StartupToggleError" xml:space="preserve">
+    <value>切换自启动设置时发生错误，请稍后重试。</value>
+  </data>
+  <data name="SettingsPage_OpenSettingsError" xml:space="preserve">
+    <value>无法打开系统设置页面，请手动前往 Windows 设置 > 应用 > 启动。</value>
+  </data>
+  <data name="SettingsPage_ConfirmButton" xml:space="preserve">
+    <value>确定</value>
+  </data>
 </root>

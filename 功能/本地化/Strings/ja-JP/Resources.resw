@@ -58,12 +58,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  
   <!-- 共通 -->
   <data name="AppDisplayName" xml:space="preserve">
     <value>Docked AI</value>
   </data>
-  
   <!-- ホームページ -->
   <data name="HomePage_Title.Text" xml:space="preserve">
     <value>ホーム</value>
@@ -71,7 +69,6 @@
   <data name="HomePage_EmptyText.Text" xml:space="preserve">
     <value>ピン留めされたウェブページはありません</value>
   </data>
-  
   <!-- 設定ページ -->
   <data name="SettingsPage_Title.Text" xml:space="preserve">
     <value>設定</value>
@@ -148,7 +145,6 @@
   <data name="SettingsPage_LicenseLink.Content" xml:space="preserve">
     <value>ライセンスを表示</value>
   </data>
-  
   <!-- トレイメニュー -->
   <data name="TrayMenu_OpenWindow" xml:space="preserve">
     <value>メインウィンドウを開く</value>
@@ -156,7 +152,6 @@
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>終了</value>
   </data>
-  
   <!-- ナビゲーション -->
   <data name="Nav_Home.Content" xml:space="preserve">
     <value>ホーム</value>
@@ -173,7 +168,6 @@
   <data name="Nav_WindowStateToggle" xml:space="preserve">
     <value>ウィンドウ状態を切り替え</value>
   </data>
-  
   <!-- 新規ページ -->
   <data name="NewPage_Title.Text" xml:space="preserve">
     <value>新規</value>
@@ -184,7 +178,6 @@
   <data name="NewPage_PinWebHeader.Description" xml:space="preserve">
     <value>よく使うウェブサイトを独立したアプリエントリとしてピン留めします。</value>
   </data>
-  
   <!-- ウェブアプリページ -->
   <data name="WebAppPage_RestoreAutoIcon.Content" xml:space="preserve">
     <value>自動アイコンを復元</value>
@@ -204,7 +197,6 @@
   <data name="WebAppPage_Confirm.Content" xml:space="preserve">
     <value>確認</value>
   </data>
-  
   <!-- ウェブブラウザページ -->
   <data name="WebBrowserPage_Back.Label" xml:space="preserve">
     <value>戻る</value>
@@ -221,7 +213,6 @@
   <data name="WebBrowserPage_OpenExternal.Label" xml:space="preserve">
     <value>外部で開く</value>
   </data>
-  
   <!-- ウェブアプリページステータスメッセージ -->
   <data name="WebAppPage_IconRestored" xml:space="preserve">
     <value>自動アイコンを復元しました</value>
@@ -262,7 +253,6 @@
   <data name="WebAppPage_ShortcutCreated" xml:space="preserve">
     <value>ウェブショートカットを作成しました</value>
   </data>
-  
   <!-- 設定ページダイアログ -->
   <data name="SettingsPage_RestartTitle" xml:space="preserve">
     <value>再起動が必要</value>
@@ -288,7 +278,6 @@
   <data name="SettingsPage_MaxWebViewHeader.Description" xml:space="preserve">
     <value>同時に開くことができるウェブブラウザの最大数を設定します（1-20）</value>
   </data>
-  
   <!-- ナビゲーションバー WebView 制限 -->
   <data name="Nav_WebViewLimitTitle" xml:space="preserve">
     <value>ブラウザ数の制限に達しました</value>
@@ -299,7 +288,6 @@
   <data name="Nav_WebViewLimitClose" xml:space="preserve">
     <value>OK</value>
   </data>
-  
   <!-- 言語オプション -->
   <data name="Language_SimplifiedChinese.Text" xml:space="preserve">
     <value>简体中文</value>
@@ -325,9 +313,119 @@
   <data name="Language_Spanish.Text" xml:space="preserve">
     <value>Español</value>
   </data>
-  
   <!-- ナビゲーションメニュー -->
   <data name="Nav_UnpinShortcut" xml:space="preserve">
     <value>ピン留めを外す</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogRecordText.Text" xml:space="preserve">
+    <value>クリックして記録を開始</value>
+  </data>
+  <data name="SettingsPage_InteractionSection.Text" xml:space="preserve">
+    <value>インタラクション</value>
+  </data>
+  <data name="SettingsPage_RoundedWebViewHeader.Header" xml:space="preserve">
+    <value>WebView2 角丸</value>
+  </data>
+  <data name="WebBrowser_CopyLinkMenuItem.Text" xml:space="preserve">
+    <value>リンクアドレスをコピー</value>
+  </data>
+  <data name="SettingsPage_WebSection.Text" xml:space="preserve">
+    <value>ウェブ</value>
+  </data>
+  <data name="SettingsPage_AnimationSlideBottom.Content" xml:space="preserve">
+    <value>下からスライド</value>
+  </data>
+  <data name="WebBrowser_CloseButton" xml:space="preserve">
+    <value>このページを閉じる</value>
+  </data>
+  <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
+    <value>について</value>
+  </data>
+  <data name="WebBrowser_RefreshMenuItem.Text" xml:space="preserve">
+    <value>更新</value>
+  </data>
+  <data name="SettingsPage_ErrorTitle" xml:space="preserve">
+    <value>エラー</value>
+  </data>
+  <data name="SettingsPage_StartupToggleError" xml:space="preserve">
+    <value>スタートアップ設定の切り替え中にエラーが発生しました。後でもう一度お試しください。</value>
+  </data>
+  <data name="SettingsPage_RoundedWebViewHeader.Description" xml:space="preserve">
+    <value>Webブラウザの角丸効果を有効にし、角丸サイズは親コンテナと自動同期します</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialog.Title" xml:space="preserve">
+    <value>ホットキーを設定</value>
+  </data>
+  <data name="SettingsPage_FrameAnimationHeader.Description" xml:space="preserve">
+    <value>ページナビゲーション時のアニメーション効果を選択</value>
+  </data>
+  <data name="SettingsPage_AnimationSlideLeft.Content" xml:space="preserve">
+    <value>左からスライド</value>
+  </data>
+  <data name="SettingsPage_AnimationSlideRight.Content" xml:space="preserve">
+    <value>右からスライド</value>
+  </data>
+  <data name="SettingsPage_ExperimentalHeader.Description" xml:space="preserve">
+    <value>実験的機能を有効にする（不安定な可能性があります）</value>
+  </data>
+  <data name="SettingsPage_FrameAnimationHeader.Header" xml:space="preserve">
+    <value>ページ遷移アニメーション</value>
+  </data>
+  <data name="SettingsPage_GeneralSection.Text" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="SettingsPage_AnimationEntrance.Content" xml:space="preserve">
+    <value>エントランスアニメーション（デフォルト）</value>
+  </data>
+  <data name="WebBrowser_CopyMenuItem.Text" xml:space="preserve">
+    <value>コピー</value>
+  </data>
+  <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
+    <value>WebブラウザにWinUIスタイルのコンテキストメニューを有効にする（デフォルトはブラウザネイティブメニュー）</value>
+  </data>
+  <data name="SettingsPage_OpenSettingsError" xml:space="preserve">
+    <value>システム設定ページを開けません。Windows 設定 &gt; アプリ &gt; スタートアップに手動で移動してください。</value>
+  </data>
+  <data name="WebBrowser_BackMenuItem.Text" xml:space="preserve">
+    <value>戻る</value>
+  </data>
+  <data name="SettingsPage_AnimationDrill.Content" xml:space="preserve">
+    <value>ドリルアニメーション</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogHint.Text" xml:space="preserve">
+    <value>ヒント：少なくとも1つの修飾キー（Ctrl、Alt、Shift、またはWin）が必要です</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogPrompt.Text" xml:space="preserve">
+    <value>設定したいホットキーの組み合わせを押してください</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialog.PrimaryButtonText" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="SettingsPage_ConfirmButton" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="WebBrowser_CopyUrlMenuItem.Text" xml:space="preserve">
+    <value>ページアドレスをコピー</value>
+  </data>
+  <data name="SettingsPage_WinUIContextMenuHeader.Header" xml:space="preserve">
+    <value>WinUI コンテキストメニュー</value>
+  </data>
+  <data name="SettingsPage_AdvancedSection.Text" xml:space="preserve">
+    <value>詳細設定</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialog.CloseButtonText" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="WebBrowser_ForwardMenuItem.Text" xml:space="preserve">
+    <value>進む</value>
+  </data>
+  <data name="SettingsPage_ExperimentalHeader.Header" xml:space="preserve">
+    <value>実験的機能</value>
+  </data>
+  <data name="WebBrowser_OpenExternalMenuItem.Text" xml:space="preserve">
+    <value>ブラウザで開く</value>
+  </data>
+  <data name="SettingsPage_AnimationNone.Content" xml:space="preserve">
+    <value>アニメーションなし</value>
   </data>
 </root>
