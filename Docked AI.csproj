@@ -7,6 +7,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x86;x64;ARM64</Platforms>
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <!-- 默认使用 x64 平台，避免 WindowsAppSDKSelfContained 构建错误 -->
+    <Platform Condition="'$(Platform)' == '' or '$(Platform)' == 'AnyCPU'">x64</Platform>
     <PublishProfile Condition="'$(Platform)' == 'x64'">win-x64.pubxml</PublishProfile>
     <PublishProfile Condition="'$(Platform)' == 'x86'">win-x86.pubxml</PublishProfile>
     <PublishProfile Condition="'$(Platform)' == 'ARM64'">win-arm64.pubxml</PublishProfile>
@@ -24,6 +26,10 @@
     <Content Include="Assets\Square44x44Logo.scale-200.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+    <!-- 添加托盘图标文件，确保复制到输出目录 -->
+    <Content Include="Assets\Sparkles.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

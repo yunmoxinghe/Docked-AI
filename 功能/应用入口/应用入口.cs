@@ -54,11 +54,14 @@ namespace Docked_AI
         /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
+            System.Diagnostics.Debug.WriteLine("[App] OnLaunched called");
+            
             try
             {
                 // 使用 Windows App SDK 的 AppInstance API 实现单实例
                 // 这是官方推荐的最佳实践，比 Mutex + IPC 更简洁、更可靠
                 _mainInstance = AppInstance.FindOrRegisterForKey("DockedAI_MainInstance");
+                System.Diagnostics.Debug.WriteLine($"[App] AppInstance registered, IsCurrent={_mainInstance.IsCurrent}");
 
                 if (!_mainInstance.IsCurrent)
                 {
@@ -81,34 +84,48 @@ namespace Docked_AI
 
                 // 当前是主实例 → 订阅激活事件（处理后续的重定向激活）
                 _mainInstance.Activated += OnActivated;
+                System.Diagnostics.Debug.WriteLine("[App] This is the main instance, subscribed to Activated event");
 
                 // Initialize handlers
                 _normalLaunchHandler = new NormalLaunchHandler(this);
                 _autoLaunchHandler = new AutoLaunchHandler(this);
                 _shareLaunchHandler = new ShareLaunchHandler(this);
+                System.Diagnostics.Debug.WriteLine("[App] Launch handlers initialized");
 
                 var activationArgs2 = AppInstance.GetCurrent().GetActivatedEventArgs();
+                System.Diagnostics.Debug.WriteLine($"[App] Activation kind: {activationArgs2?.Kind}");
 
                 // ShareTarget activation should always proceed
                 if (activationArgs2?.Kind == Microsoft.Windows.AppLifecycle.ExtendedActivationKind.ShareTarget)
                 {
+                    System.Diagnostics.Debug.WriteLine("[App] Handling ShareTarget activation");
                     HandleShareTargetActivation(activationArgs2.Data as ShareTargetActivatedEventArgs);
                     return;
                 }
 
                 // Check if this is an auto-launch scenario
                 bool isAutoLaunch = _autoLaunchHandler.IsAutoLaunch();
+                System.Diagnostics.Debug.WriteLine($"[App] IsAutoLaunch: {isAutoLaunch}");
+                
                 if (isAutoLaunch)
                 {
+                    System.Diagnostics.Debug.WriteLine("[App] Handling auto-launch");
                     _ = _autoLaunchHandler.HandleAsync();
                 }
 
                 // Handle normal launch
                 // 从图标启动时（非自启动），自动显示主窗口
-                _normalLaunchHandler.Handle(ExitApplication, shouldShowWindow: !isAutoLaunch);
+                bool shouldShowWindow = !isAutoLaunch;
+                System.Diagnostics.Debug.WriteLine($"[App] Calling NormalLaunchHandler.Handle with shouldShowWindow={shouldShowWindow}");
+                
+                _normalLaunchHandler.Handle(ExitApplication, shouldShowWindow: shouldShowWindow);
                 _trayIconManager = _normalLaunchHandler.TrayIconManager;
+                
+                System.Diagnostics.Debug.WriteLine("[App] Creating keep-alive window");
                 EnsureKeepAliveWindow();
 
+                System.Diagnostics.Debug.WriteLine("[App] OnLaunched completed successfully");
+                
                 // 优化说明：
                 // - 使用 Windows App SDK 的 AppInstance API（官方推荐）
                 // - 自启动时：不显示窗口，只在托盘运行
@@ -118,6 +135,8 @@ namespace Docked_AI
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[App] CRITICAL ERROR in OnLaunched: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[App] Stack trace: {ex.StackTrace}");
                 LogException("OnLaunched", ex);
                 throw;
             }

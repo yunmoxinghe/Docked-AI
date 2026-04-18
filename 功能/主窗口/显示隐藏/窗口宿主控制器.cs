@@ -79,34 +79,60 @@ namespace Docked_AI.Features.MainWindow.Visibility
         /// </summary>
         public void RequestSlideIn()
         {
+            System.Diagnostics.Debug.WriteLine($"[WindowHostController] RequestSlideIn called, _animationStarted={_animationStarted}");
+            
             if (_animationStarted)
             {
-                System.Diagnostics.Debug.WriteLine("RequestSlideIn: Already shown, ignoring");
+                System.Diagnostics.Debug.WriteLine("[WindowHostController] RequestSlideIn: Already shown, ignoring");
                 return;
             }
 
             _animationStarted = true;
-            System.Diagnostics.Debug.WriteLine("RequestSlideIn: Showing window with DWM animation");
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] RequestSlideIn: Showing window with DWM animation");
 
-            // 1. 确保窗口在目标停靠位置
-            _layoutService.Refresh(_state);
-            _window.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(
-                (int)_state.TargetX, 
-                (int)_state.TargetY, 
-                _state.WindowWidth, 
-                _state.WindowHeight));
-            
-            // 2. Show —— DWM 创建动画自动触发 ✨
-            _window.AppWindow.Show();
-            
-            // 3. 激活并获取焦点
-            ActivateAndFocusWindow();
-            
-            // 4. 更新状态到 Windowed
-            var plan = _stateManager.CreatePlan(WindowState.Windowed, "Initial window shown");
-            if (plan != null)
+            try
             {
-                _stateManager.CommitTransition(plan.TransitionId);
+                // 1. 确保窗口在目标停靠位置
+                _layoutService.Refresh(_state);
+                System.Diagnostics.Debug.WriteLine($"[WindowHostController] Layout refreshed: X={_state.TargetX}, Y={_state.TargetY}, W={_state.WindowWidth}, H={_state.WindowHeight}");
+                
+                _window.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(
+                    (int)_state.TargetX, 
+                    (int)_state.TargetY, 
+                    _state.WindowWidth, 
+                    _state.WindowHeight));
+                System.Diagnostics.Debug.WriteLine("[WindowHostController] Window moved and resized");
+                
+                // 2. Show —— DWM 创建动画自动触发 ✨
+                _window.AppWindow.Show();
+                System.Diagnostics.Debug.WriteLine("[WindowHostController] AppWindow.Show() called");
+                
+                // 3. 激活并获取焦点
+                ActivateAndFocusWindow();
+                System.Diagnostics.Debug.WriteLine("[WindowHostController] Window activated and focused");
+                
+                // 4. 更新状态到 Windowed
+                var plan = _stateManager.CreatePlan(WindowState.Windowed, "Initial window shown");
+                if (plan != null)
+                {
+                    _stateManager.CommitTransition(plan.TransitionId);
+                    System.Diagnostics.Debug.WriteLine("[WindowHostController] State transition committed to Windowed");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[WindowHostController] WARNING: Failed to create state transition plan");
+                }
+                
+                System.Diagnostics.Debug.WriteLine("[WindowHostController] RequestSlideIn completed successfully");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[WindowHostController] ERROR in RequestSlideIn: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[WindowHostController] Stack trace: {ex.StackTrace}");
+                
+                // 重置标志以允许重试
+                _animationStarted = false;
+                throw;
             }
         }
 

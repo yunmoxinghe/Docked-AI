@@ -232,21 +232,39 @@ namespace Docked_AI.Features.Tray
         /// </summary>
         public void ShowMainWindow()
         {
+            System.Diagnostics.Debug.WriteLine("[TrayIconManager] ShowMainWindow called");
+            
             try
             {
-                if (!IsWindowValid())
+                bool isValid = IsWindowValid();
+                System.Diagnostics.Debug.WriteLine($"[TrayIconManager] Window valid check: {isValid}");
+                
+                if (!isValid)
                 {
+                    System.Diagnostics.Debug.WriteLine("[TrayIconManager] Creating and showing new window");
                     CreateAndShowWindow();
                 }
                 else
                 {
+                    System.Diagnostics.Debug.WriteLine("[TrayIconManager] Toggling existing window");
                     ToggleExistingWindow();
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error showing main window: {ex.Message}");
-                CreateAndShowWindow();
+                System.Diagnostics.Debug.WriteLine($"[TrayIconManager] ERROR showing main window: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[TrayIconManager] Stack trace: {ex.StackTrace}");
+                
+                // 发生异常时尝试创建新窗口
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine("[TrayIconManager] Attempting to create window after error");
+                    CreateAndShowWindow();
+                }
+                catch (Exception ex2)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[TrayIconManager] CRITICAL ERROR: Failed to create window: {ex2.Message}");
+                }
             }
         }
 
@@ -269,18 +287,45 @@ namespace Docked_AI.Features.Tray
         /// </summary>
         private void CreateAndShowWindow()
         {
-            // 使用窗口工厂创建窗口（如果提供），否则使用主窗口工厂创建默认窗口
-            // 注意：不要在这里调用 Activate()，让 RequestSlideIn() 来触发首次显示
-            _mainWindow = _windowFactory?.Invoke() ?? MainWindowFactory.Create();
+            System.Diagnostics.Debug.WriteLine("[TrayIconManager] CreateAndShowWindow started");
             
-            // 标记初始化完成
-            if (_mainWindow is IWindowToggle windowToggle)
+            try
             {
-                windowToggle.SetInitializingComplete();
-                System.Diagnostics.Debug.WriteLine("TrayIconManager: Initialization complete, requesting first show");
+                // 使用窗口工厂创建窗口（如果提供），否则使用主窗口工厂创建默认窗口
+                _mainWindow = _windowFactory?.Invoke() ?? MainWindowFactory.Create();
+                System.Diagnostics.Debug.WriteLine($"[TrayIconManager] Window created: {_mainWindow != null}");
                 
-                // 触发首次显示，利用 DWM 的创建动画 ✨
-                windowToggle.RequestSlideIn();
+                if (_mainWindow == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("[TrayIconManager] CRITICAL ERROR: Failed to create window instance");
+                    return;
+                }
+                
+                // 标记初始化完成并显示窗口
+                if (_mainWindow is IWindowToggle windowToggle)
+                {
+                    System.Diagnostics.Debug.WriteLine("[TrayIconManager] Window implements IWindowToggle, calling SetInitializingComplete");
+                    windowToggle.SetInitializingComplete();
+                    
+                    System.Diagnostics.Debug.WriteLine("[TrayIconManager] Initialization complete, requesting first show");
+                    
+                    // 触发首次显示，利用 DWM 的创建动画 ✨
+                    windowToggle.RequestSlideIn();
+                    System.Diagnostics.Debug.WriteLine("[TrayIconManager] RequestSlideIn called");
+                }
+                else
+                {
+                    // 降级处理：如果窗口不支持 IWindowToggle，直接激活
+                    System.Diagnostics.Debug.WriteLine("[TrayIconManager] WARNING: Window does not implement IWindowToggle, using fallback activation");
+                    _mainWindow.Activate();
+                    WindowHelper.SetForegroundWindow(_mainWindow);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TrayIconManager] CRITICAL ERROR in CreateAndShowWindow: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[TrayIconManager] Stack trace: {ex.StackTrace}");
+                throw;
             }
         }
 
