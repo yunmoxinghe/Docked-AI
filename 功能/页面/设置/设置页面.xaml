@@ -34,6 +34,10 @@
                 <StackPanel
                     x:Name="CardsPanel"
                     Spacing="4">
+                    <StackPanel.ChildrenTransitions>
+                        <EntranceThemeTransition FromVerticalOffset="50" />
+                        <RepositionThemeTransition IsStaggeringEnabled="True" />
+                    </StackPanel.ChildrenTransitions>
                     <!-- 当状态为 DisabledByUser 时显示提示信息 -->
                     <InfoBar
                         x:Uid="SettingsPage_UserDisabledInfo"
