@@ -195,6 +195,13 @@ namespace Docked_AI
         private void ShowMainWindow()
         {
             _window = MainWindowFactory.GetOrCreate(_window);
+            
+            // 注意：Activate() 的行为特性：
+            // - 这是首次创建窗口时唯一合法的显示方案
+            // - 会触发系统内置的流畅窗口显示动画（DWM 动画）
+            // - 内置了强制进入可显示区域的逻辑
+            // - 必须在所有窗口配置（位置、大小、样式等）完成后最后调用
+            // - 如果在配置过程中调用会导致闪现问题
             _window.Activate();
         }
 
@@ -248,6 +255,12 @@ namespace Docked_AI
             keepAliveAppWindow.IsShownInSwitchers = false;
             keepAliveAppWindow.MoveAndResize(new RectInt32(-32000, -32000, 1, 1));
 
+            // 注意：Activate() 的行为特性：
+            // - 这是首次创建窗口时唯一合法的显示方案
+            // - 会触发系统内置的流畅窗口显示动画（DWM 动画）
+            // - 内置了强制进入可显示区域的逻辑
+            // - 必须在所有窗口配置（位置、大小、样式等）完成后最后调用
+            // - 如果在配置过程中调用会导致闪现问题
             _keepAliveWindow.Activate();
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(_keepAliveWindow);
             if (hwnd != IntPtr.Zero)

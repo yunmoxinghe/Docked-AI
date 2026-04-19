@@ -78,7 +78,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         /// <summary>
         /// 请求执行首次显示（由托盘图标点击触发）
-        /// 利用 DWM 的首次 Show 动画，简单优雅
+        /// 利用 Activate() 的内置动画，这是首次创建窗口时唯一不会闪现的方案
         /// </summary>
         public void RequestSlideIn()
         {
@@ -91,7 +91,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             }
 
             _animationStarted = true;
-            System.Diagnostics.Debug.WriteLine("[WindowHostController] RequestSlideIn: Showing window with slide-in animation");
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] RequestSlideIn: Showing window with built-in animation");
 
             try
             {
@@ -99,36 +99,23 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 _layoutService.Refresh(_state);
                 System.Diagnostics.Debug.WriteLine($"[WindowHostController] Layout refreshed: TargetX={_state.TargetX}, TargetY={_state.TargetY}, W={_state.WindowWidth}, H={_state.WindowHeight}");
                 
-                // 2. 准备滑入动画的起始位置（屏幕右侧外）
-                _layoutService.PrepareForShow(_state);
-                System.Diagnostics.Debug.WriteLine($"[WindowHostController] Prepared for show: CurrentX={_state.CurrentX}, CurrentY={_state.CurrentY}");
+                // 2. 设置窗口到目标位置（不是屏幕外）
+                _state.CurrentX = _state.TargetX;
+                _state.CurrentY = _state.TargetY;
                 
-                // 3. 先移动到起始位置（屏幕外）
                 _window.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(
-                    (int)_state.CurrentX,  // 屏幕外的起始位置
-                    (int)_state.CurrentY, 
+                    _state.TargetX,  // 直接设置到目标位置
+                    (int)_state.TargetY, 
                     _state.WindowWidth, 
                     _state.WindowHeight));
-                System.Diagnostics.Debug.WriteLine("[WindowHostController] Window moved to start position (off-screen)");
+                System.Diagnostics.Debug.WriteLine("[WindowHostController] Window moved to target position");
                 
-                // 4. 显示窗口（此时在屏幕外，用户看不到）
-                _window.AppWindow.Show();
-                System.Diagnostics.Debug.WriteLine("[WindowHostController] AppWindow.Show() called");
-                
-                // 5. 激活窗口
-                _window.Activate();
-                System.Diagnostics.Debug.WriteLine("[WindowHostController] Window activated");
-                
-                // 6. 启动滑入动画
-                _animationController.StartShow();
-                System.Diagnostics.Debug.WriteLine("[WindowHostController] Slide-in animation started");
-                
-                // 7. 标记首次显示完成，并记录时间（用于保护期）
+                // 3. 标记首次显示完成，并记录时间（用于保护期）
                 _isInitialShowComplete = true;
                 _initialShowCompletedTime = DateTime.Now;
                 System.Diagnostics.Debug.WriteLine("[WindowHostController] Initial show marked as complete");
                 
-                // 8. 更新状态到 Windowed
+                // 4. 更新状态到 Windowed
                 var plan = _stateManager.CreatePlan(WindowState.Windowed, "Initial window shown");
                 if (plan != null)
                 {
@@ -141,6 +128,16 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 }
                 
                 System.Diagnostics.Debug.WriteLine("[WindowHostController] RequestSlideIn completed successfully");
+                
+                // 5. 激活窗口（必须在最后）
+                // 注意：Activate() 的行为特性：
+                // - 这是首次创建窗口时唯一合法的显示方案
+                // - 会触发系统内置的流畅窗口显示动画（DWM 动画）
+                // - 内置了强制进入可显示区域的逻辑
+                // - 必须在所有窗口配置（位置、大小、样式等）完成后最后调用
+                // - 如果在配置过程中调用会导致闪现问题
+                _window.Activate();
+                System.Diagnostics.Debug.WriteLine("[WindowHostController] Window activated with built-in animation");
             }
             catch (Exception ex)
             {
@@ -406,8 +403,11 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _backdropService.EnsureAcrylicBackdrop(_window);
             _titleBarService.ConfigureStandardWindow(_window);
             MoveWindowToStandardDock(prepareForShow: true);
-            ActivateAndFocusWindow();
             _animationController.StartShow();
+            
+            // 注意：ActivateAndFocusWindow() 必须在最后调用
+            // 因为它内部调用 Activate()，会触发窗口显示动画
+            ActivateAndFocusWindow();
         }
 
         private void StartHideAnimation()
@@ -432,6 +432,9 @@ namespace Docked_AI.Features.MainWindow.Visibility
             ApplyPinnedWindowStyle();
             ApplyPinnedBounds();
             _backdropService.EnsureMicaBackdrop(_window);
+            
+            // 注意：ActivateAndFocusWindow() 必须在最后调用
+            // 因为它内部调用 Activate()，会触发窗口显示动画
             ActivateAndFocusWindow();
         }
 
@@ -447,6 +450,12 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         private void ActivateAndFocusWindow()
         {
+            // 注意：Activate() 的行为特性：
+            // - 这是首次创建窗口时唯一合法的显示方案
+            // - 会触发系统内置的流畅窗口显示动画（DWM 动画）
+            // - 内置了强制进入可显示区域的逻辑
+            // - 必须在所有窗口配置（位置、大小、样式等）完成后最后调用
+            // - 如果在配置过程中调用会导致闪现问题
             _window.Activate();
             Tray.WindowHelper.SetForegroundWindow(_window);
         }

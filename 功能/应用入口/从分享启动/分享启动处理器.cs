@@ -78,8 +78,6 @@ namespace Docked_AI.Features.AppEntry.ShareLaunch
                 return;
             }
 
-            window.Activate();
-
             // Wait for window to fully load before navigating
             await Task.Delay(500);
 
@@ -90,6 +88,14 @@ namespace Docked_AI.Features.AppEntry.ShareLaunch
                 mainWindow.NavigateToNewPage(sharedUrl);
                 _pendingSharedUrl = null;
             }
+            
+            // 注意：Activate() 的行为特性：
+            // - 这是首次创建窗口时唯一合法的显示方案
+            // - 会触发系统内置的流畅窗口显示动画（DWM 动画）
+            // - 内置了强制进入可显示区域的逻辑
+            // - 必须在所有窗口配置（位置、大小、样式等）完成后最后调用
+            // - 如果在配置过程中调用会导致闪现问题
+            window.Activate();
         }
 
         private static void LogException(string source, Exception ex)
