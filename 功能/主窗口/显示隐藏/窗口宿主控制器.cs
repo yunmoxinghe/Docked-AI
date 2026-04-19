@@ -8,8 +8,129 @@ using System;
 
 namespace Docked_AI.Features.MainWindow.Visibility
 {
+    /// <summary>
+    /// 窗口宿主控制器 - 状态转换执行器，协调所有窗口操作
+    /// 
+    /// 【文件职责】
+    /// 1. 作为状态转换的执行器，将 StateManager 的计划转换为实际的 UI 操作
+    /// 2. 协调所有窗口相关服务（布局、外观、动画、AppBar）
+    /// 3. 管理窗口生命周期（初始化、显示、隐藏、关闭）
+    /// 4. 处理 OS 窗口状态同步（最大化、还原、最小化）
+    /// 5. 实现复杂的状态转换流程（组合转换、两步转换）
+    /// 
+    /// 【架构设计】
+    /// 
+    /// 三层架构：
+    /// - WindowStateManager: 状态逻辑层（状态机、转换验证、历史记录）
+    /// - WindowHostController: 执行层（动画、样式、布局的实际操作）
+    /// - MainWindow: 表示层（UI 容器、事件订阅、用户交互）
+    /// 
+    /// 为什么需要 Controller？
+    /// 1. 分离关注点：StateManager 不关心 UI 如何实现，Controller 不关心状态逻辑
+    /// 2. 可测试性：可以独立测试 StateManager 和 Controller
+    /// 3. 可扩展性：可以替换不同的 Controller 实现（如测试用的 Mock Controller）
+    /// 
+    /// 【核心逻辑流程】
+    /// 
+    /// 初始化流程：
+    ///   1. 构造函数创建所有服务（布局、外观、动画、StateManager）
+    ///   2. 订阅 StateManager.StateChanged 事件
+    ///   3. ViewModel 订阅 StateManager（通过 Controller 调用）
+    ///   4. InitializeWindow() 配置窗口初始状态（位置、样式、事件）
+    ///   5. 窗口移到屏幕外，等待 RequestSlideIn() 触发首次显示
+    /// 
+    /// 首次显示流程（RequestSlideIn）：
+    ///   1. 刷新布局信息（屏幕尺寸、工作区）
+    ///   2. 设置窗口到目标位置（不是屏幕外）
+    ///   3. 标记首次显示完成，记录时间（用于保护期）
+    ///   4. 更新状态到 Windowed
+    ///   5. 调用 Activate() 显示窗口（利用系统内置动画）
+    /// 
+    /// 标准状态转换流程：
+    ///   1. 用户触发操作（如点击固定按钮）
+    ///   2. Controller 调用 TryRequestTransition(targetState)
+    ///   3. StateManager.CreatePlan() 创建转换计划
+    ///   4. StateManager 触发 StateChanged 事件
+    ///   5. Controller.OnWindowStateChanged() 执行副作用
+    ///   6. 副作用成功 → StateManager.CommitTransition()
+    ///   7. 副作用失败 → StateManager.RollbackTransition()
+    /// 
+    /// 组合转换流程（如 Pinned → Hidden）：
+    ///   1. 用户触发隐藏操作
+    ///   2. StateManager 允许直接转换 Pinned → Hidden
+    ///   3. Controller.OnWindowStateChanged() 检测到组合转换
+    ///   4. ExecuteCompositeAsync() 按顺序执行子转换：
+    ///      - 子转换1: Pinned → Windowed（取消固定）
+    ///      - 子转换2: Windowed → Hidden（隐藏窗口）
+    ///   5. 记录子转换到历史
+    ///   6. 提交最终状态
+    /// 
+    /// 两步转换流程（如 Pinned → Maximized）：
+    ///   1. 用户触发最大化操作
+    ///   2. StateManager 不允许直接转换 Pinned → Maximized
+    ///   3. TransitionThroughWindowedAsync() 执行两步转换：
+    ///      - 步骤1: Pinned → Windowed
+    ///      - 等待步骤1完成（轮询 CommittedState）
+    ///      - 步骤2: Windowed → Maximized
+    ///   4. 每步转换都是独立的状态转换，有独立的 transitionId
+    /// 
+    /// OS 状态同步流程：
+    ///   1. 用户通过 Win+↑ 最大化窗口
+    ///   2. AppWindow.Changed 事件触发
+    ///   3. MainWindow.OnAppWindowChanged() 调用 SyncFromOSWindowState()
+    ///   4. StateManager.QueueSyncEvent() 排队同步事件
+    ///   5. 如果正在转换，事件延迟；否则立即同步
+    /// 
+    /// 【关键依赖关系】
+    /// - Window: WinUI 窗口对象，提供 AppWindow、Activate() 等 API
+    /// - MainWindowViewModel: 状态容器，订阅 StateManager 事件
+    /// - WindowLayoutService: 布局服务，计算窗口位置和尺寸
+    /// - TitleBarService: 标题栏服务，配置标准/固定模式的标题栏
+    /// - BackdropService: 背景服务，切换 Acrylic/Mica 背景
+    /// - SlideAnimationController: 动画控制器，执行滑动动画
+    /// - WindowStateManager: 状态管理器，提供状态转换逻辑
+    /// 
+    /// 【潜在副作用】
+    /// 1. 窗口位置和尺寸变化（MoveAndResize、SetWindowPos）
+    /// 2. 窗口样式变化（SetWindowLongPtr、DwmSetWindowAttribute）
+    /// 3. AppBar 注册/注销（SHAppBarMessage）
+    /// 4. 窗口激活和焦点变化（Activate、SetForegroundWindow）
+    /// 5. 背景和标题栏样式变化（BackdropService、TitleBarService）
+    /// 6. 动画执行（SlideAnimationController）
+    /// 7. 窗口子类化（SetWindowProc）
+    /// 
+    /// 【重构风险点】
+    /// 1. RequestSlideIn() 的调用时机：
+    ///    - 必须在窗口创建完成后、Activate() 之前调用
+    ///    - 过早调用会导致窗口句柄未创建
+    ///    - 过晚调用会导致窗口已显示，动画失效
+    /// 2. OnWindowStateChanged() 的副作用执行：
+    ///    - 必须根据 (PreviousState, CurrentState) 匹配正确的副作用
+    ///    - 如果匹配错误，会执行错误的动画或样式
+    ///    - 组合转换必须按顺序执行子转换
+    /// 3. 首次显示保护期（InitialShowProtectionPeriod）：
+    ///    - 防止动画完成后立即因失去焦点而隐藏
+    ///    - 如果保护期太短，窗口会闪现后立即隐藏
+    ///    - 如果保护期太长，用户点击其他窗口时不会自动隐藏
+    /// 4. AppBar 注册/注销：
+    ///    - 必须成对调用 RegisterAppBarIfNeeded() 和 RemoveAppBar()
+    ///    - 如果忘记注销，AppBar 会一直占用屏幕空间
+    /// 5. 窗口样式切换：
+    ///    - ApplyPinnedWindowStyle() 和 RestoreStandardWindowStyle() 必须成对
+    ///    - 如果忘记还原，窗口样式会保持固定模式
+    /// 6. 窗口子类化：
+    ///    - TrySubclassWindow() 只能调用一次
+    ///    - 如果重复调用，会覆盖原始的 WindowProc
+    /// 7. 事件订阅：
+    ///    - OnWindowClosed() 必须取消所有事件订阅
+    ///    - 否则导致内存泄漏
+    /// 8. 动画超时：
+    ///    - 如果动画超时，必须回滚状态
+    ///    - 否则 StateManager 认为转换成功，但 UI 未更新
+    /// </summary>
     internal sealed class WindowHostController
     {
+        // 核心依赖
         private readonly Window _window;
         private readonly MainWindowViewModel _viewModel;
         private readonly WindowLayoutService _layoutService;
@@ -20,21 +141,25 @@ namespace Docked_AI.Features.MainWindow.Visibility
         private readonly WindowStateManager _stateManager;
         private readonly int _animationTimeoutMs;
 
-        private bool _animationStarted;
-        private bool _isAppBarRegistered;
-        private bool _isApplyingPinnedBounds;
-        private bool _hasCapturedBaseWindowStyle;
-        private bool _hasCapturedBaseExtendedWindowStyle;
-        private bool _isWindowSubclassed;
+        // 状态标志
+        private bool _animationStarted;  // 是否已执行首次显示动画
+        private bool _isAppBarRegistered;  // 是否已注册 AppBar
+        private bool _isApplyingPinnedBounds;  // 是否正在应用固定模式边界（防重入）
+        private bool _hasCapturedBaseWindowStyle;  // 是否已捕获基础窗口样式
+        private bool _hasCapturedBaseExtendedWindowStyle;  // 是否已捕获扩展窗口样式
+        private bool _isWindowSubclassed;  // 是否已子类化窗口
         private bool _isInitialShowComplete;  // 标记首次显示是否完成
         private DateTime _initialShowCompletedTime;  // 首次显示完成的时间
-        private IntPtr _hwnd;
-        private readonly uint _appBarMessageId;
-        private IntPtr _baseWindowStyle;
-        private IntPtr _baseExtendedWindowStyle;
-        private IntPtr _originalWindowProc;
-        private readonly VisibilityWin32Api.WindowProc _windowProcDelegate;
+        
+        // Win32 相关
+        private IntPtr _hwnd;  // 窗口句柄
+        private readonly uint _appBarMessageId;  // AppBar 消息 ID
+        private IntPtr _baseWindowStyle;  // 基础窗口样式（用于还原）
+        private IntPtr _baseExtendedWindowStyle;  // 扩展窗口样式（用于还原）
+        private IntPtr _originalWindowProc;  // 原始窗口过程（用于子类化）
+        private readonly VisibilityWin32Api.WindowProc _windowProcDelegate;  // 窗口过程委托
 
+        // 常量配置
         private const int DefaultAnimationTimeoutMs = 2000;
         private static readonly TimeSpan TransitionThroughWindowedTimeout = TimeSpan.FromSeconds(5);
         private static readonly TimeSpan TransitionPollInterval = TimeSpan.FromMilliseconds(50);
@@ -44,6 +169,26 @@ namespace Docked_AI.Features.MainWindow.Visibility
         private static readonly TimeSpan MaximizedModeDelay = TimeSpan.FromMilliseconds(200);
         private static readonly TimeSpan InitialShowProtectionPeriod = TimeSpan.FromMilliseconds(500);  // 首次显示后的保护期
 
+        /// <summary>
+        /// 构造函数 - 初始化所有服务和状态管理器
+        /// 
+        /// 【初始化顺序】
+        /// 1. 保存窗口和 ViewModel 引用
+        /// 2. 创建布局服务和状态
+        /// 3. 创建外观服务（标题栏、背景）
+        /// 4. 创建动画控制器
+        /// 5. 注册 AppBar 消息 ID
+        /// 6. 创建窗口过程委托（用于子类化）
+        /// 7. 创建 StateManager 并订阅事件
+        /// 8. ViewModel 订阅 StateManager
+        /// 9. 初始化窗口
+        /// 
+        /// 【设计原因】
+        /// 为什么在构造函数中创建 StateManager？
+        /// - StateManager 的生命周期与 Controller 相同
+        /// - Controller 负责管理 StateManager 的创建和销毁
+        /// - ViewModel 只订阅 StateManager，不持有引用
+        /// </summary>
         public WindowHostController(Window window, MainWindowViewModel viewModel, int animationTimeoutMs = DefaultAnimationTimeoutMs)
         {
             _window = window;

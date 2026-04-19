@@ -5,19 +5,108 @@ using System.Linq;
 namespace Docked_AI.Features.MainWindow.State;
 
 /// <summary>
-/// 窗口状态管理器，统一管理窗口状态转换
+/// 窗口状态管理器 - 基于命令模式的状态机，管理窗口状态转换
 /// 
-/// 核心设计：
-/// 1. 命令模式状态机：返回 TransitionPlan 而不是直接执行副作用
-/// 2. 视觉/逻辑状态分离：VisualState（UI 绑定）和 LogicalState（内部逻辑）
-/// 3. 基于版本号的并发控制：使用 _transitionId 防止过期任务执行
-/// 4. PendingState 机制：副作用成功后才提交状态，失败则自动回滚
-/// 5. OS 同步事件排队：转换期间延迟外部同步事件
-/// 6. 组合转换记录：记录子转换历史
-/// 7. 线程安全：所有操作使用 lock 保护
+/// 【文件职责】
+/// 1. 作为窗口状态的唯一真实来源（Single Source of Truth）
+/// 2. 验证状态转换的合法性（基于转换矩阵）
+/// 3. 创建状态转换执行计划（命令模式），由 Controller 执行
+/// 4. 管理状态转换历史和组合转换记录
+/// 5. 提供线程安全的状态访问和并发控制
+/// 
+/// 【核心设计原则】
+/// 
+/// 1. **命令模式状态机**
+///    为什么返回 TransitionPlan 而不是直接执行副作用？
+///    - 分离关注点：StateManager 负责状态逻辑，Controller 负责 UI 副作用
+///    - 可测试性：可以测试状态转换逻辑，而不依赖 UI 框架
+///    - 可撤销性：TransitionPlan 包含 Compensate 函数，支持回滚
+///    - 异步友好：Controller 可以异步执行副作用，完成后再提交状态
+/// 
+/// 2. **视觉/逻辑状态分离**
+///    - VisualState (CommittedState): UI 绑定到此状态，已提交的稳定状态
+///    - LogicalState (PendingState ?? CommittedState): 内部逻辑使用，包含待提交状态
+///    - 为什么需要分离？防止 UI 在动画执行期间显示中间状态
+/// 
+/// 3. **基于版本号的并发控制**
+///    场景：用户快速点击按钮，触发多个状态转换
+///    - A→B (transitionId=1) 执行中，用户触发 B→C (transitionId=2)
+///    - 旧的 commit(1) 延迟到达时会被拒绝（版本号不匹配）
+///    - 确保最终状态是最新的用户意图
+/// 
+/// 4. **PendingState 机制**
+///    为什么需要 PendingState？
+///    - 防止状态漂移：副作用失败时可以回滚到 CommittedState
+///    - 原子性保证：要么状态和副作用都成功，要么都不执行
+///    - 流程：CreatePlan → 设置 PendingState → 执行副作用 → CommitTransition
+/// 
+/// 5. **OS 同步事件排队**
+///    场景：动画执行期间，用户通过 Win+↑ 最大化窗口
+///    - 转换期间延迟 OS 同步事件，只保留最新的事件
+///    - 转换完成后处理排队的事件，避免状态冲突
+/// 
+/// 6. **组合转换记录**
+///    场景：Pinned → Hidden 需要先 Pinned → Windowed → Hidden
+///    - 记录子转换历史，便于调试和审计
+///    - 支持复杂的多步转换流程
+/// 
+/// 【核心逻辑流程】
+/// 
+/// 标准转换流程：
+///   1. Controller 调用 CreatePlan(targetState)
+///   2. StateManager 验证转换合法性（基于转换矩阵）
+///   3. StateManager 设置 PendingState，增加 transitionId
+///   4. StateManager 触发 StateChanged 事件（在 UI 线程）
+///   5. StateManager 返回 TransitionPlan（包含 transitionId）
+///   6. Controller 执行副作用（动画、样式、布局）
+///   7. 副作用成功 → Controller 调用 CommitTransition(transitionId)
+///   8. 副作用失败 → Controller 调用 RollbackTransition(transitionId)
+/// 
+/// 并发控制流程：
+///   1. 用户触发 A→B (transitionId=1)
+///   2. 动画执行期间，用户触发 B→C (transitionId=2)
+///   3. CreatePlan 检测到 _isTransitioning=true，拒绝新转换
+///   4. 或者：允许新转换，旧的 commit(1) 会被版本号检查拒绝
+/// 
+/// OS 同步流程：
+///   1. 用户触发 Windowed→Pinned (transitionId=1)
+///   2. 动画执行期间，OS 报告 Maximized 状态
+///   3. QueueSyncEvent(Maximized) 将事件排队
+///   4. CommitTransition(1) 完成后，ProcessPendingSyncEvent() 处理排队事件
+/// 
+/// 【关键依赖关系】
+/// - IDispatcher: 线程调度接口，确保事件在 UI 线程触发
+/// - WindowHostController: 订阅 StateChanged 事件，执行副作用
+/// - MainWindowViewModel: 订阅 StateChanged 事件，更新 UI 绑定
+/// 
+/// 【潜在副作用】
+/// 1. StateChanged 事件在 UI 线程触发（通过 IDispatcher）
+/// 2. 转换历史记录占用内存（限制为 100 条）
+/// 3. lock 保护所有操作，可能影响性能（但状态转换不频繁）
+/// 
+/// 【重构风险点】
+/// 1. 转换矩阵的修改：
+///    - 添加新状态或转换时，必须更新 _defaultAllowedTransitions
+///    - 确保转换矩阵的完整性和一致性
+/// 2. TransitionId 的使用：
+///    - 所有 Commit/Rollback 调用必须传递正确的 transitionId
+///    - 如果传递错误的 transitionId，状态会被拒绝，导致状态不一致
+/// 3. PendingState 的管理：
+///    - CreatePlan 设置 PendingState，Commit/Rollback 清除 PendingState
+///    - 如果忘记调用 Commit/Rollback，PendingState 会一直存在，阻止后续转换
+/// 4. 事件调度失败的处理：
+///    - TryEnqueue 失败时立即回滚，确保状态和 UI 的一致性
+///    - 如果不回滚，StateManager 认为转换成功，但 UI 未更新
+/// 5. 线程安全：
+///    - 所有公共方法必须使用 lock 保护
+///    - 如果添加新方法，必须考虑线程安全
+/// 6. Dispose 的调用时机：
+///    - 必须在窗口关闭时调用 Dispose，否则事件订阅导致内存泄漏
+///    - Dispose 后不应再调用任何方法
 /// </summary>
 public sealed class WindowStateManager : IDisposable
 {
+    // 线程安全锁和数据结构
     private readonly object _lock = new();
     private readonly Queue<StateTransition> _transitionHistory = new();
     private readonly List<CompositeTransition> _compositeTransitions = new();
@@ -31,12 +120,16 @@ public sealed class WindowStateManager : IDisposable
     private WindowState? _pendingSyncEvent = null;
     
     // PendingState 机制：防止状态漂移
+    // CommittedState: 已提交的稳定状态（UI 绑定）
+    // PendingState: 待提交的状态（副作用执行期间）
     public WindowState CommittedState { get; private set; }
     public WindowState? PendingState { get; private set; }
     
     // 视觉/逻辑状态分离
-    public WindowState VisualState => CommittedState; // UI 绑定到此状态
-    public WindowState LogicalState => PendingState ?? CommittedState; // 内部逻辑使用
+    // VisualState: UI 绑定到此状态，显示已提交的状态
+    // LogicalState: 内部逻辑使用，包含待提交状态
+    public WindowState VisualState => CommittedState;
+    public WindowState LogicalState => PendingState ?? CommittedState;
     
     // 当前状态：如果有 PendingState 则返回 PendingState，否则返回 CommittedState
     public WindowState CurrentState => LogicalState;
@@ -46,10 +139,13 @@ public sealed class WindowStateManager : IDisposable
         get { lock (_lock) { return _isTransitioning; } }
     }
     
-    // 状态变化事件
+    // 状态变化事件（在 UI 线程触发）
     public event EventHandler<StateChangedEventArgs>? StateChanged;
     
     // 默认状态转换矩阵（支持直接转换：Pinned/Maximized -> Hidden）
+    // 为什么支持直接转换？
+    // - 用户体验：用户期望点击隐藏按钮时窗口立即隐藏，而不是先还原再隐藏
+    // - 内部实现：Controller 会自动执行组合副作用（先还原再隐藏）
     private static readonly Dictionary<WindowState, HashSet<WindowState>> _defaultAllowedTransitions = new()
     {
         // NotCreated 只能转换到 Windowed（首次显示必须经过窗口化状态）
@@ -70,6 +166,15 @@ public sealed class WindowStateManager : IDisposable
     
     /// <summary>
     /// 构造函数，支持注入自定义转换矩阵（可选）
+    /// 
+    /// 【参数说明】
+    /// - dispatcher: 线程调度器，确保事件在 UI 线程触发
+    /// - customTransitions: 自定义转换矩阵（可选），用于测试或特殊场景
+    /// 
+    /// 【设计原因】
+    /// 为什么需要注入 IDispatcher？
+    /// - 生产环境：使用 WinUIDispatcher，事件在 UI 线程触发
+    /// - 测试环境：使用 SynchronousDispatcher，事件同步执行，避免时序问题
     /// </summary>
     public WindowStateManager(IDispatcher dispatcher, Dictionary<WindowState, HashSet<WindowState>>? customTransitions = null)
     {
@@ -83,6 +188,12 @@ public sealed class WindowStateManager : IDisposable
     
     /// <summary>
     /// 便捷工厂方法：从 UI 线程创建
+    /// 
+    /// 【使用场景】
+    /// 在 WindowHostController 构造函数中调用，自动获取当前线程的 DispatcherQueue
+    /// 
+    /// 【重要性】
+    /// 必须在 UI 线程调用，否则 GetForCurrentThread() 返回 null
     /// </summary>
     public static WindowStateManager CreateForUIThread()
     {
@@ -96,6 +207,14 @@ public sealed class WindowStateManager : IDisposable
     
     /// <summary>
     /// 检查是否可以转换到目标状态
+    /// 
+    /// 【验证逻辑】
+    /// 1. 目标状态与当前状态相同 → 拒绝（无需转换）
+    /// 2. 转换矩阵中不存在此转换 → 拒绝（非法转换）
+    /// 3. 其他情况 → 允许
+    /// 
+    /// 【使用场景】
+    /// Controller 在调用 CreatePlan 前可以先检查转换是否合法
     /// </summary>
     public bool CanTransitionTo(WindowState newState)
     {
