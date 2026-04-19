@@ -47,6 +47,14 @@
                 </controls:NavigationViewItem.Icon>
             </controls:NavigationViewItem>
             <controls:NavigationViewItem
+                x:Name="AINavigationItem"
+                x:Uid="Nav_AI"
+                Tag="2">
+                <controls:NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xF4A5;" />
+                </controls:NavigationViewItem.Icon>
+            </controls:NavigationViewItem>
+            <controls:NavigationViewItem
                 x:Name="CreateNavigationItem"
                 x:Uid="Nav_New"
                 Tag="1">

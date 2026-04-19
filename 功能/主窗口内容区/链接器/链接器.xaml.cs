@@ -32,6 +32,15 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             NavBar.WindowStateToggleRequested += OnWindowStateToggleRequested;
             NavBar.ShortcutRemoved += OnShortcutRemoved;
             NavBar.WebAppRestartRequested += OnWebAppRestartRequested;
+            
+            // 订阅 AI 实验室设置变化事件
+            Pages.Settings.SettingsPage.AILabSettingsChanged += OnAILabSettingsChanged;
+        }
+
+        private void OnAILabSettingsChanged(object? sender, EventArgs e)
+        {
+            // 通知导航栏更新 AI 导航项的可见性
+            NavBar.UpdateAINavigationItemVisibility();
         }
 
         private void OnPageCloseRequested(object? sender, string shortcutId)

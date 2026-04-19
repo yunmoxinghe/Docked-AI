@@ -161,6 +161,9 @@
   <data name="Nav_Home.Content" xml:space="preserve">
     <value>Home</value>
   </data>
+  <data name="Nav_AI.Content" xml:space="preserve">
+    <value>AI Lab</value>
+  </data>
   <data name="Nav_New.Content" xml:space="preserve">
     <value>New</value>
   </data>
@@ -345,6 +348,14 @@
     <value>Close this page</value>
   </data>
   
+  <!-- AI Page -->
+  <data name="AIPage_Title.Text" xml:space="preserve">
+    <value>AI Lab</value>
+  </data>
+  <data name="AIPage_Description.Text" xml:space="preserve">
+    <value>Explore AI features and experimental capabilities</value>
+  </data>
+  
   <!-- Web Browser Context Menu -->
   <data name="WebBrowser_BackMenuItem.Text" xml:space="preserve">
     <value>Back</value>
@@ -420,6 +431,12 @@
   </data>
   <data name="SettingsPage_RoundedWebViewHeader.Header" xml:space="preserve">
     <value>WebView2 Rounded Corners</value>
+  </data>
+  <data name="SettingsPage_AILabHeader.Header" xml:space="preserve">
+    <value>AI Lab</value>
+  </data>
+  <data name="SettingsPage_AILabHeader.Description" xml:space="preserve">
+    <value>Show AI Lab entry in the sidebar</value>
   </data>
   <data name="SettingsPage_RoundedWebViewHeader.Description" xml:space="preserve">
     <value>Enable rounded corners for web browser, corner radius automatically syncs with parent container</value>

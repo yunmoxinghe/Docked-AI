@@ -1,5 +1,6 @@
 using Docked_AI.Features.Pages.Home;
 using Docked_AI.Features.Pages.New;
+using Docked_AI.Features.Pages.AI;
 using Docked_AI.Features.Pages.Settings;
 using Docked_AI.Features.Pages.WebApp.Browser;
 using Docked_AI.Features.Pages.WebApp.Shared;
@@ -73,6 +74,16 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             
             // 添加双击空白区域触发固定按钮
             NavView.DoubleTapped += OnNavViewDoubleTapped;
+            
+            // 根据设置显示或隐藏 AI 导航项
+            UpdateAINavigationItemVisibility();
+        }
+
+        public void UpdateAINavigationItemVisibility()
+        {
+            AINavigationItem.Visibility = ExperimentalSettings.EnableAILab 
+                ? Visibility.Visible 
+                : Visibility.Collapsed;
         }
 
         private void OnNavViewDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
@@ -375,6 +386,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             Type pageType = sectionIndex switch
             {
                 1 => typeof(NewPage),
+                2 => typeof(AIPage),
                 _ => typeof(HomePage)
             };
 
@@ -462,6 +474,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             Type pageType = sectionIndex switch
             {
                 1 => typeof(NewPage),
+                2 => typeof(AIPage),
                 _ => typeof(HomePage)
             };
 

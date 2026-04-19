@@ -1,5 +1,5 @@
 using Docked_AI.Features.Pages.WebApp.Shared;
-using Docked_AI.Features.Settings;
+using Docked_AI.Features.Pages.Settings;
 using Docked_AI.Features.MainWindowContent.ContentArea;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;

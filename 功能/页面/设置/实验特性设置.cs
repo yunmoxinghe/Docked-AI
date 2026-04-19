@@ -1,7 +1,7 @@
 using System;
 using Windows.Storage;
 
-namespace Docked_AI.Features.Settings
+namespace Docked_AI.Features.Pages.Settings
 {
     /// <summary>
     /// 实验特性设置管理
@@ -12,6 +12,7 @@ namespace Docked_AI.Features.Settings
         private const string EnableWinUIContextMenuKey = "ExperimentalFeature_EnableWinUIContextMenu";
         private const string MaxWebViewCountKey = "WebSettings_MaxWebViewCount";
         private const string FrameNavigationAnimationKey = "NavigationSettings_FrameAnimation";
+        private const string EnableAILabKey = "ExperimentalFeature_EnableAILab";
         
         private static readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
 
@@ -93,6 +94,25 @@ namespace Docked_AI.Features.Settings
             set
             {
                 _localSettings.Values[FrameNavigationAnimationKey] = (int)value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否启用 AI 实验室
+        /// </summary>
+        public static bool EnableAILab
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(EnableAILabKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return false; // 默认关闭
+            }
+            set
+            {
+                _localSettings.Values[EnableAILabKey] = value;
             }
         }
     }

@@ -156,6 +156,9 @@
   <data name="Nav_Home.Content" xml:space="preserve">
     <value>Startseite</value>
   </data>
+  <data name="Nav_AI.Content" xml:space="preserve">
+    <value>KI-Labor</value>
+  </data>
   <data name="Nav_New.Content" xml:space="preserve">
     <value>Neu</value>
   </data>
@@ -326,6 +329,12 @@
   <data name="SettingsPage_RoundedWebViewHeader.Header" xml:space="preserve">
     <value>WebView2 abgerundete Ecken</value>
   </data>
+  <data name="SettingsPage_AILabHeader.Header" xml:space="preserve">
+    <value>KI-Labor</value>
+  </data>
+  <data name="SettingsPage_AILabHeader.Description" xml:space="preserve">
+    <value>KI-Labor-Eintrag in der Seitenleiste anzeigen</value>
+  </data>
   <data name="WebBrowser_CopyLinkMenuItem.Text" xml:space="preserve">
     <value>Linkadresse kopieren</value>
   </data>
@@ -338,6 +347,15 @@
   <data name="WebBrowser_CloseButton" xml:space="preserve">
     <value>Diese Seite schließen</value>
   </data>
+  
+  <!-- KI-Seite -->
+  <data name="AIPage_Title.Text" xml:space="preserve">
+    <value>KI-Labor</value>
+  </data>
+  <data name="AIPage_Description.Text" xml:space="preserve">
+    <value>Erkunden Sie KI-Funktionen und experimentelle Fähigkeiten</value>
+  </data>
+  
   <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
     <value>Über</value>
   </data>

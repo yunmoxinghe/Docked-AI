@@ -162,6 +162,9 @@
   <data name="Nav_Home.Content" xml:space="preserve">
     <value>主页</value>
   </data>
+  <data name="Nav_AI.Content" xml:space="preserve">
+    <value>AI 实验室</value>
+  </data>
   <data name="Nav_New.Content" xml:space="preserve">
     <value>新建</value>
   </data>
@@ -345,6 +348,14 @@
     <value>关闭此页面</value>
   </data>
   
+  <!-- AI 页面 -->
+  <data name="AIPage_Title.Text" xml:space="preserve">
+    <value>AI 实验室</value>
+  </data>
+  <data name="AIPage_Description.Text" xml:space="preserve">
+    <value>探索 AI 功能和实验性特性</value>
+  </data>
+  
   <!-- 网页浏览器右键菜单 -->
   <data name="WebBrowser_BackMenuItem.Text" xml:space="preserve">
     <value>后退</value>
@@ -417,6 +428,12 @@
   </data>
   <data name="SettingsPage_ExperimentalHeader.Description" xml:space="preserve">
     <value>启用实验性功能（可能不稳定）</value>
+  </data>
+  <data name="SettingsPage_AILabHeader.Header" xml:space="preserve">
+    <value>AI 实验室</value>
+  </data>
+  <data name="SettingsPage_AILabHeader.Description" xml:space="preserve">
+    <value>在侧边栏显示 AI 实验室入口</value>
   </data>
   <data name="SettingsPage_RoundedWebViewHeader.Header" xml:space="preserve">
     <value>WebView2 圆角</value>

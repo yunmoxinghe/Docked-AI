@@ -10,7 +10,7 @@ using Windows.ApplicationModel;
 using Docked_AI.Features.Localization;
 using Docked_AI.Features.AppEntry.AutoLaunch;
 using Docked_AI.Features.Hotkey;
-using Docked_AI.Features.Settings;
+using Docked_AI.Features.Pages.Settings;
 using Windows.UI.Core;
 
 namespace Docked_AI.Features.Pages.Settings
@@ -284,15 +284,29 @@ namespace Docked_AI.Features.Pages.Settings
         private void LoadExperimentalSettings()
         {
             // 暂时取消事件订阅，避免在初始化时触发
+            AILabToggle.Toggled -= OnAILabToggled;
             RoundedWebViewToggle.Toggled -= OnRoundedWebViewToggled;
             WinUIContextMenuToggle.Toggled -= OnWinUIContextMenuToggled;
             
+            AILabToggle.IsOn = ExperimentalSettings.EnableAILab;
             RoundedWebViewToggle.IsOn = ExperimentalSettings.EnableRoundedWebView;
             WinUIContextMenuToggle.IsOn = ExperimentalSettings.EnableWinUIContextMenu;
             
             // 重新订阅事件
+            AILabToggle.Toggled += OnAILabToggled;
             RoundedWebViewToggle.Toggled += OnRoundedWebViewToggled;
             WinUIContextMenuToggle.Toggled += OnWinUIContextMenuToggled;
+        }
+
+        private void OnAILabToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggle)
+            {
+                ExperimentalSettings.EnableAILab = toggle.IsOn;
+                
+                // 通知应用更新 AI 实验室显示状态
+                AILabSettingsChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
 
         private void OnRoundedWebViewToggled(object sender, RoutedEventArgs e)
@@ -322,6 +336,9 @@ namespace Docked_AI.Features.Pages.Settings
 
         // Event to notify when WinUI context menu settings change
         public static event EventHandler? WinUIContextMenuSettingsChanged;
+
+        // Event to notify when AI Lab settings change
+        public static event EventHandler? AILabSettingsChanged;
 
         private void LoadWebSettings()
         {

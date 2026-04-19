@@ -403,6 +403,12 @@
                         
                         <controls:SettingsExpander.Items>
                             <controls:SettingsCard 
+                                x:Uid="SettingsPage_AILabHeader">
+                                <ToggleSwitch 
+                                    x:Name="AILabToggle"
+                                    Toggled="OnAILabToggled"/>
+                            </controls:SettingsCard>
+                            <controls:SettingsCard 
                                 x:Uid="SettingsPage_RoundedWebViewHeader">
                                 <ToggleSwitch 
                                     x:Name="RoundedWebViewToggle"

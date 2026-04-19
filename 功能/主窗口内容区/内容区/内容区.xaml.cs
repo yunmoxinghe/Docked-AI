@@ -8,7 +8,7 @@ using System.Linq;
 using System.Numerics;
 using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.Pages.WebApp.Browser;
-using Docked_AI.Features.Settings;
+using Docked_AI.Features.Pages.Settings;
 using Microsoft.UI.Xaml.Media.Animation;
 
 namespace Docked_AI.Features.MainWindowContent.ContentArea
@@ -160,6 +160,15 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             string? cacheKey = GenerateCacheKey(pageType, parameter);
             System.Diagnostics.Debug.WriteLine($"[ContentArea] 缓存键: {cacheKey ?? "null"}");
             
+            // 为 AI 页面设置特殊的反向钻取动画
+            NavigationTransitionInfo? customTransition = null;
+            if (pageType.Name == "AIPage")
+            {
+                // 使用 DrillIn 的反向效果（通过设置 IsNavigationStackEnabled = false）
+                customTransition = new DrillInNavigationTransitionInfo();
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] AI 页面使用反向钻取动画");
+            }
+            
             // 如果是 WebBrowserPage，检查 WebView 数量限制
             if (pageType == typeof(WebBrowserPage) && !string.IsNullOrEmpty(cacheKey))
             {
@@ -234,14 +243,28 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                 System.Diagnostics.Debug.WriteLine($"[ContentArea] 首次导航，使用 Frame.Navigate");
                 
                 // 首次导航，使用 Frame.Navigate 触发正常流程
-                // Frame 的 ContentTransitions 已经设置好，不需要传递 transition 参数
-                if (parameter != null)
+                // 如果有自定义动画，使用自定义动画；否则使用 Frame 的默认 ContentTransitions
+                if (customTransition != null)
                 {
-                    ContentFrame.Navigate(pageType, parameter);
+                    if (parameter != null)
+                    {
+                        ContentFrame.Navigate(pageType, parameter, customTransition);
+                    }
+                    else
+                    {
+                        ContentFrame.Navigate(pageType, null, customTransition);
+                    }
                 }
                 else
                 {
-                    ContentFrame.Navigate(pageType);
+                    if (parameter != null)
+                    {
+                        ContentFrame.Navigate(pageType, parameter);
+                    }
+                    else
+                    {
+                        ContentFrame.Navigate(pageType);
+                    }
                 }
             }
         }

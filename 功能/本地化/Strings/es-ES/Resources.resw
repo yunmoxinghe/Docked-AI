@@ -156,6 +156,9 @@
   <data name="Nav_Home.Content" xml:space="preserve">
     <value>Inicio</value>
   </data>
+  <data name="Nav_AI.Content" xml:space="preserve">
+    <value>Laboratorio IA</value>
+  </data>
   <data name="Nav_New.Content" xml:space="preserve">
     <value>Nuevo</value>
   </data>
@@ -326,6 +329,12 @@
   <data name="SettingsPage_RoundedWebViewHeader.Header" xml:space="preserve">
     <value>Esquinas redondeadas WebView2</value>
   </data>
+  <data name="SettingsPage_AILabHeader.Header" xml:space="preserve">
+    <value>Laboratorio IA</value>
+  </data>
+  <data name="SettingsPage_AILabHeader.Description" xml:space="preserve">
+    <value>Mostrar entrada del Laboratorio IA en la barra lateral</value>
+  </data>
   <data name="WebBrowser_CopyLinkMenuItem.Text" xml:space="preserve">
     <value>Copiar dirección del enlace</value>
   </data>
@@ -338,6 +347,15 @@
   <data name="WebBrowser_CloseButton" xml:space="preserve">
     <value>Cerrar esta página</value>
   </data>
+  
+  <!-- Página IA -->
+  <data name="AIPage_Title.Text" xml:space="preserve">
+    <value>Laboratorio IA</value>
+  </data>
+  <data name="AIPage_Description.Text" xml:space="preserve">
+    <value>Explore funciones de IA y capacidades experimentales</value>
+  </data>
+  
   <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
     <value>Acerca de</value>
   </data>

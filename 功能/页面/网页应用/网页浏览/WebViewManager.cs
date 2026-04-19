@@ -1,4 +1,4 @@
-using Docked_AI.Features.Settings;
+using Docked_AI.Features.Pages.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
