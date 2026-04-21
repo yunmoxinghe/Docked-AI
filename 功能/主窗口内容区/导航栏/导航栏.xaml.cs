@@ -369,7 +369,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                     }
                     else
                     {
-                        // 切换到其他标签，更新选中状态（会触发 SelectionChanged）
+                        // 切换到其他标签，设置选中状态并让 SelectionChanged 处理导航
                         NavView.SelectedItem = args.InvokedItemContainer;
                     }
                 }
@@ -438,6 +438,10 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                     if (_lastNavigationKey == navigationKey && timeSinceLastNavigation < NavigationDebounceMs)
                     {
                         System.Diagnostics.Debug.WriteLine($"[NavigationBar] 导航防抖：忽略快速点击 ({timeSinceLastNavigation:F0}ms < {NavigationDebounceMs}ms)");
+                        // 恢复之前的选中状态
+                        _suppressSelectionChanged = true;
+                        NavView.SelectedItem = _lastSelectedNavigationItem;
+                        _suppressSelectionChanged = false;
                         return;
                     }
                     
@@ -464,6 +468,10 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             if (_lastNavigationKey == navKey && timeSinceLastNav < NavigationDebounceMs)
             {
                 System.Diagnostics.Debug.WriteLine($"[NavigationBar] 导航防抖：忽略快速点击 ({timeSinceLastNav:F0}ms < {NavigationDebounceMs}ms)");
+                // 恢复之前的选中状态
+                _suppressSelectionChanged = true;
+                NavView.SelectedItem = _lastSelectedNavigationItem;
+                _suppressSelectionChanged = false;
                 return;
             }
             
