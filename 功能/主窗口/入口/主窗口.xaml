@@ -14,5 +14,48 @@
 
     <Grid x:Name="RootGrid" Background="Transparent">
         <linker:Linker />
+        
+        <!-- Splash 遮罩 -->
+        <Grid x:Name="SplashOverlay"
+              Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+              Visibility="Collapsed"
+              Opacity="0">
+            <Grid.Resources>
+                <!-- 淡入动画：纯色到启动屏幕 -->
+                <Storyboard x:Name="SplashFadeIn">
+                    <DoubleAnimation Storyboard.TargetName="ColorOverlay"
+                                     Storyboard.TargetProperty="Opacity"
+                                     From="1" To="0"
+                                     Duration="0:0:0.4">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+                
+                <!-- 淡出动画：启动屏幕到主界面 -->
+                <Storyboard x:Name="SplashFadeOut">
+                    <DoubleAnimation Storyboard.TargetName="SplashOverlay"
+                                     Storyboard.TargetProperty="Opacity"
+                                     From="1" To="0"
+                                     Duration="0:0:0.3">
+                        <DoubleAnimation.EasingFunction>
+                            <CubicEase EasingMode="EaseInOut"/>
+                        </DoubleAnimation.EasingFunction>
+                    </DoubleAnimation>
+                </Storyboard>
+            </Grid.Resources>
+            
+            <!-- 启动屏幕图片 -->
+            <Image Source="ms-appx:///Assets/SplashScreen.png"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   Stretch="None"/>
+            
+            <!-- 纯色遮罩层（根据主题自动切换黑白） -->
+            <Rectangle x:Name="ColorOverlay"
+                       Fill="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+                       Opacity="1"/>
+        </Grid>
     </Grid>
 </Window>

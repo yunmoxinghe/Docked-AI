@@ -4,11 +4,13 @@ using Docked_AI.Features.MainWindowContent.Linker;
 using Docked_AI.Features.Tray;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media.Animation;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 
 namespace Docked_AI
 {
@@ -411,6 +413,49 @@ namespace Docked_AI
             }
 
             _linker.NavigateToNewPage(url);
+        }
+
+        /// <summary>
+        /// 显示启动屏幕动画
+        /// 由应用入口在窗口激活后调用
+        /// 
+        /// 【动画流程】
+        /// 1. 显示启动屏幕遮罩（纯色背景）
+        /// 2. 淡入动画：纯色 → 启动屏幕图片（400ms）
+        /// 3. 等待显示时间（1500ms）
+        /// 4. 淡出动画：启动屏幕 → 主界面（300ms）
+        /// 5. 隐藏启动屏幕遮罩
+        /// </summary>
+        public async void ShowSplash()
+        {
+            SplashOverlay.Visibility = Visibility.Visible;
+            SplashOverlay.Opacity = 1;
+
+            // 等待短暂时间后开始淡入动画（纯色 -> 启动屏幕）
+            await Task.Delay(100);
+            
+            var fadeInStoryboard = (Storyboard)SplashOverlay.Resources["SplashFadeIn"];
+            fadeInStoryboard.Begin();
+
+            // 等待淡入完成 + 显示时间
+            await Task.Delay(1500);
+
+            // 使用 TaskCompletionSource 等待动画完全完成
+            var tcs = new TaskCompletionSource<bool>();
+            
+            var fadeOutStoryboard = (Storyboard)SplashOverlay.Resources["SplashFadeOut"];
+            fadeOutStoryboard.Completed += (s, e) =>
+            {
+                tcs.SetResult(true);
+            };
+
+            fadeOutStoryboard.Begin();
+            
+            // 等待淡出动画完成
+            await tcs.Task;
+            
+            // 确保启动屏幕完全隐藏
+            SplashOverlay.Visibility = Visibility.Collapsed;
         }
 
         /// <summary>
