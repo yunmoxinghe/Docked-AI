@@ -11,7 +11,7 @@ using Docked_AI.Features.Localization;
 using Docked_AI.Features.AppEntry.AutoLaunch;
 using Docked_AI.Features.Hotkey;
 using Docked_AI.Features.Pages.Settings;
-using Docked_AI.功能.统一调用.应用内弹窗;
+using Docked_AI.Features.UnifiedCalls.InAppDialog;
 using Windows.UI.Core;
 
 namespace Docked_AI.Features.Pages.Settings
@@ -267,19 +267,19 @@ namespace Docked_AI.Features.Pages.Settings
         private async void OnOpenGitHubClick(object sender, RoutedEventArgs args)
         {
             var uri = new Uri("https://github.com/yunmoxinghe/Docked-AI");
-            await 应用内弹窗服务.OpenExternalLinkAsync(uri, this.XamlRoot);
+            await InAppDialogService.OpenExternalAsync(uri, this);
         }
 
         private async void OnSendFeedbackClick(object sender, RoutedEventArgs args)
         {
             var uri = new Uri("https://github.com/yunmoxinghe/Docked-AI/issues");
-            await 应用内弹窗服务.OpenExternalLinkAsync(uri, this.XamlRoot);
+            await InAppDialogService.OpenExternalAsync(uri, this);
         }
 
         private async void OnViewLicenseClick(object sender, RoutedEventArgs args)
         {
             var uri = new Uri("https://github.com/yunmoxinghe/Docked-AI/blob/main/LICENSE");
-            await 应用内弹窗服务.OpenExternalLinkAsync(uri, this.XamlRoot);
+            await InAppDialogService.OpenExternalAsync(uri, this);
         }
 
         private void LoadExperimentalSettings()
@@ -432,16 +432,14 @@ namespace Docked_AI.Features.Pages.Settings
                         // 更新右侧显示的当前语言文本
                         UpdateCurrentLanguageText(languageTag);
                         
-                        var dialog = new ContentDialog
-                        {
-                            Title = LocalizationHelper.GetString("SettingsPage_RestartTitle"),
-                            Content = LocalizationHelper.GetString("SettingsPage_RestartContent"),
-                            PrimaryButtonText = LocalizationHelper.GetString("SettingsPage_RestartButton"),
-                            CloseButtonText = LocalizationHelper.GetString("SettingsPage_LaterButton"),
-                            XamlRoot = this.XamlRoot
-                        };
+                        var result = await InAppDialogService.ShowAsync(
+                            LocalizationHelper.GetString("SettingsPage_RestartTitle"),
+                            LocalizationHelper.GetString("SettingsPage_RestartContent"),
+                            this,
+                            primaryButtonText: LocalizationHelper.GetString("SettingsPage_RestartButton"),
+                            closeButtonText: LocalizationHelper.GetString("SettingsPage_LaterButton"),
+                            defaultButton: ContentDialogButton.Primary);
 
-                        var result = await dialog.ShowAsync();
                         if (result == ContentDialogResult.Primary)
                         {
                             await Windows.ApplicationModel.Core.CoreApplication.RequestRestartAsync(string.Empty);
@@ -468,14 +466,11 @@ namespace Docked_AI.Features.Pages.Settings
                 // Show error dialog to user
                 if (this.XamlRoot != null)
                 {
-                    var dialog = new ContentDialog
-                    {
-                        Title = LocalizationHelper.GetString("SettingsPage_ErrorTitle"),
-                        Content = LocalizationHelper.GetString("SettingsPage_StartupToggleError"),
-                        CloseButtonText = LocalizationHelper.GetString("SettingsPage_ConfirmButton"),
-                        XamlRoot = this.XamlRoot
-                    };
-                    await dialog.ShowAsync();
+                    await InAppDialogService.ShowMessageAsync(
+                        LocalizationHelper.GetString("SettingsPage_ErrorTitle"),
+                        LocalizationHelper.GetString("SettingsPage_StartupToggleError"),
+                        this,
+                        LocalizationHelper.GetString("SettingsPage_ConfirmButton"));
                 }
             }
         }
@@ -493,14 +488,11 @@ namespace Docked_AI.Features.Pages.Settings
                 // Show error dialog to user
                 if (this.XamlRoot != null)
                 {
-                    var dialog = new ContentDialog
-                    {
-                        Title = LocalizationHelper.GetString("SettingsPage_ErrorTitle"),
-                        Content = LocalizationHelper.GetString("SettingsPage_OpenSettingsError"),
-                        CloseButtonText = LocalizationHelper.GetString("SettingsPage_ConfirmButton"),
-                        XamlRoot = this.XamlRoot
-                    };
-                    await dialog.ShowAsync();
+                    await InAppDialogService.ShowMessageAsync(
+                        LocalizationHelper.GetString("SettingsPage_ErrorTitle"),
+                        LocalizationHelper.GetString("SettingsPage_OpenSettingsError"),
+                        this,
+                        LocalizationHelper.GetString("SettingsPage_ConfirmButton"));
                 }
             }
         }
@@ -574,14 +566,11 @@ namespace Docked_AI.Features.Pages.Settings
                 // Show error dialog to user
                 if (this.XamlRoot != null)
                 {
-                    var dialog = new ContentDialog
-                    {
-                        Title = "错误",
-                        Content = "无法打开触摸板设置页面。",
-                        CloseButtonText = "确定",
-                        XamlRoot = this.XamlRoot
-                    };
-                    await dialog.ShowAsync();
+                    await InAppDialogService.ShowMessageAsync(
+                        "错误",
+                        "无法打开触摸板设置页面。",
+                        this,
+                        "确定");
                 }
             }
         }
