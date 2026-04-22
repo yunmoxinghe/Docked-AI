@@ -5,16 +5,5 @@
     Style="{StaticResource DefaultContentDialogStyle}"
     DefaultButton="Primary">
 
-    <StackPanel Spacing="12">
-        <TextBlock
-            x:Name="MessageTextBlock"
-            TextWrapping="Wrap"
-            FontSize="14" />
-        <TextBlock
-            x:Name="UrlTextBlock"
-            TextWrapping="WrapWholeWords"
-            IsTextSelectionEnabled="True"
-            Opacity="0.72"
-            FontSize="12" />
-    </StackPanel>
+    <ContentPresenter x:Name="DialogContentPresenter" />
 </ContentDialog>

@@ -1623,7 +1623,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 return;
             }
 
-            var dialog = ExternalOpenConfirmDialogFactory.Create(uri);
+            var dialog = CreateExternalOpenDialog(uri);
             var result = await InAppDialogService.ShowAsync(dialog, this);
             if (result == ContentDialogResult.Primary)
             {
@@ -1783,12 +1783,44 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 return;
             }
 
-            var dialog = ExternalOpenConfirmDialogFactory.Create(uri);
+            var dialog = CreateExternalOpenDialog(uri);
             var result = await InAppDialogService.ShowAsync(dialog, this);
             if (result == ContentDialogResult.Primary)
             {
                 await Launcher.LaunchUriAsync(uri);
             }
+        }
+
+        private static UnifiedInAppDialog CreateExternalOpenDialog(Uri uri)
+        {
+            var dialog = new UnifiedInAppDialog();
+            dialog.Configure(
+                Docked_AI.Features.Localization.LocalizationHelper.GetString("InAppDialog_OpenExternal_Title"),
+                new StackPanel
+                {
+                    Spacing = 12,
+                    Children =
+                    {
+                        new TextBlock
+                        {
+                            Text = Docked_AI.Features.Localization.LocalizationHelper.GetString("InAppDialog_OpenExternal_Content"),
+                            TextWrapping = TextWrapping.Wrap,
+                            FontSize = 14
+                        },
+                        new TextBlock
+                        {
+                            Text = uri.AbsoluteUri,
+                            TextWrapping = TextWrapping.WrapWholeWords,
+                            IsTextSelectionEnabled = true,
+                            Opacity = 0.72,
+                            FontSize = 12
+                        }
+                    }
+                },
+                Docked_AI.Features.Localization.LocalizationHelper.GetString("InAppDialog_OpenExternal_OpenButton"),
+                Docked_AI.Features.Localization.LocalizationHelper.GetString("InAppDialog_OpenExternal_CancelButton"),
+                defaultButton: ContentDialogButton.Primary);
+            return dialog;
         }
 
         // ==================== 右键菜单相关方法结束 ====================

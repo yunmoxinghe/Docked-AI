@@ -262,7 +262,7 @@ namespace Docked_AI.Features.Pages.Settings
         private async void OnOpenGitHubClick(object sender, RoutedEventArgs args)
         {
             var uri = new Uri("https://github.com/yunmoxinghe/Docked-AI");
-            var dialog = ExternalOpenConfirmDialogFactory.Create(uri);
+            var dialog = CreateExternalOpenDialog(uri);
             var result = await InAppDialogService.ShowAsync(dialog, this);
             if (result == ContentDialogResult.Primary)
             {
@@ -273,7 +273,7 @@ namespace Docked_AI.Features.Pages.Settings
         private async void OnSendFeedbackClick(object sender, RoutedEventArgs args)
         {
             var uri = new Uri("https://github.com/yunmoxinghe/Docked-AI/issues");
-            var dialog = ExternalOpenConfirmDialogFactory.Create(uri);
+            var dialog = CreateExternalOpenDialog(uri);
             var result = await InAppDialogService.ShowAsync(dialog, this);
             if (result == ContentDialogResult.Primary)
             {
@@ -284,7 +284,7 @@ namespace Docked_AI.Features.Pages.Settings
         private async void OnViewLicenseClick(object sender, RoutedEventArgs args)
         {
             var uri = new Uri("https://github.com/yunmoxinghe/Docked-AI/blob/main/LICENSE");
-            var dialog = ExternalOpenConfirmDialogFactory.Create(uri);
+            var dialog = CreateExternalOpenDialog(uri);
             var result = await InAppDialogService.ShowAsync(dialog, this);
             if (result == ContentDialogResult.Primary)
             {
@@ -442,7 +442,12 @@ namespace Docked_AI.Features.Pages.Settings
                         // 更新右侧显示的当前语言文本
                         UpdateCurrentLanguageText(languageTag);
                         
-                        var dialog = LanguageRestartConfirmDialogFactory.Create();
+                        var dialog = CreateMessageDialog(
+                            LocalizationHelper.GetString("SettingsPage_RestartTitle"),
+                            LocalizationHelper.GetString("SettingsPage_RestartContent"),
+                            LocalizationHelper.GetString("SettingsPage_RestartButton"),
+                            LocalizationHelper.GetString("SettingsPage_LaterButton"),
+                            ContentDialogButton.Primary);
                         var result = await InAppDialogService.ShowAsync(dialog, this);
                         if (result == ContentDialogResult.Primary)
                         {
@@ -470,11 +475,10 @@ namespace Docked_AI.Features.Pages.Settings
                 // Show error dialog to user
                 if (this.XamlRoot != null)
                 {
-                    var dialog = MessageDialogFactory.Create(
+                    var dialog = CreateMessageDialog(
                         LocalizationHelper.GetString("SettingsPage_ErrorTitle"),
                         LocalizationHelper.GetString("SettingsPage_StartupToggleError"),
-                        string.Empty,
-                        LocalizationHelper.GetString("SettingsPage_ConfirmButton"));
+                        closeButtonText: LocalizationHelper.GetString("SettingsPage_ConfirmButton"));
                     await InAppDialogService.ShowAsync(dialog, this);
                 }
             }
@@ -493,11 +497,10 @@ namespace Docked_AI.Features.Pages.Settings
                 // Show error dialog to user
                 if (this.XamlRoot != null)
                 {
-                    var dialog = MessageDialogFactory.Create(
+                    var dialog = CreateMessageDialog(
                         LocalizationHelper.GetString("SettingsPage_ErrorTitle"),
                         LocalizationHelper.GetString("SettingsPage_OpenSettingsError"),
-                        string.Empty,
-                        LocalizationHelper.GetString("SettingsPage_ConfirmButton"));
+                        closeButtonText: LocalizationHelper.GetString("SettingsPage_ConfirmButton"));
                     await InAppDialogService.ShowAsync(dialog, this);
                 }
             }
@@ -549,19 +552,35 @@ namespace Docked_AI.Features.Pages.Settings
 
         private async void OnHotkeyButtonClick(object sender, RoutedEventArgs e)
         {
-            var dialog = new HotkeyConfigDialog();
-            dialog.ResetCapture();
+            var content = new HotkeyRecordingContent();
+            var dialog = new UnifiedInAppDialog();
+            dialog.Configure(
+                LocalizationHelper.GetString("SettingsPage_HotkeyDialog.Title"),
+                content,
+                LocalizationHelper.GetString("SettingsPage_HotkeyDialog.PrimaryButtonText"),
+                LocalizationHelper.GetString("SettingsPage_HotkeyDialog.CloseButtonText"),
+                defaultButton: ContentDialogButton.Primary);
+
             var result = await InAppDialogService.ShowAsync(dialog, this);
-            if (result != ContentDialogResult.Primary || dialog.Result is null)
+            if (result == ContentDialogResult.Primary)
+            {
+                content.Confirm();
+            }
+            else
+            {
+                content.Cancel();
+            }
+
+            if (result != ContentDialogResult.Primary || content.Result is null)
             {
                 return;
             }
 
-            _hotkeySettings.Key = dialog.Result.Key;
-            _hotkeySettings.Ctrl = dialog.Result.Ctrl;
-            _hotkeySettings.Alt = dialog.Result.Alt;
-            _hotkeySettings.Shift = dialog.Result.Shift;
-            _hotkeySettings.Win = dialog.Result.Win;
+            _hotkeySettings.Key = content.Result.Key;
+            _hotkeySettings.Ctrl = content.Result.Ctrl;
+            _hotkeySettings.Alt = content.Result.Alt;
+            _hotkeySettings.Shift = content.Result.Shift;
+            _hotkeySettings.Win = content.Result.Win;
 
             UpdateHotkeyButtonText();
             HotkeySettingsChanged?.Invoke(this, EventArgs.Empty);
@@ -580,14 +599,67 @@ namespace Docked_AI.Features.Pages.Settings
                 // Show error dialog to user
                 if (this.XamlRoot != null)
                 {
-                    var dialog = MessageDialogFactory.Create(
+                    var dialog = CreateMessageDialog(
                         "错误",
                         "无法打开触摸板设置页面。",
-                        string.Empty,
-                        "确定");
+                        closeButtonText: "确定");
                     await InAppDialogService.ShowAsync(dialog, this);
                 }
             }
+        }
+
+        private static UnifiedInAppDialog CreateMessageDialog(
+            string title,
+            string message,
+            string? primaryButtonText = null,
+            string? closeButtonText = null,
+            ContentDialogButton defaultButton = ContentDialogButton.Close)
+        {
+            var dialog = new UnifiedInAppDialog();
+            dialog.Configure(
+                title,
+                new TextBlock
+                {
+                    Text = message,
+                    TextWrapping = TextWrapping.Wrap,
+                    FontSize = 14
+                },
+                primaryButtonText,
+                closeButtonText,
+                defaultButton: defaultButton);
+            return dialog;
+        }
+
+        private static UnifiedInAppDialog CreateExternalOpenDialog(Uri uri)
+        {
+            var dialog = new UnifiedInAppDialog();
+            dialog.Configure(
+                LocalizationHelper.GetString("InAppDialog_OpenExternal_Title"),
+                new StackPanel
+                {
+                    Spacing = 12,
+                    Children =
+                    {
+                        new TextBlock
+                        {
+                            Text = LocalizationHelper.GetString("InAppDialog_OpenExternal_Content"),
+                            TextWrapping = TextWrapping.Wrap,
+                            FontSize = 14
+                        },
+                        new TextBlock
+                        {
+                            Text = uri.AbsoluteUri,
+                            TextWrapping = TextWrapping.WrapWholeWords,
+                            IsTextSelectionEnabled = true,
+                            Opacity = 0.72,
+                            FontSize = 12
+                        }
+                    }
+                },
+                LocalizationHelper.GetString("InAppDialog_OpenExternal_OpenButton"),
+                LocalizationHelper.GetString("InAppDialog_OpenExternal_CancelButton"),
+                defaultButton: ContentDialogButton.Primary);
+            return dialog;
         }
 
 

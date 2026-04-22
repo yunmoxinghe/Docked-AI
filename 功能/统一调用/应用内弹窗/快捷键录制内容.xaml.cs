@@ -6,7 +6,7 @@ using Windows.UI.Core;
 
 namespace Docked_AI.Features.UnifiedCalls.InAppDialog;
 
-public sealed partial class HotkeyConfigDialog : ContentDialog
+public sealed partial class HotkeyRecordingContent : UserControl
 {
     private VirtualKey _tempKey = VirtualKey.None;
     private bool _tempCtrl;
@@ -17,7 +17,7 @@ public sealed partial class HotkeyConfigDialog : ContentDialog
 
     public HotkeyCaptureResult? Result { get; private set; }
 
-    public HotkeyConfigDialog()
+    public HotkeyRecordingContent()
     {
         InitializeComponent();
         ResetCapture();
@@ -30,6 +30,20 @@ public sealed partial class HotkeyConfigDialog : ContentDialog
         _tempCtrl = _tempAlt = _tempShift = _tempWin = false;
         HotkeyToggleButton.IsChecked = false;
         HotkeyDisplayText.Text = "点击开始录制";
+        Result = null;
+    }
+
+    public void Confirm()
+    {
+        _isCapturingHotkey = false;
+        Result = _tempKey == VirtualKey.None
+            ? null
+            : new HotkeyCaptureResult(_tempKey, _tempCtrl, _tempAlt, _tempShift, _tempWin);
+    }
+
+    public void Cancel()
+    {
+        _isCapturingHotkey = false;
         Result = null;
     }
 
@@ -85,7 +99,6 @@ public sealed partial class HotkeyConfigDialog : ContentDialog
         _tempAlt = alt;
         _tempShift = shift;
         _tempWin = win;
-
         HotkeyDisplayText.Text = GetHotkeyDisplayText(key, ctrl, alt, shift, win);
     }
 
@@ -115,25 +128,6 @@ public sealed partial class HotkeyConfigDialog : ContentDialog
         {
             HotkeyToggleButton.IsChecked = false;
         }
-    }
-
-    private void OnPrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
-    {
-        _isCapturingHotkey = false;
-
-        if (_tempKey == VirtualKey.None)
-        {
-            Result = null;
-            return;
-        }
-
-        Result = new HotkeyCaptureResult(_tempKey, _tempCtrl, _tempAlt, _tempShift, _tempWin);
-    }
-
-    private void OnCloseButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
-    {
-        _isCapturingHotkey = false;
-        Result = null;
     }
 
     private string GetHotkeyDisplayText(VirtualKey key, bool ctrl, bool alt, bool shift, bool win)
