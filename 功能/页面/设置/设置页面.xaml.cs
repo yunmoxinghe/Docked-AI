@@ -1,11 +1,14 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using System;
 using System.Collections.Generic;
 using Windows.System;
 using Windows.Globalization;
 using Windows.ApplicationModel;
+using Windows.UI.Core;
 using Docked_AI.Features.Localization;
 using Docked_AI.Features.AppEntry.AutoLaunch;
 using Docked_AI.Features.Hotkey;
@@ -552,7 +555,143 @@ namespace Docked_AI.Features.Pages.Settings
 
         private async void OnHotkeyButtonClick(object sender, RoutedEventArgs e)
         {
-            var content = new HotkeyRecordingContent();
+            VirtualKey tempKey = VirtualKey.None;
+            bool tempCtrl = false;
+            bool tempAlt = false;
+            bool tempShift = false;
+            bool tempWin = false;
+            bool isCapturingHotkey = false;
+
+            var displayText = new TextBlock
+            {
+                Text = LocalizationHelper.GetString("SettingsPage_HotkeyDialogRecordText.Text"),
+                FontSize = 16,
+                TextAlignment = TextAlignment.Center,
+                TextWrapping = TextWrapping.Wrap
+            };
+
+            string GetHotkeyDisplayText(VirtualKey key, bool ctrl, bool alt, bool shift, bool win)
+            {
+                var parts = new List<string>();
+                if (ctrl) parts.Add("Ctrl");
+                if (alt) parts.Add("Alt");
+                if (shift) parts.Add("Shift");
+                if (win) parts.Add("Win");
+                if (key != VirtualKey.None) parts.Add(GetKeyDisplayName(key));
+                return parts.Count > 0 ? string.Join(" + ", parts) : "未设置";
+            }
+
+            var recordButton = new ToggleButton
+            {
+                MinHeight = 80,
+                Padding = new Thickness(16),
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                VerticalContentAlignment = VerticalAlignment.Center,
+                Content = displayText
+            };
+
+            recordButton.Checked += (_, _) =>
+            {
+                isCapturingHotkey = true;
+                tempKey = VirtualKey.None;
+                tempCtrl = tempAlt = tempShift = tempWin = false;
+                displayText.Text = "按下快捷键...";
+            };
+
+            recordButton.Unchecked += (_, _) => isCapturingHotkey = false;
+
+            recordButton.PreviewKeyDown += (_, args) =>
+            {
+                if (!isCapturingHotkey || recordButton.IsChecked != true)
+                {
+                    return;
+                }
+
+                args.Handled = true;
+                var key = args.Key;
+
+                var ctrlState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control);
+                var altState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Menu);
+                var shiftState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift);
+                var winLeftState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.LeftWindows);
+                var winRightState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.RightWindows);
+
+                bool ctrl = (ctrlState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+                bool alt = (altState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+                bool shift = (shiftState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+                bool win = (winLeftState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down ||
+                           (winRightState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+
+                if (key == VirtualKey.Control || key == VirtualKey.Menu ||
+                    key == VirtualKey.Shift || key == VirtualKey.LeftWindows || key == VirtualKey.RightWindows)
+                {
+                    return;
+                }
+
+                if (!ctrl && !alt && !shift && !win)
+                {
+                    displayText.Text = "需要至少一个修饰键";
+                    return;
+                }
+
+                tempKey = key;
+                tempCtrl = ctrl;
+                tempAlt = alt;
+                tempShift = shift;
+                tempWin = win;
+                displayText.Text = GetHotkeyDisplayText(key, ctrl, alt, shift, win);
+            };
+
+            recordButton.PreviewKeyUp += (_, args) =>
+            {
+                if (!isCapturingHotkey || recordButton.IsChecked != true)
+                {
+                    return;
+                }
+
+                args.Handled = true;
+
+                var ctrlState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control);
+                var altState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Menu);
+                var shiftState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift);
+                var winLeftState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.LeftWindows);
+                var winRightState = Microsoft.UI.Input.InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.RightWindows);
+
+                bool anyModifierPressed =
+                    (ctrlState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down ||
+                    (altState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down ||
+                    (shiftState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down ||
+                    (winLeftState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down ||
+                    (winRightState & CoreVirtualKeyStates.Down) == CoreVirtualKeyStates.Down;
+
+                if (tempKey != VirtualKey.None && !anyModifierPressed)
+                {
+                    recordButton.IsChecked = false;
+                }
+            };
+
+            var content = new StackPanel
+            {
+                Spacing = 16,
+                Children =
+                {
+                    new TextBlock
+                    {
+                        Text = LocalizationHelper.GetString("SettingsPage_HotkeyDialogPrompt.Text"),
+                        TextWrapping = TextWrapping.Wrap
+                    },
+                    recordButton,
+                    new TextBlock
+                    {
+                        Text = LocalizationHelper.GetString("SettingsPage_HotkeyDialogHint.Text"),
+                        FontSize = 12,
+                        Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
+                        TextWrapping = TextWrapping.Wrap
+                    }
+                }
+            };
+
             var dialog = new UnifiedInAppDialog();
             dialog.Configure(
                 LocalizationHelper.GetString("SettingsPage_HotkeyDialog.Title"),
@@ -562,25 +701,18 @@ namespace Docked_AI.Features.Pages.Settings
                 defaultButton: ContentDialogButton.Primary);
 
             var result = await InAppDialogService.ShowAsync(dialog, this);
-            if (result == ContentDialogResult.Primary)
-            {
-                content.Confirm();
-            }
-            else
-            {
-                content.Cancel();
-            }
+            isCapturingHotkey = false;
 
-            if (result != ContentDialogResult.Primary || content.Result is null)
+            if (result != ContentDialogResult.Primary || tempKey == VirtualKey.None)
             {
                 return;
             }
 
-            _hotkeySettings.Key = content.Result.Key;
-            _hotkeySettings.Ctrl = content.Result.Ctrl;
-            _hotkeySettings.Alt = content.Result.Alt;
-            _hotkeySettings.Shift = content.Result.Shift;
-            _hotkeySettings.Win = content.Result.Win;
+            _hotkeySettings.Key = tempKey;
+            _hotkeySettings.Ctrl = tempCtrl;
+            _hotkeySettings.Alt = tempAlt;
+            _hotkeySettings.Shift = tempShift;
+            _hotkeySettings.Win = tempWin;
 
             UpdateHotkeyButtonText();
             HotkeySettingsChanged?.Invoke(this, EventArgs.Empty);
