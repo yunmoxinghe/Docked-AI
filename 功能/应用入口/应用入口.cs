@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -9,10 +10,10 @@ using Docked_AI.Features.Tray;
 using Docked_AI.Features.AppEntry.NormalLaunch;
 using Docked_AI.Features.AppEntry.AutoLaunch;
 using Docked_AI.Features.AppEntry.ShareLaunch;
+using Docked_AI.Features.AppEntry.SingleInstance;
 using Docked_AI.Features.MainWindow.Entry;
 using Windows.Graphics;
 using Windows.ApplicationModel.Activation;
-using Windows.ApplicationModel.DataTransfer;
 
 namespace Docked_AI
 {
@@ -25,11 +26,16 @@ namespace Docked_AI
         private Window? _keepAliveWindow;
         private TrayIconManager? _trayIconManager;
         private AppInstance? _mainInstance;
+        private SingleInstanceCommunication? _singleInstanceCommunication;
         
         // Launch handlers
         private NormalLaunchHandler? _normalLaunchHandler;
         private AutoLaunchHandler? _autoLaunchHandler;
         private ShareLaunchHandler? _shareLaunchHandler;
+
+        // 单实例 Mutex（在构造函数中提前检测）
+        private static Mutex? _singleInstanceMutex;
+        private static bool _isMainInstance;
 
         /// <summary>
         /// 获取主窗口实例（用于内部访问）
@@ -42,6 +48,24 @@ namespace Docked_AI
         /// </summary>
         public App()
         {
+            // ⭐ 方案一：使用 Mutex 提前检测单实例，避免不必要的初始化
+            // 这是最早的检测点，在 InitializeComponent() 之前执行
+            _singleInstanceMutex = new Mutex(true, "DockedAI_SingleInstance_Mutex", out _isMainInstance);
+            
+            if (!_isMainInstance)
+            {
+                // 已有实例在运行 → 通知主实例显示窗口
+                System.Diagnostics.Debug.WriteLine("[App] Another instance is already running, notifying main instance");
+                SingleInstanceCommunication.NotifyShowWindow();
+                
+                // 立即退出，避免任何初始化
+                System.Diagnostics.Debug.WriteLine("[App] Exiting secondary instance immediately");
+                Environment.Exit(0);
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine("[App] This is the main instance, proceeding with initialization");
+            
             InitializeComponent();
             UnhandledException += OnUnhandledException;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -58,33 +82,14 @@ namespace Docked_AI
             
             try
             {
-                // 使用 Windows App SDK 的 AppInstance API 实现单实例
-                // 这是官方推荐的最佳实践，比 Mutex + IPC 更简洁、更可靠
-                _mainInstance = AppInstance.FindOrRegisterForKey("DockedAI_MainInstance");
-                System.Diagnostics.Debug.WriteLine($"[App] AppInstance registered, IsCurrent={_mainInstance.IsCurrent}");
+                // ⭐ 方案一：Mutex 已在构造函数中完成单实例检测
+                // 如果代码执行到这里，说明当前是主实例
+                System.Diagnostics.Debug.WriteLine("[App] Main instance confirmed, initializing application");
 
-                if (!_mainInstance.IsCurrent)
-                {
-                    // 已有实例在运行 → 重定向激活到主实例
-                    var currentInstance = AppInstance.GetCurrent();
-                    var activationArgs = currentInstance.GetActivatedEventArgs();
-                    
-                    System.Diagnostics.Debug.WriteLine("[App] Redirecting activation to existing instance");
-                    
-                    // 异步重定向激活（不阻塞）
-                    _ = _mainInstance.RedirectActivationToAsync(activationArgs).AsTask().ContinueWith(_ =>
-                    {
-                        // 重定向完成后，退出当前实例
-                        System.Diagnostics.Debug.WriteLine("[App] Activation redirected, exiting current instance");
-                        System.Diagnostics.Process.GetCurrentProcess().Kill();
-                    });
-                    
-                    return;
-                }
-
-                // 当前是主实例 → 订阅激活事件（处理后续的重定向激活）
-                _mainInstance.Activated += OnActivated;
-                System.Diagnostics.Debug.WriteLine("[App] This is the main instance, subscribed to Activated event");
+                // 启动单实例通信监听器（监听其他实例的唤醒请求）
+                _singleInstanceCommunication = new SingleInstanceCommunication(OnShowWindowRequested);
+                _singleInstanceCommunication.StartListening();
+                System.Diagnostics.Debug.WriteLine("[App] Single instance communication listener started");
 
                 // Initialize handlers
                 _normalLaunchHandler = new NormalLaunchHandler(this);
@@ -92,14 +97,15 @@ namespace Docked_AI
                 _shareLaunchHandler = new ShareLaunchHandler(this);
                 System.Diagnostics.Debug.WriteLine("[App] Launch handlers initialized");
 
-                var activationArgs2 = AppInstance.GetCurrent().GetActivatedEventArgs();
-                System.Diagnostics.Debug.WriteLine($"[App] Activation kind: {activationArgs2?.Kind}");
+                // Check for ShareTarget activation
+                var activationArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
+                System.Diagnostics.Debug.WriteLine($"[App] Activation kind: {activationArgs?.Kind}");
 
                 // ShareTarget activation should always proceed
-                if (activationArgs2?.Kind == Microsoft.Windows.AppLifecycle.ExtendedActivationKind.ShareTarget)
+                if (activationArgs?.Kind == Microsoft.Windows.AppLifecycle.ExtendedActivationKind.ShareTarget)
                 {
                     System.Diagnostics.Debug.WriteLine("[App] Handling ShareTarget activation");
-                    HandleShareTargetActivation(activationArgs2.Data as ShareTargetActivatedEventArgs);
+                    HandleShareTargetActivation(activationArgs.Data as ShareTargetActivatedEventArgs);
                     return;
                 }
 
@@ -127,11 +133,12 @@ namespace Docked_AI
                 System.Diagnostics.Debug.WriteLine("[App] OnLaunched completed successfully");
                 
                 // 优化说明：
-                // - 使用 Windows App SDK 的 AppInstance API（官方推荐）
+                // - 使用 Mutex 在构造函数中提前检测单实例（最早检测点）
+                // - 使用 EventWaitHandle 实现进程间通信（响应速度 < 5ms）
                 // - 自启动时：不显示窗口，只在托盘运行
                 // - 图标启动时：自动显示主窗口，提供更好的用户体验
-                // - 再次点击图标时：通过 RedirectActivationToAsync 激活主实例
-                // - 响应速度：< 1ms（系统级 API，最快！）
+                // - 再次点击图标时：新进程立即退出，通知主实例唤醒窗口
+                // - 避免了 AppInstance 的进程初始化开销
             }
             catch (Exception ex)
             {
@@ -143,28 +150,41 @@ namespace Docked_AI
         }
 
         /// <summary>
-        /// 处理激活事件（当其他实例重定向激活到主实例时触发）
+        /// 处理显示窗口请求（当其他实例通知主实例时触发）
         /// </summary>
-        private void OnActivated(object? sender, AppActivationArguments args)
+        private void OnShowWindowRequested()
         {
-            System.Diagnostics.Debug.WriteLine($"[App] OnActivated called, Kind: {args.Kind}");
+            System.Diagnostics.Debug.WriteLine("[App] OnShowWindowRequested called from another instance");
+            
+            // 显示主窗口
+            _trayIconManager?.ShowMainWindow();
+            
+            // ⭐ 强制唤醒窗口到最前（Win32 API）
+            BringWindowToFront(_window);
+        }
 
-            // 在 UI 线程上执行
-            if (_keepAliveWindow?.DispatcherQueue != null)
+        /// <summary>
+        /// 强制唤醒窗口到最前（Win32 API）
+        /// 解决点击图标后窗口在后台不弹出的问题
+        /// </summary>
+        private void BringWindowToFront(Window? window)
+        {
+            if (window == null)
             {
-                _keepAliveWindow.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.High, () =>
-                {
-                    System.Diagnostics.Debug.WriteLine("[App] Activating window from another instance click");
-                    
-                    // 显示主窗口
-                    _trayIconManager?.ShowMainWindow();
-                });
+                return;
             }
-            else
+
+            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+            if (hwnd == IntPtr.Zero)
             {
-                // 降级处理：直接调用
-                _trayIconManager?.ShowMainWindow();
+                return;
             }
+
+            // SW_SHOW = 5: 激活窗口并显示
+            AppEntryWin32Api.ShowWindow(hwnd, 5);
+            AppEntryWin32Api.SetForegroundWindow(hwnd);
+            
+            System.Diagnostics.Debug.WriteLine($"[App] BringWindowToFront: hwnd={hwnd}");
         }
 
         private async void HandleShareTargetActivation(ShareTargetActivatedEventArgs? shareArgs)
@@ -208,12 +228,7 @@ namespace Docked_AI
         private void OnAppExit(object sender, object e)
         {
             _trayIconManager?.Dispose();
-            
-            // 取消订阅激活事件
-            if (_mainInstance != null)
-            {
-                _mainInstance.Activated -= OnActivated;
-            }
+            _singleInstanceCommunication?.Dispose();
         }
 
         private void ExitApplication()
@@ -223,12 +238,13 @@ namespace Docked_AI
                 _trayIconManager?.Dispose();
                 _trayIconManager = null;
                 
-                // 取消订阅激活事件
-                if (_mainInstance != null)
-                {
-                    _mainInstance.Activated -= OnActivated;
-                    _mainInstance = null;
-                }
+                _singleInstanceCommunication?.Dispose();
+                _singleInstanceCommunication = null;
+                
+                // 释放 Mutex
+                _singleInstanceMutex?.ReleaseMutex();
+                _singleInstanceMutex?.Dispose();
+                _singleInstanceMutex = null;
             }
             finally
             {
