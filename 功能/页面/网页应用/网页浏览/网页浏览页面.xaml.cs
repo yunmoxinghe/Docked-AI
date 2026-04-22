@@ -1623,7 +1623,12 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 return;
             }
 
-            await InAppDialogService.OpenExternalAsync(uri, this);
+            var dialog = ExternalOpenConfirmDialogFactory.Create(uri);
+            var result = await InAppDialogService.ShowAsync(dialog, this);
+            if (result == ContentDialogResult.Primary)
+            {
+                await Launcher.LaunchUriAsync(uri);
+            }
         }
 
         // ==================== 右键菜单相关方法 ====================
@@ -1778,7 +1783,12 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 return;
             }
 
-            await InAppDialogService.OpenExternalAsync(uri, this);
+            var dialog = ExternalOpenConfirmDialogFactory.Create(uri);
+            var result = await InAppDialogService.ShowAsync(dialog, this);
+            if (result == ContentDialogResult.Primary)
+            {
+                await Launcher.LaunchUriAsync(uri);
+            }
         }
 
         // ==================== 右键菜单相关方法结束 ====================

@@ -262,19 +262,34 @@ namespace Docked_AI.Features.Pages.Settings
         private async void OnOpenGitHubClick(object sender, RoutedEventArgs args)
         {
             var uri = new Uri("https://github.com/yunmoxinghe/Docked-AI");
-            await InAppDialogService.OpenExternalAsync(uri, this);
+            var dialog = ExternalOpenConfirmDialogFactory.Create(uri);
+            var result = await InAppDialogService.ShowAsync(dialog, this);
+            if (result == ContentDialogResult.Primary)
+            {
+                await Launcher.LaunchUriAsync(uri);
+            }
         }
 
         private async void OnSendFeedbackClick(object sender, RoutedEventArgs args)
         {
             var uri = new Uri("https://github.com/yunmoxinghe/Docked-AI/issues");
-            await InAppDialogService.OpenExternalAsync(uri, this);
+            var dialog = ExternalOpenConfirmDialogFactory.Create(uri);
+            var result = await InAppDialogService.ShowAsync(dialog, this);
+            if (result == ContentDialogResult.Primary)
+            {
+                await Launcher.LaunchUriAsync(uri);
+            }
         }
 
         private async void OnViewLicenseClick(object sender, RoutedEventArgs args)
         {
             var uri = new Uri("https://github.com/yunmoxinghe/Docked-AI/blob/main/LICENSE");
-            await InAppDialogService.OpenExternalAsync(uri, this);
+            var dialog = ExternalOpenConfirmDialogFactory.Create(uri);
+            var result = await InAppDialogService.ShowAsync(dialog, this);
+            if (result == ContentDialogResult.Primary)
+            {
+                await Launcher.LaunchUriAsync(uri);
+            }
         }
 
         private void LoadExperimentalSettings()
@@ -427,8 +442,9 @@ namespace Docked_AI.Features.Pages.Settings
                         // 更新右侧显示的当前语言文本
                         UpdateCurrentLanguageText(languageTag);
                         
-                        var shouldRestart = await InAppDialogService.ConfirmRestartForLanguageChangeAsync(this);
-                        if (shouldRestart)
+                        var dialog = LanguageRestartConfirmDialogFactory.Create();
+                        var result = await InAppDialogService.ShowAsync(dialog, this);
+                        if (result == ContentDialogResult.Primary)
                         {
                             AppRestartService.RestartWithArgs("--restart-from=settings-language");
                         }
@@ -454,11 +470,12 @@ namespace Docked_AI.Features.Pages.Settings
                 // Show error dialog to user
                 if (this.XamlRoot != null)
                 {
-                    await InAppDialogService.ShowMessageAsync(
+                    var dialog = MessageDialogFactory.Create(
                         LocalizationHelper.GetString("SettingsPage_ErrorTitle"),
                         LocalizationHelper.GetString("SettingsPage_StartupToggleError"),
-                        this,
+                        string.Empty,
                         LocalizationHelper.GetString("SettingsPage_ConfirmButton"));
+                    await InAppDialogService.ShowAsync(dialog, this);
                 }
             }
         }
@@ -476,11 +493,12 @@ namespace Docked_AI.Features.Pages.Settings
                 // Show error dialog to user
                 if (this.XamlRoot != null)
                 {
-                    await InAppDialogService.ShowMessageAsync(
+                    var dialog = MessageDialogFactory.Create(
                         LocalizationHelper.GetString("SettingsPage_ErrorTitle"),
                         LocalizationHelper.GetString("SettingsPage_OpenSettingsError"),
-                        this,
+                        string.Empty,
                         LocalizationHelper.GetString("SettingsPage_ConfirmButton"));
+                    await InAppDialogService.ShowAsync(dialog, this);
                 }
             }
         }
@@ -531,17 +549,19 @@ namespace Docked_AI.Features.Pages.Settings
 
         private async void OnHotkeyButtonClick(object sender, RoutedEventArgs e)
         {
-            var result = await InAppDialogService.ShowHotkeyConfigAsync(this);
-            if (result is null)
+            var dialog = new HotkeyConfigDialog();
+            dialog.ResetCapture();
+            var result = await InAppDialogService.ShowAsync(dialog, this);
+            if (result != ContentDialogResult.Primary || dialog.Result is null)
             {
                 return;
             }
 
-            _hotkeySettings.Key = result.Key;
-            _hotkeySettings.Ctrl = result.Ctrl;
-            _hotkeySettings.Alt = result.Alt;
-            _hotkeySettings.Shift = result.Shift;
-            _hotkeySettings.Win = result.Win;
+            _hotkeySettings.Key = dialog.Result.Key;
+            _hotkeySettings.Ctrl = dialog.Result.Ctrl;
+            _hotkeySettings.Alt = dialog.Result.Alt;
+            _hotkeySettings.Shift = dialog.Result.Shift;
+            _hotkeySettings.Win = dialog.Result.Win;
 
             UpdateHotkeyButtonText();
             HotkeySettingsChanged?.Invoke(this, EventArgs.Empty);
@@ -560,11 +580,12 @@ namespace Docked_AI.Features.Pages.Settings
                 // Show error dialog to user
                 if (this.XamlRoot != null)
                 {
-                    await InAppDialogService.ShowMessageAsync(
+                    var dialog = MessageDialogFactory.Create(
                         "错误",
                         "无法打开触摸板设置页面。",
-                        this,
+                        string.Empty,
                         "确定");
+                    await InAppDialogService.ShowAsync(dialog, this);
                 }
             }
         }
