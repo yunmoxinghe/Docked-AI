@@ -149,6 +149,9 @@
   <data name="TrayMenu_OpenWindow" xml:space="preserve">
     <value>メインウィンドウを開く</value>
   </data>
+  <data name="TrayMenu_Restart" xml:space="preserve">
+    <value>アプリを再起動</value>
+  </data>
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>終了</value>
   </data>

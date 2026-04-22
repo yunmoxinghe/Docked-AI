@@ -16,6 +16,8 @@ using Docked_AI.Features.Localization;
 using Docked_AI.Features.Hotkey;
 // 引入主窗口工厂类
 using Docked_AI.Features.MainWindow.Entry;
+// 引入统一托盘菜单服务
+using Docked_AI.功能.统一调用.托盘右键菜单;
 
 namespace Docked_AI.Features.Tray
 {
@@ -148,57 +150,13 @@ namespace Docked_AI.Features.Tray
                 return _trayMenu;
             }
 
-            // 创建弹出菜单
-            var flyout = new MenuFlyout();
+            // 使用统一服务创建菜单
+            _trayMenu = TrayContextMenuService.CreateTrayMenu(
+                onOpenWindow: ShowMainWindow,
+                onExit: ExitApplication
+            );
 
-            // 创建"打开主窗口"菜单项
-            var openItem = new MenuFlyoutItem
-            {
-                // 从本地化资源获取菜单文本
-                Text = LocalizationHelper.GetString("TrayMenu_OpenWindow"),
-                // 设置菜单图标（窗口符号）
-                Icon = new FontIcon { Glyph = "\uE78B" }
-            };
-            // 绑定点击事件，点击时显示主窗口
-            openItem.Click += OnOpenWindowClicked;
-            // 将菜单项添加到弹出菜单
-            flyout.Items.Add(openItem);
-
-            // 添加分隔线
-            flyout.Items.Add(new MenuFlyoutSeparator());
-
-            // 创建"退出"菜单项
-            var exitItem = new MenuFlyoutItem
-            {
-                // 从本地化资源获取菜单文本
-                Text = LocalizationHelper.GetString("TrayMenu_Exit"),
-                // 设置菜单图标（关闭符号，Unicode 字符）
-                Icon = new FontIcon { Glyph = "\uF3B1" }
-            };
-            // 绑定点击事件，点击时退出应用程序
-            exitItem.Click += OnExitClicked;
-            // 将菜单项添加到弹出菜单
-            flyout.Items.Add(exitItem);
-
-            // 缓存菜单
-            _trayMenu = flyout;
-            return flyout;
-        }
-
-        /// <summary>
-        /// 打开窗口菜单项点击事件处理
-        /// </summary>
-        private void OnOpenWindowClicked(object sender, RoutedEventArgs e)
-        {
-            ShowMainWindow();
-        }
-
-        /// <summary>
-        /// 退出菜单项点击事件处理
-        /// </summary>
-        private void OnExitClicked(object sender, RoutedEventArgs e)
-        {
-            ExitApplication();
+            return _trayMenu;
         }
 
         /// <summary>

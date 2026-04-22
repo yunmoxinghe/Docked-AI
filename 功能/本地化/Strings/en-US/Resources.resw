@@ -153,6 +153,9 @@
   <data name="TrayMenu_OpenWindow" xml:space="preserve">
     <value>Open Main Window</value>
   </data>
+  <data name="TrayMenu_Restart" xml:space="preserve">
+    <value>Restart App</value>
+  </data>
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>Exit</value>
   </data>

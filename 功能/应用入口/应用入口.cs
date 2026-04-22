@@ -48,20 +48,60 @@ namespace Docked_AI
         /// </summary>
         public App()
         {
+            // ⭐ 检查是否是重启请求（必须在单实例检测之前）
+            var args = Environment.GetCommandLineArgs();
+            bool isRestart = args.Length > 1 && args[1].Contains("--restart");
+            
             // ⭐ 方案一：使用 Mutex 提前检测单实例，避免不必要的初始化
             // 这是最早的检测点，在 InitializeComponent() 之前执行
             _singleInstanceMutex = new Mutex(true, "DockedAI_SingleInstance_Mutex", out _isMainInstance);
             
             if (!_isMainInstance)
             {
-                // 已有实例在运行 → 通知主实例显示窗口
-                System.Diagnostics.Debug.WriteLine("[App] Another instance is already running, notifying main instance");
-                SingleInstanceCommunication.NotifyShowWindow();
-                
-                // 立即退出，避免任何初始化
-                System.Diagnostics.Debug.WriteLine("[App] Exiting secondary instance immediately");
-                Environment.Exit(0);
-                return;
+                // 如果是重启请求，等待旧实例退出
+                if (isRestart)
+                {
+                    System.Diagnostics.Debug.WriteLine("[App] Restart detected, waiting for old instance to exit...");
+                    
+                    // 等待旧实例释放 Mutex（最多等待 3 秒）
+                    _singleInstanceMutex?.Dispose();
+                    _singleInstanceMutex = null;
+                    
+                    for (int i = 0; i < 30; i++)
+                    {
+                        Thread.Sleep(100);
+                        try
+                        {
+                            _singleInstanceMutex = new Mutex(true, "DockedAI_SingleInstance_Mutex", out _isMainInstance);
+                            if (_isMainInstance)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[App] Old instance exited after {(i + 1) * 100}ms, proceeding as main instance");
+                                break;
+                            }
+                            _singleInstanceMutex?.Dispose();
+                            _singleInstanceMutex = null;
+                        }
+                        catch { }
+                    }
+                    
+                    // 如果还是拿不到 Mutex，强制成为主实例
+                    if (!_isMainInstance)
+                    {
+                        System.Diagnostics.Debug.WriteLine("[App] Timeout waiting for old instance, forcing restart");
+                        _isMainInstance = true;
+                    }
+                }
+                else
+                {
+                    // 已有实例在运行 → 通知主实例显示窗口
+                    System.Diagnostics.Debug.WriteLine("[App] Another instance is already running, notifying main instance");
+                    SingleInstanceCommunication.NotifyShowWindow();
+                    
+                    // 立即退出，避免任何初始化
+                    System.Diagnostics.Debug.WriteLine("[App] Exiting secondary instance immediately");
+                    Environment.Exit(0);
+                    return;
+                }
             }
 
             System.Diagnostics.Debug.WriteLine("[App] This is the main instance, proceeding with initialization");

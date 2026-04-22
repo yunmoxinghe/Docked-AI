@@ -149,6 +149,9 @@
   <data name="TrayMenu_OpenWindow" xml:space="preserve">
     <value>메인 창 열기</value>
   </data>
+  <data name="TrayMenu_Restart" xml:space="preserve">
+    <value>앱 다시 시작</value>
+  </data>
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>종료</value>
   </data>

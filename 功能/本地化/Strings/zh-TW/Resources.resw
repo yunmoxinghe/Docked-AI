@@ -149,6 +149,9 @@
   <data name="TrayMenu_OpenWindow" xml:space="preserve">
     <value>開啟主視窗</value>
   </data>
+  <data name="TrayMenu_Restart" xml:space="preserve">
+    <value>重新啟動應用程式</value>
+  </data>
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>結束</value>
   </data>
