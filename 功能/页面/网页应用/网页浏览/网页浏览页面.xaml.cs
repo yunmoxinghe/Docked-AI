@@ -1,6 +1,7 @@
 using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.Pages.Settings;
 using Docked_AI.Features.MainWindowContent.ContentArea;
+using Docked_AI.Features.UnifiedCalls.InAppDialog;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -1622,7 +1623,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 return;
             }
 
-            await Launcher.LaunchUriAsync(uri);
+            await InAppDialogService.OpenExternalAsync(uri, this);
         }
 
         // ==================== 右键菜单相关方法 ====================
@@ -1777,7 +1778,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 return;
             }
 
-            await Launcher.LaunchUriAsync(uri);
+            await InAppDialogService.OpenExternalAsync(uri, this);
         }
 
         // ==================== 右键菜单相关方法结束 ====================

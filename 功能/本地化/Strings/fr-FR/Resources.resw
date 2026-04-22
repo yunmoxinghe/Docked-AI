@@ -449,4 +449,37 @@
   <data name="SettingsPage_AnimationNone.Content" xml:space="preserve">
     <value>Aucune animation</value>
   </data>
+  <data name="InAppDialog_ExternalLink_Title" xml:space="preserve">
+    <value>Open External Link</value>
+  </data>
+  <data name="InAppDialog_ExternalLink_Content" xml:space="preserve">
+    <value>You are about to leave the app and open this link in your default browser. Continue?</value>
+  </data>
+  <data name="InAppDialog_ExternalLink_OpenButton" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="InAppDialog_ExternalLink_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="InAppDialog_ErrorTitle" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="InAppDialog_OpenExternalFailed" xml:space="preserve">
+    <value>Unable to open the external link. Please try again later.</value>
+  </data>
+  <data name="InAppDialog_ConfirmButton" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="InAppDialog_OpenExternal_Title" xml:space="preserve">
+    <value>Ouvrir un lien externe</value>
+  </data>
+  <data name="InAppDialog_OpenExternal_Content" xml:space="preserve">
+    <value>Le lien suivant sera ouvert dans le navigateur par défaut :</value>
+  </data>
+  <data name="InAppDialog_OpenExternal_OpenButton" xml:space="preserve">
+    <value>Ouvrir</value>
+  </data>
+  <data name="InAppDialog_OpenExternal_CancelButton" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
 </root>

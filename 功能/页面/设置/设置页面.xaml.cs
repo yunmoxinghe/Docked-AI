@@ -11,6 +11,7 @@ using Docked_AI.Features.Localization;
 using Docked_AI.Features.AppEntry.AutoLaunch;
 using Docked_AI.Features.Hotkey;
 using Docked_AI.Features.Pages.Settings;
+using Docked_AI.功能.统一调用.应用内弹窗;
 using Windows.UI.Core;
 
 namespace Docked_AI.Features.Pages.Settings
@@ -266,19 +267,19 @@ namespace Docked_AI.Features.Pages.Settings
         private async void OnOpenGitHubClick(object sender, RoutedEventArgs args)
         {
             var uri = new Uri("https://github.com/yunmoxinghe/Docked-AI");
-            await Launcher.LaunchUriAsync(uri);
+            await 应用内弹窗服务.OpenExternalLinkAsync(uri, this.XamlRoot);
         }
 
         private async void OnSendFeedbackClick(object sender, RoutedEventArgs args)
         {
             var uri = new Uri("https://github.com/yunmoxinghe/Docked-AI/issues");
-            await Launcher.LaunchUriAsync(uri);
+            await 应用内弹窗服务.OpenExternalLinkAsync(uri, this.XamlRoot);
         }
 
         private async void OnViewLicenseClick(object sender, RoutedEventArgs args)
         {
             var uri = new Uri("https://github.com/yunmoxinghe/Docked-AI/blob/main/LICENSE");
-            await Launcher.LaunchUriAsync(uri);
+            await 应用内弹窗服务.OpenExternalLinkAsync(uri, this.XamlRoot);
         }
 
         private void LoadExperimentalSettings()
