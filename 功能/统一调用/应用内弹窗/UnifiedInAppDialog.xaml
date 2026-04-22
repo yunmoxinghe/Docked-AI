@@ -1,5 +1,5 @@
 <ContentDialog
-    x:Class="Docked_AI.Features.UnifiedCalls.InAppDialog.ExternalOpenDialog"
+    x:Class="Docked_AI.Features.UnifiedCalls.InAppDialog.UnifiedInAppDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Style="{StaticResource DefaultContentDialogStyle}"

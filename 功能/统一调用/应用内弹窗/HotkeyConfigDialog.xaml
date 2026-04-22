@@ -1,0 +1,38 @@
+<ContentDialog
+    x:Class="Docked_AI.Features.UnifiedCalls.InAppDialog.HotkeyConfigDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Uid="SettingsPage_HotkeyDialog"
+    Style="{StaticResource DefaultContentDialogStyle}"
+    DefaultButton="Primary"
+    PrimaryButtonClick="OnPrimaryButtonClick"
+    CloseButtonClick="OnCloseButtonClick">
+    <StackPanel Spacing="16">
+        <TextBlock x:Uid="SettingsPage_HotkeyDialogPrompt" TextWrapping="Wrap" />
+
+        <ToggleButton
+            x:Name="HotkeyToggleButton"
+            MinHeight="80"
+            Padding="16"
+            HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Center"
+            VerticalContentAlignment="Center"
+            Checked="HotkeyToggleButton_Checked"
+            Unchecked="HotkeyToggleButton_Unchecked"
+            PreviewKeyDown="HotkeyToggleButton_PreviewKeyDown"
+            PreviewKeyUp="HotkeyToggleButton_PreviewKeyUp">
+            <TextBlock
+                x:Name="HotkeyDisplayText"
+                x:Uid="SettingsPage_HotkeyDialogRecordText"
+                FontSize="16"
+                TextAlignment="Center"
+                TextWrapping="Wrap" />
+        </ToggleButton>
+
+        <TextBlock
+            x:Uid="SettingsPage_HotkeyDialogHint"
+            FontSize="12"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            TextWrapping="Wrap" />
+    </StackPanel>
+</ContentDialog>

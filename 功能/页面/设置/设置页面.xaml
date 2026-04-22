@@ -468,41 +468,5 @@
             </StackPanel>
         </ScrollViewer>
 
-        <!-- 快捷键选择对话框 -->
-        <ContentDialog
-            x:Name="HotkeyDialog"
-            x:Uid="SettingsPage_HotkeyDialog"
-            DefaultButton="Primary"
-            PrimaryButtonClick="OnHotkeyDialogPrimaryClick"
-            CloseButtonClick="OnHotkeyDialogCloseClick">
-            <StackPanel Spacing="16">
-                <TextBlock x:Uid="SettingsPage_HotkeyDialogPrompt" TextWrapping="Wrap"/>
-                
-                <ToggleButton
-                    x:Name="HotkeyToggleButton"
-                    MinHeight="80"
-                    Padding="16"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Center"
-                    VerticalContentAlignment="Center"
-                    Checked="HotkeyToggleButton_Checked"
-                    Unchecked="HotkeyToggleButton_Unchecked"
-                    PreviewKeyDown="HotkeyToggleButton_PreviewKeyDown"
-                    PreviewKeyUp="HotkeyToggleButton_PreviewKeyUp">
-                    <TextBlock
-                        x:Name="HotkeyDisplayText"
-                        x:Uid="SettingsPage_HotkeyDialogRecordText"
-                        FontSize="16"
-                        TextAlignment="Center"
-                        TextWrapping="Wrap"/>
-                </ToggleButton>
-
-                <TextBlock
-                    x:Uid="SettingsPage_HotkeyDialogHint"
-                    FontSize="12"
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    TextWrapping="Wrap"/>
-            </StackPanel>
-        </ContentDialog>
     </Grid>
 </Page>

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Docked_AI.Features.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.System;
@@ -9,6 +10,30 @@ namespace Docked_AI.Features.UnifiedCalls.InAppDialog;
 
 public static class InAppDialogService
 {
+    public static async Task<bool> ConfirmRestartForLanguageChangeAsync(FrameworkElement? owner = null)
+    {
+        var xamlRoot = ResolveXamlRoot(owner);
+        if (xamlRoot is null)
+        {
+            Debug.WriteLine("[InAppDialogService] XamlRoot is unavailable, cannot show language restart dialog.");
+            return false;
+        }
+
+        var dialog = new UnifiedInAppDialog
+        {
+            XamlRoot = xamlRoot
+        };
+
+        dialog.ConfigureMessage(
+            LocalizationHelper.GetString("SettingsPage_RestartTitle"),
+            LocalizationHelper.GetString("SettingsPage_RestartContent"),
+            LocalizationHelper.GetString("SettingsPage_RestartButton"),
+            LocalizationHelper.GetString("SettingsPage_LaterButton"));
+
+        var result = await dialog.ShowAsync();
+        return result == ContentDialogResult.Primary;
+    }
+
     public static async Task<ContentDialogResult?> ShowAsync(
         string title,
         object content,
@@ -91,14 +116,33 @@ public static class InAppDialogService
             return false;
         }
 
-        var dialog = new ExternalOpenDialog
+        var dialog = new UnifiedInAppDialog
         {
             XamlRoot = xamlRoot
         };
 
-        dialog.SetUri(uri);
+        dialog.ConfigureExternalOpen(uri);
         var result = await dialog.ShowAsync();
         return result == ContentDialogResult.Primary;
+    }
+
+    public static async Task<HotkeyCaptureResult?> ShowHotkeyConfigAsync(FrameworkElement? owner = null)
+    {
+        var xamlRoot = ResolveXamlRoot(owner);
+        if (xamlRoot is null)
+        {
+            Debug.WriteLine("[InAppDialogService] XamlRoot is unavailable, cannot show hotkey config dialog.");
+            return null;
+        }
+
+        var dialog = new HotkeyConfigDialog
+        {
+            XamlRoot = xamlRoot
+        };
+
+        dialog.ResetCapture();
+        var result = await dialog.ShowAsync();
+        return result == ContentDialogResult.Primary ? dialog.Result : null;
     }
 
     private static XamlRoot? ResolveXamlRoot(FrameworkElement? owner)
