@@ -25,7 +25,6 @@ namespace Docked_AI
         private Window? _window;
         private Window? _keepAliveWindow;
         private TrayIconManager? _trayIconManager;
-        private AppInstance? _mainInstance;
         private SingleInstanceCommunication? _singleInstanceCommunication;
         
         // Launch handlers
@@ -290,6 +289,14 @@ namespace Docked_AI
             {
                 Exit();
             }
+        }
+
+        /// <summary>
+        /// 公开的退出方法，供外部服务调用（如重启服务）
+        /// </summary>
+        public void ExitApplicationPublic()
+        {
+            ExitApplication();
         }
 
         private void EnsureKeepAliveWindow()

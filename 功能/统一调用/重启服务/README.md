@@ -8,7 +8,18 @@ WinUI 3 无包应用不能像 UWP 那样使用 `CoreApplication.RequestRestartAs
 1. 手动启动新的 exe 实例
 2. 传递 `--restart` 参数绕过单实例检测
 3. 新实例等待旧实例退出并释放 Mutex
-4. 旧实例调用 `Application.Current.Exit()`
+4. **正确清理资源**（托盘图标、全局快捷键等）
+5. 旧实例调用应用的退出流程
+
+### 资源清理机制
+
+重启服务会调用 `App.ExitApplicationPublic()` 而不是直接调用 `Application.Current.Exit()`，确保：
+- ✅ 托盘图标被正确隐藏和释放
+- ✅ 全局快捷键被注销
+- ✅ 单实例 Mutex 被释放
+- ✅ 其他资源被正确清理
+
+这避免了重启后托盘图标残留的问题。
 
 ## 快速使用
 
@@ -182,4 +193,5 @@ private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
 - **进程启动**：使用 `Process.Start` + `UseShellExecute = true`
 - **单实例检测**：在 `App` 构造函数中通过 `--restart` 参数绕过 Mutex 检测
 - **等待机制**：新实例轮询 Mutex（100ms 间隔，最多 30 次）
-- **退出方式**：`Application.Current.Exit()` 确保资源正确释放
+- **退出方式**：调用 `App.ExitApplicationPublic()` 确保资源正确释放（托盘图标、快捷键等）
+- **资源清理顺序**：托盘图标 → 单实例通信 → Mutex → 应用退出

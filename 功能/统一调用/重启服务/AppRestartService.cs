@@ -49,7 +49,19 @@ public static class AppRestartService
             };
 
             Process.Start(startInfo);
-            Application.Current.Exit();
+            
+            // ⚠️ 重要：触发应用的正常退出流程，确保托盘图标等资源被正确清理
+            // 不能直接调用 Application.Current.Exit()，因为这会跳过清理逻辑
+            if (Application.Current is Docked_AI.App app)
+            {
+                // 调用 App 的公开退出方法,确保托盘图标被正确清理
+                app.ExitApplicationPublic();
+            }
+            else
+            {
+                // 降级处理：如果无法获取 App 实例，直接退出
+                Application.Current.Exit();
+            }
         }
         catch (Exception ex)
         {
@@ -81,7 +93,16 @@ public static class AppRestartService
             };
 
             Process.Start(startInfo);
-            Application.Current.Exit();
+            
+            // ⚠️ 重要：触发应用的正常退出流程，确保托盘图标等资源被正确清理
+            if (Application.Current is Docked_AI.App app)
+            {
+                app.ExitApplicationPublic();
+            }
+            else
+            {
+                Application.Current.Exit();
+            }
         }
         catch (Exception ex)
         {
