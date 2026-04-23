@@ -12,14 +12,14 @@
     mc:Ignorable="d"
     Title="Docked AI">
 
-    <Grid x:Name="RootGrid" Background="Transparent">
+    <Grid x:Name="RootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
         <linker:Linker />
         
-        <!-- Splash 遮罩 -->
+        <!-- Splash 遮罩 - 默认可见，作为启动时的第一屏 -->
         <Grid x:Name="SplashOverlay"
               Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-              Visibility="Collapsed"
-              Opacity="0">
+              Visibility="Visible"
+              Opacity="1">
             <Grid.Resources>
                 <!-- 淡入动画：纯色到启动屏幕 -->
                 <Storyboard x:Name="SplashFadeIn">

@@ -9,7 +9,6 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace Docked_AI
@@ -25,10 +24,15 @@ namespace Docked_AI
     /// 
     /// 【核心逻辑流程】
     /// 初始化阶段：
-    ///   1. 构造函数中通过 DWM API 设置亚克力背景，避免白闪
+    ///   1. 构造函数中通过 DWM API 设置纯色背景，避免亚克力在启动屏幕前显示
     ///   2. 创建 MainWindowViewModel（状态容器）和 WindowHostController（状态转换执行器）
     ///   3. 订阅 Linker 事件（用户交互）、ViewModel 属性变化（状态同步）、AppWindow 事件（OS 窗口状态）
     ///   4. 初始化 UI 状态（图标、圆角、边距）
+    /// 
+    /// 启动屏幕流程：
+    ///   1. 窗口激活时显示纯色背景（黑/白）
+    ///   2. ShowSplash() 被调用，立即播放淡入动画（纯色 → 启动屏幕图片）
+    ///   3. 启动屏幕淡出完成后，设置亚克力背景
     /// 
     /// 运行时状态同步：
     ///   - ViewModel.CurrentState 变化 → 触发 OnViewModelPropertyChanged → 刷新 UI（图标、圆角、边距）
@@ -42,14 +46,16 @@ namespace Docked_AI
     /// - AppWindow: WinUI 窗口对象，提供 OS 级别的窗口状态（最大化/还原）
     /// 
     /// 【潜在副作用】
-    /// 1. DwmSetWindowAttribute 在构造函数中调用，修改窗口 DWM 属性（不可逆）
+    /// 1. DwmSetWindowAttribute 在构造函数和 ShowSplash 中调用，修改窗口 DWM 属性（不可逆）
     /// 2. ViewModel.PropertyChanged 事件触发 UI 更新（可能导致布局重排）
     /// 3. AppWindow.Changed 事件可能在动画执行期间触发，需要防重入
     /// 4. Linker 事件订阅/取消订阅必须成对，否则导致内存泄漏
     /// 
     /// 【重构风险点】
     /// 1. 事件订阅顺序：必须在 InitializeComponent() 之后订阅，否则 RootGrid 为 null
-    /// 2. DWM API 调用时机：必须在窗口句柄创建后、Activate() 之前调用
+    /// 2. DWM API 调用时机：
+    ///    - 构造函数中设置纯色背景（避免亚克力在启动屏幕前显示）
+    ///    - ShowSplash 淡出后设置亚克力背景（确保平滑过渡）
     /// 3. RefreshViewModelDrivenState 和 RefreshWindowChromeState 的调用时机：
     ///    - 前者依赖 ViewModel.CurrentState，后者依赖 AppWindow.Presenter.State
     ///    - 两者必须分开调用，避免状态不一致
@@ -70,19 +76,13 @@ namespace Docked_AI
         public WindowState CurrentWindowState => _viewModel.CurrentState;
 
         /// <summary>
-        /// DWM API：设置窗口属性（用于亚克力背景）
-        /// DWMWA_SYSTEMBACKDROP_TYPE (38) = DWMSBT_TRANSIENTWINDOW (3)
-        /// </summary>
-        [DllImport("dwmapi.dll")]
-        private static extern int DwmSetWindowAttribute(IntPtr hwnd, uint attr, ref int pvAttr, uint size);
-
-        /// <summary>
         /// 构造函数 - 初始化窗口、ViewModel、Controller 和事件订阅
         /// 
         /// 【关键设计决策】
-        /// 1. 为什么在构造函数中调用 DwmSetWindowAttribute？
-        ///    - 必须在第一帧渲染前设置亚克力背景，避免白色闪烁
-        ///    - 必须在 InitializeComponent() 之后调用（窗口句柄已创建）
+        /// 1. 为什么构造函数中不设置任何 DWM 背景效果？
+        ///    - 启动时使用默认的纯色背景（由 XAML 的 Background 属性控制）
+        ///    - 亚克力效果在启动屏幕淡出后由 ShowSplash() 设置
+        ///    - 避免在启动屏幕显示前出现任何透明或特殊效果
         /// 
         /// 2. 为什么不在构造函数中调用 Activate()？
         ///    - Activate() 会触发窗口显示动画，应由 WindowHostController.RequestSlideIn() 控制
@@ -93,18 +93,14 @@ namespace Docked_AI
         ///    - ViewModel 是纯数据容器，不依赖 Controller
         /// 
         /// 【副作用】
-        /// - DwmSetWindowAttribute 修改窗口 DWM 属性（不可逆）
         /// - 订阅多个事件（必须在 OnWindowClosed 中取消订阅）
         /// </summary>
         public MainWindow()
         {
             InitializeComponent();
 
-            // 第一帧就是亚克力，告别白闪 ✨
-            // 注意：必须在 InitializeComponent() 之后调用，此时窗口句柄已创建
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-            int acrylic = 3; // DWMSBT_TRANSIENTWINDOW
-            DwmSetWindowAttribute(hwnd, 38, ref acrylic, sizeof(int));
+            // 不设置任何 DWM 背景效果，使用默认的纯色背景
+            // 亚克力效果将在启动屏幕淡出后由 ShowSplash() 设置
 
             // 创建 ViewModel（状态容器）和 Controller（状态转换执行器）
             _viewModel = new MainWindowViewModel();
@@ -420,27 +416,23 @@ namespace Docked_AI
         /// 由应用入口在窗口激活后调用
         /// 
         /// 【动画流程】
-        /// 1. 显示启动屏幕遮罩（纯色背景）
-        /// 2. 淡入动画：纯色 → 启动屏幕图片（400ms）
-        /// 3. 等待显示时间（1500ms）
-        /// 4. 淡出动画：启动屏幕 → 主界面（300ms）
+        /// 1. 立即播放淡入动画：纯色 → 启动屏幕图片（400ms）
+        /// 2. 等待显示时间（1500ms）
+        /// 3. 淡出动画：启动屏幕 → 主界面（300ms）
+        /// 4. 淡出完成后设置亚克力背景并将 RootGrid 改为透明
         /// 5. 隐藏启动屏幕遮罩
         /// </summary>
         public async void ShowSplash()
         {
-            SplashOverlay.Visibility = Visibility.Visible;
-            SplashOverlay.Opacity = 1;
-
-            // 等待短暂时间后开始淡入动画（纯色 -> 启动屏幕）
-            await Task.Delay(100);
-            
+            // 启动屏幕已经在 XAML 中默认可见（Visibility="Visible", Opacity="1"）
+            // 立即播放淡入动画（纯色 -> 启动屏幕）
             var fadeInStoryboard = (Storyboard)SplashOverlay.Resources["SplashFadeIn"];
             fadeInStoryboard.Begin();
 
             // 等待淡入完成 + 显示时间
-            await Task.Delay(1500);
+            await Task.Delay(1900); // 400ms 淡入 + 1500ms 显示
 
-            // 使用 TaskCompletionSource 等待动画完全完成
+            // 使用 TaskCompletionSource 等待淡出动画完全完成
             var tcs = new TaskCompletionSource<bool>();
             
             var fadeOutStoryboard = (Storyboard)SplashOverlay.Resources["SplashFadeOut"];
@@ -453,6 +445,21 @@ namespace Docked_AI
             
             // 等待淡出动画完成
             await tcs.Task;
+            
+            // 淡出完成后设置亚克力背景（使用 WinUI SystemBackdrop API）
+            try
+            {
+                this.SystemBackdrop = new Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop();
+                System.Diagnostics.Debug.WriteLine("[MainWindow] Acrylic backdrop set after splash screen");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to set acrylic backdrop: {ex.Message}");
+            }
+            
+            // 将 RootGrid 背景改为透明，让亚克力效果透过来
+            RootGrid.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+                Windows.UI.Color.FromArgb(0, 0, 0, 0));
             
             // 确保启动屏幕完全隐藏
             SplashOverlay.Visibility = Visibility.Collapsed;

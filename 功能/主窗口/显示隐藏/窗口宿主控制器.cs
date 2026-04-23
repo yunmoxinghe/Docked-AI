@@ -283,6 +283,13 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 // - 如果在配置过程中调用会导致闪现问题
                 _window.Activate();
                 System.Diagnostics.Debug.WriteLine("[WindowHostController] Window activated with built-in animation");
+                
+                // 6. 窗口激活后立即显示启动屏幕
+                if (_window is global::Docked_AI.MainWindow mainWindow)
+                {
+                    System.Diagnostics.Debug.WriteLine("[WindowHostController] Showing splash screen immediately after activation");
+                    mainWindow.ShowSplash();
+                }
             }
             catch (Exception ex)
             {
@@ -327,9 +334,10 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 _state.WindowWidth, 
                 _state.WindowHeight));
 
-            // 配置标题栏和背景
+            // 配置标题栏（不设置背景，等启动屏幕完成后再设置）
             _titleBarService.ConfigureStandardWindow(_window);
-            _backdropService.EnsureAcrylicBackdrop(_window);
+            // 注意：不在这里设置亚克力背景，避免在启动屏幕前显示
+            // 亚克力背景将在 ShowSplash() 完成后设置
 
             // 订阅事件
             _window.Activated += OnWindowActivated;

@@ -268,19 +268,9 @@ namespace Docked_AI.Features.Tray
                     System.Diagnostics.Debug.WriteLine("[TrayIconManager] Initialization complete, requesting first show");
                     
                     // 触发首次显示，利用 DWM 的创建动画 ✨
+                    // 注意：ShowSplash() 现在在 RequestSlideIn() 内部调用，确保在窗口激活后立即显示
                     windowToggle.RequestSlideIn();
                     System.Diagnostics.Debug.WriteLine("[TrayIconManager] RequestSlideIn called");
-                    
-                    // 显示启动屏幕动画
-                    if (_mainWindow is global::Docked_AI.MainWindow mainWindow)
-                    {
-                        System.Diagnostics.Debug.WriteLine("[TrayIconManager] Showing splash screen");
-                        // 延迟调用 ShowSplash，确保窗口已完全激活
-                        _mainWindow.DispatcherQueue.TryEnqueue(() =>
-                        {
-                            mainWindow.ShowSplash();
-                        });
-                    }
                 }
                 else
                 {
