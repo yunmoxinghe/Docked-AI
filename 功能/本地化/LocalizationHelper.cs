@@ -7,17 +7,12 @@ namespace Docked_AI.Features.Localization
     /// <summary>
     /// 本地化辅助类，用于获取本地化字符串资源
     /// </summary>
-    public static class LocalizationHelper
+public static class LocalizationHelper
     {
         private const string ResourceMapName = "Resources";
         private static ResourceLoader? _resourceLoader;
         private static string? _lastLanguage;
 
-        /// <summary>
-        /// 获取本地化字符串
-        /// </summary>
-        /// <param name="key">资源键</param>
-        /// <returns>本地化后的字符串</returns>
         public static string GetString(string key)
         {
             try
@@ -31,7 +26,7 @@ namespace Docked_AI.Features.Localization
 
                 if (_resourceLoader == null || _lastLanguage != currentLanguage)
                 {
-                    _resourceLoader = ResourceLoader.GetForViewIndependentUse(ResourceMapName);
+                    _resourceLoader = new ResourceLoader("Resources");
                     _lastLanguage = currentLanguage;
                 }
 

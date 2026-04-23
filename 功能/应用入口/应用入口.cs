@@ -274,6 +274,21 @@ namespace Docked_AI
         {
             try
             {
+                // 先关闭主窗口
+                if (_window != null)
+                {
+                    _window.Close();
+                    _window = null;
+                }
+
+                // 关闭保持窗口
+                if (_keepAliveWindow != null)
+                {
+                    _keepAliveWindow.Close();
+                    _keepAliveWindow = null;
+                }
+
+                // 清理托盘图标
                 _trayIconManager?.Dispose();
                 _trayIconManager = null;
                 

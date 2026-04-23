@@ -23,7 +23,7 @@ public static class AppRestartService
     /// 带参数重启应用
     /// </summary>
     /// <param name="args">启动参数，例如 "--restart-from=update"</param>
-    public static void RestartWithArgs(params string[] args)
+    public static async void RestartWithArgs(params string[] args)
     {
         try
         {
@@ -50,6 +50,10 @@ public static class AppRestartService
 
             Process.Start(startInfo);
             
+            // 给新进程一点时间启动，然后再退出旧实例
+            // 这样新进程有足够时间获取 Mutex 并初始化资源
+            await System.Threading.Tasks.Task.Delay(500);
+            
             // ⚠️ 重要：触发应用的正常退出流程，确保托盘图标等资源被正确清理
             // 不能直接调用 Application.Current.Exit()，因为这会跳过清理逻辑
             if (Application.Current is Docked_AI.App app)
@@ -73,7 +77,7 @@ public static class AppRestartService
     /// <summary>
     /// 以管理员权限重启
     /// </summary>
-    public static void RestartAsAdmin()
+    public static async void RestartAsAdmin()
     {
         try
         {
@@ -90,11 +94,14 @@ public static class AppRestartService
                 UseShellExecute = true,
                 Verb = "runas", // 请求管理员权限
                 Arguments = "--restart" // 确保包含重启标记
-            };
+};
 
             Process.Start(startInfo);
             
-            // ⚠️ 重要：触发应用的正常退出流程，确保托盘图标等资源被正确清理
+            // 给新进程一点时间启动，然后再退出旧实例
+            await System.Threading.Tasks.Task.Delay(500);
+            
+            // ⚠️ 重要：触发应用的正常退出流程确保托盘图标等资源被正确清理
             if (Application.Current is Docked_AI.App app)
             {
                 app.ExitApplicationPublic();

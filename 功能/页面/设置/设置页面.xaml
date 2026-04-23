@@ -110,12 +110,11 @@
                                             HorizontalAlignment="Center">
                                             <FontIcon Glyph="&#xE98A;" FontSize="32"/>
                                         </Button>
-                                        <TextBlock x:Uid="Language_SimplifiedChinese"
-                                                 Text="简体中文"
-                                                 FontSize="12" 
-                                                 TextAlignment="Center"
-                                                 TextWrapping="Wrap"
-                                                 HorizontalAlignment="Center"/>
+<TextBlock x:Uid="Language_SimplifiedChinese"
+                                                  FontSize="12" 
+                                                  TextAlignment="Center"
+                                                  TextWrapping="Wrap"
+                                                  HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     
                                     <!-- 繁体中文 -->
@@ -134,12 +133,11 @@
                                             HorizontalAlignment="Center">
                                             <FontIcon Glyph="&#xE88C;" FontSize="32"/>
                                         </Button>
-                                        <TextBlock x:Uid="Language_TraditionalChinese"
-                                                 Text="繁體中文"
-                                                 FontSize="12" 
-                                                 TextAlignment="Center"
-                                                 TextWrapping="Wrap"
-                                                 HorizontalAlignment="Center"/>
+<TextBlock x:Uid="Language_TraditionalChinese"
+                                                  FontSize="12" 
+                                                  TextAlignment="Center"
+                                                  TextWrapping="Wrap"
+                                                  HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     
                                     <!-- English -->
@@ -159,12 +157,11 @@
                                             <TextBlock Text="A" FontSize="32" FontWeight="SemiBold" 
                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Button>
-                                        <TextBlock x:Uid="Language_English"
-                                                 Text="English"
-                                                 FontSize="12" 
-                                                 TextAlignment="Center"
-                                                 TextWrapping="Wrap"
-                                                 HorizontalAlignment="Center"/>
+<TextBlock x:Uid="Language_English"
+                                                  FontSize="12" 
+                                                  TextAlignment="Center"
+                                                  TextWrapping="Wrap"
+                                                  HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     
                                     <!-- 日本語 -->
@@ -183,12 +180,11 @@
                                             HorizontalAlignment="Center">
                                             <FontIcon Glyph="&#xEC45;" FontSize="32"/>
                                         </Button>
-                                        <TextBlock x:Uid="Language_Japanese"
-                                                 Text="日本語"
-                                                 FontSize="12" 
-                                                 TextAlignment="Center"
-                                                 TextWrapping="Wrap"
-                                                 HorizontalAlignment="Center"/>
+<TextBlock x:Uid="Language_Japanese"
+                                                  FontSize="12" 
+                                                  TextAlignment="Center"
+                                                  TextWrapping="Wrap"
+                                                  HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     
                                     <!-- 한국어 -->
@@ -207,12 +203,11 @@
                                             HorizontalAlignment="Center">
                                             <FontIcon Glyph="&#xE88B;" FontSize="32"/>
                                         </Button>
-                                        <TextBlock x:Uid="Language_Korean"
-                                                 Text="한국어"
-                                                 FontSize="12" 
-                                                 TextAlignment="Center"
-                                                 TextWrapping="Wrap"
-                                                 HorizontalAlignment="Center"/>
+<TextBlock x:Uid="Language_Korean"
+                                                  FontSize="12" 
+                                                  TextAlignment="Center"
+                                                  TextWrapping="Wrap"
+                                                  HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     
                                     <!-- Français -->
@@ -232,12 +227,11 @@
                                             <TextBlock Text="F" FontSize="32" FontWeight="SemiBold" 
                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Button>
-                                        <TextBlock x:Uid="Language_French"
-                                                 Text="Français"
-                                                 FontSize="12" 
-                                                 TextAlignment="Center"
-                                                 TextWrapping="Wrap"
-                                                 HorizontalAlignment="Center"/>
+<TextBlock x:Uid="Language_French"
+                                                  FontSize="12" 
+                                                  TextAlignment="Center"
+                                                  TextWrapping="Wrap"
+                                                  HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     
                                     <!-- Deutsch -->
@@ -257,12 +251,11 @@
                                             <TextBlock Text="D" FontSize="32" FontWeight="SemiBold" 
                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Button>
-                                        <TextBlock x:Uid="Language_German"
-                                                 Text="Deutsch"
-                                                 FontSize="12" 
-                                                 TextAlignment="Center"
-                                                 TextWrapping="Wrap"
-                                                 HorizontalAlignment="Center"/>
+<TextBlock x:Uid="Language_German"
+                                                  FontSize="12" 
+                                                  TextAlignment="Center"
+                                                  TextWrapping="Wrap"
+                                                  HorizontalAlignment="Center"/>
                                     </StackPanel>
                                     
                                     <!-- Español -->
@@ -282,12 +275,11 @@
                                             <TextBlock Text="E" FontSize="32" FontWeight="SemiBold" 
                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Button>
-                                        <TextBlock x:Uid="Language_Spanish"
-                                                 Text="Español"
-                                                 FontSize="12" 
-                                                 TextAlignment="Center"
-                                                 TextWrapping="Wrap"
-                                                 HorizontalAlignment="Center"/>
+<TextBlock x:Uid="Language_Spanish"
+                                                  FontSize="12" 
+                                                  TextAlignment="Center"
+                                                  TextWrapping="Wrap"
+                                                  HorizontalAlignment="Center"/>
                                     </StackPanel>
                                 </VariableSizedWrapGrid>
                             </controls:SettingsCard>

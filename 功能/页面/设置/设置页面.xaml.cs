@@ -102,14 +102,14 @@ namespace Docked_AI.Features.Pages.Settings
 
             var languageMap = new Dictionary<string, string>
             {
-                { "zh-CN", LocalizationHelper.GetString("Language_SimplifiedChinese") },
-                { "zh-TW", LocalizationHelper.GetString("Language_TraditionalChinese") },
-                { "en-US", LocalizationHelper.GetString("Language_English") },
-                { "ja-JP", LocalizationHelper.GetString("Language_Japanese") },
-                { "ko-KR", LocalizationHelper.GetString("Language_Korean") },
-                { "fr-FR", LocalizationHelper.GetString("Language_French") },
-                { "de-DE", LocalizationHelper.GetString("Language_German") },
-                { "es-ES", LocalizationHelper.GetString("Language_Spanish") }
+                { "zh-CN", LocalizationHelper.GetString("Language_SimplifiedChinese.Text") },
+                { "zh-TW", LocalizationHelper.GetString("Language_TraditionalChinese.Text") },
+                { "en-US", LocalizationHelper.GetString("Language_English.Text") },
+                { "ja-JP", LocalizationHelper.GetString("Language_Japanese.Text") },
+                { "ko-KR", LocalizationHelper.GetString("Language_Korean.Text") },
+                { "fr-FR", LocalizationHelper.GetString("Language_French.Text") },
+                { "de-DE", LocalizationHelper.GetString("Language_German.Text") },
+                { "es-ES", LocalizationHelper.GetString("Language_Spanish.Text") }
             };
 
             string languageName = currentLanguage;
