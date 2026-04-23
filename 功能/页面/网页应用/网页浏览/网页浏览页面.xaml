@@ -81,7 +81,7 @@
                     <FontIcon 
                         Glyph="&#xE711;" 
                         FontSize="12"
-                        Foreground="{x:Bind _topBarForegroundBrush, Mode=OneWay}"/>
+                        Foreground="{x:Bind _topBarForegroundBrush, Mode=OneTime}"/>
                 </Button>
                 <ProgressBar
                     x:Name="LoadingProgressBar"
