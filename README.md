@@ -1,6 +1,15 @@
 # 边栏助手 (Docked AI)
 
-[![从 Microsoft 获取](https://get.microsoft.com/images/zh-CN%20dark.svg)](https://apps.microsoft.com/detail/STORE_PRODUCT_ID?hl=zh-CN&gl=JP)
+<script type="module" src="https://get.microsoft.com/badge/ms-store-badge.bundled.js"></script>
+<ms-store-badge
+	productid="9NX1DZB3WNWP"
+	productname="边栏助手"
+	window-mode="direct"
+	theme="auto"
+	size="large"
+	language="zh-cn"
+	animation="on">
+</ms-store-badge>
 
 一个基于 WinUI 3 的 Windows 桌面应用程序，提供便捷的边栏助手功能。
 
