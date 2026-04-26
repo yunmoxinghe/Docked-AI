@@ -57,37 +57,42 @@
                     Background="{ThemeResource CardStrokeColorDefaultBrush}"
                     Opacity="0.5" />
 
-                <!-- 应用栏内容 -->
-                <Grid Margin="8,0,8,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+                <!-- 中间区域（可扩展） -->
+                <ContentPresenter
+                    x:Name="TopBarCenterContent"
+                    Margin="48,0"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Center" />
+            </Grid>
 
-                    <!-- 左侧区域（可扩展） -->
-                    <StackPanel
-                        x:Name="TopBarLeftPanel"
-                        Grid.Column="0"
-                        Orientation="Horizontal"
-                        VerticalAlignment="Center"
-                        Spacing="4" />
+            <!-- 第四层：左右按钮层（始终在最顶层，不随顶部栏显隐） -->
+            <Grid
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Top"
+                Height="48"
+                IsHitTestVisible="True"
+                Margin="8,0,8,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-                    <!-- 中间区域（可扩展） -->
-                    <ContentPresenter
-                        x:Name="TopBarCenterContent"
-                        Grid.Column="1"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Center" />
+                <!-- 左侧区域（可扩展） -->
+                <StackPanel
+                    x:Name="TopBarLeftPanel"
+                    Grid.Column="0"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center"
+                    Spacing="4" />
 
-                    <!-- 右侧区域（可扩展） -->
-                    <StackPanel
-                        x:Name="TopBarRightPanel"
-                        Grid.Column="2"
-                        Orientation="Horizontal"
-                        VerticalAlignment="Center"
-                        Spacing="4" />
-                </Grid>
+                <!-- 右侧区域（可扩展） -->
+                <StackPanel
+                    x:Name="TopBarRightPanel"
+                    Grid.Column="2"
+                    Orientation="Horizontal"
+                    VerticalAlignment="Center"
+                    Spacing="4" />
             </Grid>
         </Grid>
     </Border>

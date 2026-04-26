@@ -53,12 +53,44 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         public ContentPresenter TopBarCenter => TopBarCenterContent;
 
         /// <summary>
-        /// 显示或隐藏顶部应用栏
+        /// 显示或隐藏顶部应用栏（带淡入淡出动画）
         /// </summary>
         public bool IsTopBarVisible
         {
             get => TopAppBarContainer.Visibility == Visibility.Visible;
-            set => TopAppBarContainer.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
+            set => SetTopBarVisibleAnimated(value);
+        }
+
+        private void SetTopBarVisibleAnimated(bool visible)
+        {
+            var visual = ElementCompositionPreview.GetElementVisual(TopAppBarContainer);
+            var compositor = visual.Compositor;
+
+            if (visible)
+            {
+                TopAppBarContainer.Visibility = Visibility.Visible;
+                var fadeIn = compositor.CreateScalarKeyFrameAnimation();
+                fadeIn.InsertKeyFrame(0f, 0f);
+                fadeIn.InsertKeyFrame(1f, 1f);
+                fadeIn.Duration = TimeSpan.FromMilliseconds(200);
+                visual.StartAnimation("Opacity", fadeIn);
+            }
+            else
+            {
+                var fadeOut = compositor.CreateScalarKeyFrameAnimation();
+                fadeOut.InsertKeyFrame(0f, 1f);
+                fadeOut.InsertKeyFrame(1f, 0f);
+                fadeOut.Duration = TimeSpan.FromMilliseconds(150);
+
+                var batch = compositor.CreateScopedBatch(CompositionBatchTypes.Animation);
+                visual.StartAnimation("Opacity", fadeOut);
+                batch.End();
+                batch.Completed += (_, _) =>
+                {
+                    TopAppBarContainer.Visibility = Visibility.Collapsed;
+                    visual.Opacity = 1f; // 重置，下次显示时从正确状态开始
+                };
+            }
         }
 
         public ContentArea()
