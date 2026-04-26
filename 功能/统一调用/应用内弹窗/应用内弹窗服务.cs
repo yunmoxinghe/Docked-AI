@@ -26,6 +26,11 @@ public static class InAppDialogService
         try
         {
             dialog.XamlRoot = xamlRoot;
+            // 同步主题，确保弹窗跟随应用当前主题（修复夜间主题不生效问题）
+            if (xamlRoot.Content is FrameworkElement rootElement)
+            {
+                dialog.RequestedTheme = rootElement.ActualTheme;
+            }
             return await dialog.ShowAsync();
         }
         finally
