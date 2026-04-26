@@ -404,6 +404,43 @@
   <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
     <value>WinUI-Stil-Kontextmenü für Webbrowser aktivieren (Standard verwendet natives Browsermenü)</value>
   </data>
+
+  <!-- Einstellungsseite - Labor-Eintrag -->
+  <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
+    <value>Labor 📦</value>
+  </data>
+  <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
+    <value>Experimentelle Funktionen erkunden</value>
+  </data>
+
+  <!-- Laborseite -->
+  <data name="LabPage_Title.Text" xml:space="preserve">
+    <value>Labor 📦</value>
+  </data>
+  <data name="LabPage_Subtitle.Text" xml:space="preserve">
+    <value>Diese Funktionen befinden sich in der experimentellen Phase und können instabil sein oder sich ändern.</value>
+  </data>
+  <data name="LabPage_ExperimentalSection.Text" xml:space="preserve">
+    <value>Experimentelle Funktionen</value>
+  </data>
+  <data name="LabPage_AILabHeader.Header" xml:space="preserve">
+    <value>AI-Labor</value>
+  </data>
+  <data name="LabPage_AILabHeader.Description" xml:space="preserve">
+    <value>AI-Labor-Eintrag in der Seitenleiste anzeigen</value>
+  </data>
+  <data name="LabPage_RoundedWebViewHeader.Header" xml:space="preserve">
+    <value>WebView2 abgerundete Ecken</value>
+  </data>
+  <data name="LabPage_RoundedWebViewHeader.Description" xml:space="preserve">
+    <value>Abgerundete Ecken für Webbrowser aktivieren, Radius synchronisiert sich automatisch mit dem übergeordneten Container</value>
+  </data>
+  <data name="LabPage_WinUIContextMenuHeader.Header" xml:space="preserve">
+    <value>WinUI-Kontextmenü</value>
+  </data>
+  <data name="LabPage_WinUIContextMenuHeader.Description" xml:space="preserve">
+    <value>WinUI-Stil-Kontextmenü für Webbrowser aktivieren (Standard verwendet natives Browsermenü)</value>
+  </data>
   <data name="SettingsPage_OpenSettingsError" xml:space="preserve">
     <value>Die Systemeinstellungsseite kann nicht geöffnet werden. Bitte navigieren Sie manuell zu Windows-Einstellungen &gt; Apps &gt; Start.</value>
   </data>

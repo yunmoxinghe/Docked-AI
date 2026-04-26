@@ -404,6 +404,43 @@
   <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
     <value>웹 브라우저에 WinUI 스타일 컨텍스트 메뉴 활성화 (기본값은 브라우저 네이티브 메뉴)</value>
   </data>
+
+  <!-- 설정 페이지 - 실험실 입구 -->
+  <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
+    <value>실험실 📦</value>
+  </data>
+  <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
+    <value>실험적 기능 탐색</value>
+  </data>
+
+  <!-- 실험실 페이지 -->
+  <data name="LabPage_Title.Text" xml:space="preserve">
+    <value>실험실 📦</value>
+  </data>
+  <data name="LabPage_Subtitle.Text" xml:space="preserve">
+    <value>아래 기능은 실험 단계에 있으며 불안정하거나 변경될 수 있습니다.</value>
+  </data>
+  <data name="LabPage_ExperimentalSection.Text" xml:space="preserve">
+    <value>실험적 기능</value>
+  </data>
+  <data name="LabPage_AILabHeader.Header" xml:space="preserve">
+    <value>AI 실험실</value>
+  </data>
+  <data name="LabPage_AILabHeader.Description" xml:space="preserve">
+    <value>사이드바에 AI 실험실 항목 표시</value>
+  </data>
+  <data name="LabPage_RoundedWebViewHeader.Header" xml:space="preserve">
+    <value>WebView2 둥근 모서리</value>
+  </data>
+  <data name="LabPage_RoundedWebViewHeader.Description" xml:space="preserve">
+    <value>웹 브라우저에 둥근 모서리 효과 활성화, 크기는 상위 컨테이너와 자동 동기화</value>
+  </data>
+  <data name="LabPage_WinUIContextMenuHeader.Header" xml:space="preserve">
+    <value>WinUI 컨텍스트 메뉴</value>
+  </data>
+  <data name="LabPage_WinUIContextMenuHeader.Description" xml:space="preserve">
+    <value>웹 브라우저에 WinUI 스타일 컨텍스트 메뉴 활성화 (기본값은 브라우저 네이티브 메뉴)</value>
+  </data>
   <data name="SettingsPage_OpenSettingsError" xml:space="preserve">
     <value>시스템 설정 페이지를 열 수 없습니다. Windows 설정 &gt; 앱 &gt; 시작으로 수동으로 이동하세요.</value>
   </data>

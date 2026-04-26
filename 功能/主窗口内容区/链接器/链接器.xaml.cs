@@ -4,6 +4,7 @@ using Docked_AI.Features.Pages.New;
 using Docked_AI.Features.Pages.WebApp;
 using Docked_AI.Features.Pages.WebApp.Browser;
 using Docked_AI.Features.Pages.WebApp.Shared;
+using Docked_AI.Features.UnifiedCalls.TopAppBar;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -24,6 +25,7 @@ namespace Docked_AI.Features.MainWindowContent.Linker
         public Linker()
         {
             InitializeComponent();
+            TopAppBarService.Register(ContentHost);
             ContentHost.Navigate(typeof(HomePage));
             ContentHost.Navigated += ContentHost_Navigated;
             ContentHost.PageCloseRequested += OnPageCloseRequested;

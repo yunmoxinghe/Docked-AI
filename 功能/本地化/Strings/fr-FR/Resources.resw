@@ -404,6 +404,43 @@
   <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
     <value>Activer le menu contextuel de style WinUI pour le navigateur web (par défaut utilise le menu natif du navigateur)</value>
   </data>
+
+  <!-- Page de paramètres - Entrée du laboratoire -->
+  <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
+    <value>Laboratoire 📦</value>
+  </data>
+  <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
+    <value>Explorer les fonctionnalités expérimentales</value>
+  </data>
+
+  <!-- Page du laboratoire -->
+  <data name="LabPage_Title.Text" xml:space="preserve">
+    <value>Laboratoire 📦</value>
+  </data>
+  <data name="LabPage_Subtitle.Text" xml:space="preserve">
+    <value>Ces fonctionnalités sont en phase expérimentale et peuvent être instables ou sujettes à modification.</value>
+  </data>
+  <data name="LabPage_ExperimentalSection.Text" xml:space="preserve">
+    <value>Fonctionnalités expérimentales</value>
+  </data>
+  <data name="LabPage_AILabHeader.Header" xml:space="preserve">
+    <value>Laboratoire IA</value>
+  </data>
+  <data name="LabPage_AILabHeader.Description" xml:space="preserve">
+    <value>Afficher l'entrée du laboratoire IA dans la barre latérale</value>
+  </data>
+  <data name="LabPage_RoundedWebViewHeader.Header" xml:space="preserve">
+    <value>Coins arrondis WebView2</value>
+  </data>
+  <data name="LabPage_RoundedWebViewHeader.Description" xml:space="preserve">
+    <value>Activer les coins arrondis pour le navigateur web, le rayon se synchronise automatiquement avec le conteneur parent</value>
+  </data>
+  <data name="LabPage_WinUIContextMenuHeader.Header" xml:space="preserve">
+    <value>Menu contextuel WinUI</value>
+  </data>
+  <data name="LabPage_WinUIContextMenuHeader.Description" xml:space="preserve">
+    <value>Activer le menu contextuel de style WinUI pour le navigateur web (par défaut utilise le menu natif du navigateur)</value>
+  </data>
   <data name="SettingsPage_OpenSettingsError" xml:space="preserve">
     <value>Impossible d'ouvrir la page des paramètres système. Veuillez naviguer manuellement vers Paramètres Windows &gt; Applications &gt; Démarrage.</value>
   </data>

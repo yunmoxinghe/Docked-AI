@@ -25,10 +25,41 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
 
         public event EventHandler<NavigationEventArgs>? Navigated;
 
+        private const double TopBarHeight = 48.0;
+
         /// <summary>
         /// 获取覆盖层容器，用于添加通用控件和装饰
         /// </summary>
         public Grid OverlayContainer => OverlayLayer;
+
+        /// <summary>
+        /// 顶部应用栏容器
+        /// </summary>
+        public Grid TopAppBar => TopAppBarContainer;
+
+        /// <summary>
+        /// 顶部应用栏左侧面板
+        /// </summary>
+        public StackPanel TopBarLeft => TopBarLeftPanel;
+
+        /// <summary>
+        /// 顶部应用栏右侧面板
+        /// </summary>
+        public StackPanel TopBarRight => TopBarRightPanel;
+
+        /// <summary>
+        /// 顶部应用栏中间内容
+        /// </summary>
+        public ContentPresenter TopBarCenter => TopBarCenterContent;
+
+        /// <summary>
+        /// 显示或隐藏顶部应用栏
+        /// </summary>
+        public bool IsTopBarVisible
+        {
+            get => TopAppBarContainer.Visibility == Visibility.Visible;
+            set => TopAppBarContainer.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
+        }
 
         public ContentArea()
         {
@@ -271,6 +302,10 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
 
         private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
         {
+            // 根据页面类型控制顶部应用栏显隐（统一在此处理，覆盖所有导航路径）
+            bool showTopBar = e.SourcePageType != typeof(WebBrowserPage);
+            TopAppBarContainer.Visibility = showTopBar ? Visibility.Visible : Visibility.Collapsed;
+
             // Frame 导航完成后，将页面加入缓存
             if (ContentFrame.Content is Page page)
             {

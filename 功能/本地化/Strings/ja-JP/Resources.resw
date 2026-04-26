@@ -404,6 +404,43 @@
   <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
     <value>WebブラウザにWinUIスタイルのコンテキストメニューを有効にする（デフォルトはブラウザネイティブメニュー）</value>
   </data>
+
+  <!-- 設定ページ - ラボ入口 -->
+  <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
+    <value>ラボ 📦</value>
+  </data>
+  <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
+    <value>実験的な機能を探索する</value>
+  </data>
+
+  <!-- ラボページ -->
+  <data name="LabPage_Title.Text" xml:space="preserve">
+    <value>ラボ 📦</value>
+  </data>
+  <data name="LabPage_Subtitle.Text" xml:space="preserve">
+    <value>以下の機能は実験段階にあり、不安定または変更される可能性があります。</value>
+  </data>
+  <data name="LabPage_ExperimentalSection.Text" xml:space="preserve">
+    <value>実験的な機能</value>
+  </data>
+  <data name="LabPage_AILabHeader.Header" xml:space="preserve">
+    <value>AI ラボ</value>
+  </data>
+  <data name="LabPage_AILabHeader.Description" xml:space="preserve">
+    <value>サイドバーに AI ラボのエントリを表示する</value>
+  </data>
+  <data name="LabPage_RoundedWebViewHeader.Header" xml:space="preserve">
+    <value>WebView2 角丸</value>
+  </data>
+  <data name="LabPage_RoundedWebViewHeader.Description" xml:space="preserve">
+    <value>Webブラウザの角丸効果を有効にする。角丸サイズは親コンテナと自動同期</value>
+  </data>
+  <data name="LabPage_WinUIContextMenuHeader.Header" xml:space="preserve">
+    <value>WinUI コンテキストメニュー</value>
+  </data>
+  <data name="LabPage_WinUIContextMenuHeader.Description" xml:space="preserve">
+    <value>WebブラウザにWinUIスタイルのコンテキストメニューを有効にする（デフォルトはブラウザネイティブメニュー）</value>
+  </data>
   <data name="SettingsPage_OpenSettingsError" xml:space="preserve">
     <value>システム設定ページを開けません。Windows 設定 &gt; アプリ &gt; スタートアップに手動で移動してください。</value>
   </data>

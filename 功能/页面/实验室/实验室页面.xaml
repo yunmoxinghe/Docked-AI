@@ -1,0 +1,88 @@
+<Page
+    x:Class="Docked_AI.Features.Pages.Lab.LabPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    UseLayoutRounding="True">
+
+    <Grid x:Name="RootGrid" Padding="0" UseLayoutRounding="True">
+        <ScrollViewer
+            HorizontalScrollBarVisibility="Disabled"
+            HorizontalScrollMode="Disabled"
+            HorizontalContentAlignment="Stretch"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel
+                x:Name="PageContentPanel"
+                Margin="16,0"
+                UseLayoutRounding="True"
+                Spacing="0">
+
+                <Border Height="40" />
+
+                <TextBlock
+                    x:Uid="LabPage_Title"
+                    FontSize="32"
+                    FontWeight="SemiBold"/>
+
+                <Border Height="8" />
+
+                <TextBlock
+                    x:Uid="LabPage_Subtitle"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    TextWrapping="Wrap"
+                    Margin="0,0,0,0"/>
+
+                <Border Height="28" />
+
+                <StackPanel Spacing="4">
+                    <StackPanel.ChildrenTransitions>
+                        <EntranceThemeTransition FromVerticalOffset="50" />
+                        <RepositionThemeTransition IsStaggeringEnabled="True" />
+                    </StackPanel.ChildrenTransitions>
+
+                    <!-- 实验特性分组 -->
+                    <TextBlock
+                        x:Uid="LabPage_ExperimentalSection"
+                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                        Margin="1,0,0,4"/>
+
+                    <!-- AI 实验室 -->
+                    <controls:SettingsCard x:Uid="LabPage_AILabHeader">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xF4A5;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch
+                            x:Name="AILabToggle"
+                            Toggled="OnAILabToggled"/>
+                    </controls:SettingsCard>
+
+                    <!-- WebView2 圆角 -->
+                    <controls:SettingsCard x:Uid="LabPage_RoundedWebViewHeader">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE7C8;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch
+                            x:Name="RoundedWebViewToggle"
+                            Toggled="OnRoundedWebViewToggled"/>
+                    </controls:SettingsCard>
+
+                    <!-- WinUI 右键菜单 -->
+                    <controls:SettingsCard x:Uid="LabPage_WinUIContextMenuHeader">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE8C1;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch
+                            x:Name="WinUIContextMenuToggle"
+                            Toggled="OnWinUIContextMenuToggled"/>
+                    </controls:SettingsCard>
+
+                </StackPanel>
+
+                <Border Height="40" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

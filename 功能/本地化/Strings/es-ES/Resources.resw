@@ -404,6 +404,43 @@
   <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
     <value>Activar menú contextual estilo WinUI para el navegador web (predeterminado usa menú nativo del navegador)</value>
   </data>
+
+  <!-- Página de configuración - Entrada al laboratorio -->
+  <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
+    <value>Laboratorio 📦</value>
+  </data>
+  <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
+    <value>Explorar funciones experimentales</value>
+  </data>
+
+  <!-- Página del laboratorio -->
+  <data name="LabPage_Title.Text" xml:space="preserve">
+    <value>Laboratorio 📦</value>
+  </data>
+  <data name="LabPage_Subtitle.Text" xml:space="preserve">
+    <value>Estas funciones están en fase experimental y pueden ser inestables o cambiar en cualquier momento.</value>
+  </data>
+  <data name="LabPage_ExperimentalSection.Text" xml:space="preserve">
+    <value>Funciones experimentales</value>
+  </data>
+  <data name="LabPage_AILabHeader.Header" xml:space="preserve">
+    <value>Laboratorio de IA</value>
+  </data>
+  <data name="LabPage_AILabHeader.Description" xml:space="preserve">
+    <value>Mostrar entrada del laboratorio de IA en la barra lateral</value>
+  </data>
+  <data name="LabPage_RoundedWebViewHeader.Header" xml:space="preserve">
+    <value>Esquinas redondeadas WebView2</value>
+  </data>
+  <data name="LabPage_RoundedWebViewHeader.Description" xml:space="preserve">
+    <value>Activar esquinas redondeadas para el navegador web, el radio se sincroniza automáticamente con el contenedor padre</value>
+  </data>
+  <data name="LabPage_WinUIContextMenuHeader.Header" xml:space="preserve">
+    <value>Menú contextual WinUI</value>
+  </data>
+  <data name="LabPage_WinUIContextMenuHeader.Description" xml:space="preserve">
+    <value>Activar menú contextual estilo WinUI para el navegador web (predeterminado usa menú nativo del navegador)</value>
+  </data>
   <data name="SettingsPage_OpenSettingsError" xml:space="preserve">
     <value>No se puede abrir la página de configuración del sistema. Navegue manualmente a Configuración de Windows &gt; Aplicaciones &gt; Inicio.</value>
   </data>

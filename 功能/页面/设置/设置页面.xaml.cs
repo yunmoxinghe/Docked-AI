@@ -13,6 +13,7 @@ using Docked_AI.Features.Localization;
 using Docked_AI.Features.AppEntry.AutoLaunch;
 using Docked_AI.Features.Hotkey;
 using Docked_AI.Features.Pages.Settings;
+using Docked_AI.Features.Pages.Lab;
 using Docked_AI.Features.UnifiedCalls.InAppDialog;
 using Docked_AI.功能.统一调用;
 
@@ -297,62 +298,25 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void LoadExperimentalSettings()
         {
-            // 暂时取消事件订阅，避免在初始化时触发
-            AILabToggle.Toggled -= OnAILabToggled;
-            RoundedWebViewToggle.Toggled -= OnRoundedWebViewToggled;
-            WinUIContextMenuToggle.Toggled -= OnWinUIContextMenuToggled;
-            
-            AILabToggle.IsOn = ExperimentalSettings.EnableAILab;
-            RoundedWebViewToggle.IsOn = ExperimentalSettings.EnableRoundedWebView;
-            WinUIContextMenuToggle.IsOn = ExperimentalSettings.EnableWinUIContextMenu;
-            
-            // 重新订阅事件
-            AILabToggle.Toggled += OnAILabToggled;
-            RoundedWebViewToggle.Toggled += OnRoundedWebViewToggled;
-            WinUIContextMenuToggle.Toggled += OnWinUIContextMenuToggled;
+            // 实验特性已移至实验室页面，此方法保留以兼容旧调用
         }
 
-        private void OnAILabToggled(object sender, RoutedEventArgs e)
+        private void OnLabCardClick(object sender, RoutedEventArgs e)
         {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.EnableAILab = toggle.IsOn;
-                
-                // 通知应用更新 AI 实验室显示状态
-                AILabSettingsChanged?.Invoke(this, EventArgs.Empty);
-            }
-        }
-
-        private void OnRoundedWebViewToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.EnableRoundedWebView = toggle.IsOn;
-                
-                // 通知应用更新 WebView2 圆角设置
-                RoundedWebViewSettingsChanged?.Invoke(this, EventArgs.Empty);
-            }
-        }
-
-        private void OnWinUIContextMenuToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.EnableWinUIContextMenu = toggle.IsOn;
-                
-                // 通知应用更新右键菜单设置
-                WinUIContextMenuSettingsChanged?.Invoke(this, EventArgs.Empty);
-            }
+            Frame.Navigate(typeof(LabPage));
         }
 
         // Event to notify when rounded webview settings change
         public static event EventHandler? RoundedWebViewSettingsChanged;
+        internal static void RaiseRoundedWebViewSettingsChanged() => RoundedWebViewSettingsChanged?.Invoke(null, EventArgs.Empty);
 
         // Event to notify when WinUI context menu settings change
         public static event EventHandler? WinUIContextMenuSettingsChanged;
+        internal static void RaiseWinUIContextMenuSettingsChanged() => WinUIContextMenuSettingsChanged?.Invoke(null, EventArgs.Empty);
 
         // Event to notify when AI Lab settings change
         public static event EventHandler? AILabSettingsChanged;
+        internal static void RaiseAILabSettingsChanged() => AILabSettingsChanged?.Invoke(null, EventArgs.Empty);
 
         private void LoadWebSettings()
         {

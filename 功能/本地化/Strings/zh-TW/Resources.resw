@@ -404,6 +404,43 @@
   <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
     <value>為網頁瀏覽器啟用 WinUI 風格的右鍵選單（預設使用瀏覽器原生選單）</value>
   </data>
+
+  <!-- 設定頁面 - 實驗室入口 -->
+  <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
+    <value>實驗室 📦</value>
+  </data>
+  <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
+    <value>探索實驗性功能</value>
+  </data>
+
+  <!-- 實驗室頁面 -->
+  <data name="LabPage_Title.Text" xml:space="preserve">
+    <value>實驗室 📦</value>
+  </data>
+  <data name="LabPage_Subtitle.Text" xml:space="preserve">
+    <value>以下功能處於實驗階段，可能不穩定或隨時變更。</value>
+  </data>
+  <data name="LabPage_ExperimentalSection.Text" xml:space="preserve">
+    <value>實驗特性</value>
+  </data>
+  <data name="LabPage_AILabHeader.Header" xml:space="preserve">
+    <value>AI 實驗室</value>
+  </data>
+  <data name="LabPage_AILabHeader.Description" xml:space="preserve">
+    <value>在側邊欄顯示 AI 實驗室入口</value>
+  </data>
+  <data name="LabPage_RoundedWebViewHeader.Header" xml:space="preserve">
+    <value>WebView2 圓角</value>
+  </data>
+  <data name="LabPage_RoundedWebViewHeader.Description" xml:space="preserve">
+    <value>為網頁瀏覽器啟用圓角效果，圓角大小自動同步上層容器</value>
+  </data>
+  <data name="LabPage_WinUIContextMenuHeader.Header" xml:space="preserve">
+    <value>WinUI 右鍵選單</value>
+  </data>
+  <data name="LabPage_WinUIContextMenuHeader.Description" xml:space="preserve">
+    <value>為網頁瀏覽器啟用 WinUI 風格的右鍵選單（預設使用瀏覽器原生選單）</value>
+  </data>
   <data name="SettingsPage_OpenSettingsError" xml:space="preserve">
     <value>無法開啟系統設定頁面，請手動前往 Windows 設定 &gt; 應用程式 &gt; 啟動。</value>
   </data>

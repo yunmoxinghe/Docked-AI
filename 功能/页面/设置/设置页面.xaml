@@ -385,35 +385,18 @@
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Margin="1,16,0,4"/>
                     
-                    <!-- 实验特性 -->
-                    <controls:SettingsExpander 
-                        x:Uid="SettingsPage_ExperimentalHeader"
-                        IsExpanded="False">
-                        <controls:SettingsExpander.HeaderIcon>
+                    <!-- 实验室入口 -->
+                    <controls:SettingsCard
+                        x:Uid="SettingsPage_LabHeader"
+                        IsClickEnabled="True"
+                        Click="OnLabCardClick">
+                        <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xF196;" />
-                        </controls:SettingsExpander.HeaderIcon>
-                        
-                        <controls:SettingsExpander.Items>
-                            <controls:SettingsCard 
-                                x:Uid="SettingsPage_AILabHeader">
-                                <ToggleSwitch 
-                                    x:Name="AILabToggle"
-                                    Toggled="OnAILabToggled"/>
-                            </controls:SettingsCard>
-                            <controls:SettingsCard 
-                                x:Uid="SettingsPage_RoundedWebViewHeader">
-                                <ToggleSwitch 
-                                    x:Name="RoundedWebViewToggle"
-                                    Toggled="OnRoundedWebViewToggled"/>
-                            </controls:SettingsCard>
-                            <controls:SettingsCard 
-                                x:Uid="SettingsPage_WinUIContextMenuHeader">
-                                <ToggleSwitch 
-                                    x:Name="WinUIContextMenuToggle"
-                                    Toggled="OnWinUIContextMenuToggled"/>
-                            </controls:SettingsCard>
-                        </controls:SettingsExpander.Items>
-                    </controls:SettingsExpander>
+                        </controls:SettingsCard.HeaderIcon>
+                        <controls:SettingsCard.ActionIcon>
+                            <FontIcon Glyph="&#xE8A7;"/>
+                        </controls:SettingsCard.ActionIcon>
+                    </controls:SettingsCard>
 
                     <!-- 关于 -->
                     <TextBlock 

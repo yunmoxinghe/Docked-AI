@@ -39,6 +39,61 @@
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch"
                 IsHitTestVisible="False" />
+
+            <!-- 第三层：顶部应用栏 -->
+            <Grid
+                x:Name="TopAppBarContainer"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Top"
+                Height="48"
+                IsHitTestVisible="True">
+                <Grid.Background>
+                    <AcrylicBrush
+                        TintColor="{ThemeResource SystemChromeMediumLowColor}"
+                        TintOpacity="0.7"
+                        FallbackColor="{ThemeResource SystemChromeMediumLowColor}" />
+                </Grid.Background>
+
+                <!-- 分隔线 -->
+                <Border
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Bottom"
+                    Height="1"
+                    Background="{ThemeResource CardStrokeColorDefaultBrush}"
+                    Opacity="0.5" />
+
+                <!-- 应用栏内容 -->
+                <Grid Margin="8,0,8,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 左侧区域（可扩展） -->
+                    <StackPanel
+                        x:Name="TopBarLeftPanel"
+                        Grid.Column="0"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        Spacing="4" />
+
+                    <!-- 中间区域（可扩展） -->
+                    <ContentPresenter
+                        x:Name="TopBarCenterContent"
+                        Grid.Column="1"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Center" />
+
+                    <!-- 右侧区域（可扩展） -->
+                    <StackPanel
+                        x:Name="TopBarRightPanel"
+                        Grid.Column="2"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        Spacing="4" />
+                </Grid>
+            </Grid>
         </Grid>
     </Border>
 </UserControl>

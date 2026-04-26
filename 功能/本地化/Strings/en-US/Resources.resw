@@ -451,6 +451,43 @@
     <value>Enable WinUI-style context menu for web browser (default uses native browser menu)</value>
   </data>
   
+  <!-- Settings Page - Lab Entry -->
+  <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
+    <value>Lab 📦</value>
+  </data>
+  <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
+    <value>Explore experimental features</value>
+  </data>
+
+  <!-- Lab Page -->
+  <data name="LabPage_Title.Text" xml:space="preserve">
+    <value>Lab 📦</value>
+  </data>
+  <data name="LabPage_Subtitle.Text" xml:space="preserve">
+    <value>These features are experimental and may be unstable or subject to change.</value>
+  </data>
+  <data name="LabPage_ExperimentalSection.Text" xml:space="preserve">
+    <value>Experimental Features</value>
+  </data>
+  <data name="LabPage_AILabHeader.Header" xml:space="preserve">
+    <value>AI Lab</value>
+  </data>
+  <data name="LabPage_AILabHeader.Description" xml:space="preserve">
+    <value>Show AI Lab entry in the sidebar</value>
+  </data>
+  <data name="LabPage_RoundedWebViewHeader.Header" xml:space="preserve">
+    <value>WebView2 Rounded Corners</value>
+  </data>
+  <data name="LabPage_RoundedWebViewHeader.Description" xml:space="preserve">
+    <value>Enable rounded corners for web browser, corner radius automatically syncs with parent container</value>
+  </data>
+  <data name="LabPage_WinUIContextMenuHeader.Header" xml:space="preserve">
+    <value>WinUI Context Menu</value>
+  </data>
+  <data name="LabPage_WinUIContextMenuHeader.Description" xml:space="preserve">
+    <value>Enable WinUI-style context menu for web browser (default uses native browser menu)</value>
+  </data>
+  
   <!-- Settings Page - Hotkey Dialog -->
   <data name="SettingsPage_HotkeyDialog.Title" xml:space="preserve">
     <value>Set Hotkey</value>
