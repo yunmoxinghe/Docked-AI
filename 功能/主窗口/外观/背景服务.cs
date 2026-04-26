@@ -4,7 +4,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.System.Power;
 using System;
-using WinRT;
 
 namespace Docked_AI.Features.MainWindow.Appearance
 {
@@ -87,6 +86,11 @@ namespace Docked_AI.Features.MainWindow.Appearance
         // 为什么不用完全透明？完全透明可能导致背景效果失效
         private static readonly SolidColorBrush StableBackdropHostBrush = new(ColorHelper.FromArgb(1, 0, 0, 0));
 
+        private Window? _currentWindow;
+        private bool _isPinnedMode;
+        private bool _isEnergySaverListenerRegistered;
+        private bool _isEnergySaverActive;
+
         /// <summary>
         /// 确保 Mica 背景效果
         /// 
@@ -97,11 +101,16 @@ namespace Docked_AI.Features.MainWindow.Appearance
         /// - 修改 window.SystemBackdrop
         /// - 修改根元素的 Background
         /// - 异步验证背景效果
+        /// - 注册省电模式监听
         /// </summary>
         public void EnsureMicaBackdrop(Window window)
         {
             try
             {
+                _currentWindow = window;
+                _isPinnedMode = true;
+                RegisterEnergySaverListener();
+
                 if (!IsMicaSupported())
                 {
                     SetFallbackBackground(window);
@@ -130,6 +139,26 @@ namespace Docked_AI.Features.MainWindow.Appearance
         {
             try
             {
+                _currentWindow = window;
+                _isPinnedMode = false;
+                RegisterEnergySaverListener();
+
+                // 省电模式下使用 Mica 代替 Acrylic（更节能）
+                if (_isEnergySaverActive)
+                {
+                    System.Diagnostics.Debug.WriteLine("[BackdropService] Energy saver active, using Mica instead of Acrylic");
+                    if (IsMicaSupported())
+                    {
+                        window.SystemBackdrop = new MicaBackdrop();
+                    }
+                    else
+                    {
+                        SetFallbackBackground(window);
+                    }
+                    EnsureTransparentBackground(window);
+                    return;
+                }
+
                 if (!IsAcrylicSupported())
                 {
                     SetFallbackBackground(window);
@@ -287,6 +316,127 @@ namespace Docked_AI.Features.MainWindow.Appearance
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Fallback background failed: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 注册省电模式监听器
+        /// 当省电模式状态改变时，自动调整背景效果
+        /// </summary>
+        private void RegisterEnergySaverListener()
+        {
+            // 避免重复注册
+            if (_isEnergySaverListenerRegistered)
+            {
+                return;
+            }
+
+            try
+            {
+                // 检查当前省电模式状态
+                _isEnergySaverActive = PowerManager.EnergySaverStatus == EnergySaverStatus.On;
+                System.Diagnostics.Debug.WriteLine($"[BackdropService] Initial energy saver status: {PowerManager.EnergySaverStatus}");
+
+                // 注册省电模式变化事件
+                PowerManager.EnergySaverStatusChanged += OnEnergySaverStatusChanged;
+                _isEnergySaverListenerRegistered = true;
+                System.Diagnostics.Debug.WriteLine("[BackdropService] Energy saver listener registered");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BackdropService] Failed to register energy saver listener: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 省电模式状态变化处理
+        /// </summary>
+        private void OnEnergySaverStatusChanged(object? sender, object e)
+        {
+            try
+            {
+                var newStatus = PowerManager.EnergySaverStatus;
+                var wasActive = _isEnergySaverActive;
+                _isEnergySaverActive = newStatus == EnergySaverStatus.On;
+
+                System.Diagnostics.Debug.WriteLine($"[BackdropService] Energy saver status changed: {newStatus} (was active: {wasActive}, now active: {_isEnergySaverActive})");
+
+                // 状态没有实际变化，不需要更新
+                if (wasActive == _isEnergySaverActive || _currentWindow == null)
+                {
+                    return;
+                }
+
+                // 在 UI 线程上更新背景
+                _currentWindow.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Normal, () =>
+                {
+                    if (_currentWindow == null) return;
+
+                    if (_isEnergySaverActive)
+                    {
+                        // 进入省电模式：切换到 Mica（更节能）
+                        System.Diagnostics.Debug.WriteLine("[BackdropService] Switching to Mica for energy saving");
+                        if (IsMicaSupported())
+                        {
+                            _currentWindow.SystemBackdrop = new MicaBackdrop();
+                        }
+                        else
+                        {
+                            SetFallbackBackground(_currentWindow);
+                        }
+                    }
+                    else
+                    {
+                        // 退出省电模式：恢复原有背景
+                        if (_isPinnedMode)
+                        {
+                            System.Diagnostics.Debug.WriteLine("[BackdropService] Restoring Mica backdrop");
+                            EnsureMicaBackdrop(_currentWindow);
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("[BackdropService] Restoring Acrylic backdrop");
+                            if (IsAcrylicSupported())
+                            {
+                                _currentWindow.SystemBackdrop = new DesktopAcrylicBackdrop();
+                            }
+                            else if (IsMicaSupported())
+                            {
+                                _currentWindow.SystemBackdrop = new MicaBackdrop();
+                            }
+                            else
+                            {
+                                SetFallbackBackground(_currentWindow);
+                            }
+                        }
+                    }
+
+                    EnsureTransparentBackground(_currentWindow);
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BackdropService] Error handling energy saver status change: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 清理资源，取消注册事件监听
+        /// </summary>
+        public void Dispose()
+        {
+            try
+            {
+                if (_isEnergySaverListenerRegistered)
+                {
+                    PowerManager.EnergySaverStatusChanged -= OnEnergySaverStatusChanged;
+                    _isEnergySaverListenerRegistered = false;
+                    System.Diagnostics.Debug.WriteLine("[BackdropService] Energy saver listener unregistered");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BackdropService] Error disposing: {ex.Message}");
             }
         }
     }

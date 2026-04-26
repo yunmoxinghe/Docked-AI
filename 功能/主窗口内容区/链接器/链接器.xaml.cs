@@ -24,7 +24,10 @@ namespace Docked_AI.Features.MainWindowContent.Linker
         public NavBarControl NavBarInstance => NavBar;
 
         // 导航历史由 ContentHost 的 Frame.BackStack 内置管理，无需自定义栈
+        // 注意：此字段用于跟踪后退导航状态，虽然当前未读取，但保留用于未来扩展
+#pragma warning disable CS0414
         private bool _isNavigatingBack = false;
+#pragma warning restore CS0414
 
         public Linker()
         {

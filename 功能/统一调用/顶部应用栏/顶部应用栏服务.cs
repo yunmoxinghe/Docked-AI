@@ -89,4 +89,68 @@ public static class TopAppBarService
     {
         _contentArea?.SetPageTitleVisible(visible);
     }
+
+    #region 顶栏按钮控制
+
+    /// <summary>
+    /// 设置返回按钮的可见性
+    /// </summary>
+    public static void SetBackButtonVisible(bool visible)
+    {
+        _contentArea?.SetBackButtonVisible(visible);
+    }
+
+    /// <summary>
+    /// 设置菜单按钮的可见性
+    /// </summary>
+    public static void SetMenuButtonVisible(bool visible)
+    {
+        _contentArea?.SetMenuButtonVisible(visible);
+    }
+
+    /// <summary>
+    /// 订阅返回按钮点击事件
+    /// </summary>
+    public static event EventHandler? BackButtonClicked
+    {
+        add
+        {
+            if (_contentArea is not null)
+                _contentArea.BackButtonClicked += value;
+        }
+        remove
+        {
+            if (_contentArea is not null)
+                _contentArea.BackButtonClicked -= value;
+        }
+    }
+
+    /// <summary>
+    /// 订阅菜单按钮点击事件
+    /// </summary>
+    public static event EventHandler? MenuButtonClicked
+    {
+        add
+        {
+            if (_contentArea is not null)
+                _contentArea.MenuButtonClicked += value;
+        }
+        remove
+        {
+            if (_contentArea is not null)
+                _contentArea.MenuButtonClicked -= value;
+        }
+    }
+
+    /// <summary>
+    /// 获取更多按钮的菜单，用于动态添加菜单项
+    /// </summary>
+    public static MenuFlyout? GetMoreMenu()
+    {
+        // 需要通过反射或添加公共属性来访问 MoreMenuFlyout
+        // 暂时返回 null，后续可以扩展
+        return null;
+    }
+
+    #endregion
 }

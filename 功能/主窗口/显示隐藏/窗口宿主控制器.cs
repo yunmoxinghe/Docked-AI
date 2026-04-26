@@ -1102,6 +1102,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _stateManager.StateChanged -= OnWindowStateChanged;
             _viewModel.UnsubscribeFromStateManager(_stateManager);
             _stateManager.Dispose();
+            _backdropService.Dispose();
             RemoveAppBar();
         }
 

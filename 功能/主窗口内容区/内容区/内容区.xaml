@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
     xmlns:animations="using:Microsoft.UI.Xaml.Media.Animation"
+    xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
@@ -79,21 +80,107 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <!-- 左侧区域（可扩展） -->
+                <!-- 左侧区域 -->
                 <StackPanel
-                    x:Name="TopBarLeftPanel"
                     Grid.Column="0"
                     Orientation="Horizontal"
                     VerticalAlignment="Center"
-                    Spacing="4" />
+                    Spacing="4">
+                    
+                    <!-- 返回按钮（可选） -->
+                    <Button
+                        x:Name="BackButton"
+                        Width="40"
+                        Height="40"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Visibility="Collapsed"
+                        ToolTipService.ToolTip="返回"
+                        CornerRadius="4"
+                        PointerEntered="BackButton_PointerEntered"
+                        PointerExited="BackButton_PointerExited"
+                        Click="BackButton_Click">
+                        <controls:AnimatedIcon x:Name="BackAnimatedIcon" Width="16" Height="16">
+                            <controls:AnimatedIcon.Source>
+                                <animatedvisuals:AnimatedBackVisualSource />
+                            </controls:AnimatedIcon.Source>
+                            <controls:AnimatedIcon.FallbackIconSource>
+                                <SymbolIconSource Symbol="Back" />
+                            </controls:AnimatedIcon.FallbackIconSource>
+                        </controls:AnimatedIcon>
+                    </Button>
 
-                <!-- 右侧区域（可扩展） -->
+                    <!-- 菜单按钮（可选） -->
+                    <Button
+                        x:Name="MenuButton"
+                        Width="40"
+                        Height="40"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Visibility="Collapsed"
+                        ToolTipService.ToolTip="菜单"
+                        CornerRadius="4"
+                        PointerEntered="MenuButton_PointerEntered"
+                        PointerExited="MenuButton_PointerExited"
+                        Click="MenuButton_Click">
+                        <controls:AnimatedIcon x:Name="MenuAnimatedIcon" Width="16" Height="16">
+                            <controls:AnimatedIcon.Source>
+                                <animatedvisuals:AnimatedGlobalNavigationButtonVisualSource />
+                            </controls:AnimatedIcon.Source>
+                            <controls:AnimatedIcon.FallbackIconSource>
+                                <FontIconSource Glyph="&#xE700;" />
+                            </controls:AnimatedIcon.FallbackIconSource>
+                        </controls:AnimatedIcon>
+                    </Button>
+
+                    <!-- 自定义左侧内容区域 -->
+                    <StackPanel
+                        x:Name="TopBarLeftPanel"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        Spacing="4" />
+                </StackPanel>
+
+                <!-- 右侧区域 -->
                 <StackPanel
-                    x:Name="TopBarRightPanel"
                     Grid.Column="2"
                     Orientation="Horizontal"
                     VerticalAlignment="Center"
-                    Spacing="4" />
+                    Spacing="4">
+                    
+                    <!-- 自定义右侧内容区域 -->
+                    <StackPanel
+                        x:Name="TopBarRightPanel"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        Spacing="4" />
+
+                    <!-- 更多按钮 -->
+                    <Button
+                        x:Name="MoreButton"
+                        Width="40"
+                        Height="40"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        ToolTipService.ToolTip="更多"
+                        CornerRadius="4"
+                        PointerEntered="MoreButton_PointerEntered"
+                        PointerExited="MoreButton_PointerExited">
+                        <controls:AnimatedIcon x:Name="MoreAnimatedIcon" Width="16" Height="16">
+                            <controls:AnimatedIcon.Source>
+                                <animatedvisuals:AnimatedChevronDownSmallVisualSource />
+                            </controls:AnimatedIcon.Source>
+                            <controls:AnimatedIcon.FallbackIconSource>
+                                <FontIconSource Glyph="&#xE712;" />
+                            </controls:AnimatedIcon.FallbackIconSource>
+                        </controls:AnimatedIcon>
+                        <Button.Flyout>
+                            <MenuFlyout x:Name="MoreMenuFlyout" Placement="BottomEdgeAlignedRight">
+                                <!-- 菜单项将通过代码动态添加 -->
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+                </StackPanel>
             </Grid>
         </Grid>
     </Border>

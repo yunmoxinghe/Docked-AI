@@ -175,6 +175,76 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             Pages.Settings.SettingsPage.FrameAnimationSettingsChanged += OnFrameAnimationSettingsChanged;
         }
 
+        #region 顶栏按钮事件处理
+
+        /// <summary>
+        /// 返回按钮点击事件
+        /// </summary>
+        public event EventHandler? BackButtonClicked;
+
+        /// <summary>
+        /// 菜单按钮点击事件
+        /// </summary>
+        public event EventHandler? MenuButtonClicked;
+
+        /// <summary>
+        /// 设置返回按钮的可见性
+        /// </summary>
+        public void SetBackButtonVisible(bool visible)
+        {
+            BackButton.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        /// <summary>
+        /// 设置菜单按钮的可见性
+        /// </summary>
+        public void SetMenuButtonVisible(bool visible)
+        {
+            MenuButton.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            BackButtonClicked?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void MenuButton_Click(object sender, RoutedEventArgs e)
+        {
+            MenuButtonClicked?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void BackButton_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            AnimatedIcon.SetState(BackAnimatedIcon, "PointerOver");
+        }
+
+        private void BackButton_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            AnimatedIcon.SetState(BackAnimatedIcon, "Normal");
+        }
+
+        private void MenuButton_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            AnimatedIcon.SetState(MenuAnimatedIcon, "PointerOver");
+        }
+
+        private void MenuButton_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            AnimatedIcon.SetState(MenuAnimatedIcon, "Normal");
+        }
+
+        private void MoreButton_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            AnimatedIcon.SetState(MoreAnimatedIcon, "PointerOver");
+        }
+
+        private void MoreButton_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            AnimatedIcon.SetState(MoreAnimatedIcon, "Normal");
+        }
+
+        #endregion
+
         private void OnFrameAnimationSettingsChanged(object? sender, EventArgs e)
         {
             // 设置改变时更新 Frame 动画
