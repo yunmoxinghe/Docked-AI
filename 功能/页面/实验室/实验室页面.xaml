@@ -81,6 +81,76 @@
 
                 </StackPanel>
 
+                <Border Height="28" />
+
+                <!-- 顶部应用栏测试分组 -->
+                <TextBlock
+                    x:Uid="LabPage_TopAppBarSection"
+                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                    Margin="1,0,0,4"/>
+
+                <StackPanel Spacing="4">
+                    <StackPanel.ChildrenTransitions>
+                        <EntranceThemeTransition FromVerticalOffset="50" />
+                        <RepositionThemeTransition IsStaggeringEnabled="True" />
+                    </StackPanel.ChildrenTransitions>
+
+                    <!-- 显示/隐藏顶部应用栏 -->
+                    <controls:SettingsCard x:Uid="LabPage_TopBarVisibilityHeader">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE7C1;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch x:Name="TopBarVisibilityToggle" />
+                    </controls:SettingsCard>
+
+                    <!-- 设置中间标题 -->
+                    <controls:SettingsCard x:Uid="LabPage_TopBarCenterHeader">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE8D2;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                            <TextBox
+                                x:Name="CenterTitleInput"
+                                PlaceholderText="输入标题文本"
+                                Width="140"
+                                VerticalAlignment="Center"/>
+                            <Button
+                                x:Uid="LabPage_TopBarCenterSetButton"
+                                Click="OnSetCenterTitleClick"
+                                VerticalAlignment="Center"/>
+                            <Button
+                                x:Uid="LabPage_TopBarCenterClearButton"
+                                Click="OnClearCenterClick"
+                                VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </controls:SettingsCard>
+
+                    <!-- 设置右侧按钮 -->
+                    <controls:SettingsCard x:Uid="LabPage_TopBarRightHeader">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE700;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <StackPanel Spacing="8" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button
+                                    x:Uid="LabPage_TopBarRightSetButton"
+                                    Click="OnSetRightButtonClick"
+                                    VerticalAlignment="Center"/>
+                                <Button
+                                    x:Uid="LabPage_TopBarRightClearButton"
+                                    Click="OnClearRightButtonClick"
+                                    VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock
+                                x:Name="RightButtonStatus"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                FontSize="12"
+                                TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </controls:SettingsCard>
+
+                </StackPanel>
+
                 <Border Height="40" />
             </StackPanel>
         </ScrollViewer>

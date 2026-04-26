@@ -487,6 +487,39 @@
   <data name="LabPage_WinUIContextMenuHeader.Description" xml:space="preserve">
     <value>Enable WinUI-style context menu for web browser (default uses native browser menu)</value>
   </data>
+  <data name="LabPage_TopAppBarSection.Text" xml:space="preserve">
+    <value>Top App Bar</value>
+  </data>
+  <data name="LabPage_TopBarVisibilityHeader.Header" xml:space="preserve">
+    <value>Show Top App Bar</value>
+  </data>
+  <data name="LabPage_TopBarVisibilityHeader.Description" xml:space="preserve">
+    <value>Toggle the visibility of the top app bar</value>
+  </data>
+  <data name="LabPage_TopBarCenterHeader.Header" xml:space="preserve">
+    <value>Center Title</value>
+  </data>
+  <data name="LabPage_TopBarCenterHeader.Description" xml:space="preserve">
+    <value>Set the title text in the center area of the top app bar</value>
+  </data>
+  <data name="LabPage_TopBarCenterSetButton.Content" xml:space="preserve">
+    <value>Set</value>
+  </data>
+  <data name="LabPage_TopBarCenterClearButton.Content" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="LabPage_TopBarRightHeader.Header" xml:space="preserve">
+    <value>Right Button</value>
+  </data>
+  <data name="LabPage_TopBarRightHeader.Description" xml:space="preserve">
+    <value>Add or remove a button in the right area of the top app bar</value>
+  </data>
+  <data name="LabPage_TopBarRightSetButton.Content" xml:space="preserve">
+    <value>Add Button</value>
+  </data>
+  <data name="LabPage_TopBarRightClearButton.Content" xml:space="preserve">
+    <value>Clear</value>
+  </data>
   
   <!-- Settings Page - Hotkey Dialog -->
   <data name="SettingsPage_HotkeyDialog.Title" xml:space="preserve">

@@ -46,13 +46,8 @@
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Top"
                 Height="48"
+                Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
                 IsHitTestVisible="True">
-                <Grid.Background>
-                    <AcrylicBrush
-                        TintColor="{ThemeResource SystemChromeMediumLowColor}"
-                        TintOpacity="0.7"
-                        FallbackColor="{ThemeResource SystemChromeMediumLowColor}" />
-                </Grid.Background>
 
                 <!-- 分隔线 -->
                 <Border
