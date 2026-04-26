@@ -15,6 +15,7 @@ using Docked_AI.Features.Hotkey;
 using Docked_AI.Features.Pages.Settings;
 using Docked_AI.Features.Pages.Lab;
 using Docked_AI.Features.UnifiedCalls.InAppDialog;
+using Docked_AI.Features.UnifiedCalls.TopAppBar;
 using Docked_AI.功能.统一调用;
 
 namespace Docked_AI.Features.Pages.Settings
@@ -33,6 +34,7 @@ namespace Docked_AI.Features.Pages.Settings
 
         // Hotkey management
         private HotkeySettings _hotkeySettings;
+        private readonly 智能标题 _智能标题 = new();
         public SettingsPage()
         {
             // Initialize ViewModel
@@ -208,6 +210,18 @@ namespace Docked_AI.Features.Pages.Settings
             
             // 初始化 Frame 动画设置
             LoadFrameAnimationSettings();
+        }
+
+        protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            _智能标题.Setup(SettingsScrollViewer, PageTitleBlock);
+        }
+
+        protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+            _智能标题.Cleanup();
         }
 
         private void LoadVersionInfo()

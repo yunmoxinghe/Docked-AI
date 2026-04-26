@@ -33,6 +33,7 @@
                 Spacing="0">
                 <Border Height="40" />
                 <TextBlock
+                    x:Name="PageTitleBlock"
                     x:Uid="SettingsPage_Title"
                     FontSize="32"
                     FontWeight="SemiBold" />

@@ -7,7 +7,7 @@ namespace Docked_AI.Features.Pages.Lab
 {
     public sealed partial class LabPage : Page
     {
-        private bool _titleVisible = true;
+        private readonly 智能标题 _智能标题 = new();
         private const double MinResponsiveWidth = 320;
         private const double MaxResponsiveWidth = 760;
         private const double MinHorizontalMargin = 16;
@@ -25,27 +25,13 @@ namespace Docked_AI.Features.Pages.Lab
         protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-
-            // 中间：页面标题（顶栏里的小标题，滚动时才显示）
-            TopAppBarService.SetCenterContent(new TextBlock
-            {
-                Text = "实验室 📦",
-                Style = (Style)Application.Current.Resources["BodyStrongTextBlockStyle"],
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Center,
-            });
-
-            // 注册大标题，由服务统一控制淡入淡出
-            TopAppBarService.SetPageTitle(PageTitleBlock);
+            _智能标题.Setup(PageScrollViewer, PageTitleBlock);
         }
 
         protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
         {
             base.OnNavigatedFrom(e);
-            TopAppBarService.IsVisible = false;
-            TopAppBarService.SetPageTitle(null);
-            TopAppBarService.ClearAll();
-            _titleVisible = true;
+            _智能标题.Cleanup();
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -97,22 +83,6 @@ namespace Docked_AI.Features.Pages.Lab
                 _lastAppliedMargin = margin;
             }
             _lastMeasuredWidth = width;
-        }
-
-        private void OnScrollViewerViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
-        {
-            if (sender is not ScrollViewer sv) return;
-
-            bool scrolled = sv.VerticalOffset > 0;
-
-            if (scrolled != TopAppBarService.IsVisible)
-                TopAppBarService.IsVisible = scrolled;
-
-            if (scrolled == _titleVisible)
-            {
-                _titleVisible = !scrolled;
-                TopAppBarService.SetPageTitleVisible(!scrolled);
-            }
         }
 
         private void OnTopBarVisibilityToggled(object sender, RoutedEventArgs e)
