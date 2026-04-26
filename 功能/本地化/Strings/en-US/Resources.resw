@@ -350,10 +350,6 @@
     <value>Close this page</value>
   </data>
   
-  <data name="WebBrowser_CloseButton" xml:space="preserve">
-    <value>Close this page</value>
-  </data>
-  
   <!-- AI Page -->
   <data name="AIPage_Title.Text" xml:space="preserve">
     <value>AI Lab</value>

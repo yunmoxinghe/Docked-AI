@@ -350,10 +350,6 @@
     <value>取消固定</value>
   </data>
   
-  <data name="WebBrowser_CloseButton" xml:space="preserve">
-    <value>关闭此页面</value>
-  </data>
-  
   <!-- AI 页面 -->
   <data name="AIPage_Title.Text" xml:space="preserve">
     <value>AI 实验室</value>
