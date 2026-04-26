@@ -46,6 +46,7 @@
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Top"
                 Height="48"
+                Visibility="Collapsed"
                 Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
                 IsHitTestVisible="True">
 

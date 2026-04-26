@@ -165,6 +165,9 @@
   <data name="Nav_New.Content" xml:space="preserve">
     <value>Nuevo</value>
   </data>
+  <data name="Nav_Back.Content" xml:space="preserve">
+    <value>Atrás</value>
+  </data>
   <data name="Nav_Settings.Content" xml:space="preserve">
     <value>Configuración</value>
   </data>
@@ -388,6 +391,12 @@
   </data>
   <data name="SettingsPage_ExperimentalHeader.Description" xml:space="preserve">
     <value>Activar características experimentales (puede ser inestable)</value>
+  </data>
+  <data name="SettingsPage_BackButtonHeader.Header" xml:space="preserve">
+    <value>Botón Atrás en la barra lateral</value>
+  </data>
+  <data name="SettingsPage_BackButtonHeader.Description" xml:space="preserve">
+    <value>Mostrar un botón atrás en la barra lateral para navegar a la página anterior</value>
   </data>
   <data name="SettingsPage_FrameAnimationHeader.Header" xml:space="preserve">
     <value>Animación de transición de página</value>

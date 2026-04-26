@@ -92,6 +92,25 @@
                     </AnimatedIcon>
                 </controls:NavigationViewItem.Icon>
             </controls:NavigationViewItem>
+            <controls:NavigationViewItem
+                x:Name="BackNavigationItem"
+                x:Uid="Nav_Back"
+                Tag="back"
+                SelectsOnInvoked="False"
+                Visibility="Collapsed"
+                PointerEntered="BackNavigationItem_PointerEntered"
+                PointerExited="BackNavigationItem_PointerExited">
+                <controls:NavigationViewItem.Icon>
+                    <AnimatedIcon x:Name="BackAnimatedIcon">
+                        <AnimatedIcon.Source>
+                            <animatedvisuals:AnimatedBackVisualSource />
+                        </AnimatedIcon.Source>
+                        <AnimatedIcon.FallbackIconSource>
+                            <FontIconSource Glyph="&#xE72B;" />
+                        </AnimatedIcon.FallbackIconSource>
+                    </AnimatedIcon>
+                </controls:NavigationViewItem.Icon>
+            </controls:NavigationViewItem>
         </controls:NavigationView.FooterMenuItems>
     </controls:NavigationView>
 </UserControl>

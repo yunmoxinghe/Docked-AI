@@ -73,4 +73,20 @@ public static class TopAppBarService
         SetCenterContent(null);
         SetRightContent(null);
     }
+
+    /// <summary>
+    /// 注册页面大标题元素，滚动时统一控制其淡入淡出
+    /// </summary>
+    public static void SetPageTitle(UIElement? element)
+    {
+        _contentArea?.SetPageTitle(element);
+    }
+
+    /// <summary>
+    /// 设置页面大标题的显示状态（带动画）
+    /// </summary>
+    public static void SetPageTitleVisible(bool visible)
+    {
+        _contentArea?.SetPageTitleVisible(visible);
+    }
 }

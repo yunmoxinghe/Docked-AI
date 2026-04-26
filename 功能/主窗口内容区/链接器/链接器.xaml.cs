@@ -1,6 +1,7 @@
 ﻿using Docked_AI.Features.MainWindowContent.ContentArea;
 using Docked_AI.Features.Pages.Home;
 using Docked_AI.Features.Pages.New;
+using Docked_AI.Features.Pages.Settings;
 using Docked_AI.Features.Pages.WebApp;
 using Docked_AI.Features.Pages.WebApp.Browser;
 using Docked_AI.Features.Pages.WebApp.Shared;
@@ -22,21 +23,28 @@ namespace Docked_AI.Features.MainWindowContent.Linker
 
         public NavBarControl NavBarInstance => NavBar;
 
+        // 导航历史由 ContentHost 的 Frame.BackStack 内置管理，无需自定义栈
+        private bool _isNavigatingBack = false;
+
         public Linker()
         {
             InitializeComponent();
             TopAppBarService.Register(ContentHost);
             ContentHost.Navigate(typeof(HomePage));
             ContentHost.Navigated += ContentHost_Navigated;
+            ContentHost.CachedPageNavigated += ContentHost_CachedPageNavigated;
             ContentHost.PageCloseRequested += OnPageCloseRequested;
             NavBar.NavigationRequested += OnNavigationRequested;
             NavBar.DockToggleRequested += OnDockToggleRequested;
             NavBar.WindowStateToggleRequested += OnWindowStateToggleRequested;
             NavBar.ShortcutRemoved += OnShortcutRemoved;
             NavBar.WebAppRestartRequested += OnWebAppRestartRequested;
+            NavBar.BackRequested += OnBackRequested;
             
             // 订阅 AI 实验室设置变化事件
             Pages.Settings.SettingsPage.AILabSettingsChanged += OnAILabSettingsChanged;
+            // 订阅返回按钮设置变化事件
+            Pages.Settings.SettingsPage.BackButtonSettingsChanged += OnBackButtonSettingsChanged;
         }
 
         private void OnAILabSettingsChanged(object? sender, EventArgs e)
@@ -45,16 +53,27 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             NavBar.UpdateAINavigationItemVisibility();
         }
 
+        private void OnBackButtonSettingsChanged(object? sender, EventArgs e)
+        {
+            NavBar.UpdateBackButtonVisibility(ContentHost.CanGoBack);
+        }
+
+        private void OnBackRequested(object? sender, EventArgs e)
+        {
+            if (!ContentHost.CanGoBack) return;
+
+            _isNavigatingBack = true;
+            // 官方推荐：不传参数，Frame 自动使用反向动画
+            ContentHost.GoBack();
+        }
+
         private void OnPageCloseRequested(object? sender, string shortcutId)
         {
             System.Diagnostics.Debug.WriteLine($"[Linker] 收到页面关闭请求: {shortcutId}");
-            
-            // 清除缓存和注销 WebView
             ContentHost.RemoveCachedPage(shortcutId);
-            
-            // 导航回主页
             ContentHost.Navigate(typeof(HomePage));
             NavBar.SelectHomeItem();
+            NavBar.UpdateBackButtonVisibility(false);
         }
 
         private void OnShortcutRemoved(object? sender, string shortcutId)
@@ -72,12 +91,23 @@ namespace Docked_AI.Features.MainWindowContent.Linker
         private void ContentHost_Navigated(object? sender, NavigationEventArgs e)
         {
             SyncNavigationBarSelection(e.SourcePageType, e.Parameter);
+            _isNavigatingBack = false;
+            NavBar.UpdateBackButtonVisibility(ContentHost.CanGoBack);
+        }
+
+        private void ContentHost_CachedPageNavigated(object? sender, (Type PageType, object? Parameter) e)
+        {
+            SyncNavigationBarSelection(e.PageType, e.Parameter);
+            _isNavigatingBack = false;
+            NavBar.UpdateBackButtonVisibility(ContentHost.CanGoBack);
         }
 
         private void OnNavigationRequested(object? sender, NavRequest request)
         {
             ContentHost.Navigate(request.PageType, request.Parameter);
         }
+
+        private void PushCurrentPageToHistory() { } // 已废弃，由 Frame.BackStack 内置管理
 
         private void OnDockToggleRequested(object? sender, EventArgs e)
         {

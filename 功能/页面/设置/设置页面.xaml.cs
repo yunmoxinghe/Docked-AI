@@ -299,11 +299,30 @@ namespace Docked_AI.Features.Pages.Settings
         private void LoadExperimentalSettings()
         {
             // 实验特性已移至实验室页面，此方法保留以兼容旧调用
+            // 加载返回按钮设置
+            if (BackButtonToggle != null)
+            {
+                BackButtonToggle.Toggled -= OnBackButtonToggled;
+                BackButtonToggle.IsOn = ExperimentalSettings.EnableBackButton;
+                BackButtonToggle.Toggled += OnBackButtonToggled;
+            }
+        }
+
+        private void OnBackButtonToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggle)
+            {
+                ExperimentalSettings.EnableBackButton = toggle.IsOn;
+                RaiseBackButtonSettingsChanged();
+            }
         }
 
         private void OnLabCardClick(object sender, RoutedEventArgs e)
         {
-            Frame.Navigate(typeof(LabPage));
+            Frame.Navigate(typeof(LabPage), null, new Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo
+            {
+                Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromRight
+            });
         }
 
         // Event to notify when rounded webview settings change
@@ -317,6 +336,10 @@ namespace Docked_AI.Features.Pages.Settings
         // Event to notify when AI Lab settings change
         public static event EventHandler? AILabSettingsChanged;
         internal static void RaiseAILabSettingsChanged() => AILabSettingsChanged?.Invoke(null, EventArgs.Empty);
+
+        // Event to notify when back button settings change
+        public static event EventHandler? BackButtonSettingsChanged;
+        internal static void RaiseBackButtonSettingsChanged() => BackButtonSettingsChanged?.Invoke(null, EventArgs.Empty);
 
         private void LoadWebSettings()
         {

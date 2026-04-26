@@ -7,25 +7,26 @@ namespace Docked_AI.Features.Pages.Lab
 {
     public sealed partial class LabPage : Page
     {
+        private bool _titleVisible = true;
+        private const double MinResponsiveWidth = 320;
+        private const double MaxResponsiveWidth = 760;
+        private const double MinHorizontalMargin = 16;
+        private const double MaxHorizontalMargin = 36;
+        private double _lastAppliedMargin = -1;
+        private double _lastMeasuredWidth = -1;
+
         public LabPage()
         {
             InitializeComponent();
             Loaded += OnLoaded;
+            SizeChanged += OnSizeChanged;
         }
 
         protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
 
-            // 左侧：返回按钮
-            var backButton = new Button
-            {
-                Style = (Style)Application.Current.Resources["NavigationBackButtonNormalStyle"],
-            };
-            backButton.Click += (_, _) => { if (Frame.CanGoBack) Frame.GoBack(); };
-            TopAppBarService.SetLeftContent(backButton);
-
-            // 中间：页面标题
+            // 中间：页面标题（顶栏里的小标题，滚动时才显示）
             TopAppBarService.SetCenterContent(new TextBlock
             {
                 Text = "实验室 📦",
@@ -33,12 +34,18 @@ namespace Docked_AI.Features.Pages.Lab
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
             });
+
+            // 注册大标题，由服务统一控制淡入淡出
+            TopAppBarService.SetPageTitle(PageTitleBlock);
         }
 
         protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
         {
             base.OnNavigatedFrom(e);
+            TopAppBarService.IsVisible = false;
+            TopAppBarService.SetPageTitle(null);
             TopAppBarService.ClearAll();
+            _titleVisible = true;
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
@@ -58,6 +65,44 @@ namespace Docked_AI.Features.Pages.Lab
             // 初始化顶部应用栏测试控件状态
             TopBarVisibilityToggle.IsOn = TopAppBarService.IsVisible;
             TopBarVisibilityToggle.Toggled += OnTopBarVisibilityToggled;
+
+            UpdateMargin();
+        }
+
+        private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (System.Math.Abs(e.NewSize.Width - _lastMeasuredWidth) < 1) return;
+            UpdateMargin();
+        }
+
+        private void UpdateMargin()
+        {
+            double width = RootGrid?.ActualWidth ?? ActualWidth;
+            if (width <= 0) return;
+            double normalized = System.Math.Clamp((width - MinResponsiveWidth) / (MaxResponsiveWidth - MinResponsiveWidth), 0, 1);
+            double margin = System.Math.Round(MinHorizontalMargin + (MaxHorizontalMargin - MinHorizontalMargin) * normalized);
+            if (System.Math.Abs(margin - _lastAppliedMargin) > 0.01)
+            {
+                PageContentPanel.Margin = new Thickness(margin, 0, margin, 0);
+                _lastAppliedMargin = margin;
+            }
+            _lastMeasuredWidth = width;
+        }
+
+        private void OnScrollViewerViewChanged(object sender, ScrollViewerViewChangedEventArgs e)
+        {
+            if (sender is not ScrollViewer sv) return;
+
+            bool scrolled = sv.VerticalOffset > 0;
+
+            if (scrolled != TopAppBarService.IsVisible)
+                TopAppBarService.IsVisible = scrolled;
+
+            if (scrolled == _titleVisible)
+            {
+                _titleVisible = !scrolled;
+                TopAppBarService.SetPageTitleVisible(!scrolled);
+            }
         }
 
         private void OnTopBarVisibilityToggled(object sender, RoutedEventArgs e)

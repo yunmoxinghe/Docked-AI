@@ -171,6 +171,9 @@
   <data name="Nav_New.Content" xml:space="preserve">
     <value>新建</value>
   </data>
+  <data name="Nav_Back.Content" xml:space="preserve">
+    <value>返回</value>
+  </data>
   <data name="Nav_Settings.Content" xml:space="preserve">
     <value>设置</value>
   </data>
@@ -400,6 +403,12 @@
   </data>
   
   <!-- 设置页面 - Frame 动画 -->
+  <data name="SettingsPage_BackButtonHeader.Header" xml:space="preserve">
+    <value>侧边栏返回按钮</value>
+  </data>
+  <data name="SettingsPage_BackButtonHeader.Description" xml:space="preserve">
+    <value>在侧边栏显示返回按钮，用于返回上一个页面</value>
+  </data>
   <data name="SettingsPage_FrameAnimationHeader.Header" xml:space="preserve">
     <value>页面切换动画</value>
   </data>
@@ -486,6 +495,12 @@
   </data>
   <data name="LabPage_WinUIContextMenuHeader.Description" xml:space="preserve">
     <value>为网页浏览器启用 WinUI 风格的右键菜单（默认使用浏览器原生菜单）</value>
+  </data>
+  <data name="LabPage_BackButtonHeader.Header" xml:space="preserve">
+    <value>侧边栏返回按钮</value>
+  </data>
+  <data name="LabPage_BackButtonHeader.Description" xml:space="preserve">
+    <value>在侧边栏显示返回按钮，可快速返回上一页</value>
   </data>
   <data name="LabPage_TopAppBarSection.Text" xml:space="preserve">
     <value>顶部应用栏</value>

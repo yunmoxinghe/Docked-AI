@@ -8,21 +8,30 @@
     mc:Ignorable="d"
     UseLayoutRounding="True">
 
+    <Page.Transitions>
+        <TransitionCollection>
+            <NavigationThemeTransition />
+        </TransitionCollection>
+    </Page.Transitions>
+
     <Grid x:Name="RootGrid" Padding="0" UseLayoutRounding="True">
         <ScrollViewer
+            x:Name="PageScrollViewer"
             HorizontalScrollBarVisibility="Disabled"
             HorizontalScrollMode="Disabled"
             HorizontalContentAlignment="Stretch"
-            VerticalScrollBarVisibility="Auto">
+            VerticalScrollBarVisibility="Auto"
+            ViewChanged="OnScrollViewerViewChanged">
             <StackPanel
                 x:Name="PageContentPanel"
-                Margin="16,0"
+                Margin="0"
                 UseLayoutRounding="True"
                 Spacing="0">
 
                 <Border Height="40" />
 
                 <TextBlock
+                    x:Name="PageTitleBlock"
                     x:Uid="LabPage_Title"
                     FontSize="32"
                     FontWeight="SemiBold"/>

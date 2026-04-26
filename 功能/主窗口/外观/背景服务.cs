@@ -2,7 +2,9 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.Windows.System.Power;
 using System;
+using WinRT;
 
 namespace Docked_AI.Features.MainWindow.Appearance
 {
@@ -12,7 +14,8 @@ namespace Docked_AI.Features.MainWindow.Appearance
     /// 【文件职责】
     /// 1. 根据窗口状态切换背景效果（固定模式用 Mica，标准模式用 Acrylic）
     /// 2. 检测系统兼容性，提供降级方案
-    /// 3. 确保背景透明度，避免遮挡背景效果
+    /// 3. 监听省电模式，自动调整背景效果以节省电量
+    /// 4. 确保背景透明度，避免遮挡背景效果
     /// 
     /// 【核心设计】
     /// 
@@ -25,6 +28,12 @@ namespace Docked_AI.Features.MainWindow.Appearance
     /// - Mica 需要 Windows 11 (Build 22000+)
     /// - Acrylic 需要 Windows 10 1809 (Build 18362+)
     /// - 旧系统降级到渐变背景
+    /// 
+    /// 为什么需要监听省电模式？
+    /// - 亚克力效果使用 GPU 渲染，在省电模式下会自动禁用
+    /// - 主动监听省电状态，在省电模式下切换到 Mica（更节能）
+    /// - 退出省电模式后恢复原有背景效果
+    /// - 参考：https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/applifecycle/applifecycle-power
     /// 
     /// 【核心逻辑流程】
     /// 

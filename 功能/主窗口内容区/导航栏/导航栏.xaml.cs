@@ -33,6 +33,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         public event EventHandler? WindowStateToggleRequested;
         public event EventHandler<string>? ShortcutRemoved; // 快捷方式被移除事件
         public event EventHandler<string>? WebAppRestartRequested; // 网页应用重启请求事件
+        public event EventHandler? BackRequested; // 返回请求事件
 
         public void UpdateDockToggleIcon(bool isPinned)
         {
@@ -77,6 +78,8 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             
             // 根据设置显示或隐藏 AI 导航项
             UpdateAINavigationItemVisibility();
+            // 初始化返回按钮（默认隐藏）
+            BackNavigationItem.Visibility = Visibility.Collapsed;
         }
 
         public void UpdateAINavigationItemVisibility()
@@ -84,6 +87,16 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             AINavigationItem.Visibility = ExperimentalSettings.EnableAILab 
                 ? Visibility.Visible 
                 : Visibility.Collapsed;
+        }
+
+        public void UpdateBackButtonVisibility(bool canGoBack)
+        {
+            if (!ExperimentalSettings.EnableBackButton)
+            {
+                BackNavigationItem.Visibility = Visibility.Collapsed;
+                return;
+            }
+            BackNavigationItem.Visibility = canGoBack ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void OnNavViewDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
@@ -313,6 +326,12 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                 return;
             }
 
+            if (tagText == "back")
+            {
+                BackRequested?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
             if (tagText == "windowstate")
             {
                 WindowStateToggleRequested?.Invoke(this, EventArgs.Empty);
@@ -460,33 +479,8 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                 return;
             }
 
-            // 防抖检查：避免快速点击
-            var currentTime = DateTime.Now;
-            var timeSinceLastNav = (currentTime - _lastNavigationTime).TotalMilliseconds;
-            string navKey = $"section:{sectionIndex}";
-            
-            if (_lastNavigationKey == navKey && timeSinceLastNav < NavigationDebounceMs)
-            {
-                System.Diagnostics.Debug.WriteLine($"[NavigationBar] 导航防抖：忽略快速点击 ({timeSinceLastNav:F0}ms < {NavigationDebounceMs}ms)");
-                // 恢复之前的选中状态
-                _suppressSelectionChanged = true;
-                NavView.SelectedItem = _lastSelectedNavigationItem;
-                _suppressSelectionChanged = false;
-                return;
-            }
-            
-            _lastNavigationTime = currentTime;
-            _lastNavigationKey = navKey;
+            // 普通页面导航由 ItemInvoked 处理，SelectionChanged 只更新选中记录
             _lastSelectedNavigationItem = args.SelectedItemContainer;
-
-            Type pageType = sectionIndex switch
-            {
-                1 => typeof(NewPage),
-                2 => typeof(AIPage),
-                _ => typeof(HomePage)
-            };
-
-            NavigationRequested?.Invoke(this, new NavigationRequest(pageType, null));
         }
 
         private void SettingsNavigationItem_PointerEntered(object sender, PointerRoutedEventArgs e)
@@ -497,6 +491,16 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         private void SettingsNavigationItem_PointerExited(object sender, PointerRoutedEventArgs e)
         {
             AnimatedIcon.SetState(SettingsAnimatedIcon, "Normal");
+        }
+
+        private void BackNavigationItem_PointerEntered(object sender, PointerRoutedEventArgs e)
+        {
+            AnimatedIcon.SetState(BackAnimatedIcon, "PointerOver");
+        }
+
+        private void BackNavigationItem_PointerExited(object sender, PointerRoutedEventArgs e)
+        {
+            AnimatedIcon.SetState(BackAnimatedIcon, "Normal");
         }
 
         private void OnUnpinShortcutClick(object sender, RoutedEventArgs e)

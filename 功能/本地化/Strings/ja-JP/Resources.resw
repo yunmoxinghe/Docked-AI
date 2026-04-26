@@ -165,6 +165,9 @@
   <data name="Nav_New.Content" xml:space="preserve">
     <value>新規</value>
   </data>
+  <data name="Nav_Back.Content" xml:space="preserve">
+    <value>戻る</value>
+  </data>
   <data name="Nav_Settings.Content" xml:space="preserve">
     <value>設定</value>
   </data>
@@ -388,6 +391,12 @@
   </data>
   <data name="SettingsPage_ExperimentalHeader.Description" xml:space="preserve">
     <value>実験的機能を有効にする（不安定な可能性があります）</value>
+  </data>
+  <data name="SettingsPage_BackButtonHeader.Header" xml:space="preserve">
+    <value>サイドバーの戻るボタン</value>
+  </data>
+  <data name="SettingsPage_BackButtonHeader.Description" xml:space="preserve">
+    <value>サイドバーに戻るボタンを表示して前のページに戻る</value>
   </data>
   <data name="SettingsPage_FrameAnimationHeader.Header" xml:space="preserve">
     <value>ページ遷移アニメーション</value>

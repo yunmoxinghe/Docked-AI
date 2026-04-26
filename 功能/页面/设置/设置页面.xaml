@@ -9,6 +9,13 @@
     xmlns:devwinui="using:DevWinUI"
     mc:Ignorable="d"
     UseLayoutRounding="True">
+
+    <Page.Transitions>
+        <TransitionCollection>
+            <NavigationThemeTransition />
+        </TransitionCollection>
+    </Page.Transitions>
+
     <Grid
         x:Name="RootGrid"
         Padding="0"
@@ -292,6 +299,16 @@
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Margin="1,16,0,4"/>
 
+                    <!-- 侧边栏返回按钮 -->
+                    <controls:SettingsCard x:Uid="SettingsPage_BackButtonHeader">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE72B;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch
+                            x:Name="BackButtonToggle"
+                            Toggled="OnBackButtonToggled"/>
+                    </controls:SettingsCard>
+
                     <!-- Frame 导航动画设置 -->
                     <controls:SettingsCard 
                         x:Uid="SettingsPage_FrameAnimationHeader"
@@ -394,7 +411,7 @@
                             <FontIcon Glyph="&#xF196;" />
                         </controls:SettingsCard.HeaderIcon>
                         <controls:SettingsCard.ActionIcon>
-                            <FontIcon Glyph="&#xE8A7;"/>
+                            <FontIcon Glyph="&#xE76C;"/>
                         </controls:SettingsCard.ActionIcon>
                     </controls:SettingsCard>
 

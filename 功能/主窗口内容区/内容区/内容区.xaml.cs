@@ -22,8 +22,39 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         private CompositionRoundedRectangleGeometry? _gridClipGeometry;
         private readonly PageCacheManager _pageCacheManager;
         private Page? _currentPage;
+        private Type? _currentPageType;
+        private object? _currentPageParameter;
 
         public event EventHandler<NavigationEventArgs>? Navigated;
+
+        /// <summary>
+        /// 缓存页面导航完成事件（缓存命中时 Frame 不触发 Navigated，由此事件补充通知）
+        /// </summary>
+        public event EventHandler<(Type PageType, object? Parameter)>? CachedPageNavigated;
+
+        /// <summary>
+        /// 当前显示的页面类型
+        /// </summary>
+        public Type? CurrentPageType => _currentPageType;
+
+        /// <summary>
+        /// 当前显示的页面参数
+        /// </summary>
+        public object? CurrentPageParameter => _currentPageParameter;
+
+        /// <summary>
+        /// 是否可以返回（Frame 内置 BackStack）
+        /// </summary>
+        public bool CanGoBack => ContentFrame.CanGoBack;
+
+        /// <summary>
+        /// 返回上一页（Frame 自动使用反向动画）
+        /// </summary>
+        public void GoBack()
+        {
+            if (ContentFrame.CanGoBack)
+                ContentFrame.GoBack();
+        }
 
         private const double TopBarHeight = 48.0;
 
@@ -59,6 +90,42 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         {
             get => TopAppBarContainer.Visibility == Visibility.Visible;
             set => SetTopBarVisibleAnimated(value);
+        }
+
+        private UIElement? _pageTitle;
+
+        /// <summary>
+        /// 注册页面大标题元素，滚动时由服务统一控制其淡入淡出
+        /// </summary>
+        public void SetPageTitle(UIElement? element)
+        {
+            _pageTitle = element;
+        }
+
+        /// <summary>
+        /// 设置页面大标题的显示状态（带动画）
+        /// </summary>
+        public void SetPageTitleVisible(bool visible)
+        {
+            if (_pageTitle is null) return;
+
+            var anim = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
+            {
+                From = visible ? 0.0 : 1.0,
+                To = visible ? 1.0 : 0.0,
+                Duration = new Duration(TimeSpan.FromMilliseconds(visible ? 200 : 150)),
+                EasingFunction = new Microsoft.UI.Xaml.Media.Animation.CubicEase
+                {
+                    EasingMode = visible
+                        ? Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseOut
+                        : Microsoft.UI.Xaml.Media.Animation.EasingMode.EaseIn
+                }
+            };
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(anim, _pageTitle);
+            Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(anim, "Opacity");
+            var sb = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
+            sb.Children.Add(anim);
+            sb.Begin();
         }
 
         private void SetTopBarVisibleAnimated(bool visible)
@@ -215,7 +282,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             }
         }
 
-        public void Navigate(Type pageType, object? parameter = null)
+        public void Navigate(Type pageType, object? parameter = null, Microsoft.UI.Xaml.Media.Animation.NavigationTransitionInfo? transitionInfo = null)
         {
             System.Diagnostics.Debug.WriteLine($"[ContentArea] Navigate 被调用: {pageType.Name}");
             
@@ -224,12 +291,10 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             System.Diagnostics.Debug.WriteLine($"[ContentArea] 缓存键: {cacheKey ?? "null"}");
             
             // 为 AI 页面设置特殊的反向钻取动画
-            NavigationTransitionInfo? customTransition = null;
-            if (pageType.Name == "AIPage")
+            NavigationTransitionInfo? customTransition = transitionInfo; // 外部传入优先
+            if (customTransition == null && pageType.Name == "AIPage")
             {
-                // 使用 DrillIn 的反向效果（通过设置 IsNavigationStackEnabled = false）
                 customTransition = new DrillInNavigationTransitionInfo();
-                System.Diagnostics.Debug.WriteLine($"[ContentArea] AI 页面使用反向钻取动画");
             }
             
             // 如果是 WebBrowserPage，检查 WebView 数量限制
@@ -285,14 +350,22 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             {
                 System.Diagnostics.Debug.WriteLine($"[ContentArea] 页面已缓存，直接使用");
                 
+                // 把当前页手动加入 BackStack，模拟 Frame.Navigate 的行为
+                if (ContentFrame.Content is Page currentPage && _currentPageType != null)
+                {
+                    ContentFrame.BackStack.Add(new PageStackEntry(_currentPageType, _currentPageParameter, null));
+                }
+
                 // 从缓存获取页面
                 Page cachedPage = _pageCacheManager.GetOrCreatePage(pageType, parameter, cacheKey);
                 
                 // 直接设置内容（跳过 Frame 导航）
                 ContentFrame.Content = cachedPage;
                 _currentPage = cachedPage;
+                _currentPageType = pageType;
+                _currentPageParameter = parameter;
                 
-                System.Diagnostics.Debug.WriteLine($"[ContentArea] 已设置缓存页面到 Frame.Content");
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] 已设置缓存页面到 Frame.Content，BackStack 深度: {ContentFrame.BackStackDepth}");
                 
                 // 手动调用 OnNavigatedTo
                 if (cachedPage is INavigationAware navigationAware)
@@ -300,6 +373,10 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                     System.Diagnostics.Debug.WriteLine($"[ContentArea] 调用 INavigationAware.OnNavigatedTo");
                     navigationAware.OnNavigatedTo(parameter);
                 }
+
+                // 手动触发 Navigated 事件，通知 Linker
+                // NavigationEventArgs 不可直接构造，通过 ContentFrame_Navigated 的包装事件通知
+                OnCachedPageNavigated(pageType, parameter);
             }
             else
             {
@@ -332,12 +409,13 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             }
         }
 
+        private void OnCachedPageNavigated(Type pageType, object? parameter)
+        {
+            CachedPageNavigated?.Invoke(this, (pageType, parameter));
+        }
+
         private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
         {
-            // 根据页面类型控制顶部应用栏显隐（统一在此处理，覆盖所有导航路径）
-            bool showTopBar = e.SourcePageType != typeof(WebBrowserPage);
-            TopAppBarContainer.Visibility = showTopBar ? Visibility.Visible : Visibility.Collapsed;
-
             // Frame 导航完成后，将页面加入缓存
             if (ContentFrame.Content is Page page)
             {
@@ -345,14 +423,14 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                 
                 if (!string.IsNullOrEmpty(cacheKey))
                 {
-                    // 将新创建的页面加入缓存
                     _pageCacheManager.AddPageToCache(cacheKey, page);
                     System.Diagnostics.Debug.WriteLine($"[ContentArea] 页面已缓存: {cacheKey}");
                 }
                 
                 _currentPage = page;
+                _currentPageType = e.SourcePageType;
+                _currentPageParameter = e.Parameter;
                 
-                // 如果是 WebBrowserPage，订阅关闭事件
                 if (page is WebBrowserPage webBrowserPage)
                 {
                     webBrowserPage.PageCloseRequested += OnPageCloseRequested;

@@ -170,6 +170,9 @@
   <data name="Nav_New.Content" xml:space="preserve">
     <value>New</value>
   </data>
+  <data name="Nav_Back.Content" xml:space="preserve">
+    <value>Back</value>
+  </data>
   <data name="Nav_Settings.Content" xml:space="preserve">
     <value>Settings</value>
   </data>
@@ -400,6 +403,12 @@
   </data>
   
   <!-- Settings Page - Frame Animation -->
+  <data name="SettingsPage_BackButtonHeader.Header" xml:space="preserve">
+    <value>Sidebar Back Button</value>
+  </data>
+  <data name="SettingsPage_BackButtonHeader.Description" xml:space="preserve">
+    <value>Show a back button in the sidebar to navigate to the previous page</value>
+  </data>
   <data name="SettingsPage_FrameAnimationHeader.Header" xml:space="preserve">
     <value>Page Transition Animation</value>
   </data>
@@ -486,6 +495,12 @@
   </data>
   <data name="LabPage_WinUIContextMenuHeader.Description" xml:space="preserve">
     <value>Enable WinUI-style context menu for web browser (default uses native browser menu)</value>
+  </data>
+  <data name="LabPage_BackButtonHeader.Header" xml:space="preserve">
+    <value>Sidebar Back Button</value>
+  </data>
+  <data name="LabPage_BackButtonHeader.Description" xml:space="preserve">
+    <value>Show a back button in the sidebar to quickly navigate to the previous page</value>
   </data>
   <data name="LabPage_TopAppBarSection.Text" xml:space="preserve">
     <value>Top App Bar</value>

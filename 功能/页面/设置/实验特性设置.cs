@@ -13,6 +13,7 @@ namespace Docked_AI.Features.Pages.Settings
         private const string MaxWebViewCountKey = "WebSettings_MaxWebViewCount";
         private const string FrameNavigationAnimationKey = "NavigationSettings_FrameAnimation";
         private const string EnableAILabKey = "ExperimentalFeature_EnableAILab";
+        private const string EnableBackButtonKey = "NavigationSettings_EnableBackButton";
         
         private static readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
 
@@ -113,6 +114,25 @@ namespace Docked_AI.Features.Pages.Settings
             set
             {
                 _localSettings.Values[EnableAILabKey] = value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否在侧边栏显示返回按钮
+        /// </summary>
+        public static bool EnableBackButton
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(EnableBackButtonKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return false; // 默认关闭
+            }
+            set
+            {
+                _localSettings.Values[EnableBackButtonKey] = value;
             }
         }
     }
