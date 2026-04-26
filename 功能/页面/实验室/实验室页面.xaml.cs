@@ -53,18 +53,28 @@ namespace Docked_AI.Features.Pages.Lab
             AILabToggle.Toggled -= OnAILabToggled;
             RoundedWebViewToggle.Toggled -= OnRoundedWebViewToggled;
             WinUIContextMenuToggle.Toggled -= OnWinUIContextMenuToggled;
+            TopBarBackButtonToggle.Toggled -= OnTopBarBackButtonToggled;
+            TopBarMenuButtonToggle.Toggled -= OnTopBarMenuButtonToggled;
 
             AILabToggle.IsOn = ExperimentalSettings.EnableAILab;
             RoundedWebViewToggle.IsOn = ExperimentalSettings.EnableRoundedWebView;
             WinUIContextMenuToggle.IsOn = ExperimentalSettings.EnableWinUIContextMenu;
+            TopBarBackButtonToggle.IsOn = ExperimentalSettings.EnableTopBarBackButton;
+            TopBarMenuButtonToggle.IsOn = ExperimentalSettings.EnableTopBarMenuButton;
 
             AILabToggle.Toggled += OnAILabToggled;
             RoundedWebViewToggle.Toggled += OnRoundedWebViewToggled;
             WinUIContextMenuToggle.Toggled += OnWinUIContextMenuToggled;
+            TopBarBackButtonToggle.Toggled += OnTopBarBackButtonToggled;
+            TopBarMenuButtonToggle.Toggled += OnTopBarMenuButtonToggled;
 
             // 初始化顶部应用栏测试控件状态
             TopBarVisibilityToggle.IsOn = TopAppBarService.IsVisible;
             TopBarVisibilityToggle.Toggled += OnTopBarVisibilityToggled;
+
+            // 应用当前设置
+            TopAppBarService.SetBackButtonVisible(ExperimentalSettings.EnableTopBarBackButton);
+            TopAppBarService.SetMenuButtonVisible(ExperimentalSettings.EnableTopBarMenuButton);
 
             UpdateMargin();
         }
@@ -177,6 +187,24 @@ namespace Docked_AI.Features.Pages.Lab
             {
                 ExperimentalSettings.EnableWinUIContextMenu = toggle.IsOn;
                 SettingsPage.RaiseWinUIContextMenuSettingsChanged();
+            }
+        }
+
+        private void OnTopBarBackButtonToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggle)
+            {
+                ExperimentalSettings.EnableTopBarBackButton = toggle.IsOn;
+                TopAppBarService.SetBackButtonVisible(toggle.IsOn);
+            }
+        }
+
+        private void OnTopBarMenuButtonToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggle)
+            {
+                ExperimentalSettings.EnableTopBarMenuButton = toggle.IsOn;
+                TopAppBarService.SetMenuButtonVisible(toggle.IsOn);
             }
         }
     }

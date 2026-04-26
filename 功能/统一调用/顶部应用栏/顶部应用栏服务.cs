@@ -109,6 +109,14 @@ public static class TopAppBarService
     }
 
     /// <summary>
+    /// 设置更多按钮的可见性
+    /// </summary>
+    public static void SetMoreButtonVisible(bool visible)
+    {
+        _contentArea?.SetMoreButtonVisible(visible);
+    }
+
+    /// <summary>
     /// 订阅返回按钮点击事件
     /// </summary>
     public static event EventHandler? BackButtonClicked
@@ -147,9 +155,7 @@ public static class TopAppBarService
     /// </summary>
     public static MenuFlyout? GetMoreMenu()
     {
-        // 需要通过反射或添加公共属性来访问 MoreMenuFlyout
-        // 暂时返回 null，后续可以扩展
-        return null;
+        return _contentArea?.GetMoreMenu();
     }
 
     #endregion

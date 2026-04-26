@@ -162,18 +162,10 @@
                         Height="40"
                         Background="Transparent"
                         BorderThickness="0"
+                        Visibility="Collapsed"
                         ToolTipService.ToolTip="更多"
-                        CornerRadius="4"
-                        PointerEntered="MoreButton_PointerEntered"
-                        PointerExited="MoreButton_PointerExited">
-                        <controls:AnimatedIcon x:Name="MoreAnimatedIcon" Width="16" Height="16">
-                            <controls:AnimatedIcon.Source>
-                                <animatedvisuals:AnimatedChevronDownSmallVisualSource />
-                            </controls:AnimatedIcon.Source>
-                            <controls:AnimatedIcon.FallbackIconSource>
-                                <FontIconSource Glyph="&#xE712;" />
-                            </controls:AnimatedIcon.FallbackIconSource>
-                        </controls:AnimatedIcon>
+                        CornerRadius="4">
+                        <FontIcon Glyph="&#xE712;" />
                         <Button.Flyout>
                             <MenuFlyout x:Name="MoreMenuFlyout" Placement="BottomEdgeAlignedRight">
                                 <!-- 菜单项将通过代码动态添加 -->

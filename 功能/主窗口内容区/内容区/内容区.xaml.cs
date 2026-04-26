@@ -203,6 +203,22 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             MenuButton.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
         }
 
+        /// <summary>
+        /// 设置更多按钮的可见性
+        /// </summary>
+        public void SetMoreButtonVisible(bool visible)
+        {
+            MoreButton.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        /// <summary>
+        /// 获取更多按钮的菜单，用于动态添加菜单项
+        /// </summary>
+        public MenuFlyout? GetMoreMenu()
+        {
+            return MoreMenuFlyout;
+        }
+
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
             BackButtonClicked?.Invoke(this, EventArgs.Empty);
@@ -231,16 +247,6 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         private void MenuButton_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
         {
             AnimatedIcon.SetState(MenuAnimatedIcon, "Normal");
-        }
-
-        private void MoreButton_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-        {
-            AnimatedIcon.SetState(MoreAnimatedIcon, "PointerOver");
-        }
-
-        private void MoreButton_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-        {
-            AnimatedIcon.SetState(MoreAnimatedIcon, "Normal");
         }
 
         #endregion

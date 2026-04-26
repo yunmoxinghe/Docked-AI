@@ -134,6 +134,11 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             WindowStateIcon.Glyph = isMaximized ? "\uE73F" : "\uE740";
         }
 
+        private void WindowStateToggleButton_Click(object sender, RoutedEventArgs e)
+        {
+            WindowStateToggleRequested?.Invoke(this, EventArgs.Empty);
+        }
+
         private async void NavigationBar_Loaded(object sender, RoutedEventArgs e)
         {
             Loaded -= NavigationBar_Loaded;

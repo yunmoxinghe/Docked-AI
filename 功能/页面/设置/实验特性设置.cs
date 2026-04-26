@@ -14,6 +14,8 @@ namespace Docked_AI.Features.Pages.Settings
         private const string FrameNavigationAnimationKey = "NavigationSettings_FrameAnimation";
         private const string EnableAILabKey = "ExperimentalFeature_EnableAILab";
         private const string EnableBackButtonKey = "NavigationSettings_EnableBackButton";
+        private const string EnableTopBarBackButtonKey = "TopBarSettings_EnableBackButton";
+        private const string EnableTopBarMenuButtonKey = "TopBarSettings_EnableMenuButton";
         
         private static readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
 
@@ -133,6 +135,44 @@ namespace Docked_AI.Features.Pages.Settings
             set
             {
                 _localSettings.Values[EnableBackButtonKey] = value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否在顶栏显示返回按钮
+        /// </summary>
+        public static bool EnableTopBarBackButton
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(EnableTopBarBackButtonKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return false; // 默认关闭
+            }
+            set
+            {
+                _localSettings.Values[EnableTopBarBackButtonKey] = value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否在顶栏显示菜单按钮
+        /// </summary>
+        public static bool EnableTopBarMenuButton
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(EnableTopBarMenuButtonKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return false; // 默认关闭
+            }
+            set
+            {
+                _localSettings.Values[EnableTopBarMenuButtonKey] = value;
             }
         }
     }

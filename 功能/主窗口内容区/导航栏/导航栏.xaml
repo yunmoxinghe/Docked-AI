@@ -8,10 +8,28 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <controls:NavigationView
-        x:Name="NavView"
+    <Grid>
+        <!-- 固定在顶部的最大化按钮 -->
+        <Button
+            x:Name="WindowStateToggleButton"
             Width="48"
-            Margin="0"
+            Height="48"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Top"
+            Background="Transparent"
+            BorderThickness="0"
+            Click="WindowStateToggleButton_Click"
+            ToolTipService.ToolTip="{x:Bind WindowStateToggleNavigationItem.Content, Mode=OneWay}">
+            <FontIcon
+                x:Name="WindowStateIcon"
+                Glyph="&#xE740;" />
+        </Button>
+
+        <!-- 导航栏，顶部留出空间给最大化按钮 -->
+        <controls:NavigationView
+            x:Name="NavView"
+            Width="48"
+            Margin="0,48,0,0"
             HorizontalAlignment="Right"
             VerticalAlignment="Stretch"
             AlwaysShowHeader="False"
@@ -25,18 +43,18 @@
             SelectionChanged="NavView_SelectionChanged"
             ItemInvoked="NavView_ItemInvoked"
             FlowDirection="RightToLeft">
-        <controls:NavigationView.MenuItems>
-            <controls:NavigationViewItem
-                x:Name="WindowStateToggleNavigationItem"
-                x:Uid="Nav_WindowStateToggle"
-                Tag="windowstate"
-                SelectsOnInvoked="False">
-                <controls:NavigationViewItem.Icon>
-                    <FontIcon
-                        x:Name="WindowStateIcon"
-                        Glyph="&#xE740;" />
-                </controls:NavigationViewItem.Icon>
-            </controls:NavigationViewItem>
+            <controls:NavigationView.MenuItems>
+                <!-- 隐藏的 NavigationViewItem，仅用于保持工具提示文本 -->
+                <controls:NavigationViewItem
+                    x:Name="WindowStateToggleNavigationItem"
+                    x:Uid="Nav_WindowStateToggle"
+                    Tag="windowstate"
+                    Visibility="Collapsed"
+                    SelectsOnInvoked="False">
+                    <controls:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE740;" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
             <controls:NavigationViewItem
                 x:Name="HomeNavigationItem"
                 x:Uid="Nav_Home"
@@ -112,5 +130,6 @@
                 </controls:NavigationViewItem.Icon>
             </controls:NavigationViewItem>
         </controls:NavigationView.FooterMenuItems>
-    </controls:NavigationView>
+        </controls:NavigationView>
+    </Grid>
 </UserControl>
