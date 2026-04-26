@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.Pages.WebApp.Browser;
 using Docked_AI.Features.Localization;
+using Docked_AI.Features.UnifiedCalls.TopAppBar;
 using SymbolIcon = Microsoft.UI.Xaml.Controls.SymbolIcon;
 using Symbol = Microsoft.UI.Xaml.Controls.Symbol;
 using Visibility = Microsoft.UI.Xaml.Visibility;
@@ -19,6 +20,7 @@ namespace Docked_AI.Features.Pages.Home
 {
     public sealed partial class HomePage : Page
     {
+        private readonly 智能标题 _智能标题 = new();
         private const double MinResponsiveWidth = 320;
         private const double MaxResponsiveWidth = 760;
         private const double MinHorizontalMargin = 16;
@@ -31,6 +33,18 @@ namespace Docked_AI.Features.Pages.Home
             InitializeComponent();
             Loaded += OnLoaded;
             SizeChanged += OnSizeChanged;
+        }
+
+        protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            _智能标题.Setup(HomeScrollViewer, PageTitleBlock);
+        }
+
+        protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+            _智能标题.Cleanup();
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)

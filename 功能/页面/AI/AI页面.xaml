@@ -18,6 +18,7 @@
 
     <Grid Padding="0">
         <ScrollViewer
+            x:Name="AIScrollViewer"
             HorizontalScrollBarVisibility="Disabled"
             HorizontalScrollMode="Disabled"
             HorizontalContentAlignment="Stretch"
@@ -28,6 +29,7 @@
                 Spacing="0">
                 <Border Height="40" />
                 <TextBlock
+                    x:Name="PageTitleBlock"
                     x:Uid="AIPage_Title"
                     FontSize="32"
                     FontWeight="SemiBold" />

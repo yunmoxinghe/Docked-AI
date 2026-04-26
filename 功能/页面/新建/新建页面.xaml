@@ -24,6 +24,7 @@
                 Spacing="0">
                 <Border Height="40" />
                 <TextBlock
+                    x:Name="PageTitleBlock"
                     x:Uid="NewPage_Title"
                     FontSize="32"
                     FontWeight="SemiBold" />

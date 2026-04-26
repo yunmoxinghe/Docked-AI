@@ -5,11 +5,13 @@ using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using Docked_AI.Features.Pages.WebApp;
+using Docked_AI.Features.UnifiedCalls.TopAppBar;
 
 namespace Docked_AI.Features.Pages.New
 {
     public sealed partial class NewPage : Page
     {
+        private readonly 智能标题 _智能标题 = new();
         private const double MinResponsiveWidth = 320;
         private const double MaxResponsiveWidth = 760;
         private const double MinHorizontalMargin = 16;
@@ -27,6 +29,7 @@ namespace Docked_AI.Features.Pages.New
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            _智能标题.Setup(CreateScrollViewer, PageTitleBlock);
 
             System.Diagnostics.Debug.WriteLine($"NewPage.OnNavigatedTo called with parameter: {e.Parameter}");
 
@@ -48,6 +51,12 @@ namespace Docked_AI.Features.Pages.New
                 CreateScrollViewer.Visibility = Visibility.Visible;
                 SubPageFrame.Visibility = Visibility.Collapsed;
             }
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+            _智能标题.Cleanup();
         }
 
         private void OnLoaded(object sender, RoutedEventArgs e)
