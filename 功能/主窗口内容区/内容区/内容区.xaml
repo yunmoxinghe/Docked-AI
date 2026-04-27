@@ -16,7 +16,8 @@
         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
         BorderThickness="1">
-        <Grid x:Name="ContentGrid">
+        <Grid x:Name="ContentGrid"
+              PointerPressed="ContentGrid_PointerPressed">
             <!-- 第一层：页面内容 Frame -->
             <controls:Frame
                 x:Name="ContentFrame"
@@ -41,7 +42,7 @@
                 VerticalAlignment="Stretch"
                 IsHitTestVisible="False" />
 
-            <!-- 第三层：顶部应用栏 -->
+            <!-- 第三层：顶部应用栏背景（不参与 hit test，滚轮自然穿透到页面内容） -->
             <Grid
                 x:Name="TopAppBarContainer"
                 HorizontalAlignment="Stretch"
@@ -49,7 +50,7 @@
                 Height="48"
                 Visibility="Collapsed"
                 Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
-                IsHitTestVisible="True">
+                IsHitTestVisible="False">
 
                 <!-- 分隔线 -->
                 <Border
@@ -68,11 +69,12 @@
             </Grid>
 
             <!-- 第四层：左右按钮层（始终在最顶层，不随顶部栏显隐） -->
+            <!-- 整层 IsHitTestVisible=False，让滚轮穿透；按钮自身覆盖为 True -->
             <Grid
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Top"
                 Height="48"
-                IsHitTestVisible="True"
+                IsHitTestVisible="False"
                 Margin="8,0,8,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -83,6 +85,7 @@
                 <!-- 左侧区域 -->
                 <StackPanel
                     Grid.Column="0"
+                    IsHitTestVisible="True"
                     Orientation="Horizontal"
                     VerticalAlignment="Center"
                     Spacing="4">
@@ -141,15 +144,12 @@
                         Spacing="4" />
                 </StackPanel>
 
-                <!-- 中间空白区域（双击触发最大化/还原） -->
-                <Grid
-                    Grid.Column="1"
-                    Background="Transparent"
-                    DoubleTapped="TopBarMiddle_DoubleTapped" />
-
+                <!-- 中间列：IsHitTestVisible 继承 False，滚轮直接穿透到 ContentFrame -->
+                <Grid Grid.Column="1" />
                 <!-- 右侧区域 -->
                 <StackPanel
                     Grid.Column="2"
+                    IsHitTestVisible="True"
                     Orientation="Horizontal"
                     VerticalAlignment="Center"
                     Spacing="4">

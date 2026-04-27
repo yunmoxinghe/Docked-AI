@@ -292,6 +292,29 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             }
         }
 
+        private DateTime _lastTopBarTapTime = DateTime.MinValue;
+        private const double TopBarDoubleTapMaxMs = 400;
+
+        private void ContentGrid_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+        {
+            var pt = e.GetCurrentPoint(ContentGrid).Position;
+            // 只响应顶部栏高度范围内（48px）
+            if (pt.Y > TopBarHeight) return;
+            // 排除左右按钮区域（各约 8px margin + 按钮宽度，粗略排除两端 56px）
+            if (pt.X < 56 || pt.X > ContentGrid.ActualWidth - 56) return;
+
+            var now = DateTime.Now;
+            if ((now - _lastTopBarTapTime).TotalMilliseconds <= TopBarDoubleTapMaxMs)
+            {
+                TopBarDoubleTapped?.Invoke(this, EventArgs.Empty);
+                _lastTopBarTapTime = DateTime.MinValue; // 重置，避免三击再触发
+            }
+            else
+            {
+                _lastTopBarTapTime = now;
+            }
+        }
+
         private void TopBarMiddle_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
         {
             TopBarDoubleTapped?.Invoke(this, EventArgs.Empty);
