@@ -301,25 +301,49 @@
   <data name="Language_SimplifiedChinese.Text" xml:space="preserve">
     <value>簡體中文</value>
   </data>
+  <data name="Language_SimplifiedChinese.Content" xml:space="preserve">
+    <value>簡體中文</value>
+  </data>
   <data name="Language_TraditionalChinese.Text" xml:space="preserve">
+    <value>繁體中文</value>
+  </data>
+  <data name="Language_TraditionalChinese.Content" xml:space="preserve">
     <value>繁體中文</value>
   </data>
   <data name="Language_English.Text" xml:space="preserve">
     <value>English</value>
   </data>
+  <data name="Language_English.Content" xml:space="preserve">
+    <value>English</value>
+  </data>
   <data name="Language_Japanese.Text" xml:space="preserve">
+    <value>日文</value>
+  </data>
+  <data name="Language_Japanese.Content" xml:space="preserve">
     <value>日文</value>
   </data>
   <data name="Language_Korean.Text" xml:space="preserve">
     <value>韓文</value>
   </data>
+  <data name="Language_Korean.Content" xml:space="preserve">
+    <value>韓文</value>
+  </data>
   <data name="Language_French.Text" xml:space="preserve">
+    <value>法文</value>
+  </data>
+  <data name="Language_French.Content" xml:space="preserve">
     <value>法文</value>
   </data>
   <data name="Language_German.Text" xml:space="preserve">
     <value>德文</value>
   </data>
+  <data name="Language_German.Content" xml:space="preserve">
+    <value>德文</value>
+  </data>
   <data name="Language_Spanish.Text" xml:space="preserve">
+    <value>西班牙文</value>
+  </data>
+  <data name="Language_Spanish.Content" xml:space="preserve">
     <value>西班牙文</value>
   </data>
   <!-- 導覽列選單 -->
