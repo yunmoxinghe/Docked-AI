@@ -28,6 +28,11 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         public event EventHandler<NavigationEventArgs>? Navigated;
 
         /// <summary>
+        /// 顶部应用栏中间空白区域双击事件
+        /// </summary>
+        public event EventHandler? TopBarDoubleTapped;
+
+        /// <summary>
         /// 缓存页面导航完成事件（缓存命中时 Frame 不触发 Navigated，由此事件补充通知）
         /// </summary>
         public event EventHandler<(Type PageType, object? Parameter)>? CachedPageNavigated;
@@ -277,6 +282,11 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                 System.Diagnostics.Debug.WriteLine("[ContentArea] 执行默认返回");
                 ContentFrame.GoBack();
             }
+        }
+
+        private void TopBarMiddle_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
+        {
+            TopBarDoubleTapped?.Invoke(this, EventArgs.Empty);
         }
 
         private void MenuButton_Click(object sender, RoutedEventArgs e)

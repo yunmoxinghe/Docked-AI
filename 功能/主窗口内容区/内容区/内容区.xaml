@@ -141,6 +141,12 @@
                         Spacing="4" />
                 </StackPanel>
 
+                <!-- 中间空白区域（双击触发最大化/还原） -->
+                <Grid
+                    Grid.Column="1"
+                    Background="Transparent"
+                    DoubleTapped="TopBarMiddle_DoubleTapped" />
+
                 <!-- 右侧区域 -->
                 <StackPanel
                     Grid.Column="2"

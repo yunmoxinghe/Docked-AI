@@ -43,6 +43,7 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             NavBar.ShortcutRemoved += OnShortcutRemoved;
             NavBar.WebAppRestartRequested += OnWebAppRestartRequested;
             NavBar.BackRequested += OnBackRequested;
+            ContentHost.TopBarDoubleTapped += OnTopBarDoubleTapped;
             
             // 订阅 AI 实验室设置变化事件
             Pages.Settings.SettingsPage.AILabSettingsChanged += OnAILabSettingsChanged;
@@ -113,6 +114,11 @@ namespace Docked_AI.Features.MainWindowContent.Linker
         }
 
         private void OnWindowStateToggleRequested(object? sender, EventArgs e)
+        {
+            WindowStateToggleRequested?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void OnTopBarDoubleTapped(object? sender, EventArgs e)
         {
             WindowStateToggleRequested?.Invoke(this, EventArgs.Empty);
         }

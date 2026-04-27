@@ -146,5 +146,22 @@ public static class TopAppBarService
         return _contentArea?.GetMoreMenu();
     }
 
+    /// <summary>
+    /// 顶部应用栏中间空白区域双击事件（可用于触发最大化/还原）
+    /// </summary>
+    public static event EventHandler? TopBarDoubleTapped
+    {
+        add
+        {
+            if (_contentArea is not null)
+                _contentArea.TopBarDoubleTapped += value;
+        }
+        remove
+        {
+            if (_contentArea is not null)
+                _contentArea.TopBarDoubleTapped -= value;
+        }
+    }
+
     #endregion
 }
