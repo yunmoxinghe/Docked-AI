@@ -69,12 +69,11 @@
             </Grid>
 
             <!-- 第四层：左右按钮层（始终在最顶层，不随顶部栏显隐） -->
-            <!-- 整层 IsHitTestVisible=False，让滚轮穿透；按钮自身覆盖为 True -->
             <Grid
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Top"
                 Height="48"
-                IsHitTestVisible="False"
+                IsHitTestVisible="True"
                 Margin="8,0,8,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -85,7 +84,6 @@
                 <!-- 左侧区域 -->
                 <StackPanel
                     Grid.Column="0"
-                    IsHitTestVisible="True"
                     Orientation="Horizontal"
                     VerticalAlignment="Center"
                     Spacing="4">
@@ -144,12 +142,11 @@
                         Spacing="4" />
                 </StackPanel>
 
-                <!-- 中间列：IsHitTestVisible 继承 False，滚轮直接穿透到 ContentFrame -->
+                <!-- 中间列：无背景不参与 hit test，滚轮直接穿透到 ContentFrame -->
                 <Grid Grid.Column="1" />
                 <!-- 右侧区域 -->
                 <StackPanel
                     Grid.Column="2"
-                    IsHitTestVisible="True"
                     Orientation="Horizontal"
                     VerticalAlignment="Center"
                     Spacing="4">
