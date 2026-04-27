@@ -9,27 +9,10 @@
     mc:Ignorable="d">
 
     <Grid>
-        <!-- 固定在顶部的最大化按钮 -->
-        <Button
-            x:Name="WindowStateToggleButton"
-            Width="48"
-            Height="48"
-            HorizontalAlignment="Right"
-            VerticalAlignment="Top"
-            Background="Transparent"
-            BorderThickness="0"
-            Click="WindowStateToggleButton_Click"
-            ToolTipService.ToolTip="{x:Bind WindowStateToggleNavigationItem.Content, Mode=OneWay}">
-            <FontIcon
-                x:Name="WindowStateIcon"
-                Glyph="&#xE740;" />
-        </Button>
-
-        <!-- 导航栏，顶部留出空间给最大化按钮 -->
+        <!-- 导航栏 -->
         <controls:NavigationView
             x:Name="NavView"
             Width="48"
-            Margin="0,48,0,0"
             HorizontalAlignment="Right"
             VerticalAlignment="Stretch"
             AlwaysShowHeader="False"
@@ -44,15 +27,16 @@
             ItemInvoked="NavView_ItemInvoked"
             FlowDirection="RightToLeft">
             <controls:NavigationView.MenuItems>
-                <!-- 隐藏的 NavigationViewItem，仅用于保持工具提示文本 -->
+                <!-- 最大化/还原按钮 -->
                 <controls:NavigationViewItem
                     x:Name="WindowStateToggleNavigationItem"
                     x:Uid="Nav_WindowStateToggle"
                     Tag="windowstate"
-                    Visibility="Collapsed"
                     SelectsOnInvoked="False">
                     <controls:NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE740;" />
+                        <FontIcon
+                            x:Name="WindowStateIcon"
+                            Glyph="&#xE740;" />
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
             <controls:NavigationViewItem
