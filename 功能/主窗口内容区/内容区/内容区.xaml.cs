@@ -197,6 +197,14 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         }
 
         /// <summary>
+        /// 强制设置返回按钮可见性，用于页面自行管理顶部栏时覆盖默认行为。
+        /// </summary>
+        public void SetBackButtonVisible(bool visible)
+        {
+            SetBackButtonVisibleAnimated(visible);
+        }
+
+        /// <summary>
         /// 设置返回按钮的可见性（带淡入淡出动画）
         /// </summary>
         private void SetBackButtonVisibleAnimated(bool visible)

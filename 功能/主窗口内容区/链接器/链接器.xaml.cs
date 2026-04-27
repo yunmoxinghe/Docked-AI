@@ -91,6 +91,7 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             _isNavigatingBack = false;
             NavBar.UpdateBackButtonVisibility(ContentHost.CanGoBack);
             // 顶栏返回按钮由 ContentArea 内部在 Navigated 时自动刷新，无需在此处理
+            SyncTopAppBarVisibility(e.SourcePageType);
         }
 
         private void ContentHost_CachedPageNavigated(object? sender, (Type PageType, object? Parameter) e)
@@ -99,6 +100,21 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             _isNavigatingBack = false;
             NavBar.UpdateBackButtonVisibility(ContentHost.CanGoBack);
             // 顶栏返回按钮由 ContentArea 内部在 CachedPageNavigated 时自动刷新，无需在此处理
+            SyncTopAppBarVisibility(e.PageType);
+        }
+
+        /// <summary>
+        /// 网页浏览页面有自己的顶部栏实现，导航到该页面时彻底隐藏 TopAppBarService 的顶部栏和返回按钮。
+        /// </summary>
+        private void SyncTopAppBarVisibility(Type pageType)
+        {
+            if (pageType == typeof(WebBrowserPage))
+            {
+                TopAppBarService.IsVisible = false;
+                // 返回按钮在独立图标层，需单独隐藏
+                ContentHost.SetBackButtonVisible(false);
+                NavBar.UpdateBackButtonVisibility(false);
+            }
         }
 
         private void OnNavigationRequested(object? sender, NavRequest request)

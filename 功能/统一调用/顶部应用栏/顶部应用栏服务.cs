@@ -106,6 +106,14 @@ public static class TopAppBarService
     }
 
     /// <summary>
+    /// 强制设置返回按钮可见性
+    /// </summary>
+    public static void SetBackButtonVisible(bool visible)
+    {
+        _contentArea?.SetBackButtonVisible(visible);
+    }
+
+    /// <summary>
     /// 设置菜单按钮的可见性
     /// </summary>
     public static void SetMenuButtonVisible(bool visible)
