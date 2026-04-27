@@ -111,16 +111,6 @@
                         <ToggleSwitch x:Name="TopBarVisibilityToggle" />
                     </controls:SettingsCard>
 
-                    <!-- 顶栏返回按钮 -->
-                    <controls:SettingsCard x:Uid="LabPage_TopBarBackButtonHeader">
-                        <controls:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE72B;" />
-                        </controls:SettingsCard.HeaderIcon>
-                        <ToggleSwitch
-                            x:Name="TopBarBackButtonToggle"
-                            Toggled="OnTopBarBackButtonToggled"/>
-                    </controls:SettingsCard>
-
                     <!-- 顶栏菜单按钮 -->
                     <controls:SettingsCard x:Uid="LabPage_TopBarMenuButtonHeader">
                         <controls:SettingsCard.HeaderIcon>

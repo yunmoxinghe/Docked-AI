@@ -22,8 +22,10 @@ public sealed class 智能标题
         _scrollViewer = scrollViewer;
         _titleVisible = true;
 
-        // 顶栏小标题直接读大标题的文字，保证两者永远一致
-        // 用 Loaded 事件保险，确保本地化文字已绑定后再读取
+        // 新页面进入时重置顶栏状态
+        TopAppBarService.IsVisible = false;
+        TopAppBarService.ClearAll();
+
         void ApplyCenterTitle()
         {
             var text = pageTitleElement.Text;
@@ -40,24 +42,14 @@ public sealed class 智能标题
         }
 
         if (!string.IsNullOrEmpty(pageTitleElement.Text))
-        {
             ApplyCenterTitle();
-        }
         else
-        {
             pageTitleElement.Loaded += (_, _) => ApplyCenterTitle();
-        }
 
-        // 注册大标题，由服务统一控制淡入淡出
         TopAppBarService.SetPageTitle(pageTitleElement);
-
-        // 订阅滚动事件
         _scrollViewer.ViewChanged += OnScrollViewerViewChanged;
     }
 
-    /// <summary>
-    /// 页面离开时清理，取消订阅并重置顶栏状态
-    /// </summary>
     public void Cleanup()
     {
         if (_scrollViewer is not null)
@@ -66,7 +58,6 @@ public sealed class 智能标题
             _scrollViewer = null;
         }
 
-        TopAppBarService.IsVisible = false;
         TopAppBarService.SetPageTitle(null);
         TopAppBarService.ClearAll();
         _titleVisible = true;

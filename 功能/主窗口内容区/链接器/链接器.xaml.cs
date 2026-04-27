@@ -46,19 +46,12 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             
             // 订阅 AI 实验室设置变化事件
             Pages.Settings.SettingsPage.AILabSettingsChanged += OnAILabSettingsChanged;
-            // 订阅返回按钮设置变化事件
-            Pages.Settings.SettingsPage.BackButtonSettingsChanged += OnBackButtonSettingsChanged;
         }
 
         private void OnAILabSettingsChanged(object? sender, EventArgs e)
         {
             // 通知导航栏更新 AI 导航项的可见性
             NavBar.UpdateAINavigationItemVisibility();
-        }
-
-        private void OnBackButtonSettingsChanged(object? sender, EventArgs e)
-        {
-            NavBar.UpdateBackButtonVisibility(ContentHost.CanGoBack);
         }
 
         private void OnBackRequested(object? sender, EventArgs e)
@@ -96,6 +89,7 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             SyncNavigationBarSelection(e.SourcePageType, e.Parameter);
             _isNavigatingBack = false;
             NavBar.UpdateBackButtonVisibility(ContentHost.CanGoBack);
+            // 顶栏返回按钮由 ContentArea 内部在 Navigated 时自动刷新，无需在此处理
         }
 
         private void ContentHost_CachedPageNavigated(object? sender, (Type PageType, object? Parameter) e)
@@ -103,6 +97,7 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             SyncNavigationBarSelection(e.PageType, e.Parameter);
             _isNavigatingBack = false;
             NavBar.UpdateBackButtonVisibility(ContentHost.CanGoBack);
+            // 顶栏返回按钮由 ContentArea 内部在 CachedPageNavigated 时自动刷新，无需在此处理
         }
 
         private void OnNavigationRequested(object? sender, NavRequest request)

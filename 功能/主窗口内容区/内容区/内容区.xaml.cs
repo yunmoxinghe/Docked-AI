@@ -175,12 +175,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             Pages.Settings.SettingsPage.FrameAnimationSettingsChanged += OnFrameAnimationSettingsChanged;
         }
 
-        #region 顶栏按钮事件处理
-
-        /// <summary>
-        /// 返回按钮点击事件
-        /// </summary>
-        public event EventHandler? BackButtonClicked;
+        #region 顶栏按钮控制
 
         /// <summary>
         /// 菜单按钮点击事件
@@ -188,11 +183,59 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         public event EventHandler? MenuButtonClicked;
 
         /// <summary>
-        /// 设置返回按钮的可见性
+        /// 智能刷新返回按钮：根据 CanGoBack 自动显示/隐藏（带淡入淡出动画）。
+        /// 返回按钮在独立的第四层，不依赖顶栏背景容器，顶栏显隐由页面自行控制。
         /// </summary>
-        public void SetBackButtonVisible(bool visible)
+        public void RefreshBackButton()
         {
-            BackButton.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            SetBackButtonVisibleAnimated(ContentFrame.CanGoBack);
+        }
+
+        /// <summary>
+        /// 设置返回按钮的可见性（带淡入淡出动画）
+        /// </summary>
+        private void SetBackButtonVisibleAnimated(bool visible)
+        {
+            var visual = ElementCompositionPreview.GetElementVisual(BackButton);
+            var compositor = visual.Compositor;
+
+            if (visible)
+            {
+                // 淡入显示
+                if (BackButton.Visibility == Visibility.Visible) return; // 已显示，跳过
+                
+                BackButton.Visibility = Visibility.Visible;
+                BackButton.IsEnabled = true;
+                
+                var fadeIn = compositor.CreateScalarKeyFrameAnimation();
+                fadeIn.InsertKeyFrame(0f, 0f);
+                fadeIn.InsertKeyFrame(1f, 1f);
+                fadeIn.Duration = TimeSpan.FromMilliseconds(200);
+                fadeIn.Target = "Opacity";
+                
+                visual.StartAnimation("Opacity", fadeIn);
+            }
+            else
+            {
+                // 淡出隐藏
+                if (BackButton.Visibility == Visibility.Collapsed) return; // 已隐藏，跳过
+                
+                var fadeOut = compositor.CreateScalarKeyFrameAnimation();
+                fadeOut.InsertKeyFrame(0f, visual.Opacity);
+                fadeOut.InsertKeyFrame(1f, 0f);
+                fadeOut.Duration = TimeSpan.FromMilliseconds(150);
+                fadeOut.Target = "Opacity";
+                
+                var batch = compositor.CreateScopedBatch(CompositionBatchTypes.Animation);
+                visual.StartAnimation("Opacity", fadeOut);
+                batch.End();
+                
+                batch.Completed += (_, _) =>
+                {
+                    BackButton.Visibility = Visibility.Collapsed;
+                    visual.Opacity = 1f; // 重置透明度，下次显示时从正确状态开始
+                };
+            }
         }
 
         /// <summary>
@@ -221,7 +264,19 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            BackButtonClicked?.Invoke(this, EventArgs.Empty);
+            // 优先让当前页面接管返回逻辑
+            if (ContentFrame.Content is IBackHandler handler && handler.OnBackRequested())
+            {
+                System.Diagnostics.Debug.WriteLine("[ContentArea] 返回被页面接管");
+                return;
+            }
+
+            // 页面未接管，执行默认返回
+            if (ContentFrame.CanGoBack)
+            {
+                System.Diagnostics.Debug.WriteLine("[ContentArea] 执行默认返回");
+                ContentFrame.GoBack();
+            }
         }
 
         private void MenuButton_Click(object sender, RoutedEventArgs e)
@@ -487,6 +542,9 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
 
         private void OnCachedPageNavigated(Type pageType, object? parameter)
         {
+            // 智能刷新返回按钮
+            RefreshBackButton();
+            
             CachedPageNavigated?.Invoke(this, (pageType, parameter));
         }
 
@@ -512,6 +570,9 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                     webBrowserPage.PageCloseRequested += OnPageCloseRequested;
                 }
             }
+
+            // 智能刷新返回按钮
+            RefreshBackButton();
             
             Navigated?.Invoke(this, e);
         }

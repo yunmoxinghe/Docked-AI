@@ -93,11 +93,16 @@ public static class TopAppBarService
     #region 顶栏按钮控制
 
     /// <summary>
-    /// 设置返回按钮的可见性
+    /// 当前 Frame 是否可以返回
     /// </summary>
-    public static void SetBackButtonVisible(bool visible)
+    public static bool CanGoBack => _contentArea?.CanGoBack ?? false;
+
+    /// <summary>
+    /// 智能刷新返回按钮：根据 CanGoBack 自动显示/隐藏（带淡入淡出动画）
+    /// </summary>
+    public static void RefreshBackButton()
     {
-        _contentArea?.SetBackButtonVisible(visible);
+        _contentArea?.RefreshBackButton();
     }
 
     /// <summary>
@@ -114,23 +119,6 @@ public static class TopAppBarService
     public static void SetMoreButtonVisible(bool visible)
     {
         _contentArea?.SetMoreButtonVisible(visible);
-    }
-
-    /// <summary>
-    /// 订阅返回按钮点击事件
-    /// </summary>
-    public static event EventHandler? BackButtonClicked
-    {
-        add
-        {
-            if (_contentArea is not null)
-                _contentArea.BackButtonClicked += value;
-        }
-        remove
-        {
-            if (_contentArea is not null)
-                _contentArea.BackButtonClicked -= value;
-        }
     }
 
     /// <summary>
