@@ -312,7 +312,6 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void LoadExperimentalSettings()
         {
-            // 实验特性已移至实验室页面，此方法保留以兼容旧调用
             // 加载返回按钮设置
             if (BackButtonToggle != null)
             {
@@ -320,6 +319,19 @@ namespace Docked_AI.Features.Pages.Settings
                 BackButtonToggle.IsOn = ExperimentalSettings.EnableBackButton;
                 BackButtonToggle.Toggled += OnBackButtonToggled;
             }
+
+            // 加载三个实验特性开关
+            AILabToggle.Toggled -= OnAILabToggled;
+            RoundedWebViewToggle.Toggled -= OnRoundedWebViewToggled;
+            WinUIContextMenuToggle.Toggled -= OnWinUIContextMenuToggled;
+
+            AILabToggle.IsOn = ExperimentalSettings.EnableAILab;
+            RoundedWebViewToggle.IsOn = ExperimentalSettings.EnableRoundedWebView;
+            WinUIContextMenuToggle.IsOn = ExperimentalSettings.EnableWinUIContextMenu;
+
+            AILabToggle.Toggled += OnAILabToggled;
+            RoundedWebViewToggle.Toggled += OnRoundedWebViewToggled;
+            WinUIContextMenuToggle.Toggled += OnWinUIContextMenuToggled;
         }
 
         private void OnBackButtonToggled(object sender, RoutedEventArgs e)
@@ -328,6 +340,33 @@ namespace Docked_AI.Features.Pages.Settings
             {
                 ExperimentalSettings.EnableBackButton = toggle.IsOn;
                 RaiseBackButtonSettingsChanged();
+            }
+        }
+
+        private void OnAILabToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggle)
+            {
+                ExperimentalSettings.EnableAILab = toggle.IsOn;
+                RaiseAILabSettingsChanged();
+            }
+        }
+
+        private void OnRoundedWebViewToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggle)
+            {
+                ExperimentalSettings.EnableRoundedWebView = toggle.IsOn;
+                RaiseRoundedWebViewSettingsChanged();
+            }
+        }
+
+        private void OnWinUIContextMenuToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggle)
+            {
+                ExperimentalSettings.EnableWinUIContextMenu = toggle.IsOn;
+                RaiseWinUIContextMenuSettingsChanged();
             }
         }
 

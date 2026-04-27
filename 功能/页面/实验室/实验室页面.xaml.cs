@@ -36,19 +36,8 @@ namespace Docked_AI.Features.Pages.Lab
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            AILabToggle.Toggled -= OnAILabToggled;
-            RoundedWebViewToggle.Toggled -= OnRoundedWebViewToggled;
-            WinUIContextMenuToggle.Toggled -= OnWinUIContextMenuToggled;
             TopBarMenuButtonToggle.Toggled -= OnTopBarMenuButtonToggled;
-
-            AILabToggle.IsOn = ExperimentalSettings.EnableAILab;
-            RoundedWebViewToggle.IsOn = ExperimentalSettings.EnableRoundedWebView;
-            WinUIContextMenuToggle.IsOn = ExperimentalSettings.EnableWinUIContextMenu;
             TopBarMenuButtonToggle.IsOn = ExperimentalSettings.EnableTopBarMenuButton;
-
-            AILabToggle.Toggled += OnAILabToggled;
-            RoundedWebViewToggle.Toggled += OnRoundedWebViewToggled;
-            WinUIContextMenuToggle.Toggled += OnWinUIContextMenuToggled;
             TopBarMenuButtonToggle.Toggled += OnTopBarMenuButtonToggled;
 
             // 初始化顶部应用栏测试控件状态
@@ -127,33 +116,6 @@ namespace Docked_AI.Features.Pages.Lab
         private void OnClearCenterClick(object sender, RoutedEventArgs e)
         {
             TopAppBarService.SetCenterContent(null);
-        }
-
-        private void OnAILabToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.EnableAILab = toggle.IsOn;
-                SettingsPage.RaiseAILabSettingsChanged();
-            }
-        }
-
-        private void OnRoundedWebViewToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.EnableRoundedWebView = toggle.IsOn;
-                SettingsPage.RaiseRoundedWebViewSettingsChanged();
-            }
-        }
-
-        private void OnWinUIContextMenuToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.EnableWinUIContextMenu = toggle.IsOn;
-                SettingsPage.RaiseWinUIContextMenuSettingsChanged();
-            }
         }
 
         private void OnTopBarMenuButtonToggled(object sender, RoutedEventArgs e)

@@ -45,52 +45,6 @@
 
                 <Border Height="28" />
 
-                <StackPanel Spacing="4">
-                    <StackPanel.ChildrenTransitions>
-                        <EntranceThemeTransition FromVerticalOffset="50" />
-                        <RepositionThemeTransition IsStaggeringEnabled="True" />
-                    </StackPanel.ChildrenTransitions>
-
-                    <!-- 实验特性分组 -->
-                    <TextBlock
-                        x:Uid="LabPage_ExperimentalSection"
-                        Style="{StaticResource BodyStrongTextBlockStyle}"
-                        Margin="1,0,0,4"/>
-
-                    <!-- AI 实验室 -->
-                    <controls:SettingsCard x:Uid="LabPage_AILabHeader">
-                        <controls:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xF4A5;" />
-                        </controls:SettingsCard.HeaderIcon>
-                        <ToggleSwitch
-                            x:Name="AILabToggle"
-                            Toggled="OnAILabToggled"/>
-                    </controls:SettingsCard>
-
-                    <!-- WebView2 圆角 -->
-                    <controls:SettingsCard x:Uid="LabPage_RoundedWebViewHeader">
-                        <controls:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE7C8;" />
-                        </controls:SettingsCard.HeaderIcon>
-                        <ToggleSwitch
-                            x:Name="RoundedWebViewToggle"
-                            Toggled="OnRoundedWebViewToggled"/>
-                    </controls:SettingsCard>
-
-                    <!-- WinUI 右键菜单 -->
-                    <controls:SettingsCard x:Uid="LabPage_WinUIContextMenuHeader">
-                        <controls:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE8C1;" />
-                        </controls:SettingsCard.HeaderIcon>
-                        <ToggleSwitch
-                            x:Name="WinUIContextMenuToggle"
-                            Toggled="OnWinUIContextMenuToggled"/>
-                    </controls:SettingsCard>
-
-                </StackPanel>
-
-                <Border Height="28" />
-
                 <!-- 顶部应用栏测试分组 -->
                 <TextBlock
                     x:Uid="LabPage_TopAppBarSection"
