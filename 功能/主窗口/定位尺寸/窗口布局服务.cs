@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.UI.Windowing;
 
 namespace Docked_AI.Features.MainWindow.Placement
 {
@@ -87,26 +88,44 @@ namespace Docked_AI.Features.MainWindow.Placement
 
         /// <summary>
         /// 刷新布局信息 - 重新计算屏幕尺寸、工作区、窗口尺寸
-        /// 
+        ///
         /// 【调用时机】
-        /// - 初始化时
+        /// - 初始化时（hwnd 为 Zero，回退到 Win32 主显示器）
         /// - 屏幕分辨率变化时
         /// - 工作区变化时（任务栏位置/尺寸变化）
         /// - 显示/隐藏动画前
-        /// 
+        ///
         /// 【核心逻辑】
-        /// 1. 获取屏幕尺寸（GetSystemMetrics）
-        /// 2. 获取工作区（SystemParametersInfo）
+        /// 1. 优先用 DisplayArea（多显示器感知，物理像素，WinUI 3 原生）
+        /// 2. hwnd 为 Zero 时回退到 GetSystemMetrics + SystemParametersInfo
         /// 3. 计算可用宽度（工作区宽度 - 边距）
         /// 4. 计算窗口宽度（可用宽度的 1/3，不小于最小宽度）
         /// 5. 计算窗口高度（工作区高度 - 边距）
         /// 6. 计算目标位置（右侧边缘 - 窗口宽度 - 边距）
         /// </summary>
-        public void Refresh(WindowLayoutState state)
+        public void Refresh(WindowLayoutState state, IntPtr hwnd = default)
         {
-            state.ScreenHeight = PlacementWin32Api.GetSystemMetrics(PlacementWin32Api.SM_CYSCREEN);
-            state.ScreenWidth = PlacementWin32Api.GetSystemMetrics(PlacementWin32Api.SM_CXSCREEN);
-            PlacementWin32Api.SystemParametersInfo(PlacementWin32Api.SPI_GETWORKAREA, 0, ref state.WorkArea, 0);
+            if (hwnd != IntPtr.Zero)
+            {
+                // DisplayArea：多显示器感知，自动跟随窗口所在屏幕
+                var windowId  = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+                var display   = DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Nearest);
+                var workArea  = display.WorkArea; // RectInt32，物理像素，已排除任务栏
+
+                state.ScreenWidth  = display.OuterBounds.Width;
+                state.ScreenHeight = display.OuterBounds.Height;
+                state.WorkArea.Left   = workArea.X;
+                state.WorkArea.Top    = workArea.Y;
+                state.WorkArea.Right  = workArea.X + workArea.Width;
+                state.WorkArea.Bottom = workArea.Y + workArea.Height;
+            }
+            else
+            {
+                // 回退：窗口尚未创建时使用主显示器数据
+                state.ScreenHeight = PlacementWin32Api.GetSystemMetrics(PlacementWin32Api.SM_CYSCREEN);
+                state.ScreenWidth  = PlacementWin32Api.GetSystemMetrics(PlacementWin32Api.SM_CXSCREEN);
+                PlacementWin32Api.SystemParametersInfo(PlacementWin32Api.SPI_GETWORKAREA, 0, ref state.WorkArea, 0);
+            }
 
             int availableWidth = state.WorkArea.Right - state.WorkArea.Left - (state.Margin * 2);
             if (state.WindowWidth <= 0)
@@ -114,12 +133,12 @@ namespace Docked_AI.Features.MainWindow.Placement
                 state.WindowWidth = availableWidth / 3;
             }
 
-            state.WindowWidth = Math.Max(state.MinWindowWidth, state.WindowWidth);
-            state.WindowWidth = Math.Min(availableWidth, state.WindowWidth);
+            state.WindowWidth  = Math.Max(state.MinWindowWidth, state.WindowWidth);
+            state.WindowWidth  = Math.Min(availableWidth, state.WindowWidth);
             state.WindowHeight = state.WorkArea.Bottom - state.WorkArea.Top - (state.Margin * 2);
-            state.TargetX = state.WorkArea.Right - state.WindowWidth - state.Margin;
-            state.TargetY = state.WorkArea.Top + state.Margin;
-            state.CurrentY = state.TargetY;
+            state.TargetX      = state.WorkArea.Right - state.WindowWidth - state.Margin;
+            state.TargetY      = state.WorkArea.Top + state.Margin;
+            state.CurrentY     = state.TargetY;
         }
 
         /// <summary>
@@ -133,9 +152,9 @@ namespace Docked_AI.Features.MainWindow.Placement
         /// 2. 设置 CurrentX 为屏幕外（ScreenWidth）
         /// 3. 动画控制器从 CurrentX 滑动到 TargetX
         /// </summary>
-        public void PrepareForShow(WindowLayoutState state)
+        public void PrepareForShow(WindowLayoutState state, IntPtr hwnd = default)
         {
-            Refresh(state);
+            Refresh(state, hwnd);
             state.CurrentX = state.ScreenWidth;
         }
 
@@ -155,9 +174,9 @@ namespace Docked_AI.Features.MainWindow.Placement
         /// - 如果窗口位置异常（CurrentX=0），动画起始位置错误
         /// - 修正后动画从正确位置开始，避免闪烁
         /// </summary>
-        public void PrepareForHide(WindowLayoutState state)
+        public void PrepareForHide(WindowLayoutState state, IntPtr hwnd = default)
         {
-            Refresh(state);
+            Refresh(state, hwnd);
 
             if (state.CurrentX == 0)
             {

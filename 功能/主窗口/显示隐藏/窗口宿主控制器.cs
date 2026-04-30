@@ -1,4 +1,4 @@
-﻿using Docked_AI.Features.MainWindow.State;
+using Docked_AI.Features.MainWindow.State;
 using Docked_AI.Features.MainWindow.Appearance;
 using Docked_AI.Features.MainWindow.Placement;
 using Docked_AI.Features.MainWindow.Entry;
@@ -239,7 +239,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             try
             {
                 // 1. 刷新布局信息
-                _layoutService.Refresh(_state);
+                _layoutService.Refresh(_state, _hwnd);
                 System.Diagnostics.Debug.WriteLine($"[WindowHostController] Layout refreshed: TargetX={_state.TargetX}, TargetY={_state.TargetY}, W={_state.WindowWidth}, H={_state.WindowHeight}");
                 
                 // 2. 设置窗口到目标位置（不是屏幕外）
@@ -323,7 +323,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             
             // 初始化时不设置位置，避免窗口在屏幕上闪现
             // 让 RequestSlideIn() 在首次显示时设置正确的位置和动画
-            _layoutService.Refresh(_state);
+            _layoutService.Refresh(_state, _hwnd);
             _window.AppWindow.IsShownInSwitchers = false;
             
             // 将窗口移到屏幕外，避免初始化时可见
@@ -536,7 +536,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         private void StartInitialSlideIn()
         {
-            _layoutService.PrepareForShow(_state);
+            _layoutService.PrepareForShow(_state, _hwnd);
             _window.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32((int)_state.CurrentX, (int)_state.CurrentY, _state.WindowWidth, _state.WindowHeight));
             _animationController.StartShow();
             
@@ -567,37 +567,15 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _pinnedModeController.RemoveAppBar();
             SetTopMost(false);
 
-            _layoutService.Refresh(_state);
+            _layoutService.Refresh(_state, _hwnd);
             _state.CurrentX = _state.TargetX;
             _state.CurrentY = _state.TargetY;
 
-            _layoutService.PrepareForHide(_state);
+            _layoutService.PrepareForHide(_state, _hwnd);
             _state.TargetX = _state.ScreenWidth;
             _state.TargetY = _state.WorkArea.Top + _state.Margin;
             _state.CurrentY = _state.TargetY;
             _animationController.StartHide();
-        }
-
-        private void ApplyPinnedMode()
-        {
-            _window.AppWindow.IsShownInSwitchers = false;
-            _pinnedModeController.ApplyPinnedWindowStyle();
-            _layoutService.Refresh(_state);
-            _pinnedModeController.ApplyPinnedBounds();
-            _backdropService.EnsureMicaBackdrop(_window);
-            
-            // 注意：ActivateAndFocusWindow() 必须在最后调用
-            // 因为它内部调用 Activate()，会触发窗口显示动画
-            ActivateAndFocusWindow();
-        }
-
-        private void RestoreStandardMode()
-        {
-            _pinnedModeController.ExitPinnedMode();
-            _titleBarService.ConfigureStandardWindow(_window);
-            _backdropService.EnsureAcrylicBackdrop(_window);
-            MoveWindowToStandardDock(prepareForShow: false);
-            SetTopMost(false);
         }
 
         private void ActivateAndFocusWindow()
@@ -628,7 +606,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             var currentState = _stateManager.CurrentState;
             if (currentState == WindowState.Pinned)
             {
-                _layoutService.Refresh(_state);
+                _layoutService.Refresh(_state, _hwnd);
                 _pinnedModeController.ApplyPinnedBounds();
             }
         }
@@ -637,11 +615,11 @@ namespace Docked_AI.Features.MainWindow.Visibility
         {
             if (prepareForShow)
             {
-                _layoutService.PrepareForShow(_state);
+                _layoutService.PrepareForShow(_state, _hwnd);
             }
             else
             {
-                _layoutService.Refresh(_state);
+                _layoutService.Refresh(_state, _hwnd);
                 _state.CurrentX = _state.TargetX;
                 _state.CurrentY = _state.TargetY;
             }
@@ -794,8 +772,30 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         private async System.Threading.Tasks.Task ApplyPinnedModeAsync()
         {
-            ApplyPinnedMode();
-            await System.Threading.Tasks.Task.Delay(PinnedModeDelay);
+            _window.AppWindow.IsShownInSwitchers = false;
+
+            // 1. 滑出：窗口从当前位置滑到屏幕右侧不可见区域（逐帧动画，await 等完成）
+            await _pinnedModeController.SlideOutAsync();
+
+            // 2. 在屏幕外改样式（用户看不到任何闪烁）
+            _pinnedModeController.ApplyPinnedWindowStyle();
+
+            // 3. 查询 AppBar 位置，得到滑入终点坐标（不移动窗口，不触发系统推开）
+            _layoutService.Refresh(_state, _hwnd);
+            _pinnedModeController.QueryPinnedBounds();
+
+            // 4. 滑入：从屏幕外滑入到查询到的目标位置（await 阻断，等最后一帧完成）
+            //    Mica 背景在滑入后再设置，避免其初始化耗时吃掉动画时间
+            await _pinnedModeController.SlideInAsync();
+
+            // 5. 滑入完成后设置 Mica 背景（此时窗口已在正确位置，用户看不到切换过程）
+            _backdropService.EnsureMicaBackdrop(_window);
+
+            // 6. 正式提交 AppBar 位置，触发系统推开其他窗口的动画
+            _pinnedModeController.CommitPinnedBounds();
+
+            // 7. 激活并聚焦（必须在最后）
+            ActivateAndFocusWindow();
         }
 
         private async System.Threading.Tasks.Task ApplyMaximizedModeAsync()
@@ -810,8 +810,30 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         private async System.Threading.Tasks.Task RestoreFromPinnedModeAsync()
         {
-            RestoreStandardMode();
-            await System.Threading.Tasks.Task.Delay(PinnedModeDelay);
+            // 1. 滑出：从固定位置滑到屏幕右侧不可见区域
+            await _pinnedModeController.SlideOutAsync();
+
+            // 2. 在屏幕外注销 AppBar、还原样式（用户看不到闪烁）
+            _pinnedModeController.RemoveAppBar();
+            _pinnedModeController.RestoreStandardWindowStyle();
+
+            // 3. 还原标题栏
+            _titleBarService.ConfigureStandardWindow(_window);
+            SetTopMost(false);
+
+            // 4. 准备标准停靠位置，CurrentX 设为屏幕外，TargetX 为目标位置
+            MoveWindowToStandardDock(prepareForShow: true);
+
+            // 5. 滑入：从屏幕外滑入到标准停靠位置
+            _animationController.StartShow();
+
+            // 6. 背景在动画启动后设置，避免其初始化耗时吃掉动画时间
+            _backdropService.EnsureAcrylicBackdrop(_window);
+
+            await System.Threading.Tasks.Task.Delay(SlideAnimationDelay);
+
+            // 7. 激活并聚焦
+            ActivateAndFocusWindow();
         }
 
         private async System.Threading.Tasks.Task RestoreFromMaximizedModeAsync()
