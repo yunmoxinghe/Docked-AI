@@ -145,7 +145,6 @@ namespace Docked_AI
 
             _linker.DockToggleRequested += OnDockToggleRequested;
             _linker.WindowStateToggleRequested += OnWindowStateToggleRequested;
-            _linker.MoveWindowRequested += OnMoveWindowRequested;
         }
 
         /// <summary>
@@ -163,7 +162,6 @@ namespace Docked_AI
 
             _linker.DockToggleRequested -= OnDockToggleRequested;
             _linker.WindowStateToggleRequested -= OnWindowStateToggleRequested;
-            _linker.MoveWindowRequested -= OnMoveWindowRequested;
         }
 
         /// <summary>
@@ -300,16 +298,6 @@ namespace Docked_AI
         private void OnWindowStateToggleRequested(object? sender, System.EventArgs e)
         {
             _windowController.ToggleMaximize();
-        }
-
-        /// <summary>
-        /// Linker 事件处理器 - 用户拖拽侧边栏空白区域移动窗口
-        /// </summary>
-        private void OnMoveWindowRequested(object? sender, System.EventArgs e)
-        {
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
-            MainWindowWin32Api.ReleaseCapture();
-            MainWindowWin32Api.PostMessage(hwnd, MainWindowWin32Api.WM_NCLBUTTONDOWN, (IntPtr)MainWindowWin32Api.HTCAPTION, IntPtr.Zero);
         }
 
         /// <summary>

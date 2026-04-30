@@ -34,7 +34,6 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         public event EventHandler<string>? ShortcutRemoved; // 快捷方式被移除事件
         public event EventHandler<string>? WebAppRestartRequested; // 网页应用重启请求事件
         public event EventHandler? BackRequested; // 返回请求事件
-        public event EventHandler? MoveWindowRequested; // 拖拽移动窗口请求事件
 
         public void UpdateDockToggleIcon(bool isPinned)
         {
@@ -538,27 +537,6 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             WebViewManager.UnregisterWebView(shortcutId);
 
             _ = PersistShortcutsAsync();
-        }
-
-        private void NavView_PointerPressed(object sender, PointerRoutedEventArgs e)
-        {
-            if (!e.GetCurrentPoint(null).Properties.IsLeftButtonPressed)
-                return;
-
-            // 检查是否点击了 NavigationViewItem，若是则不触发拖拽
-            var originalSource = e.OriginalSource as DependencyObject;
-            while (originalSource != null)
-            {
-                if (originalSource is NavigationViewItem)
-                    return;
-
-                if (originalSource == NavView)
-                    break;
-
-                originalSource = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(originalSource);
-            }
-
-            MoveWindowRequested?.Invoke(this, EventArgs.Empty);
         }
 
     }

@@ -25,7 +25,6 @@
             CompactPaneLength="48"
             SelectionChanged="NavView_SelectionChanged"
             ItemInvoked="NavView_ItemInvoked"
-            PointerPressed="NavView_PointerPressed"
             FlowDirection="RightToLeft">
             <controls:NavigationView.MenuItems>
                 <!-- 最大化/还原按钮 -->
