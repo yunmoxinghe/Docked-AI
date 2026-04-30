@@ -777,24 +777,21 @@ namespace Docked_AI.Features.MainWindow.Visibility
             // 1. 滑出：窗口从当前位置滑到屏幕右侧不可见区域（逐帧动画，await 等完成）
             await _pinnedModeController.SlideOutAsync();
 
-            // 2. 在屏幕外改样式（用户看不到任何闪烁）
+            // 2. 在屏幕外改样式、切换背景（用户看不到任何闪烁）
             _pinnedModeController.ApplyPinnedWindowStyle();
+            _backdropService.EnsureMicaBackdrop(_window);
 
             // 3. 查询 AppBar 位置，得到滑入终点坐标（不移动窗口，不触发系统推开）
             _layoutService.Refresh(_state, _hwnd);
             _pinnedModeController.QueryPinnedBounds();
 
             // 4. 滑入：从屏幕外滑入到查询到的目标位置（await 阻断，等最后一帧完成）
-            //    Mica 背景在滑入后再设置，避免其初始化耗时吃掉动画时间
             await _pinnedModeController.SlideInAsync();
 
-            // 5. 滑入完成后设置 Mica 背景（此时窗口已在正确位置，用户看不到切换过程）
-            _backdropService.EnsureMicaBackdrop(_window);
-
-            // 6. 正式提交 AppBar 位置，触发系统推开其他窗口的动画
+            // 5. 正式提交 AppBar 位置，触发系统推开其他窗口的动画
             _pinnedModeController.CommitPinnedBounds();
 
-            // 7. 激活并聚焦（必须在最后）
+            // 6. 激活并聚焦（必须在最后）
             ActivateAndFocusWindow();
         }
 
@@ -813,26 +810,21 @@ namespace Docked_AI.Features.MainWindow.Visibility
             // 1. 滑出：从固定位置滑到屏幕右侧不可见区域
             await _pinnedModeController.SlideOutAsync();
 
-            // 2. 在屏幕外注销 AppBar、还原样式（用户看不到闪烁）
+            // 2. 在屏幕外注销 AppBar、还原样式、切换背景（用户看不到任何闪烁）
             _pinnedModeController.RemoveAppBar();
             _pinnedModeController.RestoreStandardWindowStyle();
-
-            // 3. 还原标题栏
             _titleBarService.ConfigureStandardWindow(_window);
+            _backdropService.EnsureAcrylicBackdrop(_window);
             SetTopMost(false);
 
-            // 4. 准备标准停靠位置，CurrentX 设为屏幕外，TargetX 为目标位置
+            // 3. 准备标准停靠位置，CurrentX 设为屏幕外，TargetX 为目标位置
             MoveWindowToStandardDock(prepareForShow: true);
 
-            // 5. 滑入：从屏幕外滑入到标准停靠位置
+            // 4. 滑入：从屏幕外滑入到标准停靠位置
             _animationController.StartShow();
-
-            // 6. 背景在动画启动后设置，避免其初始化耗时吃掉动画时间
-            _backdropService.EnsureAcrylicBackdrop(_window);
-
             await System.Threading.Tasks.Task.Delay(SlideAnimationDelay);
 
-            // 7. 激活并聚焦
+            // 5. 激活并聚焦
             ActivateAndFocusWindow();
         }
 
