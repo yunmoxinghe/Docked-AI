@@ -139,14 +139,11 @@ namespace Docked_AI.Features.MainWindow.Visibility
         private readonly BackdropService _backdropService;
         private readonly SlideAnimationController _animationController;
         private readonly WindowStateManager _stateManager;
+        private readonly PinnedModeController _pinnedModeController;
         private readonly int _animationTimeoutMs;
 
         // 状态标志
         private bool _animationStarted;  // 是否已执行首次显示动画
-        private bool _isAppBarRegistered;  // 是否已注册 AppBar
-        private bool _isApplyingPinnedBounds;  // 是否正在应用固定模式边界（防重入）
-        private bool _hasCapturedBaseWindowStyle;  // 是否已捕获基础窗口样式
-        private bool _hasCapturedBaseExtendedWindowStyle;  // 是否已捕获扩展窗口样式
         private bool _isWindowSubclassed;  // 是否已子类化窗口
         private bool _isInitialShowComplete;  // 标记首次显示是否完成
         private DateTime _initialShowCompletedTime;  // 首次显示完成的时间
@@ -154,8 +151,6 @@ namespace Docked_AI.Features.MainWindow.Visibility
         // Win32 相关
         private IntPtr _hwnd;  // 窗口句柄
         private readonly uint _appBarMessageId;  // AppBar 消息 ID
-        private IntPtr _baseWindowStyle;  // 基础窗口样式（用于还原）
-        private IntPtr _baseExtendedWindowStyle;  // 扩展窗口样式（用于还原）
         private IntPtr _originalWindowProc;  // 原始窗口过程（用于子类化）
         private readonly VisibilityWin32Api.WindowProc _windowProcDelegate;  // 窗口过程委托
 
@@ -208,6 +203,9 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
             // ViewModel subscribes to state changes
             _viewModel.SubscribeToStateManager(_stateManager);
+
+            // 创建固定模式控制器（句柄在 InitializeWindow 中获取后同步）
+            _pinnedModeController = new PinnedModeController(_window, _state, _appBarMessageId);
 
             InitializeWindow();
         }
@@ -321,6 +319,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
         {
             // 先获取窗口句柄
             _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(_window);
+            _pinnedModeController.SetWindowHandle(_hwnd);
             
             // 初始化时不设置位置，避免窗口在屏幕上闪现
             // 让 RequestSlideIn() 在首次显示时设置正确的位置和动画
@@ -565,7 +564,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         private void StartHideAnimation()
         {
-            RemoveAppBar();
+            _pinnedModeController.RemoveAppBar();
             SetTopMost(false);
 
             _layoutService.Refresh(_state);
@@ -582,8 +581,9 @@ namespace Docked_AI.Features.MainWindow.Visibility
         private void ApplyPinnedMode()
         {
             _window.AppWindow.IsShownInSwitchers = false;
-            ApplyPinnedWindowStyle();
-            ApplyPinnedBounds();
+            _pinnedModeController.ApplyPinnedWindowStyle();
+            _layoutService.Refresh(_state);
+            _pinnedModeController.ApplyPinnedBounds();
             _backdropService.EnsureMicaBackdrop(_window);
             
             // 注意：ActivateAndFocusWindow() 必须在最后调用
@@ -593,8 +593,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         private void RestoreStandardMode()
         {
-            RemoveAppBar();
-            RestoreStandardWindowStyle();
+            _pinnedModeController.ExitPinnedMode();
             _titleBarService.ConfigureStandardWindow(_window);
             _backdropService.EnsureAcrylicBackdrop(_window);
             MoveWindowToStandardDock(prepareForShow: false);
@@ -615,7 +614,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         private void OnAppWindowChanged(AppWindow sender, AppWindowChangedEventArgs args)
         {
-            if (!args.DidSizeChange || _isApplyingPinnedBounds)
+            if (!args.DidSizeChange || _pinnedModeController.IsApplyingPinnedBounds)
             {
                 return;
             }
@@ -629,7 +628,8 @@ namespace Docked_AI.Features.MainWindow.Visibility
             var currentState = _stateManager.CurrentState;
             if (currentState == WindowState.Pinned)
             {
-                ApplyPinnedBounds();
+                _layoutService.Refresh(_state);
+                _pinnedModeController.ApplyPinnedBounds();
             }
         }
 
@@ -647,50 +647,6 @@ namespace Docked_AI.Features.MainWindow.Visibility
             }
 
             _window.AppWindow.MoveAndResize(new Windows.Graphics.RectInt32((int)_state.CurrentX, (int)_state.CurrentY, _state.WindowWidth, _state.WindowHeight));
-        }
-
-        private void ApplyPinnedBounds()
-        {
-            _layoutService.Refresh(_state);
-            RegisterAppBarIfNeeded();
-
-            VisibilityWin32Api.APPBARDATA appBarData = CreateAppBarData();
-            int desiredWidth = _state.WindowWidth;
-
-            appBarData.uEdge = VisibilityWin32Api.ABE_RIGHT;
-            appBarData.rc.Top = _state.WorkArea.Top;
-            appBarData.rc.Bottom = _state.WorkArea.Bottom;
-            appBarData.rc.Right = _state.WorkArea.Right;
-            appBarData.rc.Left = appBarData.rc.Right - desiredWidth;
-
-            _ = VisibilityWin32Api.SHAppBarMessage(VisibilityWin32Api.ABM_QUERYPOS, ref appBarData);
-
-            appBarData.rc.Top = _state.WorkArea.Top;
-            appBarData.rc.Bottom = _state.WorkArea.Bottom;
-            appBarData.rc.Right = _state.WorkArea.Right;
-            appBarData.rc.Left = appBarData.rc.Right - desiredWidth;
-
-            _ = VisibilityWin32Api.SHAppBarMessage(VisibilityWin32Api.ABM_SETPOS, ref appBarData);
-
-            int width = Math.Max(_state.MinWindowWidth, appBarData.rc.Right - appBarData.rc.Left);
-            int height = Math.Max(1, appBarData.rc.Bottom - appBarData.rc.Top);
-
-            _state.WindowWidth = width;
-            _state.WindowHeight = height;
-            _state.TargetX = appBarData.rc.Left;
-            _state.TargetY = appBarData.rc.Top;
-            _state.CurrentX = _state.TargetX;
-            _state.CurrentY = _state.TargetY;
-
-            _isApplyingPinnedBounds = true;
-            try
-            {
-                ApplyPinnedWindowFrame(appBarData.rc);
-            }
-            finally
-            {
-                _isApplyingPinnedBounds = false;
-            }
         }
 
         private void SetTopMost(bool isTopMost)
@@ -716,6 +672,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             if (_hwnd == IntPtr.Zero)
             {
                 _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(_window);
+                _pinnedModeController.SetWindowHandle(_hwnd);
                 TrySubclassWindow();
             }
         }
@@ -733,232 +690,6 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _isWindowSubclassed = _originalWindowProc != IntPtr.Zero;
             
             System.Diagnostics.Debug.WriteLine($"TrySubclassWindow: Subclassed={_isWindowSubclassed}, OriginalProc={_originalWindowProc}, NewProc={newWindowProc}");
-        }
-
-        private void ApplyPinnedWindowStyle()
-        {
-            EnsureWindowHandle();
-            if (_hwnd == IntPtr.Zero)
-            {
-                return;
-            }
-
-            // 先配置 AppWindow
-            var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(_hwnd);
-            var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
-            
-            if (appWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
-            {
-                presenter.SetBorderAndTitleBar(hasBorder: false, hasTitleBar: false);
-                presenter.IsResizable = false; // 完全禁用调整大小以移除边框
-                presenter.IsAlwaysOnTop = true;
-                presenter.IsMaximizable = false;
-                presenter.IsMinimizable = false;
-            }
-
-            IntPtr currentStyle = AppearanceWin32Api.GetWindowLongPtr(_hwnd, AppearanceWin32Api.GWL_STYLE);
-            IntPtr currentExtendedStyle = AppearanceWin32Api.GetWindowLongPtr(_hwnd, AppearanceWin32Api.GWL_EXSTYLE);
-            if (!_hasCapturedBaseWindowStyle)
-            {
-                _baseWindowStyle = currentStyle;
-                _hasCapturedBaseWindowStyle = true;
-            }
-            if (!_hasCapturedBaseExtendedWindowStyle)
-            {
-                _baseExtendedWindowStyle = currentExtendedStyle;
-                _hasCapturedBaseExtendedWindowStyle = true;
-            }
-
-            int style = currentStyle.ToInt32();
-            // 移除所有边框和标题栏相关样式
-            style &= ~AppearanceWin32Api.WS_OVERLAPPEDWINDOW;
-            style &= ~AppearanceWin32Api.WS_CAPTION;
-            style &= ~AppearanceWin32Api.WS_SYSMENU;
-            style &= ~AppearanceWin32Api.WS_THICKFRAME;
-            style &= ~AppearanceWin32Api.WS_BORDER;
-            style &= ~AppearanceWin32Api.WS_DLGFRAME;
-            // 只保留 POPUP 和 VISIBLE
-            style |= AppearanceWin32Api.WS_POPUP;
-            style |= AppearanceWin32Api.WS_VISIBLE;
-
-            int extendedStyle = currentExtendedStyle.ToInt32();
-            extendedStyle &= ~AppearanceWin32Api.WS_EX_DLGMODALFRAME;
-            extendedStyle &= ~AppearanceWin32Api.WS_EX_WINDOWEDGE;
-            extendedStyle &= ~AppearanceWin32Api.WS_EX_CLIENTEDGE;
-            extendedStyle &= ~AppearanceWin32Api.WS_EX_STATICEDGE;
-
-            _ = AppearanceWin32Api.SetWindowLongPtr(_hwnd, AppearanceWin32Api.GWL_STYLE, new IntPtr(style));
-            _ = AppearanceWin32Api.SetWindowLongPtr(_hwnd, AppearanceWin32Api.GWL_EXSTYLE, new IntPtr(extendedStyle));
-
-            // 关键：使用 DwmExtendFrameIntoClientArea 扩展框架到客户区
-            AppearanceWin32Api.MARGINS margins = new AppearanceWin32Api.MARGINS { cxLeftWidth = 0, cxRightWidth = 0, cyTopHeight = 0, cyBottomHeight = 0 };
-            _ = AppearanceWin32Api.DwmExtendFrameIntoClientArea(_hwnd, ref margins);
-
-            // DWM 属性设置
-            int cornerPreference = AppearanceWin32Api.DWMWCP_DONOTROUND;
-            _ = AppearanceWin32Api.DwmSetWindowAttribute(
-                _hwnd,
-                AppearanceWin32Api.DWMWA_WINDOW_CORNER_PREFERENCE,
-                ref cornerPreference,
-                sizeof(int));
-
-            // 移除边框颜色
-            int borderColor = AppearanceWin32Api.DWMWA_COLOR_NONE;
-            _ = AppearanceWin32Api.DwmSetWindowAttribute(
-                _hwnd,
-                AppearanceWin32Api.DWMWA_BORDER_COLOR,
-                ref borderColor,
-                sizeof(int));
-
-            // 设置标题栏颜色为完全透明（ARGB: 0x01000000 - 几乎透明的黑色，让 Acrylic 透过）
-            int captionColor = 0x01000000;
-            _ = AppearanceWin32Api.DwmSetWindowAttribute(
-                _hwnd,
-                AppearanceWin32Api.DWMWA_CAPTION_COLOR,
-                ref captionColor,
-                sizeof(int));
-
-            RefreshWindowFrame();
-            
-            System.Diagnostics.Debug.WriteLine($"ApplyPinnedWindowStyle: All styles and DWM attributes applied");
-        }
-
-        private void RestoreStandardWindowStyle()
-        {
-            EnsureWindowHandle();
-            if (_hwnd == IntPtr.Zero || !_hasCapturedBaseWindowStyle)
-            {
-                return;
-            }
-
-            _ = AppearanceWin32Api.SetWindowLongPtr(_hwnd, AppearanceWin32Api.GWL_STYLE, _baseWindowStyle);
-            if (_hasCapturedBaseExtendedWindowStyle)
-            {
-                _ = AppearanceWin32Api.SetWindowLongPtr(_hwnd, AppearanceWin32Api.GWL_EXSTYLE, _baseExtendedWindowStyle);
-            }
-            RefreshWindowFrame();
-        }
-
-        private void RefreshWindowFrame()
-        {
-            EnsureWindowHandle();
-            if (_hwnd == IntPtr.Zero)
-            {
-                return;
-            }
-
-            _ = VisibilityWin32Api.SetWindowPos(
-                _hwnd,
-                IntPtr.Zero,
-                0,
-                0,
-                0,
-                0,
-                VisibilityWin32Api.SWP_NOSIZE |
-                VisibilityWin32Api.SWP_NOMOVE |
-                VisibilityWin32Api.SWP_NOZORDER |
-                VisibilityWin32Api.SWP_NOACTIVATE |
-                VisibilityWin32Api.SWP_FRAMECHANGED);
-        }
-
-        private void ApplyPinnedWindowFrame(PlacementWin32Api.RECT approvedRect)
-        {
-            EnsureWindowHandle();
-            if (_hwnd == IntPtr.Zero)
-            {
-                return;
-            }
-
-            ApplyWindowRect(approvedRect);
-
-            if (TryGetExtendedFrameBounds(out PlacementWin32Api.RECT actualBounds))
-            {
-                PlacementWin32Api.RECT correctedRect = new()
-                {
-                    Left = approvedRect.Left + (approvedRect.Left - actualBounds.Left),
-                    Top = approvedRect.Top + (approvedRect.Top - actualBounds.Top),
-                    Right = approvedRect.Right + (approvedRect.Right - actualBounds.Right),
-                    Bottom = approvedRect.Bottom + (approvedRect.Bottom - actualBounds.Bottom)
-                };
-
-                ApplyWindowRect(correctedRect);
-                approvedRect = correctedRect;
-            }
-
-            _state.TargetX = approvedRect.Left;
-            _state.TargetY = approvedRect.Top;
-            _state.CurrentX = approvedRect.Left;
-            _state.CurrentY = approvedRect.Top;
-            _state.WindowWidth = Math.Max(_state.MinWindowWidth, approvedRect.Right - approvedRect.Left);
-            _state.WindowHeight = Math.Max(1, approvedRect.Bottom - approvedRect.Top);
-        }
-
-        private void ApplyWindowRect(PlacementWin32Api.RECT rect)
-        {
-            int width = Math.Max(_state.MinWindowWidth, rect.Right - rect.Left);
-            int height = Math.Max(1, rect.Bottom - rect.Top);
-
-            _ = VisibilityWin32Api.SetWindowPos(
-                _hwnd,
-                VisibilityWin32Api.HWND_TOPMOST,
-                rect.Left,
-                rect.Top,
-                width,
-                height,
-                VisibilityWin32Api.SWP_SHOWWINDOW);
-        }
-
-        private bool TryGetExtendedFrameBounds(out PlacementWin32Api.RECT bounds)
-        {
-            EnsureWindowHandle();
-            if (_hwnd == IntPtr.Zero)
-            {
-                bounds = default;
-                return false;
-            }
-
-            int hr = AppearanceWin32Api.DwmGetWindowAttribute(
-                _hwnd,
-                AppearanceWin32Api.DWMWA_EXTENDED_FRAME_BOUNDS,
-                out bounds,
-                System.Runtime.InteropServices.Marshal.SizeOf<PlacementWin32Api.RECT>());
-
-            return hr >= 0;
-        }
-
-        private void RegisterAppBarIfNeeded()
-        {
-            if (_isAppBarRegistered)
-            {
-                return;
-            }
-
-            VisibilityWin32Api.APPBARDATA appBarData = CreateAppBarData();
-            _ = VisibilityWin32Api.SHAppBarMessage(VisibilityWin32Api.ABM_NEW, ref appBarData);
-            _isAppBarRegistered = true;
-        }
-
-        private void RemoveAppBar()
-        {
-            if (!_isAppBarRegistered)
-            {
-                return;
-            }
-
-            VisibilityWin32Api.APPBARDATA appBarData = CreateAppBarData();
-            _ = VisibilityWin32Api.SHAppBarMessage(VisibilityWin32Api.ABM_REMOVE, ref appBarData);
-            _isAppBarRegistered = false;
-        }
-
-        private VisibilityWin32Api.APPBARDATA CreateAppBarData()
-        {
-            EnsureWindowHandle();
-            return new VisibilityWin32Api.APPBARDATA
-            {
-                cbSize = (uint)System.Runtime.InteropServices.Marshal.SizeOf<VisibilityWin32Api.APPBARDATA>(),
-                hWnd = _hwnd,
-                uCallbackMessage = _appBarMessageId
-            };
         }
 
         /// <summary>
@@ -1103,7 +834,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _viewModel.UnsubscribeFromStateManager(_stateManager);
             _stateManager.Dispose();
             _backdropService.Dispose();
-            RemoveAppBar();
+            _pinnedModeController.RemoveAppBar();
         }
 
         private IntPtr WindowProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
