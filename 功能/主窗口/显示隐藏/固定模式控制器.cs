@@ -109,7 +109,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
         /// 【动画参数】
         /// - 起点：_state.CurrentX（当前窗口 X 坐标）
         /// - 终点：_state.WorkArea.Right + _state.WindowWidth（屏幕右侧不可见区域）
-        /// - 时长：180ms，Ease-out quadratic（快速离开，符合"滑走"的直觉）
+        /// - 时长：360ms，Ease-out quadratic（快速离开，符合"滑走"的直觉）
         /// </summary>
         public System.Threading.Tasks.Task SlideOutAsync(System.Threading.CancellationToken ct = default)
         {
@@ -122,7 +122,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             int    targetY  = (int)_state.CurrentY;
             int    height   = _state.WindowHeight;
             int    width    = _state.WindowWidth;
-            var    duration = TimeSpan.FromMilliseconds(180);
+            var    duration = TimeSpan.FromMilliseconds(360);
             DateTime start  = DateTime.MinValue; // 第一帧时才初始化
 
             EventHandler<object>? onFrame = null;
@@ -177,7 +177,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
         /// 【动画参数】
         /// - 起点：_state.WorkArea.Right + _state.WindowWidth（屏幕右侧不可见区域）
         /// - 终点：_state.TargetX（AppBar 批准的最终位置）
-        /// - 时长：220ms，Ease-out cubic（缓慢停止，符合"停靠"的直觉）
+        /// - 时长：440ms，Ease-out cubic（缓慢停止，符合"停靠"的直觉）
         /// </summary>
         public System.Threading.Tasks.Task SlideInAsync(System.Threading.CancellationToken ct = default)
         {
@@ -190,7 +190,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             int    targetY  = (int)_state.TargetY;
             int    height   = _state.WindowHeight;
             int    width    = _state.WindowWidth;
-            var    duration = TimeSpan.FromMilliseconds(220);
+            var    duration = TimeSpan.FromMilliseconds(440);
             DateTime start  = DateTime.MinValue; // 第一帧时才初始化，避免订阅等待时间被计入
 
             // 先把窗口放到起始位置（屏幕外），避免第一帧出现在错误位置
@@ -209,6 +209,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 {
                     Microsoft.UI.Xaml.Media.CompositionTarget.Rendering -= onFrame;
                     _state.CurrentX = targetX;
+                    _state.CurrentY = targetY;
                     SnapToTarget(targetX, targetY, width, height);
                     tcs.TrySetCanceled();
                     return;
@@ -229,6 +230,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 {
                     Microsoft.UI.Xaml.Media.CompositionTarget.Rendering -= onFrame;
                     _state.CurrentX = targetX;
+                    _state.CurrentY = targetY; // 同步 Y 坐标，确保退出时 SlideOutAsync 起点正确
                     SnapToTarget(targetX, targetY, width, height);
                     tcs.TrySetResult(true);
                 }
