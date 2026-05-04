@@ -149,6 +149,9 @@
   <data name="TrayMenu_OpenWindow" xml:space="preserve">
     <value>Ouvrir la fenêtre principale</value>
   </data>
+  <data name="TrayMenu_CloseWindow" xml:space="preserve">
+    <value>Fermer la fenêtre</value>
+  </data>
   <data name="TrayMenu_Restart" xml:space="preserve">
     <value>Redémarrer l'application</value>
   </data>

@@ -16,9 +16,10 @@ public static class TrayContextMenuService
     /// 创建完整的托盘菜单
     /// </summary>
     /// <param name="onOpenWindow">打开窗口回调</param>
+    /// <param name="onCloseWindow">关闭窗口（释放内存）回调</param>
     /// <param name="onExit">退出应用回调</param>
     /// <returns>托盘菜单对象</returns>
-    public static MenuFlyout CreateTrayMenu(Action onOpenWindow, Action onExit)
+    public static MenuFlyout CreateTrayMenu(Action onOpenWindow, Action onCloseWindow, Action onExit)
     {
         var flyout = new MenuFlyout();
 
@@ -30,6 +31,15 @@ public static class TrayContextMenuService
         };
         openItem.Click += (s, e) => onOpenWindow?.Invoke();
         flyout.Items.Add(openItem);
+
+        // 清理窗口（关闭窗口释放内存，保留托盘）
+        var closeWindowItem = new MenuFlyoutItem
+        {
+            Text = LocalizationHelper.GetString("TrayMenu_CloseWindow"),
+            Icon = new FontIcon { Glyph = "\uEA99" }
+        };
+        closeWindowItem.Click += (s, e) => onCloseWindow?.Invoke();
+        flyout.Items.Add(closeWindowItem);
 
         // 分隔线
         flyout.Items.Add(new MenuFlyoutSeparator());

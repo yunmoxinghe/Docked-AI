@@ -153,6 +153,7 @@ namespace Docked_AI.Features.Tray
             // 使用统一服务创建菜单
             _trayMenu = TrayContextMenuService.CreateTrayMenu(
                 onOpenWindow: ShowMainWindow,
+                onCloseWindow: CloseMainWindow,
                 onExit: ExitApplication
             );
 
@@ -332,6 +333,34 @@ namespace Docked_AI.Features.Tray
                 // - 如果在配置过程中调用会导致闪现问题
                 mainWindow.Activate();
                 WindowHelper.SetForegroundWindow(mainWindow);
+            }
+        }
+
+        /// <summary>
+        /// 关闭主窗口以释放内存，保留托盘图标
+        /// 下次点击托盘图标时会重新创建窗口
+        /// </summary>
+        public void CloseMainWindow()
+        {
+            System.Diagnostics.Debug.WriteLine("[TrayIconManager] CloseMainWindow called");
+
+            try
+            {
+                if (IsWindowValid())
+                {
+                    _mainWindow!.Close();
+                    _mainWindow = null;
+                    System.Diagnostics.Debug.WriteLine("[TrayIconManager] Main window closed and released");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[TrayIconManager] CloseMainWindow: window already invalid, nothing to do");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TrayIconManager] ERROR closing main window: {ex.Message}");
+                _mainWindow = null;
             }
         }
 
