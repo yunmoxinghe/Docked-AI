@@ -10,11 +10,12 @@
 
 ## 技术栈
 
-- .NET 8.0
+- .NET 10.0
 - WinUI 3 (Windows App SDK 1.8)
 - Windows 10/11 (最低版本 17763)
 - DevWinUI 9.9.3
 - CommunityToolkit.WinUI.Controls
+- Windows App Development CLI 0.3+
 
 ## 系统要求
 
@@ -35,10 +36,11 @@
 
 ### 前置要求
 
-- Visual Studio 2022 或更高版本
-- .NET 8.0 SDK
+- Visual Studio 2022 或更高版本（可选）
+- .NET 10.0 SDK
 - Windows App SDK 1.8
 - Windows 10 SDK (10.0.19041.0 或更高)
+- Windows App Development CLI 0.3+ (推荐)
 
 ### 构建项目
 
@@ -48,19 +50,69 @@ git clone <repository-url>
 cd "Docked AI"
 ```
 
-2. 还原 NuGet 包
+2. 安装 Windows App Development CLI（推荐）
+```bash
+# 通过 WinGet 安装
+winget install Microsoft.WinAppCli
+
+# 或通过 npm 安装
+npm install -g @microsoft/winappcli
+```
+
+3. 还原 NuGet 包
 ```bash
 dotnet restore
 ```
 
-3. 构建项目
+4. 构建并运行项目
+
+**方式 1：使用 dotnet run（推荐）**
 ```bash
-dotnet build
+# 一键构建、打包、注册并启动应用
+dotnet run
 ```
 
-4. 运行应用
+**方式 2：使用 Windows App CLI**
 ```bash
-dotnet run
+# 构建项目
+dotnet build -c Debug /p:Platform=x64
+
+# 运行打包应用
+winapp run .\bin\x64\Debug\net10.0-windows10.0.19041.0\win-x64
+```
+
+**方式 3：使用 Visual Studio**
+- 直接按 F5 运行
+
+### 开发工作流
+
+本项目已集成 `Microsoft.Windows.SDK.BuildTools.WinApp` NuGet 包，支持使用 `dotnet run` 直接启动打包应用。
+
+**日常开发**：
+```bash
+dotnet run  # 自动完成：构建 → 打包 → 注册 → 启动
+```
+
+**调试模式**（捕获调试输出和异常）：
+```bash
+winapp run .\bin\x64\Debug\net10.0-windows10.0.19041.0\win-x64 --debug-output
+```
+
+**清理已注册的包**：
+```bash
+winapp unregister "Docked AI"
+```
+
+**UI 自动化测试**：
+```bash
+# 列出应用窗口
+winapp ui list-windows -app "Docked AI"
+
+# 截图
+winapp ui screenshot -app "Docked AI" -output screenshot.png
+
+# 检查 UI 树
+winapp ui inspect -app "Docked AI"
 ```
 
 ## 项目结构
@@ -98,9 +150,26 @@ dotnet publish -c Release -r win-x86
 dotnet publish -c Release -r win-arm64
 ```
 
+### 使用 Windows App CLI 打包
+
+```bash
+# 生成 MSIX 包
+winapp package .\bin\Release\net10.0-windows10.0.19041.0\win-x64
+
+# 添加命令行别名（可通过名称启动应用）
+winapp manifest add-alias
+```
+
 ## 贡献
 
 欢迎提交 Issue 和 Pull Request！
+
+## 相关资源
+
+- [Windows App Development CLI 文档](https://github.com/microsoft/winappCli)
+- [WinUI 3 文档](https://learn.microsoft.com/windows/apps/winui/winui3/)
+- [Windows App SDK 文档](https://learn.microsoft.com/windows/apps/windows-app-sdk/)
+- [DevWinUI 文档](https://github.com/ghost1372/DevWinUI)
 
 ## 本地化
 

@@ -41,9 +41,6 @@ public static class TrayContextMenuService
         closeWindowItem.Click += (s, e) => onCloseWindow?.Invoke();
         flyout.Items.Add(closeWindowItem);
 
-        // 分隔线
-        flyout.Items.Add(new MenuFlyoutSeparator());
-
         // 重启应用
         var restartItem = new MenuFlyoutItem
         {
