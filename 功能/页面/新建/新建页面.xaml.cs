@@ -119,8 +119,78 @@ namespace Docked_AI.Features.Pages.New
                 });
         }
 
-        // Edge 收藏夹批量导入
-        private async void OnImportEdgeBookmarksClick(object sender, TappedRoutedEventArgs e)
+        // Edge 收藏夹 - 选择文件夹导入
+        private async void OnSelectFolderClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // 检查 Edge 收藏夹是否可用
+                if (!EdgeBookmarkSyncService.IsEdgeBookmarksAvailable())
+                {
+                    var errorDialog = CreateMessageDialog(
+                        "提示",
+                        "未找到 Microsoft Edge 收藏夹文件。\n请确保已安装 Edge 浏览器并至少启动过一次。",
+                        closeButtonText: "确定");
+                    await InAppDialogService.ShowAsync(errorDialog, this);
+                    return;
+                }
+
+                // 获取所有文件夹
+                var folders = await EdgeBookmarkSyncService.GetBookmarkFoldersAsync();
+                
+                if (folders.Count == 0)
+                {
+                    var errorDialog = CreateMessageDialog(
+                        "提示",
+                        "Edge 收藏夹中没有找到文件夹。",
+                        closeButtonText: "确定");
+                    await InAppDialogService.ShowAsync(errorDialog, this);
+                    return;
+                }
+
+                // 创建文件夹选择对话框
+                var listView = new ListView
+                {
+                    ItemsSource = folders,
+                    SelectionMode = ListViewSelectionMode.Single,
+                    MaxHeight = 400
+                };
+
+                var dialog = new UnifiedInAppDialog();
+                dialog.Configure(
+                    "选择要导入的文件夹",
+                    listView,
+                    "导入",
+                    "取消",
+                    defaultButton: ContentDialogButton.Primary);
+
+                var result = await InAppDialogService.ShowAsync(dialog, this);
+                
+                if (result == ContentDialogResult.Primary && listView.SelectedItem is string selectedFolder)
+                {
+                    await ImportFromFolderAsync(selectedFolder);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[NewPage] OnSelectFolderClick error: {ex}");
+                
+                var errorDialog = CreateMessageDialog(
+                    "错误",
+                    $"选择文件夹时发生错误：\n{ex.Message}",
+                    closeButtonText: "确定");
+                await InAppDialogService.ShowAsync(errorDialog, this);
+            }
+        }
+
+        // Edge 收藏夹 - 导入全部
+        private async void OnImportAllClick(object sender, RoutedEventArgs e)
+        {
+            await ImportFromFolderAsync(null);
+        }
+
+        // 执行导入操作
+        private async System.Threading.Tasks.Task ImportFromFolderAsync(string? folderPath)
         {
             try
             {
@@ -136,9 +206,13 @@ namespace Docked_AI.Features.Pages.New
                 }
 
                 // 显示确认对话框
+                var confirmMessage = string.IsNullOrEmpty(folderPath)
+                    ? "即将导入 Edge 浏览器的所有收藏夹到侧边栏。\n已存在的网址不会重复添加。\n\n是否继续？"
+                    : $"即将导入文件夹「{folderPath}」中的收藏夹到侧边栏。\n已存在的网址不会重复添加。\n\n是否继续？";
+
                 var confirmDialog = CreateMessageDialog(
                     "导入 Edge 收藏夹",
-                    "即将导入 Edge 浏览器的所有收藏夹到侧边栏。\n已存在的网址不会重复添加。\n\n是否继续？",
+                    confirmMessage,
                     primaryButtonText: "导入",
                     closeButtonText: "取消",
                     defaultButton: ContentDialogButton.Primary);
@@ -180,8 +254,8 @@ namespace Docked_AI.Features.Pages.New
                 // 异步显示对话框并执行导入
                 var dialogTask = InAppDialogService.ShowAsync(progressDialog, this);
 
-                // 清空文件夹路径，导入全部
-                EdgeBookmarkSyncService.SyncFolderPath = "";
+                // 设置要同步的文件夹路径
+                EdgeBookmarkSyncService.SyncFolderPath = folderPath ?? "";
 
                 // 执行导入
                 var result = await EdgeBookmarkSyncService.SyncFromEdgeAsync();
@@ -216,7 +290,7 @@ namespace Docked_AI.Features.Pages.New
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[NewPage] OnImportEdgeBookmarksClick error: {ex}");
+                System.Diagnostics.Debug.WriteLine($"[NewPage] ImportFromFolderAsync error: {ex}");
                 
                 var errorDialog = CreateMessageDialog(
                     "错误",
