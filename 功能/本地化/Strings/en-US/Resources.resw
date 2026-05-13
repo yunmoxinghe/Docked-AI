@@ -115,6 +115,9 @@
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
     <value>Select app display language</value>
   </data>
+  <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
+    <value>Follow System</value>
+  </data>
   <data name="SettingsPage_LanguageSelectHeader.Header" xml:space="preserve">
     <value>Select Language</value>
   </data>

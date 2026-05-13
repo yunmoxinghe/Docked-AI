@@ -112,6 +112,9 @@
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
     <value>選擇應用程式顯示語言</value>
   </data>
+  <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
+    <value>跟隨系統</value>
+  </data>
   <data name="SettingsPage_LanguageSelectHeader.Header" xml:space="preserve">
     <value>選擇語言</value>
   </data>

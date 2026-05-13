@@ -112,6 +112,9 @@
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
     <value>Sélectionner la langue d'affichage</value>
   </data>
+  <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
+    <value>Suivre le système</value>
+  </data>
   <data name="SettingsPage_LanguageSelectHeader.Header" xml:space="preserve">
     <value>Sélectionner la langue</value>
   </data>

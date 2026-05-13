@@ -81,9 +81,10 @@ namespace Docked_AI.Features.Pages.Settings
         private void LoadLanguageSettings()
         {
             var currentLanguage = ApplicationLanguages.PrimaryLanguageOverride;
+            // 空字符串表示跟随系统
             if (string.IsNullOrEmpty(currentLanguage))
             {
-                currentLanguage = ApplicationLanguages.Languages[0];
+                currentLanguage = "";
             }
 
             LanguageComboBox.SelectionChanged -= OnLanguageChanged;
@@ -91,7 +92,8 @@ namespace Docked_AI.Features.Pages.Settings
             bool found = false;
             foreach (ComboBoxItem item in LanguageComboBox.Items)
             {
-                if (item.Tag?.ToString() == currentLanguage)
+                var tag = item.Tag?.ToString() ?? "";
+                if (tag == currentLanguage)
                 {
                     LanguageComboBox.SelectedItem = item;
                     found = true;
@@ -99,7 +101,8 @@ namespace Docked_AI.Features.Pages.Settings
                 }
             }
 
-            if (!found && currentLanguage.Contains("-"))
+            // 如果没找到匹配项，尝试简化的语言标签匹配
+            if (!found && !string.IsNullOrEmpty(currentLanguage) && currentLanguage.Contains("-"))
             {
                 var parts = currentLanguage.Split('-');
                 if (parts.Length == 3)
@@ -117,6 +120,7 @@ namespace Docked_AI.Features.Pages.Settings
                 }
             }
 
+            // 如果还是没找到，默认选择"跟随系统"（第一项）
             if (!found)
                 LanguageComboBox.SelectedIndex = 0;
 
@@ -390,28 +394,24 @@ namespace Docked_AI.Features.Pages.Settings
 
             if (LanguageComboBox.SelectedItem is ComboBoxItem selectedItem)
             {
-                var languageTag = selectedItem.Tag?.ToString();
-                if (!string.IsNullOrEmpty(languageTag))
+                var languageTag = selectedItem.Tag?.ToString() ?? "";
+                var currentLanguage = ApplicationLanguages.PrimaryLanguageOverride;
+
+                if (languageTag != currentLanguage)
                 {
-                    var currentLanguage = ApplicationLanguages.PrimaryLanguageOverride;
-                    if (string.IsNullOrEmpty(currentLanguage))
-                        currentLanguage = ApplicationLanguages.Languages[0];
+                    // 设置语言（空字符串表示跟随系统）
+                    ApplicationLanguages.PrimaryLanguageOverride = languageTag;
 
-                    if (languageTag != currentLanguage)
+                    var dialog = CreateMessageDialog(
+                        LocalizationHelper.GetString("SettingsPage_RestartTitle"),
+                        LocalizationHelper.GetString("SettingsPage_RestartContent"),
+                        LocalizationHelper.GetString("SettingsPage_RestartButton"),
+                        LocalizationHelper.GetString("SettingsPage_LaterButton"),
+                        ContentDialogButton.Primary);
+                    var result = await InAppDialogService.ShowAsync(dialog, this);
+                    if (result == ContentDialogResult.Primary)
                     {
-                        ApplicationLanguages.PrimaryLanguageOverride = languageTag;
-
-                        var dialog = CreateMessageDialog(
-                            LocalizationHelper.GetString("SettingsPage_RestartTitle"),
-                            LocalizationHelper.GetString("SettingsPage_RestartContent"),
-                            LocalizationHelper.GetString("SettingsPage_RestartButton"),
-                            LocalizationHelper.GetString("SettingsPage_LaterButton"),
-                            ContentDialogButton.Primary);
-                        var result = await InAppDialogService.ShowAsync(dialog, this);
-                        if (result == ContentDialogResult.Primary)
-                        {
-                            AppRestartService.RestartWithArgs("--restart-from=settings-language");
-                        }
+                        AppRestartService.RestartWithArgs("--restart-from=settings-language");
                     }
                 }
             }

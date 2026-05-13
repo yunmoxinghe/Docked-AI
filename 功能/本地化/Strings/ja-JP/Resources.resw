@@ -112,6 +112,9 @@
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
     <value>アプリの表示言語を選択</value>
   </data>
+  <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
+    <value>システムに従う</value>
+  </data>
   <data name="SettingsPage_LanguageSelectHeader.Header" xml:space="preserve">
     <value>言語を選択</value>
   </data>
