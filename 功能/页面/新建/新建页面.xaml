@@ -43,6 +43,19 @@
                             <SymbolIcon Symbol="World" />
                         </controls:SettingsCard.HeaderIcon>
                     </controls:SettingsCard>
+
+                    <!-- Edge 收藏夹批量导入 -->
+                    <controls:SettingsCard
+                        x:Name="ImportEdgeBookmarksCard"
+                        Header="从 Edge 导入收藏夹"
+                        Description="批量导入 Microsoft Edge 浏览器的收藏夹到侧边栏"
+                        HorizontalAlignment="Stretch"
+                        IsClickEnabled="True"
+                        Tapped="OnImportEdgeBookmarksClick">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE8A7;"/>
+                        </controls:SettingsCard.HeaderIcon>
+                    </controls:SettingsCard>
                 </StackPanel>
 
                 <Border Height="40" />

@@ -4,8 +4,12 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 using System;
+using System.Linq;
 using Docked_AI.Features.Pages.WebApp;
+using Docked_AI.Features.Pages.WebApp.EdgeSync;
+using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.UnifiedCalls.TopAppBar;
+using Docked_AI.Features.UnifiedCalls.InAppDialog;
 
 namespace Docked_AI.Features.Pages.New
 {
@@ -48,6 +52,11 @@ namespace Docked_AI.Features.Pages.New
             }
             else
             {
+                // 返回到新建页面主界面，清理 SubPageFrame
+                if (SubPageFrame.Content != null)
+                {
+                    SubPageFrame.Content = null;
+                }
                 CreateScrollViewer.Visibility = Visibility.Visible;
                 SubPageFrame.Visibility = Visibility.Collapsed;
             }
@@ -108,6 +117,135 @@ namespace Docked_AI.Features.Pages.New
                 {
                     Effect = SlideNavigationTransitionEffect.FromRight
                 });
+        }
+
+        // Edge 收藏夹批量导入
+        private async void OnImportEdgeBookmarksClick(object sender, TappedRoutedEventArgs e)
+        {
+            try
+            {
+                // 检查 Edge 收藏夹是否可用
+                if (!EdgeBookmarkSyncService.IsEdgeBookmarksAvailable())
+                {
+                    var errorDialog = CreateMessageDialog(
+                        "提示",
+                        "未找到 Microsoft Edge 收藏夹文件。\n请确保已安装 Edge 浏览器并至少启动过一次。",
+                        closeButtonText: "确定");
+                    await InAppDialogService.ShowAsync(errorDialog, this);
+                    return;
+                }
+
+                // 显示确认对话框
+                var confirmDialog = CreateMessageDialog(
+                    "导入 Edge 收藏夹",
+                    "即将导入 Edge 浏览器的所有收藏夹到侧边栏。\n已存在的网址不会重复添加。\n\n是否继续？",
+                    primaryButtonText: "导入",
+                    closeButtonText: "取消",
+                    defaultButton: ContentDialogButton.Primary);
+                
+                var confirmResult = await InAppDialogService.ShowAsync(confirmDialog, this);
+                if (confirmResult != ContentDialogResult.Primary)
+                {
+                    return;
+                }
+
+                // 显示进度对话框
+                var progressRing = new ProgressRing
+                {
+                    IsActive = true,
+                    Width = 40,
+                    Height = 40
+                };
+
+                var progressText = new TextBlock
+                {
+                    Text = "正在导入收藏夹...",
+                    TextAlignment = TextAlignment.Center,
+                    Margin = new Thickness(0, 16, 0, 0)
+                };
+
+                var progressContent = new StackPanel
+                {
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Children = { progressRing, progressText }
+                };
+
+                var progressDialog = new UnifiedInAppDialog();
+                progressDialog.Configure(
+                    "导入中",
+                    progressContent,
+                    null,
+                    null);
+
+                // 异步显示对话框并执行导入
+                var dialogTask = InAppDialogService.ShowAsync(progressDialog, this);
+
+                // 清空文件夹路径，导入全部
+                EdgeBookmarkSyncService.SyncFolderPath = "";
+
+                // 执行导入
+                var result = await EdgeBookmarkSyncService.SyncFromEdgeAsync();
+
+                // 关闭进度对话框
+                progressDialog.Hide();
+
+                // 显示结果
+                if (result.Success)
+                {
+                    // 如果有新增的书签，触发 UI 刷新
+                    if (result.AddedCount > 0)
+                    {
+                        // 通知主页和侧边栏刷新
+                        WebAppEventBus.RequestRefresh();
+                    }
+
+                    var successDialog = CreateMessageDialog(
+                        "导入完成",
+                        $"成功导入 {result.AddedCount} 个新书签！\n\n你可以在主页和侧边栏中看到它们。",
+                        closeButtonText: "确定");
+                    await InAppDialogService.ShowAsync(successDialog, this);
+                }
+                else
+                {
+                    var errorDialog = CreateMessageDialog(
+                        "导入失败",
+                        result.Message,
+                        closeButtonText: "确定");
+                    await InAppDialogService.ShowAsync(errorDialog, this);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[NewPage] OnImportEdgeBookmarksClick error: {ex}");
+                
+                var errorDialog = CreateMessageDialog(
+                    "错误",
+                    $"导入过程中发生错误：\n{ex.Message}",
+                    closeButtonText: "确定");
+                await InAppDialogService.ShowAsync(errorDialog, this);
+            }
+        }
+
+        private static UnifiedInAppDialog CreateMessageDialog(
+            string title,
+            string message,
+            string? primaryButtonText = null,
+            string? closeButtonText = null,
+            ContentDialogButton defaultButton = ContentDialogButton.Close)
+        {
+            var dialog = new UnifiedInAppDialog();
+            dialog.Configure(
+                title,
+                new TextBlock
+                {
+                    Text = message,
+                    TextWrapping = TextWrapping.Wrap,
+                    FontSize = 14
+                },
+                primaryButtonText,
+                closeButtonText,
+                defaultButton: defaultButton);
+            return dialog;
         }
     }
 }

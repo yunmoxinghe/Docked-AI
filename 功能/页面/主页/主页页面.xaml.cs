@@ -52,6 +52,7 @@ namespace Docked_AI.Features.Pages.Home
             UpdateVisualState();
             await LoadWebAppsAsync();
             WebAppEventBus.ShortcutCreated += OnShortcutCreated;
+            WebAppEventBus.ShortcutsRefreshRequested += OnShortcutsRefreshRequested;
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
@@ -88,6 +89,14 @@ namespace Docked_AI.Features.Pages.Home
         }
 
         private void OnShortcutCreated(object? sender, WebAppShortcut shortcut)
+        {
+            DispatcherQueue.TryEnqueue(async () =>
+            {
+                await LoadWebAppsAsync();
+            });
+        }
+
+        private void OnShortcutsRefreshRequested(object? sender, EventArgs e)
         {
             DispatcherQueue.TryEnqueue(async () =>
             {

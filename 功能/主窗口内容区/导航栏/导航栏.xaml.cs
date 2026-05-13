@@ -70,7 +70,12 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             _lastSelectedNavigationItem = HomeNavigationItem;
 
             WebAppEventBus.ShortcutCreated += OnShortcutCreated;
-            Unloaded += (_, _) => WebAppEventBus.ShortcutCreated -= OnShortcutCreated;
+            WebAppEventBus.ShortcutsRefreshRequested += OnShortcutsRefreshRequested;
+            Unloaded += (_, _) =>
+            {
+                WebAppEventBus.ShortcutCreated -= OnShortcutCreated;
+                WebAppEventBus.ShortcutsRefreshRequested -= OnShortcutsRefreshRequested;
+            };
             Loaded += NavigationBar_Loaded;
             
             // 添加双击空白区域触发固定按钮
@@ -144,6 +149,12 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         {
             AddOrUpdateShortcutNavigationItem(shortcut, selectItem: true);
             _ = PersistShortcutsAsync();
+        }
+
+        private async void OnShortcutsRefreshRequested(object? sender, EventArgs e)
+        {
+            // 重新加载所有快捷方式
+            await RestorePersistedShortcutsAsync();
         }
 
         private async Task RestorePersistedShortcutsAsync()
