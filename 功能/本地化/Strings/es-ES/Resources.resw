@@ -131,6 +131,12 @@
   <data name="SettingsPage_DockSideChangedContent" xml:space="preserve">
     <value>La posición de anclaje de la ventana ha sido cambiada. La nueva posición se aplicará la próxima vez que se muestre la ventana.</value>
   </data>
+  <data name="SettingsPage_LeftDockNavigationHeader.Header" xml:space="preserve">
+    <value>Colocar la navegación a la izquierda en modo izquierdo</value>
+  </data>
+  <data name="SettingsPage_LeftDockNavigationHeader.Description" xml:space="preserve">
+    <value>Cuando la ventana esté acoplada al lado izquierdo de la pantalla, la barra de navegación también se colocará a la izquierda de la ventana</value>
+  </data>
   
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>Seguir el sistema</value>

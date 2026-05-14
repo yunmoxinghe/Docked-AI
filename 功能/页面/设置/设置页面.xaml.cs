@@ -255,6 +255,14 @@ namespace Docked_AI.Features.Pages.Settings
                 DockSideComboBox.SelectionChanged += OnDockSideChanged;
             }
 
+            if (LeftDockNavigationToggle != null)
+            {
+                LeftDockNavigationToggle.Toggled -= OnLeftDockNavigationToggled;
+                LeftDockNavigationToggle.IsOn = ExperimentalSettings.PlaceNavigationBarOnLeftWhenDockedLeft;
+                LeftDockNavigationToggle.IsEnabled = ExperimentalSettings.DockSide == WindowDockSide.Left;
+                LeftDockNavigationToggle.Toggled += OnLeftDockNavigationToggled;
+            }
+
             // 加载三个实验特性开关
             AILabToggle.Toggled -= OnAILabToggled;
             RoundedWebViewToggle.Toggled -= OnRoundedWebViewToggled;
@@ -333,12 +341,6 @@ namespace Docked_AI.Features.Pages.Settings
         public static event EventHandler? DockSideSettingsChanged;
         internal static void RaiseDockSideSettingsChanged() => DockSideSettingsChanged?.Invoke(null, EventArgs.Empty);
 
-        private void OnDockSideCardClick(object sender, RoutedEventArgs e)
-        {
-            // 点击卡片时打开 ComboBox 的下拉菜单
-            DockSideComboBox.IsDropDownOpen = true;
-        }
-
         private async void OnDockSideChanged(object sender, SelectionChangedEventArgs e)
         {
             if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem item)
@@ -347,6 +349,10 @@ namespace Docked_AI.Features.Pages.Settings
                 {
                     var newDockSide = (WindowDockSide)dockSideValue;
                     var currentDockSide = ExperimentalSettings.DockSide;
+                    if (LeftDockNavigationToggle != null)
+                    {
+                        LeftDockNavigationToggle.IsEnabled = newDockSide == WindowDockSide.Left;
+                    }
 
                     if (newDockSide != currentDockSide)
                     {
@@ -364,6 +370,15 @@ namespace Docked_AI.Features.Pages.Settings
                         RaiseDockSideSettingsChanged();
                     }
                 }
+            }
+        }
+
+        private void OnLeftDockNavigationToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggle)
+            {
+                ExperimentalSettings.PlaceNavigationBarOnLeftWhenDockedLeft = toggle.IsOn;
+                RaiseDockSideSettingsChanged();
             }
         }
 

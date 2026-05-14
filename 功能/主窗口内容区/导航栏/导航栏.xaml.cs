@@ -40,6 +40,12 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             DockToggleIcon.Glyph = isPinned ? "\uE8A0" : "\uE89F";
         }
 
+        public void SetNavigationBarPlacement(bool isOnLeft)
+        {
+            NavView.HorizontalAlignment = isOnLeft ? HorizontalAlignment.Left : HorizontalAlignment.Right;
+            NavView.FlowDirection = isOnLeft ? FlowDirection.LeftToRight : FlowDirection.RightToLeft;
+        }
+
         public void SelectNewPageItem()
         {
             _suppressSelectionChanged = true;

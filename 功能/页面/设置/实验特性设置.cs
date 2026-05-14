@@ -17,6 +17,7 @@ namespace Docked_AI.Features.Pages.Settings
         private const string EnableTopBarBackButtonKey = "TopBarSettings_EnableBackButton";
         private const string EnableTopBarMenuButtonKey = "TopBarSettings_EnableMenuButton";
         private const string WindowDockSideKey = "WindowSettings_DockSide";
+        private const string PlaceNavigationBarOnLeftWhenDockedLeftKey = "WindowSettings_PlaceNavigationBarOnLeftWhenDockedLeft";
         
         private static readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
 
@@ -196,6 +197,25 @@ namespace Docked_AI.Features.Pages.Settings
             set
             {
                 _localSettings.Values[WindowDockSideKey] = (int)value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置左侧停靠时是否将导航栏也放在左侧
+        /// </summary>
+        public static bool PlaceNavigationBarOnLeftWhenDockedLeft
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(PlaceNavigationBarOnLeftWhenDockedLeftKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return false; // 默认保持导航栏在右侧
+            }
+            set
+            {
+                _localSettings.Values[PlaceNavigationBarOnLeftWhenDockedLeftKey] = value;
             }
         }
     }

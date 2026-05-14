@@ -131,6 +131,12 @@
   <data name="SettingsPage_DockSideChangedContent" xml:space="preserve">
     <value>La position d'ancrage de la fenêtre a été modifiée. La nouvelle position sera appliquée lors du prochain affichage de la fenêtre.</value>
   </data>
+  <data name="SettingsPage_LeftDockNavigationHeader.Header" xml:space="preserve">
+    <value>Placer la navigation à gauche en mode gauche</value>
+  </data>
+  <data name="SettingsPage_LeftDockNavigationHeader.Description" xml:space="preserve">
+    <value>Lorsque la fenêtre est ancrée à gauche de l'écran, la barre de navigation est également placée à gauche de la fenêtre</value>
+  </data>
   
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>Suivre le système</value>

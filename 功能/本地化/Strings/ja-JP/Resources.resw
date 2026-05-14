@@ -131,6 +131,12 @@
   <data name="SettingsPage_DockSideChangedContent" xml:space="preserve">
     <value>ウィンドウのドック位置が変更されました。次回ウィンドウを表示する際に新しい位置が適用されます。</value>
   </data>
+  <data name="SettingsPage_LeftDockNavigationHeader.Header" xml:space="preserve">
+    <value>左側モードではナビゲーションを左側に配置</value>
+  </data>
+  <data name="SettingsPage_LeftDockNavigationHeader.Description" xml:space="preserve">
+    <value>ウィンドウを画面左側にドックしたとき、ナビゲーションバーもウィンドウ左側に配置します</value>
+  </data>
   
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>システムに従う</value>

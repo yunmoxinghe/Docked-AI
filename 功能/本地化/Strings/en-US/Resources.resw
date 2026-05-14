@@ -134,6 +134,12 @@
   <data name="SettingsPage_DockSideChangedContent" xml:space="preserve">
     <value>The window dock position has been changed. The new position will be applied the next time the window is shown.</value>
   </data>
+  <data name="SettingsPage_LeftDockNavigationHeader.Header" xml:space="preserve">
+    <value>Place navigation on the left in left mode</value>
+  </data>
+  <data name="SettingsPage_LeftDockNavigationHeader.Description" xml:space="preserve">
+    <value>When the window is docked to the left side of the screen, place the navigation bar on the left side of the window too</value>
+  </data>
   
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>Follow System</value>

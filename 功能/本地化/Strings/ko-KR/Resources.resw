@@ -131,6 +131,12 @@
   <data name="SettingsPage_DockSideChangedContent" xml:space="preserve">
     <value>창 도킹 위치가 변경되었습니다. 다음에 창을 표시할 때 새 위치가 적용됩니다.</value>
   </data>
+  <data name="SettingsPage_LeftDockNavigationHeader.Header" xml:space="preserve">
+    <value>왼쪽 모드에서 탐색 모음을 왼쪽에 배치</value>
+  </data>
+  <data name="SettingsPage_LeftDockNavigationHeader.Description" xml:space="preserve">
+    <value>창이 화면 왼쪽에 도킹되면 탐색 모음도 창 왼쪽에 배치합니다</value>
+  </data>
   
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>시스템 따라가기</value>

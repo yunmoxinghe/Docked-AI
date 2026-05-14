@@ -131,6 +131,12 @@
   <data name="SettingsPage_DockSideChangedContent" xml:space="preserve">
     <value>視窗停靠位置已變更。下次顯示視窗時將套用新的位置。</value>
   </data>
+  <data name="SettingsPage_LeftDockNavigationHeader.Header" xml:space="preserve">
+    <value>左側模式下導覽列靠左</value>
+  </data>
+  <data name="SettingsPage_LeftDockNavigationHeader.Description" xml:space="preserve">
+    <value>當視窗停靠在螢幕左側時，也將導覽列放在視窗左側</value>
+  </data>
   
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>跟隨系統</value>

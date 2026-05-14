@@ -28,6 +28,11 @@ namespace Docked_AI.Features.MainWindowContent.Linker
 #pragma warning disable CS0414
         private bool _isNavigatingBack = false;
 #pragma warning restore CS0414
+        private bool _isNavigationBarOnLeft;
+        private double _contentTopMargin = 6;
+        private double _contentOutsideMargin = 4;
+        private const double ContentNavigationSideMargin = 0;
+        private const double NavigationGap = 2;
 
         public Linker()
         {
@@ -47,12 +52,67 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             
             // 订阅 AI 实验室设置变化事件
             Pages.Settings.SettingsPage.AILabSettingsChanged += OnAILabSettingsChanged;
+            Pages.Settings.SettingsPage.DockSideSettingsChanged += OnDockSideSettingsChanged;
+            Unloaded += OnUnloaded;
+            SizeChanged += OnSizeChanged;
+            ApplyNavigationBarPlacement();
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            Pages.Settings.SettingsPage.AILabSettingsChanged -= OnAILabSettingsChanged;
+            Pages.Settings.SettingsPage.DockSideSettingsChanged -= OnDockSideSettingsChanged;
+            SizeChanged -= OnSizeChanged;
+            Unloaded -= OnUnloaded;
+        }
+
+        private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateContentOutsideMargin(e.NewSize.Width);
+            ApplyContentHostMargin();
         }
 
         private void OnAILabSettingsChanged(object? sender, EventArgs e)
         {
             // 通知导航栏更新 AI 导航项的可见性
             NavBar.UpdateAINavigationItemVisibility();
+        }
+
+        private void OnDockSideSettingsChanged(object? sender, EventArgs e)
+        {
+            ApplyNavigationBarPlacement();
+        }
+
+        private void ApplyNavigationBarPlacement()
+        {
+            bool placeOnLeft =
+                ExperimentalSettings.DockSide == WindowDockSide.Left &&
+                ExperimentalSettings.PlaceNavigationBarOnLeftWhenDockedLeft;
+
+            _isNavigationBarOnLeft = placeOnLeft;
+            LeftNavigationColumn.Width = new GridLength(placeOnLeft ? 48 : 0);
+            LeftNavigationGapColumn.Width = new GridLength(placeOnLeft ? NavigationGap : 0);
+            RightNavigationGapColumn.Width = new GridLength(placeOnLeft ? 0 : NavigationGap);
+            RightNavigationColumn.Width = new GridLength(placeOnLeft ? 0 : 48);
+
+            Grid.SetColumn(NavBar, placeOnLeft ? 0 : 4);
+            NavBar.SetNavigationBarPlacement(placeOnLeft);
+            UpdateContentOutsideMargin(ActualWidth);
+            ApplyContentHostMargin();
+        }
+
+        private void ApplyContentHostMargin()
+        {
+            double leftMargin = _isNavigationBarOnLeft ? ContentNavigationSideMargin : _contentOutsideMargin;
+            double rightMargin = _isNavigationBarOnLeft ? _contentOutsideMargin : ContentNavigationSideMargin;
+            ContentHost.Margin = new Thickness(leftMargin, _contentTopMargin, rightMargin, 4);
+            System.Diagnostics.Debug.WriteLine(
+                $"[Linker] NavigationBarOnLeft={_isNavigationBarOnLeft}, ContentHost.Margin={ContentHost.Margin}");
+        }
+
+        private void UpdateContentOutsideMargin(double width)
+        {
+            _contentOutsideMargin = width >= 1200 ? 24 : width >= 700 ? 16 : 4;
         }
 
         private void OnBackRequested(object? sender, EventArgs e)
@@ -153,9 +213,8 @@ namespace Docked_AI.Features.MainWindowContent.Linker
 
         public void UpdateContentTopMargin(bool isPinnedOrMaximized)
         {
-            double topMargin = isPinnedOrMaximized ? 4 : 6;
-            var currentMargin = ContentHost.Margin;
-            ContentHost.Margin = new Thickness(currentMargin.Left, topMargin, currentMargin.Right, currentMargin.Bottom);
+            _contentTopMargin = isPinnedOrMaximized ? 4 : 6;
+            ApplyContentHostMargin();
         }
 
         public void SyncNavigationBarSelection(Type pageType, object? parameter)

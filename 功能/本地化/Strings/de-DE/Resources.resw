@@ -131,6 +131,12 @@
   <data name="SettingsPage_DockSideChangedContent" xml:space="preserve">
     <value>Die Fenster-Andockposition wurde geändert. Die neue Position wird beim nächsten Anzeigen des Fensters angewendet.</value>
   </data>
+  <data name="SettingsPage_LeftDockNavigationHeader.Header" xml:space="preserve">
+    <value>Navigation im linken Modus links platzieren</value>
+  </data>
+  <data name="SettingsPage_LeftDockNavigationHeader.Description" xml:space="preserve">
+    <value>Wenn das Fenster links am Bildschirm angedockt ist, wird die Navigationsleiste ebenfalls links im Fenster platziert</value>
+  </data>
   
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>System folgen</value>

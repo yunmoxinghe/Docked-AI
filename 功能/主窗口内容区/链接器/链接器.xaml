@@ -8,49 +8,25 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <VisualStateManager.VisualStateGroups>
-        <VisualStateGroup x:Name="WidthStates">
-            <VisualState x:Name="NarrowState">
-                <VisualState.StateTriggers>
-                    <AdaptiveTrigger MinWindowWidth="0" />
-                </VisualState.StateTriggers>
-                <VisualState.Setters>
-                    <Setter Target="ContentHost.Margin" Value="4,6,4,4" />
-                </VisualState.Setters>
-            </VisualState>
-            <VisualState x:Name="WideState">
-                <VisualState.StateTriggers>
-                    <AdaptiveTrigger MinWindowWidth="700" />
-                </VisualState.StateTriggers>
-                <VisualState.Setters>
-                    <Setter Target="ContentHost.Margin" Value="16,6,16,4" />
-                </VisualState.Setters>
-            </VisualState>
-            <VisualState x:Name="LargeState">
-                <VisualState.StateTriggers>
-                    <AdaptiveTrigger MinWindowWidth="1200" />
-                </VisualState.StateTriggers>
-                <VisualState.Setters>
-                    <Setter Target="ContentHost.Margin" Value="24,6,24,4" />
-                </VisualState.Setters>
-            </VisualState>
-        </VisualStateGroup>
-    </VisualStateManager.VisualStateGroups>
-
-    <Grid Background="Transparent" Padding="0">
+    <Grid
+        x:Name="RootLayout"
+        Background="Transparent"
+        Padding="0">
         <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="LeftNavigationColumn" Width="0" />
+            <ColumnDefinition x:Name="LeftNavigationGapColumn" Width="0" />
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="2" />
-            <ColumnDefinition Width="48" />
+            <ColumnDefinition x:Name="RightNavigationGapColumn" Width="2" />
+            <ColumnDefinition x:Name="RightNavigationColumn" Width="48" />
         </Grid.ColumnDefinitions>
 
         <contentArea:ContentArea
             x:Name="ContentHost"
-            Grid.Column="0"
-            Margin="4,6,0,4" />
+            Grid.Column="2"
+            Margin="4,6,4,4" />
 
         <navBar:NavigationBar
             x:Name="NavBar"
-            Grid.Column="2" />
+            Grid.Column="4" />
     </Grid>
 </UserControl>

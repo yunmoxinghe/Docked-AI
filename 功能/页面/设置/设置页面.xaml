@@ -86,16 +86,15 @@
                     </controls:SettingsCard>
 
                     <!-- 窗口停靠位置设置 -->
-                    <controls:SettingsCard
+                    <controls:SettingsExpander
+                        x:Name="DockSideExpander"
                         x:Uid="SettingsPage_DockSideHeader"
                         Header="窗口停靠位置"
                         Description="选择窗口停靠在屏幕的左侧或右侧"
-                        IsClickEnabled="True"
-                        IsActionIconVisible="False"
-                        Click="OnDockSideCardClick">
-                        <controls:SettingsCard.HeaderIcon>
+                        IsExpanded="False">
+                        <controls:SettingsExpander.HeaderIcon>
                             <FontIcon Glyph="&#xE746;"/>
-                        </controls:SettingsCard.HeaderIcon>
+                        </controls:SettingsExpander.HeaderIcon>
                         <ComboBox
                             x:Name="DockSideComboBox"
                             MinWidth="150"
@@ -103,7 +102,14 @@
                             <ComboBoxItem x:Uid="SettingsPage_DockSideLeft" Tag="0" Content="左侧"/>
                             <ComboBoxItem x:Uid="SettingsPage_DockSideRight" Tag="1" Content="右侧"/>
                         </ComboBox>
-                    </controls:SettingsCard>
+                        <controls:SettingsExpander.Items>
+                            <controls:SettingsCard x:Uid="SettingsPage_LeftDockNavigationHeader">
+                                <ToggleSwitch
+                                    x:Name="LeftDockNavigationToggle"
+                                    Toggled="OnLeftDockNavigationToggled"/>
+                            </controls:SettingsCard>
+                        </controls:SettingsExpander.Items>
+                    </controls:SettingsExpander>
 
                     <controls:SettingsCard
                         x:Uid="SettingsPage_LanguageHeader"
