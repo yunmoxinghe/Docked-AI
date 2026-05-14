@@ -11,11 +11,12 @@
 ## 技术栈
 
 - .NET 10.0
-- WinUI 3 (Windows App SDK 1.8)
+- WinUI 3 (Windows App SDK 2.0)
 - Windows 10/11 (最低版本 17763)
-- DevWinUI 9.9.3
+- DevWinUI 9.9.4
 - CommunityToolkit.WinUI.Controls
 - Windows App Development CLI 0.3+
+- Native AOT 编译支持
 
 ## 系统要求
 
@@ -36,11 +37,12 @@
 
 ### 前置要求
 
-- Visual Studio 2022 或更高版本（可选）
+- Visual Studio 2022 或更高版本（可选，AOT编译需要）
 - .NET 10.0 SDK
-- Windows App SDK 1.8
+- Windows App SDK 2.0
 - Windows 10 SDK (10.0.19041.0 或更高)
 - Windows App Development CLI 0.3+ (推荐)
+- Visual C++ 构建工具（Native AOT 编译需要）
 
 ### 构建项目
 

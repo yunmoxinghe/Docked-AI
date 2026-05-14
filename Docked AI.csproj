@@ -16,20 +16,45 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
-    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+    <!-- 尝试在框架依赖模式下启用 AOT -->
     <PublishAot>true</PublishAot>
+    <!-- AOT 优化配置 -->
+    <IlcOptimizationPreference>Size</IlcOptimizationPreference>
+    <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
+    <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
+    <IlcInvariantGlobalization>false</IlcInvariantGlobalization>
+    <!-- 更多 AOT 优化 -->
+    <IlcDisableReflection>false</IlcDisableReflection>
+    <IlcTrimMetadata>true</IlcTrimMetadata>
+    <IlcOptimizationLevel>3</IlcOptimizationLevel>
     <!-- 忽略无效的 PRI 限定符警告 -->
     <NoWarn>$(NoWarn);PRI249</NoWarn>
+    <!-- 框架依赖模式使用标准裁剪 -->
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>full</TrimMode>
+    <!-- 更激进的裁剪选项 -->
+    <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
+    <!-- 极限裁剪 -->
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <IlcInstructionSet>x86-x64-v3</IlcInstructionSet>
+    <!-- 额外体积优化 -->
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <PublishSingleFile>false</PublishSingleFile>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>false</IncludeNativeLibrariesForSelfExtract>
+    <IncludeAllContentForSelfExtract>false</IncludeAllContentForSelfExtract>
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- 只包含必需的资源文件 -->
     <Content Include="Assets\SplashScreen.scale-200.png" />
-    <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\Square150x150Logo.scale-200.png" />
     <Content Include="Assets\Square44x44Logo.scale-200.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
-    <!-- 添加托盘图标文件，确保复制到输出目录 -->
     <Content Include="Assets\Sparkles.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -55,15 +80,15 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
     <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7463" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools.MSIX" Version="1.7.20250829.1" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.1839" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools.MSIX" Version="1.7.260513100" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" Version="0.3.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.250907003" />
-    <PackageReference Include="DevWinUI" Version="9.9.3" />
-    <PackageReference Include="DevWinUI.Controls" Version="9.9.3" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.0.1" />
+    <PackageReference Include="DevWinUI" Version="9.9.4" />
+    <PackageReference Include="DevWinUI.Controls" Version="9.9.4" />
     <PackageReference Include="NHotkey.WinUI" Version="3.0.1" />
   </ItemGroup>
 
@@ -81,15 +106,51 @@
     <ApplicationIcon>Assets\Sparkles.ico</ApplicationIcon>
     <GenerateTemporaryStoreCertificate>False</GenerateTemporaryStoreCertificate>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
-    <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
+    <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
     <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
     <GenerateTestArtifacts>False</GenerateTestArtifacts>
     <AppxBundle>Always</AppxBundle>
-    <AppxBundlePlatforms>x86|x64|arm64</AppxBundlePlatforms>
+    <AppxBundlePlatforms>x64</AppxBundlePlatforms>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
     <AppxSymbolPackageEnabled>false</AppxSymbolPackageEnabled>
     <AppxPackageDir>AppPackages\</AppxPackageDir>
     <UapAppxPackageBuildMode>StoreUpload</UapAppxPackageBuildMode>
+    <!-- 启用资源包压缩 -->
+    <AppxPackageAllowDebugFrameworkReferencesInManifest>false</AppxPackageAllowDebugFrameworkReferencesInManifest>
+    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
+    <PackageCertificateKeyFile>Docked AI_TemporaryKey.pfx</PackageCertificateKeyFile>
+  </PropertyGroup>
+
+  <!-- Release 优化 -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
+    <!-- 禁用调试符号 -->
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <!-- 优化编译 -->
+    <Optimize>true</Optimize>
+    <TieredCompilation>false</TieredCompilation>
+    <TieredCompilationQuickJit>false</TieredCompilationQuickJit>
+    <!-- 移除不必要的功能 -->
+    <EventSourceSupport>false</EventSourceSupport>
+    <EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+    <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
+    <!-- 额外的运行时优化 -->
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+    <IlcGenerateDgmlFile>false</IlcGenerateDgmlFile>
+    <IlcGenerateMapFile>false</IlcGenerateMapFile>
+    <IlcGenerateMstatFile>false</IlcGenerateMstatFile>
+    <!-- 启用 PGO (Profile-Guided Optimization) -->
+    <TieredPGO>true</TieredPGO>
+    <DynamicPGO>true</DynamicPGO>
+  </PropertyGroup>
+
+  <!-- MSIX 打包优化 -->
+  <PropertyGroup>
+    <!-- 压缩优化 -->
+    <AppxPackageCompression>maximum</AppxPackageCompression>
   </PropertyGroup>
 </Project>
