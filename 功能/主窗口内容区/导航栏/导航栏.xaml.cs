@@ -11,6 +11,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -560,10 +561,13 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
 
     public sealed class NavigationRequest
     {
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
         public Type PageType { get; }
         public object? Parameter { get; }
 
-        public NavigationRequest(Type pageType, object? parameter)
+        public NavigationRequest(
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type pageType,
+            object? parameter)
         {
             PageType = pageType;
             Parameter = parameter;

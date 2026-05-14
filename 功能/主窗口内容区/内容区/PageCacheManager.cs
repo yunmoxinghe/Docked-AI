@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Docked_AI.Features.MainWindowContent.ContentArea
@@ -29,7 +30,10 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         /// <param name="parameter">导航参数</param>
         /// <param name="cacheKey">缓存键（如果为 null 则不缓存）</param>
         /// <returns>页面实例</returns>
-        public Page GetOrCreatePage(Type pageType, object? parameter, string? cacheKey)
+        public Page GetOrCreatePage(
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type pageType,
+            object? parameter,
+            string? cacheKey)
         {
             // 如果没有缓存键，直接创建新实例
             if (string.IsNullOrEmpty(cacheKey))
@@ -213,7 +217,8 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             return page;
         }
 
-        private Page CreatePageInstance(Type pageType)
+        private Page CreatePageInstance(
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type pageType)
         {
             if (!typeof(Page).IsAssignableFrom(pageType))
             {

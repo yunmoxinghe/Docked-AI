@@ -1708,11 +1708,12 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     string script = "window.getSelection().toString()";
                     string result = await _activeWebView.CoreWebView2.ExecuteScriptAsync(script);
                     
-                    // 反序列化 JSON 字符串
+                    // ExecuteScriptAsync 返回 JSON 字符串字面量，用 JsonDocument 避免 AOT 下的反射序列化路径。
                     string? selectedText = null;
                     if (result.Length >= 2 && result.StartsWith("\"") && result.EndsWith("\""))
                     {
-                        selectedText = System.Text.Json.JsonSerializer.Deserialize<string>(result);
+                        using var document = JsonDocument.Parse(result);
+                        selectedText = document.RootElement.GetString();
                     }
                     else if (!string.IsNullOrEmpty(result) && result != "null")
                     {
@@ -1854,59 +1855,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             try
             {
                 System.Diagnostics.Debug.WriteLine("[HandleDoubleClick] 开始处理双击");
-                
-                // 方法1: 直接触发导航栏的 WindowStateToggleRequested 事件
-                // 从当前页面向上遍历找到 Linker，然后访问 NavBarInstance
-                DependencyObject? current = this;
-                while (current != null)
-                {
-                    current = VisualTreeHelper.GetParent(current);
-                    
-                    // 查找 Linker 类型
-                    if (current?.GetType().Name == "Linker")
-                    {
-                        System.Diagnostics.Debug.WriteLine("[HandleDoubleClick] 找到 Linker");
-                        
-                        // 通过反射获取 NavBarInstance 属性
-                        var navBarProperty = current.GetType().GetProperty("NavBarInstance");
-                        if (navBarProperty != null)
-                        {
-                            var navBar = navBarProperty.GetValue(current);
-                            System.Diagnostics.Debug.WriteLine($"[HandleDoubleClick] 获取到 NavBarInstance: {navBar?.GetType().Name ?? "null"}");
-                            
-                            if (navBar != null)
-                            {
-                                // 获取 WindowStateToggleRequested 事件并触发
-                                var eventField = navBar.GetType().GetField("WindowStateToggleRequested",
-                                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-                                
-                                if (eventField != null)
-                                {
-                                    var eventDelegate = eventField.GetValue(navBar) as MulticastDelegate;
-                                    if (eventDelegate != null)
-                                    {
-                                        System.Diagnostics.Debug.WriteLine("[HandleDoubleClick] ✓ 触发 WindowStateToggleRequested 事件");
-                                        eventDelegate.DynamicInvoke(navBar, EventArgs.Empty);
-                                        return;
-                                    }
-                                }
-                                
-                                // 备用方法：直接调用事件触发方法
-                                var raiseMethod = navBar.GetType().GetMethod("OnWindowStateToggleRequested",
-                                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-                                if (raiseMethod != null)
-                                {
-                                    System.Diagnostics.Debug.WriteLine("[HandleDoubleClick] ✓ 调用 OnWindowStateToggleRequested 方法");
-                                    raiseMethod.Invoke(navBar, null);
-                                    return;
-                                }
-                            }
-                        }
-                        break;
-                    }
-                }
-                
-                // 方法2: 直接调用主窗口的 ToggleWindowState
+
                 System.Diagnostics.Debug.WriteLine("[HandleDoubleClick] 尝试直接调用主窗口方法");
                 var window = GetMainWindowInstance();
                 if (window is Docked_AI.MainWindow mainWindow)
@@ -1941,27 +1890,12 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         {
             try
             {
-                // 方法1: 使用公共属性
                 if (Application.Current is App app)
                 {
                     var window = app.MainWindow;
                     System.Diagnostics.Debug.WriteLine($"[GetMainWindowInstance] 从 App.MainWindow 获取: {window?.GetType().Name ?? "null"}");
                     if (window != null)
                     {
-                        return window;
-                    }
-                }
-                
-                // 方法2: 从 App.Current 获取主窗口（备用）
-                System.Diagnostics.Debug.WriteLine("[GetMainWindowInstance] 尝试从 App._window 字段获取");
-                if (Application.Current is App app2)
-                {
-                    var windowField = typeof(App).GetField("_window", 
-                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                    if (windowField != null)
-                    {
-                        var window = windowField.GetValue(app2) as Window;
-                        System.Diagnostics.Debug.WriteLine($"[GetMainWindowInstance] 从 App._window 获取: {window?.GetType().Name ?? "null"}");
                         return window;
                     }
                 }

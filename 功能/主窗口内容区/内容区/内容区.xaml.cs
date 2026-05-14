@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Navigation;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using Docked_AI.Features.Pages.WebApp.Shared;
@@ -454,7 +455,10 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             }
         }
 
-        public void Navigate(Type pageType, object? parameter = null, Microsoft.UI.Xaml.Media.Animation.NavigationTransitionInfo? transitionInfo = null)
+        public void Navigate(
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type pageType,
+            object? parameter = null,
+            Microsoft.UI.Xaml.Media.Animation.NavigationTransitionInfo? transitionInfo = null)
         {
             System.Diagnostics.Debug.WriteLine($"[ContentArea] Navigate 被调用: {pageType.Name}");
             
