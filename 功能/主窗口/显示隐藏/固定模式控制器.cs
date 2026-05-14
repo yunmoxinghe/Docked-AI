@@ -1,5 +1,6 @@
 using Docked_AI.Features.MainWindow.Appearance; // 引入外观相关 Win32 API 封装（样式、DWM 属性等）
 using Docked_AI.Features.MainWindow.Placement;   // 引入位置相关 Win32 API 封装（RECT、SetWindowPos 等）
+using Docked_AI.Features.Pages.Settings;         // 引入设置相关类（ExperimentalSettings、WindowDockSide）
 using Microsoft.UI.Xaml;                          // 引入 WinUI 3 的 Window 类型
 using System;                                     // 引入 IntPtr、Math 等基础类型
 
@@ -99,7 +100,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
         // ==================== 固定模式切换动画 ====================
 
         /// <summary>
-        /// 滑出动画：将窗口从当前位置平滑移动到屏幕右侧不可见区域
+        /// 滑出动画：将窗口从当前位置平滑移动到屏幕边缘不可见区域
         ///
         /// 【设计原则】
         /// - 非阻断：立即返回 Task，动画在 CompositionTarget.Rendering 帧回调中执行
@@ -108,7 +109,9 @@ namespace Docked_AI.Features.MainWindow.Visibility
         ///
         /// 【动画参数】
         /// - 起点：_state.CurrentX（当前窗口 X 坐标）
-        /// - 终点：_state.WorkArea.Right + _state.WindowWidth（屏幕右侧不可见区域）
+        /// - 终点：根据停靠位置决定
+        ///   - 左侧停靠：-_state.WindowWidth（屏幕左侧外）
+        ///   - 右侧停靠：_state.WorkArea.Right + _state.WindowWidth（屏幕右侧外）
         /// - 时长：360ms，Ease-out quadratic（快速离开，符合"滑走"的直觉）
         /// </summary>
         public System.Threading.Tasks.Task SlideOutAsync(System.Threading.CancellationToken ct = default)
@@ -118,7 +121,13 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
             var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
             double startX   = _state.CurrentX;
-            double targetX  = _state.WorkArea.Right + _state.WindowWidth; // 屏幕右侧外
+            
+            // 根据停靠位置决定滑出方向
+            var dockSide = ExperimentalSettings.DockSide;
+            double targetX = dockSide == WindowDockSide.Left 
+                ? -_state.WindowWidth  // 左侧停靠：向左侧屏幕外滑出
+                : _state.WorkArea.Right + _state.WindowWidth; // 右侧停靠：向右侧屏幕外滑出
+            
             int    targetY  = (int)_state.CurrentY;
             int    height   = _state.WindowHeight;
             int    width    = _state.WindowWidth;
@@ -165,7 +174,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
         }
 
         /// <summary>
-        /// 滑入动画：将窗口从屏幕右侧不可见区域平滑移动到 AppBar 批准的目标位置
+        /// 滑入动画：将窗口从屏幕边缘不可见区域平滑移动到 AppBar 批准的目标位置
         ///
         /// 【前置条件】
         /// 必须在 ApplyPinnedBounds() 之后调用，此时 _state.TargetX/TargetY 已确定
@@ -175,7 +184,9 @@ namespace Docked_AI.Features.MainWindow.Visibility
         /// - 可取消：通过 CancellationToken 支持打断动画（取消时直接跳到终点）
         ///
         /// 【动画参数】
-        /// - 起点：_state.WorkArea.Right + _state.WindowWidth（屏幕右侧不可见区域）
+        /// - 起点：根据停靠位置决定
+        ///   - 左侧停靠：-_state.WindowWidth（屏幕左侧外）
+        ///   - 右侧停靠：_state.WorkArea.Right + _state.WindowWidth（屏幕右侧外）
         /// - 终点：_state.TargetX（AppBar 批准的最终位置）
         /// - 时长：440ms，Ease-out cubic（缓慢停止，符合"停靠"的直觉）
         /// </summary>
@@ -185,7 +196,13 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 return System.Threading.Tasks.Task.CompletedTask;
 
             var tcs = new System.Threading.Tasks.TaskCompletionSource<bool>();
-            double startX   = _state.WorkArea.Right + _state.WindowWidth; // 从屏幕外开始
+            
+            // 根据停靠位置决定滑入起点
+            var dockSide = ExperimentalSettings.DockSide;
+            double startX = dockSide == WindowDockSide.Left
+                ? -_state.WindowWidth  // 左侧停靠：从屏幕左侧外滑入
+                : _state.WorkArea.Right + _state.WindowWidth; // 右侧停靠：从屏幕右侧外滑入
+            
             double targetX  = _state.TargetX;
             int    targetY  = (int)_state.TargetY;
             int    height   = _state.WindowHeight;
@@ -241,12 +258,19 @@ namespace Docked_AI.Features.MainWindow.Visibility
         }
 
         /// <summary>
-        /// 将窗口移到屏幕右侧不可见区域（不改变 Z 序，保持 TOPMOST）
+        /// 将窗口移到屏幕边缘不可见区域（不改变 Z 序，保持 TOPMOST）
+        /// 根据停靠位置决定移动到左侧还是右侧屏幕外
         /// </summary>
         private void MoveToOffScreen(int y, int width, int height)
         {
             if (_hwnd == IntPtr.Zero) return;
-            int offScreenX = _state.WorkArea.Right + width;
+            
+            // 根据停靠位置决定屏幕外位置
+            var dockSide = ExperimentalSettings.DockSide;
+            int offScreenX = dockSide == WindowDockSide.Left
+                ? -width  // 左侧停靠：移到屏幕左侧外
+                : _state.WorkArea.Right + width; // 右侧停靠：移到屏幕右侧外
+            
             _ = VisibilityWin32Api.SetWindowPos(
                 _hwnd, VisibilityWin32Api.HWND_TOPMOST,
                 offScreenX, y, width, height,
@@ -381,6 +405,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
         /// - 查询 AppBar 位置（ABM_QUERYPOS）
         /// - 将系统批准的位置和尺寸写入 _state.TargetX/Y、WindowWidth/Height
         /// - 不移动窗口，不调用 SetWindowPos
+        /// - 根据用户设置的停靠位置（左侧/右侧）计算 AppBar 边缘
         /// </summary>
         public void QueryPinnedBounds()
         {
@@ -389,20 +414,45 @@ namespace Docked_AI.Features.MainWindow.Visibility
             VisibilityWin32Api.APPBARDATA appBarData = CreateAppBarData();
             int desiredWidth = _state.WindowWidth;
 
-            appBarData.uEdge    = VisibilityWin32Api.ABE_RIGHT;
-            appBarData.rc.Top    = _state.WorkArea.Top;
-            appBarData.rc.Bottom = _state.WorkArea.Bottom;
-            appBarData.rc.Right  = _state.WorkArea.Right;
-            appBarData.rc.Left   = appBarData.rc.Right - desiredWidth;
+            // 根据停靠位置设置 AppBar 边缘和矩形
+            var dockSide = ExperimentalSettings.DockSide;
+            if (dockSide == WindowDockSide.Left)
+            {
+                // 左侧停靠
+                appBarData.uEdge = VisibilityWin32Api.ABE_LEFT;
+                appBarData.rc.Top = _state.WorkArea.Top;
+                appBarData.rc.Bottom = _state.WorkArea.Bottom;
+                appBarData.rc.Left = _state.WorkArea.Left;
+                appBarData.rc.Right = appBarData.rc.Left + desiredWidth;
+            }
+            else
+            {
+                // 右侧停靠
+                appBarData.uEdge = VisibilityWin32Api.ABE_RIGHT;
+                appBarData.rc.Top = _state.WorkArea.Top;
+                appBarData.rc.Bottom = _state.WorkArea.Bottom;
+                appBarData.rc.Right = _state.WorkArea.Right;
+                appBarData.rc.Left = appBarData.rc.Right - desiredWidth;
+            }
 
             // ABM_QUERYPOS：向系统询问可用位置（不占用屏幕空间，不触发推开动画）
             _ = VisibilityWin32Api.SHAppBarMessage(VisibilityWin32Api.ABM_QUERYPOS, ref appBarData);
 
             // 强制使用期望值（系统查询可能修改 rc，此处覆盖回来）
-            appBarData.rc.Top    = _state.WorkArea.Top;
-            appBarData.rc.Bottom = _state.WorkArea.Bottom;
-            appBarData.rc.Right  = _state.WorkArea.Right;
-            appBarData.rc.Left   = appBarData.rc.Right - desiredWidth;
+            if (dockSide == WindowDockSide.Left)
+            {
+                appBarData.rc.Top = _state.WorkArea.Top;
+                appBarData.rc.Bottom = _state.WorkArea.Bottom;
+                appBarData.rc.Left = _state.WorkArea.Left;
+                appBarData.rc.Right = appBarData.rc.Left + desiredWidth;
+            }
+            else
+            {
+                appBarData.rc.Top = _state.WorkArea.Top;
+                appBarData.rc.Bottom = _state.WorkArea.Bottom;
+                appBarData.rc.Right = _state.WorkArea.Right;
+                appBarData.rc.Left = appBarData.rc.Right - desiredWidth;
+            }
 
             // 将查询结果写入布局状态，供滑入动画使用
             _state.WindowWidth  = Math.Max(_state.MinWindowWidth, appBarData.rc.Right - appBarData.rc.Left);
@@ -423,19 +473,35 @@ namespace Docked_AI.Features.MainWindow.Visibility
         /// - 提交 AppBar 位置（ABM_SETPOS，触发系统推开动画）
         /// - 更新 _state 中的最终位置和尺寸
         /// - 不移动窗口（滑入动画已将窗口放到正确位置）
+        /// - 根据用户设置的停靠位置（左侧/右侧）提交 AppBar
         /// </summary>
         public void CommitPinnedBounds()
         {
             VisibilityWin32Api.APPBARDATA appBarData = CreateAppBarData();
             int desiredWidth = _state.WindowWidth;
 
-            appBarData.uEdge     = VisibilityWin32Api.ABE_RIGHT;
-            appBarData.rc.Top    = _state.WorkArea.Top;
-            appBarData.rc.Bottom = _state.WorkArea.Bottom;
-            appBarData.rc.Right  = _state.WorkArea.Right;
-            appBarData.rc.Left   = appBarData.rc.Right - desiredWidth;
+            // 根据停靠位置设置 AppBar 边缘和矩形
+            var dockSide = ExperimentalSettings.DockSide;
+            if (dockSide == WindowDockSide.Left)
+            {
+                // 左侧停靠
+                appBarData.uEdge = VisibilityWin32Api.ABE_LEFT;
+                appBarData.rc.Top = _state.WorkArea.Top;
+                appBarData.rc.Bottom = _state.WorkArea.Bottom;
+                appBarData.rc.Left = _state.WorkArea.Left;
+                appBarData.rc.Right = appBarData.rc.Left + desiredWidth;
+            }
+            else
+            {
+                // 右侧停靠
+                appBarData.uEdge = VisibilityWin32Api.ABE_RIGHT;
+                appBarData.rc.Top = _state.WorkArea.Top;
+                appBarData.rc.Bottom = _state.WorkArea.Bottom;
+                appBarData.rc.Right = _state.WorkArea.Right;
+                appBarData.rc.Left = appBarData.rc.Right - desiredWidth;
+            }
 
-            // ABM_SETPOS：正式占用屏幕右侧空间，系统会推开其他窗口（自带动画）
+            // ABM_SETPOS：正式占用屏幕边缘空间，系统会推开其他窗口（自带动画）
             // 不再调用 ApplyPinnedWindowFrame，避免在滑入动画结束后再次移动窗口造成闪烁
             _ = VisibilityWin32Api.SHAppBarMessage(VisibilityWin32Api.ABM_SETPOS, ref appBarData);
 

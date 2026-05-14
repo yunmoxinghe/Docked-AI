@@ -112,6 +112,26 @@
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
     <value>アプリの表示言語を選択</value>
   </data>
+  
+  <data name="SettingsPage_DockSideHeader.Header" xml:space="preserve">
+    <value>ウィンドウのドック位置</value>
+  </data>
+  <data name="SettingsPage_DockSideHeader.Description" xml:space="preserve">
+    <value>ウィンドウを画面の左側または右側にドックするかを選択</value>
+  </data>
+  <data name="SettingsPage_DockSideLeft.Content" xml:space="preserve">
+    <value>左側</value>
+  </data>
+  <data name="SettingsPage_DockSideRight.Content" xml:space="preserve">
+    <value>右側</value>
+  </data>
+  <data name="SettingsPage_DockSideChangedTitle" xml:space="preserve">
+    <value>ウィンドウ位置が変更されました</value>
+  </data>
+  <data name="SettingsPage_DockSideChangedContent" xml:space="preserve">
+    <value>ウィンドウのドック位置が変更されました。次回ウィンドウを表示する際に新しい位置が適用されます。</value>
+  </data>
+  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>システムに従う</value>
   </data>

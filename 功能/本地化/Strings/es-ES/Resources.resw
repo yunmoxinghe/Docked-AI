@@ -112,6 +112,26 @@
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
     <value>Seleccionar idioma de visualización</value>
   </data>
+  
+  <data name="SettingsPage_DockSideHeader.Header" xml:space="preserve">
+    <value>Posición de anclaje de ventana</value>
+  </data>
+  <data name="SettingsPage_DockSideHeader.Description" xml:space="preserve">
+    <value>Elegir si la ventana se ancla al lado izquierdo o derecho de la pantalla</value>
+  </data>
+  <data name="SettingsPage_DockSideLeft.Content" xml:space="preserve">
+    <value>Izquierda</value>
+  </data>
+  <data name="SettingsPage_DockSideRight.Content" xml:space="preserve">
+    <value>Derecha</value>
+  </data>
+  <data name="SettingsPage_DockSideChangedTitle" xml:space="preserve">
+    <value>Posición de ventana cambiada</value>
+  </data>
+  <data name="SettingsPage_DockSideChangedContent" xml:space="preserve">
+    <value>La posición de anclaje de la ventana ha sido cambiada. La nueva posición se aplicará la próxima vez que se muestre la ventana.</value>
+  </data>
+  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>Seguir el sistema</value>
   </data>

@@ -2,6 +2,7 @@ using Docked_AI.Features.MainWindow.State;
 using Docked_AI.Features.MainWindow.Appearance;
 using Docked_AI.Features.MainWindow.Placement;
 using Docked_AI.Features.MainWindow.Entry;
+using Docked_AI.Features.Pages.Settings;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Windowing;
 using System;
@@ -572,7 +573,20 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _state.CurrentY = _state.TargetY;
 
             _layoutService.PrepareForHide(_state, _hwnd);
-            _state.TargetX = _state.ScreenWidth;
+            
+            // 根据停靠位置设置隐藏动画的目标位置
+            var dockSide = ExperimentalSettings.DockSide;
+            if (dockSide == WindowDockSide.Left)
+            {
+                // 左侧停靠：向左侧屏幕外滑出
+                _state.TargetX = -_state.WindowWidth;
+            }
+            else
+            {
+                // 右侧停靠：向右侧屏幕外滑出
+                _state.TargetX = _state.ScreenWidth;
+            }
+            
             _state.TargetY = _state.WorkArea.Top + _state.Margin;
             _state.CurrentY = _state.TargetY;
             _animationController.StartHide();

@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.UI.Windowing;
+using Docked_AI.Features.Pages.Settings;
 
 namespace Docked_AI.Features.MainWindow.Placement
 {
@@ -136,7 +137,20 @@ namespace Docked_AI.Features.MainWindow.Placement
             state.WindowWidth  = Math.Max(state.MinWindowWidth, state.WindowWidth);
             state.WindowWidth  = Math.Min(availableWidth, state.WindowWidth);
             state.WindowHeight = state.WorkArea.Bottom - state.WorkArea.Top - (state.Margin * 2);
-            state.TargetX      = state.WorkArea.Right - state.WindowWidth - state.Margin;
+            
+            // 根据用户设置的停靠位置计算 TargetX
+            var dockSide = ExperimentalSettings.DockSide;
+            if (dockSide == WindowDockSide.Left)
+            {
+                // 左侧停靠：工作区左边缘 + 边距
+                state.TargetX = state.WorkArea.Left + state.Margin;
+            }
+            else
+            {
+                // 右侧停靠：工作区右边缘 - 窗口宽度 - 边距
+                state.TargetX = state.WorkArea.Right - state.WindowWidth - state.Margin;
+            }
+            
             state.TargetY      = state.WorkArea.Top + state.Margin;
             state.CurrentY     = state.TargetY;
         }
@@ -149,13 +163,27 @@ namespace Docked_AI.Features.MainWindow.Placement
         /// 
         /// 【核心逻辑】
         /// 1. 刷新布局信息
-        /// 2. 设置 CurrentX 为屏幕外（ScreenWidth）
+        /// 2. 根据停靠位置设置 CurrentX：
+        ///    - 左侧停靠：设置为屏幕左侧外（负值）
+        ///    - 右侧停靠：设置为屏幕右侧外（ScreenWidth）
         /// 3. 动画控制器从 CurrentX 滑动到 TargetX
         /// </summary>
         public void PrepareForShow(WindowLayoutState state, IntPtr hwnd = default)
         {
             Refresh(state, hwnd);
-            state.CurrentX = state.ScreenWidth;
+            
+            // 根据停靠位置设置动画起始位置
+            var dockSide = ExperimentalSettings.DockSide;
+            if (dockSide == WindowDockSide.Left)
+            {
+                // 左侧停靠：从屏幕左侧外滑入
+                state.CurrentX = -state.WindowWidth;
+            }
+            else
+            {
+                // 右侧停靠：从屏幕右侧外滑入
+                state.CurrentX = state.ScreenWidth;
+            }
         }
 
         /// <summary>

@@ -112,6 +112,26 @@
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
     <value>Anzeigesprache der App auswählen</value>
   </data>
+  
+  <data name="SettingsPage_DockSideHeader.Header" xml:space="preserve">
+    <value>Fenster-Andockposition</value>
+  </data>
+  <data name="SettingsPage_DockSideHeader.Description" xml:space="preserve">
+    <value>Wählen Sie, ob das Fenster links oder rechts am Bildschirm andockt</value>
+  </data>
+  <data name="SettingsPage_DockSideLeft.Content" xml:space="preserve">
+    <value>Links</value>
+  </data>
+  <data name="SettingsPage_DockSideRight.Content" xml:space="preserve">
+    <value>Rechts</value>
+  </data>
+  <data name="SettingsPage_DockSideChangedTitle" xml:space="preserve">
+    <value>Fensterposition geändert</value>
+  </data>
+  <data name="SettingsPage_DockSideChangedContent" xml:space="preserve">
+    <value>Die Fenster-Andockposition wurde geändert. Die neue Position wird beim nächsten Anzeigen des Fensters angewendet.</value>
+  </data>
+  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>System folgen</value>
   </data>

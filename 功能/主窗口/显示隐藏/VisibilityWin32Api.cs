@@ -92,6 +92,8 @@ namespace Docked_AI.Features.MainWindow.Visibility
         internal const uint ABM_QUERYPOS = 0x00000002;
         // 正式把修正后的位置提交给系统。
         internal const uint ABM_SETPOS = 0x00000003;
+        // 停靠在屏幕左边。
+        internal const uint ABE_LEFT = 0;
         // 停靠在屏幕右边。
         internal const uint ABE_RIGHT = 2;
         // 系统在计算非客户区大小时发来的消息。

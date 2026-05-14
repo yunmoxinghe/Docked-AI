@@ -16,6 +16,7 @@ namespace Docked_AI.Features.Pages.Settings
         private const string EnableBackButtonKey = "NavigationSettings_EnableBackButton";
         private const string EnableTopBarBackButtonKey = "TopBarSettings_EnableBackButton";
         private const string EnableTopBarMenuButtonKey = "TopBarSettings_EnableMenuButton";
+        private const string WindowDockSideKey = "WindowSettings_DockSide";
         
         private static readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
 
@@ -175,6 +176,44 @@ namespace Docked_AI.Features.Pages.Settings
                 _localSettings.Values[EnableTopBarMenuButtonKey] = value;
             }
         }
+
+        /// <summary>
+        /// 获取或设置窗口停靠位置（左侧或右侧）
+        /// </summary>
+        public static WindowDockSide DockSide
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(WindowDockSideKey, out object? value))
+                {
+                    if (value is int intValue && Enum.IsDefined(typeof(WindowDockSide), intValue))
+                    {
+                        return (WindowDockSide)intValue;
+                    }
+                }
+                return WindowDockSide.Right; // 默认右侧
+            }
+            set
+            {
+                _localSettings.Values[WindowDockSideKey] = (int)value;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 窗口停靠位置枚举
+    /// </summary>
+    public enum WindowDockSide
+    {
+        /// <summary>
+        /// 停靠在屏幕左侧
+        /// </summary>
+        Left = 0,
+
+        /// <summary>
+        /// 停靠在屏幕右侧
+        /// </summary>
+        Right = 1
     }
 
     /// <summary>

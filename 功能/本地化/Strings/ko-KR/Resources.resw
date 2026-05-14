@@ -112,6 +112,26 @@
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
     <value>앱 표시 언어 선택</value>
   </data>
+  
+  <data name="SettingsPage_DockSideHeader.Header" xml:space="preserve">
+    <value>창 도킹 위치</value>
+  </data>
+  <data name="SettingsPage_DockSideHeader.Description" xml:space="preserve">
+    <value>창을 화면의 왼쪽 또는 오른쪽에 도킹할지 선택</value>
+  </data>
+  <data name="SettingsPage_DockSideLeft.Content" xml:space="preserve">
+    <value>왼쪽</value>
+  </data>
+  <data name="SettingsPage_DockSideRight.Content" xml:space="preserve">
+    <value>오른쪽</value>
+  </data>
+  <data name="SettingsPage_DockSideChangedTitle" xml:space="preserve">
+    <value>창 위치가 변경되었습니다</value>
+  </data>
+  <data name="SettingsPage_DockSideChangedContent" xml:space="preserve">
+    <value>창 도킹 위치가 변경되었습니다. 다음에 창을 표시할 때 새 위치가 적용됩니다.</value>
+  </data>
+  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>시스템 따라가기</value>
   </data>

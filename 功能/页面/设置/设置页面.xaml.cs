@@ -247,6 +247,14 @@ namespace Docked_AI.Features.Pages.Settings
                 BackButtonToggle.Toggled += OnBackButtonToggled;
             }
 
+            // 加载停靠位置设置
+            if (DockSideComboBox != null)
+            {
+                DockSideComboBox.SelectionChanged -= OnDockSideChanged;
+                DockSideComboBox.SelectedIndex = (int)ExperimentalSettings.DockSide;
+                DockSideComboBox.SelectionChanged += OnDockSideChanged;
+            }
+
             // 加载三个实验特性开关
             AILabToggle.Toggled -= OnAILabToggled;
             RoundedWebViewToggle.Toggled -= OnRoundedWebViewToggled;
@@ -320,6 +328,44 @@ namespace Docked_AI.Features.Pages.Settings
         // Event to notify when back button settings change
         public static event EventHandler? BackButtonSettingsChanged;
         internal static void RaiseBackButtonSettingsChanged() => BackButtonSettingsChanged?.Invoke(null, EventArgs.Empty);
+
+        // Event to notify when dock side settings change
+        public static event EventHandler? DockSideSettingsChanged;
+        internal static void RaiseDockSideSettingsChanged() => DockSideSettingsChanged?.Invoke(null, EventArgs.Empty);
+
+        private void OnDockSideCardClick(object sender, RoutedEventArgs e)
+        {
+            // 点击卡片时打开 ComboBox 的下拉菜单
+            DockSideComboBox.IsDropDownOpen = true;
+        }
+
+        private async void OnDockSideChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem item)
+            {
+                if (int.TryParse(item.Tag?.ToString(), out int dockSideValue))
+                {
+                    var newDockSide = (WindowDockSide)dockSideValue;
+                    var currentDockSide = ExperimentalSettings.DockSide;
+
+                    if (newDockSide != currentDockSide)
+                    {
+                        // 保存设置
+                        ExperimentalSettings.DockSide = newDockSide;
+
+                        // 显示提示对话框
+                        var dialog = CreateMessageDialog(
+                            LocalizationHelper.GetString("SettingsPage_DockSideChangedTitle") ?? "窗口位置已更改",
+                            LocalizationHelper.GetString("SettingsPage_DockSideChangedContent") ?? "窗口停靠位置已更改。下次显示窗口时将应用新的位置。",
+                            closeButtonText: LocalizationHelper.GetString("SettingsPage_ConfirmButton") ?? "确定");
+                        await InAppDialogService.ShowAsync(dialog, this);
+
+                        // 通知应用更新窗口位置
+                        RaiseDockSideSettingsChanged();
+                    }
+                }
+            }
+        }
 
         private void LoadWebSettings()
         {
