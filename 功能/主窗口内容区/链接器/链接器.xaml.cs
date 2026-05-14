@@ -29,8 +29,10 @@ namespace Docked_AI.Features.MainWindowContent.Linker
         private bool _isNavigatingBack = false;
 #pragma warning restore CS0414
         private bool _isNavigationBarOnLeft;
+        private bool _isPinnedOrMaximized;
         private double _contentTopMargin = 6;
         private double _contentOutsideMargin = 4;
+        private const double CompactContentOutsideMargin = 4;
         private const double ContentNavigationSideMargin = 0;
         private const double NavigationGap = 2;
 
@@ -112,7 +114,13 @@ namespace Docked_AI.Features.MainWindowContent.Linker
 
         private void UpdateContentOutsideMargin(double width)
         {
-            _contentOutsideMargin = width >= 1200 ? 24 : width >= 700 ? 16 : 4;
+            if (_isPinnedOrMaximized)
+            {
+                _contentOutsideMargin = CompactContentOutsideMargin;
+                return;
+            }
+
+            _contentOutsideMargin = width >= 1200 ? 24 : width >= 700 ? 16 : CompactContentOutsideMargin;
         }
 
         private void OnBackRequested(object? sender, EventArgs e)
@@ -213,7 +221,9 @@ namespace Docked_AI.Features.MainWindowContent.Linker
 
         public void UpdateContentTopMargin(bool isPinnedOrMaximized)
         {
+            _isPinnedOrMaximized = isPinnedOrMaximized;
             _contentTopMargin = isPinnedOrMaximized ? 4 : 6;
+            UpdateContentOutsideMargin(ActualWidth);
             ApplyContentHostMargin();
         }
 
