@@ -6,7 +6,7 @@
     xmlns:ui="using:Microsoft.UI.Xaml.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:devwinui="using:DevWinUI"
+    xmlns:customControls="using:Docked_AI.Features.UnifiedCalls.CustomControls"
     mc:Ignorable="d"
     UseLayoutRounding="True">
 
@@ -200,7 +200,7 @@
                                     </ItemsControl.ItemsPanel>
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <devwinui:KeyVisual Content="{Binding}"/>
+                                            <customControls:KeyVisual Content="{Binding}"/>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>

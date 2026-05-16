@@ -80,6 +80,8 @@
     <ProjectCapability Include="Msix" />
   </ItemGroup>
   <ItemGroup>
+    <!-- 保留 CommunityToolkit.WinUI.Controls.SettingsControls - 依赖复杂，保持 NuGet 引用 -->
+    <!-- 已移除 DevWinUI.Controls - 使用自定义 KeyVisual -->
     <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
     <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.1839" />
@@ -90,8 +92,19 @@
     </PackageReference>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.0.1" />
     <PackageReference Include="DevWinUI" Version="9.9.4" />
-    <PackageReference Include="DevWinUI.Controls" Version="9.9.4" />
     <PackageReference Include="NHotkey.WinUI" Version="3.0.1" />
+  </ItemGroup>
+
+  <!-- 排除临时下载的源码目录和未使用的第三方源码 -->
+  <ItemGroup>
+    <Compile Remove="Vendors_Temp\**" />
+    <Compile Remove="功能\第三方源码\**" />
+    <EmbeddedResource Remove="Vendors_Temp\**" />
+    <EmbeddedResource Remove="功能\第三方源码\**" />
+    <None Remove="Vendors_Temp\**" />
+    <None Remove="功能\第三方源码\**" />
+    <Page Remove="Vendors_Temp\**" />
+    <Page Remove="功能\第三方源码\**" />
   </ItemGroup>
 
   <!--

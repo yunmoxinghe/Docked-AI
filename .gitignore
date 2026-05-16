@@ -58,3 +58,6 @@ Migrations/
 Thumbs.db
 ehthumbs.db
 Icon?
+
+# Temporary vendor source code downloads
+Vendors_Temp/
