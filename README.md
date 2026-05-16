@@ -97,7 +97,8 @@ dotnet run  # 自动完成：构建 → 打包 → 注册 → 启动
 
 **调试模式**（捕获调试输出和异常）：
 ```bash
-winapp run .\bin\x64\Debug\net10.0-windows10.0.19041.0\win-x64 --debug-output
+dotnet build "Docked AI.csproj" -c Debug /p:Platform=x64
+winapp run .\bin\x64\Debug\net10.0-windows10.0.26100.0\win-x64 --debug-output
 ```
 
 **清理已注册的包**：

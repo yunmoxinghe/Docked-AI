@@ -1,0 +1,63 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 🖱️ 鼠标模式托盘菜单 (紧凑 28px) -->
+    <MenuFlyout x:Key="MouseTrayMenu" Placement="Bottom">
+        <MenuFlyoutItem x:Name="MouseOpenWindow" Text="打开窗口">
+            <MenuFlyoutItem.Icon>
+                <FontIcon Glyph="&#xE78B;"/>
+            </MenuFlyoutItem.Icon>
+        </MenuFlyoutItem>
+        
+        <MenuFlyoutItem x:Name="MouseCloseWindow" Text="关闭窗口">
+            <MenuFlyoutItem.Icon>
+                <FontIcon Glyph="&#xEA99;"/>
+            </MenuFlyoutItem.Icon>
+        </MenuFlyoutItem>
+        
+        <MenuFlyoutItem x:Name="MouseRestart" Text="重启应用">
+            <MenuFlyoutItem.Icon>
+                <FontIcon Glyph="&#xE72C;"/>
+            </MenuFlyoutItem.Icon>
+        </MenuFlyoutItem>
+        
+        <MenuFlyoutSeparator/>
+        
+        <MenuFlyoutItem x:Name="MouseExit" Text="退出">
+            <MenuFlyoutItem.Icon>
+                <FontIcon Glyph="&#xF3B1;"/>
+            </MenuFlyoutItem.Icon>
+        </MenuFlyoutItem>
+    </MenuFlyout>
+
+    <!-- 🖐️ 触摸模式托盘菜单 (大间距 44px) -->
+    <MenuFlyout x:Key="TouchTrayMenu" Placement="Bottom">
+        <MenuFlyoutItem x:Name="TouchOpenWindow" Text="打开窗口">
+            <MenuFlyoutItem.Icon>
+                <FontIcon Glyph="&#xE78B;"/>
+            </MenuFlyoutItem.Icon>
+        </MenuFlyoutItem>
+        
+        <MenuFlyoutItem x:Name="TouchCloseWindow" Text="关闭窗口">
+            <MenuFlyoutItem.Icon>
+                <FontIcon Glyph="&#xEA99;"/>
+            </MenuFlyoutItem.Icon>
+        </MenuFlyoutItem>
+        
+        <MenuFlyoutItem x:Name="TouchRestart" Text="重启应用">
+            <MenuFlyoutItem.Icon>
+                <FontIcon Glyph="&#xE72C;"/>
+            </MenuFlyoutItem.Icon>
+        </MenuFlyoutItem>
+        
+        <MenuFlyoutSeparator/>
+        
+        <MenuFlyoutItem x:Name="TouchExit" Text="退出">
+            <MenuFlyoutItem.Icon>
+                <FontIcon Glyph="&#xF3B1;"/>
+            </MenuFlyoutItem.Icon>
+        </MenuFlyoutItem>
+    </MenuFlyout>
+
+</ResourceDictionary>

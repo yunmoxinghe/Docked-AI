@@ -38,8 +38,10 @@ namespace Docked_AI.Features.Tray
         private readonly Action? _exitAction;
         // 全局快捷键管理器，负责处理快捷键注册和监听
         private readonly GlobalHotkeyManager? _hotkeyManager;
-        // 缓存的托盘菜单，避免每次右键都重新创建
-        private MenuFlyout? _trayMenu;
+        // 缓存的托盘菜单（鼠标模式），避免每次右键都重新创建
+        private MenuFlyout? _mouseMenu;
+        // 缓存的托盘菜单（触摸模式），避免每次右键都重新创建
+        private MenuFlyout? _touchMenu;
         // 窗口工厂方法，用于创建自定义窗口（支持扩展）
         private readonly Func<Window>? _windowFactory;
         // 标记是否已初始化，防止重复初始化
@@ -133,30 +135,49 @@ namespace Docked_AI.Features.Tray
         /// <param name="args">事件参数</param>
         private void TrayIcon_RightClick(SystemTrayIcon sender, SystemTrayIconEventArgs args)
         {
-            // 获取或创建托盘菜单（支持缓存和动态更新）
-            args.Flyout = CreateTrayMenu();
+            // 🔍 根据输入设备类型选择合适的菜单
+            bool isTouch = args.InputDevice == InputDeviceType.Touch || args.InputDevice == InputDeviceType.Pen;
+            args.Flyout = isTouch ? GetOrCreateTouchMenu() : GetOrCreateMouseMenu();
+            
+            System.Diagnostics.Debug.WriteLine($"[TrayIconManager] Right click detected, InputDevice: {args.InputDevice}, Using {(isTouch ? "Touch" : "Mouse")} menu");
         }
 
         /// <summary>
-        /// 创建托盘菜单（支持缓存）
+        /// 获取或创建鼠标模式菜单（紧凑间距）
         /// </summary>
-        /// <returns>托盘菜单对象</returns>
-        private MenuFlyout CreateTrayMenu()
+        private MenuFlyout GetOrCreateMouseMenu()
         {
-            // 如果菜单已缓存，直接返回（可在语言切换时清空缓存）
-            if (_trayMenu != null)
+            if (_mouseMenu != null)
             {
-                return _trayMenu;
+                return _mouseMenu;
             }
 
-            // 使用统一服务创建菜单
-            _trayMenu = TrayContextMenuService.CreateTrayMenu(
+            _mouseMenu = TrayContextMenuService.CreateMouseTrayMenu(
                 onOpenWindow: ShowMainWindow,
                 onCloseWindow: CloseMainWindow,
                 onExit: ExitApplication
             );
 
-            return _trayMenu;
+            return _mouseMenu;
+        }
+
+        /// <summary>
+        /// 获取或创建触摸模式菜单（大间距）
+        /// </summary>
+        private MenuFlyout GetOrCreateTouchMenu()
+        {
+            if (_touchMenu != null)
+            {
+                return _touchMenu;
+            }
+
+            _touchMenu = TrayContextMenuService.CreateTouchTrayMenu(
+                onOpenWindow: ShowMainWindow,
+                onCloseWindow: CloseMainWindow,
+                onExit: ExitApplication
+            );
+
+            return _touchMenu;
         }
 
         /// <summary>
@@ -170,16 +191,23 @@ namespace Docked_AI.Features.Tray
             {
                 dispatcherQueue.TryEnqueue(() =>
                 {
-                    // 清理菜单项，防止潜在引用链
-                    _trayMenu?.Items.Clear();
-                    _trayMenu = null;
+                    // 清理鼠标菜单
+                    _mouseMenu?.Items.Clear();
+                    _mouseMenu = null;
+                    
+                    // 清理触摸菜单
+                    _touchMenu?.Items.Clear();
+                    _touchMenu = null;
                 });
             }
             else
             {
                 // 如果不在 UI 线程，直接清理（降级处理）
-                _trayMenu?.Items.Clear();
-                _trayMenu = null;
+                _mouseMenu?.Items.Clear();
+                _mouseMenu = null;
+                
+                _touchMenu?.Items.Clear();
+                _touchMenu = null;
             }
         }
 
@@ -408,8 +436,11 @@ namespace Docked_AI.Features.Tray
                 _hotkeyManager?.Dispose();
 
                 // 清理菜单缓存
-                _trayMenu?.Items.Clear();
-                _trayMenu = null;
+                _mouseMenu?.Items.Clear();
+                _mouseMenu = null;
+                
+                _touchMenu?.Items.Clear();
+                _touchMenu = null;
 
                 // 注意：不重置 _initialized，防止对象复活导致状态不一致
                 // 如果需要复活功能，应该提供专门的 ReInitialize() 方法
