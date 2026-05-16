@@ -1,11 +1,10 @@
-﻿﻿// 引入系统基础类型和异常处理
+﻿// 引入系统基础类型和异常处理
 using System;
 // 引入文件路径操作
 using System.IO;
 // 引入运行时互操作
 using System.Runtime.InteropServices;
-// 引入 DevWinUI 库，提供系统托盘图标功能
-using DevWinUI;
+// SystemTrayIcon 在同一命名空间 Docked_AI.Features.Tray 下，无需额外 using
 // 引入 WinUI 窗口类型
 using Microsoft.UI.Xaml;
 // 引入 WinUI 控件（菜单、图标等）

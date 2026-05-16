@@ -91,20 +91,16 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.0.1" />
-    <PackageReference Include="DevWinUI" Version="9.9.4" />
-    <PackageReference Include="NHotkey.WinUI" Version="3.0.1" />
+    <!-- 已移除 DevWinUI NuGet，改用本地源码 -->
+    <!-- 移除 NHotkey.WinUI NuGet，改用本地源码 -->
   </ItemGroup>
 
-  <!-- 排除临时下载的源码目录和未使用的第三方源码 -->
+  <!-- 排除临时下载的源码目录，第三方源码会选择性包含 -->
   <ItemGroup>
     <Compile Remove="Vendors_Temp\**" />
-    <Compile Remove="功能\第三方源码\**" />
     <EmbeddedResource Remove="Vendors_Temp\**" />
-    <EmbeddedResource Remove="功能\第三方源码\**" />
     <None Remove="Vendors_Temp\**" />
-    <None Remove="功能\第三方源码\**" />
     <Page Remove="Vendors_Temp\**" />
-    <Page Remove="功能\第三方源码\**" />
   </ItemGroup>
 
   <!--
