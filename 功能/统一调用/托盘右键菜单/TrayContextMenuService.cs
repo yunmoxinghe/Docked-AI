@@ -21,7 +21,11 @@ public static class TrayContextMenuService
     /// <returns>托盘菜单对象</returns>
     public static MenuFlyout CreateTrayMenu(Action onOpenWindow, Action onCloseWindow, Action onExit)
     {
-        var flyout = new MenuFlyout();
+        var flyout = new MenuFlyout
+        {
+            // 设置 MenuFlyout 的默认对齐方式
+            Placement = Microsoft.UI.Xaml.Controls.Primitives.FlyoutPlacementMode.Bottom
+        };
 
         // 打开主窗口
         var openItem = new MenuFlyoutItem

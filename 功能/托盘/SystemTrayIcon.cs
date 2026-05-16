@@ -224,17 +224,15 @@ namespace Docked_AI.Features.Tray
             if (Shell_NotifyIconGetRect(ref iconId, out var iconRect) == 0)
             {
                 int cx = (iconRect.left + iconRect.right) / 2;
+                
+                // 给窗口一个最小尺寸 1x1，避免尺寸为 0
                 _hiddenWindow.AppWindow.MoveAndResize(
-                    new RectInt32(cx, iconRect.top, 0, 0),
+                    new RectInt32(cx, iconRect.top, 1, 1),
                     DisplayArea.GetFromPoint(new PointInt32(cx, iconRect.top), DisplayAreaFallback.Primary));
 
-                double w = (iconRect.right - iconRect.left) / grid.XamlRoot.RasterizationScale;
-                double h = (iconRect.bottom - iconRect.top) / grid.XamlRoot.RasterizationScale;
-
+                // 不设置 Position，让 Flyout 自动居中对齐到窗口
                 flyout.ShowAt(grid, new FlyoutShowOptions
                 {
-                    Position = new Point(-w / 2, 0),
-                    ExclusionRect = new Rect(-w / 2, 0, w, h),
                     Placement = FlyoutPlacementMode.Bottom
                 });
             }
