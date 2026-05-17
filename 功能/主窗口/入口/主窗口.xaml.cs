@@ -89,14 +89,20 @@ namespace Docked_AI
                 return;
             }
 
-            // 如果窗口失去焦点（Deactivated），自动隐藏
+            // 如果窗口失去焦点（Deactivated），且未处于固定模式时自动隐藏
             if (args.WindowActivationState == WindowActivationState.Deactivated)
             {
-                System.Diagnostics.Debug.WriteLine("[MainWindow] Window deactivated after content initialized, hiding window");
-                // 使用 ToggleWindow 来隐藏窗口（如果当前是显示状态）
-                if (_viewModel.CurrentState != WindowState.Hidden)
+                System.Diagnostics.Debug.WriteLine("[MainWindow] Window deactivated after content initialized");
+                // 使用 ToggleWindow 来隐藏窗口（如果当前是显示状态且未固定）
+                if (_viewModel.CurrentState != WindowState.Hidden && 
+                    _viewModel.CurrentState != WindowState.Pinned)
                 {
+                    System.Diagnostics.Debug.WriteLine("[MainWindow] Hiding window (not pinned)");
                     _windowController.ToggleWindow();
+                }
+                else if (_viewModel.CurrentState == WindowState.Pinned)
+                {
+                    System.Diagnostics.Debug.WriteLine("[MainWindow] Window is pinned, ignoring deactivation");
                 }
             }
         }
@@ -509,7 +515,7 @@ namespace Docked_AI
             _isContentInitialized = true;
             System.Diagnostics.Debug.WriteLine("[MainWindow] Content initialization completed");
 
-            // ⭐ 延迟检测焦点，如果失去焦点则自动隐藏
+            // ⭐ 延迟检测焦点，如果失去焦点则自动隐藏（除非处于固定模式）
             await Task.Delay(100);
             
             // 检查窗口是否仍然有焦点
@@ -518,11 +524,17 @@ namespace Docked_AI
             
             if (hwnd != foregroundWindow)
             {
-                System.Diagnostics.Debug.WriteLine("[MainWindow] Window lost focus after initialization, hiding window");
-                // 使用 ToggleWindow 来隐藏窗口（如果当前是显示状态）
-                if (_viewModel.CurrentState != WindowState.Hidden)
+                System.Diagnostics.Debug.WriteLine("[MainWindow] Window lost focus after initialization");
+                // 使用 ToggleWindow 来隐藏窗口（如果当前是显示状态且未固定）
+                if (_viewModel.CurrentState != WindowState.Hidden && 
+                    _viewModel.CurrentState != WindowState.Pinned)
                 {
+                    System.Diagnostics.Debug.WriteLine("[MainWindow] Hiding window (not pinned)");
                     _windowController.ToggleWindow();
+                }
+                else if (_viewModel.CurrentState == WindowState.Pinned)
+                {
+                    System.Diagnostics.Debug.WriteLine("[MainWindow] Window is pinned, ignoring focus loss");
                 }
             }
             else
