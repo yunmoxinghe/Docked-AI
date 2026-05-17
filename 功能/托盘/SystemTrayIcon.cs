@@ -34,11 +34,16 @@ namespace Docked_AI.Features.Tray
             _hiddenWindow = new Window();
             _hiddenWindow.Content = new Microsoft.UI.Xaml.Controls.Grid();
             _hiddenWindow.AppWindow.IsShownInSwitchers = false;
-            if (_hiddenWindow.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter overlappedPresenter)
-                overlappedPresenter.IsAlwaysOnTop = true;
+            // 🔧 不设置 IsAlwaysOnTop，让窗口保持普通 Z 轴层级
             _hWnd = WindowNative.GetWindowHandle(_hiddenWindow);
 
+            // 🔧 设置窗口样式：WS_POPUP + WS_EX_TRANSPARENT + WS_EX_LAYERED
+            // 这样窗口完全透明且不接收鼠标事件
             SetWindowLongPtr(_hWnd, GWL_STYLE, WS_POPUP);
+            SetWindowLongPtr(_hWnd, GWL_EXSTYLE, WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW);
+            
+            // 🔧 设置窗口完全透明（alpha = 0）
+            SetLayeredWindowAttributes(_hWnd, 0, 0, LWA_ALPHA);
 
             _gcHandle = GCHandle.Alloc(this, GCHandleType.Weak);
             _subclassDelegate = WndProc;
@@ -245,6 +250,22 @@ namespace Docked_AI.Features.Tray
 
             flyout.Closed += OnFlyoutClosed;
             
+            // 🔧 关键修复：设置 MenuFlyout 的 Presenter 样式来调整阴影偏移
+            // 使用 -8px 的负边距来微调菜单位置
+            if (flyout is MenuFlyout menuFlyout)
+            {
+                var presenterStyle = new Microsoft.UI.Xaml.Style(typeof(Microsoft.UI.Xaml.Controls.MenuFlyoutPresenter));
+                
+                // 设置 -8px 的负上边距来微调位置
+                presenterStyle.Setters.Add(new Microsoft.UI.Xaml.Setter(
+                    Microsoft.UI.Xaml.Controls.MenuFlyoutPresenter.MarginProperty,
+                    new Microsoft.UI.Xaml.Thickness(0, -8, 0, 0)));
+                
+                menuFlyout.MenuFlyoutPresenterStyle = presenterStyle;
+                
+                System.Diagnostics.Debug.WriteLine("[ShowFlyout] Applied MenuFlyoutPresenter style with Margin(0, -8, 0, 0)");
+            }
+            
             // 🔧 关键修复：在显示菜单前模拟鼠标移动，强制 WinUI 切换到鼠标模式
             // 获取当前鼠标位置
             if (GetCursorPos(out var cursorPos))
@@ -258,6 +279,11 @@ namespace Docked_AI.Features.Tray
             // 🛠️ 关键修复：调整顺序，先显示窗口再设置前台
             // 删除 _hiddenWindow.Activate()，避免触发 WinUI 的 touch 输入模式初始化
             ShowWindow(_hWnd, SW_SHOW);
+            
+            // 🔧 设置窗口 Z 轴层级：HWND_NOTOPMOST (-2)
+            // 将窗口放置在所有非置顶窗口之上，但在置顶窗口（如任务栏）之下
+            SetWindowPos(_hWnd, new IntPtr(-2), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+            
             SetForegroundWindow(_hWnd);
 
             var iconId = new NOTIFYICONIDENTIFIER
@@ -271,17 +297,60 @@ namespace Docked_AI.Features.Tray
             {
                 int cx = (iconRect.left + iconRect.right) / 2;
                 
-                // 给窗口一个最小尺寸 1x1，避免尺寸为 0
-                _hiddenWindow.AppWindow.MoveAndResize(
-                    new RectInt32(cx, iconRect.top, 1, 1),
-                    DisplayArea.GetFromPoint(new PointInt32(cx, iconRect.top), DisplayAreaFallback.Primary));
-
-                // 不设置 Position，让 Flyout 自动居中对齐到窗口
-                flyout.ShowAt(grid, new FlyoutShowOptions
+                // 🔧 使用 SHAppBarMessage 获取任务栏的真实位置
+                APPBARDATA appBarData = new APPBARDATA
                 {
-                    Placement = FlyoutPlacementMode.Bottom,
-                    ShowMode = FlyoutShowMode.Standard  // 🔧 强制使用标准模式
-                });
+                    cbSize = (uint)Marshal.SizeOf<APPBARDATA>()
+                };
+                
+                SHAppBarMessage(ABM_GETTASKBARPOS, ref appBarData);
+                
+                // 🔍 获取 DPI 缩放比例
+                uint dpi = GetDpiForWindow(_hWnd);
+                double dpiScale = dpi / 96.0;
+                
+                // 🔍 获取显示器信息来验证任务栏位置
+                var monitor = MonitorFromWindow(_hWnd, MONITOR_DEFAULTTONEAREST);
+                MONITORINFO monitorInfo = new MONITORINFO
+                {
+                    cbSize = (uint)Marshal.SizeOf<MONITORINFO>()
+                };
+                GetMonitorInfo(monitor, ref monitorInfo);
+                
+                // 任务栏的顶部（屏幕坐标）
+                int taskbarTop = appBarData.rc.top;
+                
+                // 🔍 验证：工作区底部应该等于任务栏顶部
+                int workAreaBottom = monitorInfo.rcWork.bottom;
+                int screenBottom = monitorInfo.rcMonitor.bottom;
+                
+                System.Diagnostics.Debug.WriteLine($"[ShowFlyout] DPI: {dpi}, Scale: {dpiScale:F2}");
+                System.Diagnostics.Debug.WriteLine($"[ShowFlyout] Monitor Work Area: T={monitorInfo.rcWork.top}, B={monitorInfo.rcWork.bottom}, L={monitorInfo.rcWork.left}, R={monitorInfo.rcWork.right}");
+                System.Diagnostics.Debug.WriteLine($"[ShowFlyout] Monitor Full Area: T={monitorInfo.rcMonitor.top}, B={monitorInfo.rcMonitor.bottom}, L={monitorInfo.rcMonitor.left}, R={monitorInfo.rcMonitor.right}");
+                System.Diagnostics.Debug.WriteLine($"[ShowFlyout] Taskbar from AppBar: T={taskbarTop}, B={appBarData.rc.bottom}, Edge={appBarData.uEdge}");
+                System.Diagnostics.Debug.WriteLine($"[ShowFlyout] IconRect: L={iconRect.left}, T={iconRect.top}, R={iconRect.right}, B={iconRect.bottom}");
+                
+                // 🔧 使用工作区底部作为任务栏顶部（这是最可靠的方法）
+                int realTaskbarTop = workAreaBottom;
+                
+                System.Diagnostics.Debug.WriteLine($"[ShowFlyout] Using WorkArea.Bottom as taskbar top: {realTaskbarTop}");
+                
+                // 🔧 将窗口定位在任务栏顶部，水平居中在图标上方
+                _hiddenWindow.AppWindow.MoveAndResize(
+                    new RectInt32(cx, realTaskbarTop, 1, 1),
+                    DisplayArea.GetFromPoint(new PointInt32(cx, realTaskbarTop), DisplayAreaFallback.Primary));
+
+                System.Diagnostics.Debug.WriteLine($"[ShowFlyout] Window positioned at: X={cx}, Y={realTaskbarTop}");
+
+                // 🔧 使用 Top placement，菜单在窗口上方展开（任务栏外）
+                // Position 设置为 null 让菜单自动居中
+                var showOptions = new FlyoutShowOptions
+                {
+                    Placement = FlyoutPlacementMode.Top,
+                    ShowMode = FlyoutShowMode.Standard
+                };
+                
+                flyout.ShowAt(grid, showOptions);
             }
             else
             {
@@ -307,7 +376,12 @@ namespace Docked_AI.Features.Tray
         }
 
         private const int GWL_STYLE = -16;
+        private const int GWL_EXSTYLE = -20;
         private const uint WS_POPUP = 0x80000000;
+        private const uint WS_EX_TRANSPARENT = 0x00000020;
+        private const uint WS_EX_LAYERED = 0x00080000;
+        private const uint WS_EX_TOOLWINDOW = 0x00000080;
+        private const uint LWA_ALPHA = 0x00000002;
         private const uint NIM_ADD = 0;
         private const uint NIM_MODIFY = 1;
         private const uint NIM_DELETE = 2;
@@ -388,8 +462,43 @@ namespace Docked_AI.Features.Tray
             public int bottom;
         }
 
+        [StructLayout(LayoutKind.Sequential)]
+        private struct APPBARDATA
+        {
+            public uint cbSize;
+            public IntPtr hWnd;
+            public uint uCallbackMessage;
+            public uint uEdge;
+            public RECT rc;
+            public IntPtr lParam;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct MONITORINFO
+        {
+            public uint cbSize;
+            public RECT rcMonitor;
+            public RECT rcWork;
+            public uint dwFlags;
+        }
+
+        [DllImport("shell32.dll", SetLastError = true)]
+        private static extern IntPtr SHAppBarMessage(uint dwMessage, ref APPBARDATA pData);
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+
+        [DllImport("user32.dll")]
+        private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+        private const uint ABM_GETTASKBARPOS = 5;
+        private const uint MONITOR_DEFAULTTONEAREST = 2;
+
         [DllImport("user32.dll", SetLastError = true)]
         private static extern uint SetWindowLongPtr(IntPtr hWnd, int nIndex, uint dwNewLong);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool SetLayeredWindowAttributes(IntPtr hwnd, uint crKey, byte bAlpha, uint dwFlags);
 
         [DllImport("comctl32.dll")]
         private static extern bool SetWindowSubclass(IntPtr hWnd, IntPtr pfnSubclass, nuint uIdSubclass, nuint dwRefData);
@@ -457,7 +566,9 @@ namespace Docked_AI.Features.Tray
         private const int NID_EXTERNAL_PEN = 0x08;
 
         private const uint SWP_NOSIZE = 0x0001;
+        private const uint SWP_NOMOVE = 0x0002;
         private const uint SWP_NOZORDER = 0x0004;
+        private const uint SWP_NOACTIVATE = 0x0010;
 
         private delegate IntPtr SUBCLASSPROC(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam, nuint uIdSubclass, nuint dwRefData);
     }
