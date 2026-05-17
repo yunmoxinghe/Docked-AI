@@ -13,7 +13,7 @@
     Title="Docked AI">
 
     <Grid x:Name="RootGrid" Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <linker:Linker />
+        <linker:Linker x:Name="MainLinker" />
         
         <!-- Splash 遮罩 - 默认可见，作为启动时的第一屏 -->
         <Grid x:Name="SplashOverlay"

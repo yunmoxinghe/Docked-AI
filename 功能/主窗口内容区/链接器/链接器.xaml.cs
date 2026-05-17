@@ -35,12 +35,16 @@ namespace Docked_AI.Features.MainWindowContent.Linker
         private const double CompactContentOutsideMargin = 4;
         private const double ContentNavigationSideMargin = 0;
         private const double NavigationGap = 2;
+        private bool _isContentLoaded = false;
 
         public Linker()
         {
             InitializeComponent();
             TopAppBarService.Register(ContentHost);
-            ContentHost.Navigate(typeof(HomePage));
+            
+            // ⭐ 不在构造函数中导航到首页，延迟到 LoadContent() 调用
+            // ContentHost.Navigate(typeof(HomePage));
+            
             ContentHost.Navigated += ContentHost_Navigated;
             ContentHost.CachedPageNavigated += ContentHost_CachedPageNavigated;
             ContentHost.PageCloseRequested += OnPageCloseRequested;
@@ -58,6 +62,25 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             Unloaded += OnUnloaded;
             SizeChanged += OnSizeChanged;
             ApplyNavigationBarPlacement();
+        }
+
+        /// <summary>
+        /// 加载内容（延迟初始化，在启动屏幕结束后调用）
+        /// </summary>
+        public void LoadContent()
+        {
+            if (_isContentLoaded)
+            {
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine("[Linker] Loading content...");
+            
+            // 导航到首页
+            ContentHost.Navigate(typeof(HomePage));
+            _isContentLoaded = true;
+            
+            System.Diagnostics.Debug.WriteLine("[Linker] Content loaded successfully");
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
