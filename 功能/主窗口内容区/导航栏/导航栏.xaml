@@ -8,6 +8,14 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <UserControl.Resources>
+        <!-- 隐藏 NavigationView 内部 ScrollViewer 的滚动条 -->
+        <Style TargetType="ScrollBar">
+            <Setter Property="Width" Value="0"/>
+            <Setter Property="Visibility" Value="Collapsed"/>
+        </Style>
+    </UserControl.Resources>
+
     <Grid>
         <!-- 导航栏 -->
         <controls:NavigationView
@@ -25,7 +33,9 @@
             CompactPaneLength="48"
             SelectionChanged="NavView_SelectionChanged"
             ItemInvoked="NavView_ItemInvoked"
-            FlowDirection="RightToLeft">
+            FlowDirection="RightToLeft"
+            ScrollViewer.VerticalScrollBarVisibility="Hidden"
+            ScrollViewer.HorizontalScrollBarVisibility="Hidden">
             <controls:NavigationView.MenuItems>
                 <!-- 最大化/还原按钮 -->
                 <controls:NavigationViewItem
