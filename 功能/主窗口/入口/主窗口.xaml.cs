@@ -471,7 +471,7 @@ namespace Docked_AI
             System.Diagnostics.Debug.WriteLine("[MainWindow] Fade-in animation started");
 
             // 等待淡入完成 + 显示时间
-            await Task.Delay(1900); // 400ms 淡入 + 1500ms 显示
+            await Task.Delay(900); // 400ms 淡入 + 500ms 显示
 
             // 使用 TaskCompletionSource 等待淡出动画完全完成
             var tcs = new TaskCompletionSource<bool>();
