@@ -138,6 +138,19 @@
     <value>ウィンドウを画面左側にドックしたとき、ナビゲーションバーもウィンドウ左側に配置します</value>
   </data>
   
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Header" xml:space="preserve">
+    <value>トレイのウィンドウを閉じる動作</value>
+  </data>
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Description" xml:space="preserve">
+    <value>トレイの「ウィンドウを閉じる」ボタンをクリックしたときの動作を選択</value>
+  </data>
+  <data name="SettingsPage_TrayCloseDestroyWindow.Content" xml:space="preserve">
+    <value>ウィンドウを直接破棄</value>
+  </data>
+  <data name="SettingsPage_TrayCloseRestartToTray.Content" xml:space="preserve">
+    <value>トレイのみに再起動</value>
+  </data>
+  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>システムに従う</value>
   </data>

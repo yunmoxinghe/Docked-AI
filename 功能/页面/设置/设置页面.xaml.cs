@@ -51,6 +51,7 @@ namespace Docked_AI.Features.Pages.Settings
             LoadHotkeySettings();
             LoadExperimentalSettings();
             LoadWebSettings();
+            LoadTrayCloseWindowBehaviorSettings();
             
             // Initialize startup settings asynchronously
             _ = InitializeStartupSettingsAsync();
@@ -286,6 +287,12 @@ namespace Docked_AI.Features.Pages.Settings
             }
         }
 
+        private void OnBackButtonCardClick(object sender, RoutedEventArgs e)
+        {
+            // 点击卡片时切换 ToggleSwitch 状态
+            BackButtonToggle.IsOn = !BackButtonToggle.IsOn;
+        }
+
         private void OnAILabToggled(object sender, RoutedEventArgs e)
         {
             if (sender is ToggleSwitch toggle)
@@ -293,6 +300,12 @@ namespace Docked_AI.Features.Pages.Settings
                 ExperimentalSettings.EnableAILab = toggle.IsOn;
                 RaiseAILabSettingsChanged();
             }
+        }
+
+        private void OnAILabCardClick(object sender, RoutedEventArgs e)
+        {
+            // 点击卡片时切换 ToggleSwitch 状态
+            AILabToggle.IsOn = !AILabToggle.IsOn;
         }
 
         private void OnRoundedWebViewToggled(object sender, RoutedEventArgs e)
@@ -304,6 +317,12 @@ namespace Docked_AI.Features.Pages.Settings
             }
         }
 
+        private void OnRoundedWebViewCardClick(object sender, RoutedEventArgs e)
+        {
+            // 点击卡片时切换 ToggleSwitch 状态
+            RoundedWebViewToggle.IsOn = !RoundedWebViewToggle.IsOn;
+        }
+
         private void OnWinUIContextMenuToggled(object sender, RoutedEventArgs e)
         {
             if (sender is ToggleSwitch toggle)
@@ -311,6 +330,12 @@ namespace Docked_AI.Features.Pages.Settings
                 ExperimentalSettings.EnableWinUIContextMenu = toggle.IsOn;
                 RaiseWinUIContextMenuSettingsChanged();
             }
+        }
+
+        private void OnWinUIContextMenuCardClick(object sender, RoutedEventArgs e)
+        {
+            // 点击卡片时切换 ToggleSwitch 状态
+            WinUIContextMenuToggle.IsOn = !WinUIContextMenuToggle.IsOn;
         }
 
         private void OnLabCardClick(object sender, RoutedEventArgs e)
@@ -405,6 +430,12 @@ namespace Docked_AI.Features.Pages.Settings
             }
         }
 
+        private void OnMaxWebViewCardClick(object sender, RoutedEventArgs e)
+        {
+            // 点击卡片时聚焦到 NumberBox
+            MaxWebViewCountBox.Focus(FocusState.Programmatic);
+        }
+
         // Event to notify when max webview count settings change
         public static event EventHandler? MaxWebViewCountSettingsChanged;
 
@@ -443,6 +474,38 @@ namespace Docked_AI.Features.Pages.Settings
 
         // Event to notify when frame animation settings change
         public static event EventHandler? FrameAnimationSettingsChanged;
+
+        private void LoadTrayCloseWindowBehaviorSettings()
+        {
+            // 暂时取消事件订阅，避免在初始化时触发
+            TrayCloseWindowBehaviorComboBox.SelectionChanged -= OnTrayCloseWindowBehaviorChanged;
+            
+            var currentBehavior = ExperimentalSettings.CloseWindowBehavior;
+            TrayCloseWindowBehaviorComboBox.SelectedIndex = (int)currentBehavior;
+            
+            // 重新订阅事件
+            TrayCloseWindowBehaviorComboBox.SelectionChanged += OnTrayCloseWindowBehaviorChanged;
+        }
+
+        private void OnTrayCloseWindowBehaviorCardClick(object sender, RoutedEventArgs e)
+        {
+            // 点击卡片时打开 ComboBox 的下拉菜单
+            TrayCloseWindowBehaviorComboBox.IsDropDownOpen = true;
+        }
+
+        private void OnTrayCloseWindowBehaviorChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem item)
+            {
+                if (int.TryParse(item.Tag?.ToString(), out int behaviorValue))
+                {
+                    var newBehavior = (TrayCloseWindowBehavior)behaviorValue;
+                    ExperimentalSettings.CloseWindowBehavior = newBehavior;
+                    
+                    System.Diagnostics.Debug.WriteLine($"[SettingsPage] Tray close window behavior changed to: {newBehavior}");
+                }
+            }
+        }
 
         private void OnLanguageCardClick(object sender, RoutedEventArgs e)
         {

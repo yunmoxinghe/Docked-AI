@@ -138,6 +138,19 @@
     <value>當視窗停靠在螢幕左側時，也將導覽列放在視窗左側</value>
   </data>
   
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Header" xml:space="preserve">
+    <value>系統匣關閉視窗行為</value>
+  </data>
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Description" xml:space="preserve">
+    <value>選擇點擊系統匣「關閉視窗」按鈕時的行為</value>
+  </data>
+  <data name="SettingsPage_TrayCloseDestroyWindow.Content" xml:space="preserve">
+    <value>直接銷毀視窗</value>
+  </data>
+  <data name="SettingsPage_TrayCloseRestartToTray.Content" xml:space="preserve">
+    <value>重啟到僅系統匣</value>
+  </data>
+  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>跟隨系統</value>
   </data>

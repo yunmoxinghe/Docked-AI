@@ -366,6 +366,7 @@ namespace Docked_AI.Features.Tray
         /// <summary>
         /// 关闭主窗口以释放内存，保留托盘图标
         /// 下次点击托盘图标时会重新创建窗口
+        /// 根据用户设置，可能会直接销毁窗口或重启到仅托盘
         /// </summary>
         public void CloseMainWindow()
         {
@@ -373,15 +374,29 @@ namespace Docked_AI.Features.Tray
 
             try
             {
-                if (IsWindowValid())
+                // 读取用户设置的行为
+                var behavior = Docked_AI.Features.Pages.Settings.ExperimentalSettings.CloseWindowBehavior;
+                System.Diagnostics.Debug.WriteLine($"[TrayIconManager] Close window behavior: {behavior}");
+
+                if (behavior == Docked_AI.Features.Pages.Settings.TrayCloseWindowBehavior.RestartToTrayOnly)
                 {
-                    _mainWindow!.Close();
-                    _mainWindow = null;
-                    System.Diagnostics.Debug.WriteLine("[TrayIconManager] Main window closed and released");
+                    // 重启到仅托盘
+                    System.Diagnostics.Debug.WriteLine("[TrayIconManager] Restarting to tray only...");
+                    Docked_AI.功能.统一调用.AppRestartService.RestartWithArgs("--restart", "--tray-only");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("[TrayIconManager] CloseMainWindow: window already invalid, nothing to do");
+                    // 直接销毁窗口（默认行为）
+                    if (IsWindowValid())
+                    {
+                        _mainWindow!.Close();
+                        _mainWindow = null;
+                        System.Diagnostics.Debug.WriteLine("[TrayIconManager] Main window closed and released");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("[TrayIconManager] CloseMainWindow: window already invalid, nothing to do");
+                    }
                 }
             }
             catch (Exception ex)

@@ -141,6 +141,19 @@
     <value>When the window is docked to the left side of the screen, place the navigation bar on the left side of the window too</value>
   </data>
   
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Header" xml:space="preserve">
+    <value>Tray Close Window Behavior</value>
+  </data>
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Description" xml:space="preserve">
+    <value>Choose the behavior when clicking the "Close Window" button in the tray</value>
+  </data>
+  <data name="SettingsPage_TrayCloseDestroyWindow.Content" xml:space="preserve">
+    <value>Destroy Window Directly</value>
+  </data>
+  <data name="SettingsPage_TrayCloseRestartToTray.Content" xml:space="preserve">
+    <value>Restart to Tray Only</value>
+  </data>
+  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>Follow System</value>
   </data>

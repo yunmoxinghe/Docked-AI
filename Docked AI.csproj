@@ -164,4 +164,9 @@
     <!-- 压缩优化 -->
     <AppxPackageCompression>maximum</AppxPackageCompression>
   </PropertyGroup>
+
+  <!-- 调试时自动结束旧进程 -->
+  <Target Name="KillDockedAIProcess" BeforeTargets="PreBuildEvent">
+    <Exec Command="taskkill /F /IM &quot;Docked AI.exe&quot; 2&gt;nul || exit 0" IgnoreExitCode="true" />
+  </Target>
 </Project>

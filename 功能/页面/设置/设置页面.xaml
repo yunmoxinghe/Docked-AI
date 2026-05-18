@@ -141,8 +141,32 @@
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Margin="1,16,0,4"/>
 
+                    <!-- 托盘关闭窗口行为 -->
+                    <controls:SettingsCard
+                        x:Uid="SettingsPage_TrayCloseWindowBehaviorHeader"
+                        Header="托盘关闭窗口行为"
+                        Description="选择点击托盘'关闭窗口'按钮时的行为"
+                        IsClickEnabled="True"
+                        IsActionIconVisible="False"
+                        Click="OnTrayCloseWindowBehaviorCardClick">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xEA99;"/>
+                        </controls:SettingsCard.HeaderIcon>
+                        <ComboBox
+                            x:Name="TrayCloseWindowBehaviorComboBox"
+                            MinWidth="200"
+                            SelectionChanged="OnTrayCloseWindowBehaviorChanged">
+                            <ComboBoxItem x:Uid="SettingsPage_TrayCloseDestroyWindow" Tag="0" Content="直接销毁窗口"/>
+                            <ComboBoxItem x:Uid="SettingsPage_TrayCloseRestartToTray" Tag="1" Content="重启到仅托盘"/>
+                        </ComboBox>
+                    </controls:SettingsCard>
+
                     <!-- 侧边栏返回按钮 -->
-                    <controls:SettingsCard x:Uid="SettingsPage_BackButtonHeader">
+                    <controls:SettingsCard 
+                        x:Uid="SettingsPage_BackButtonHeader"
+                        IsClickEnabled="True"
+                        IsActionIconVisible="False"
+                        Click="OnBackButtonCardClick">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE72B;" />
                         </controls:SettingsCard.HeaderIcon>
@@ -223,7 +247,10 @@
                         Margin="1,16,0,4"/>
                     
                     <controls:SettingsCard 
-                        x:Uid="SettingsPage_MaxWebViewHeader">
+                        x:Uid="SettingsPage_MaxWebViewHeader"
+                        IsClickEnabled="True"
+                        IsActionIconVisible="False"
+                        Click="OnMaxWebViewCardClick">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE774;" />
                         </controls:SettingsCard.HeaderIcon>
@@ -245,7 +272,11 @@
                         Margin="1,16,0,4"/>
 
                     <!-- AI 实验室 -->
-                    <controls:SettingsCard x:Uid="SettingsPage_AILabHeader">
+                    <controls:SettingsCard 
+                        x:Uid="SettingsPage_AILabHeader"
+                        IsClickEnabled="True"
+                        IsActionIconVisible="False"
+                        Click="OnAILabCardClick">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xF4A5;" />
                         </controls:SettingsCard.HeaderIcon>
@@ -255,7 +286,11 @@
                     </controls:SettingsCard>
 
                     <!-- WebView2 圆角 -->
-                    <controls:SettingsCard x:Uid="SettingsPage_RoundedWebViewHeader">
+                    <controls:SettingsCard 
+                        x:Uid="SettingsPage_RoundedWebViewHeader"
+                        IsClickEnabled="True"
+                        IsActionIconVisible="False"
+                        Click="OnRoundedWebViewCardClick">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE7C8;" />
                         </controls:SettingsCard.HeaderIcon>
@@ -265,7 +300,11 @@
                     </controls:SettingsCard>
 
                     <!-- WinUI 右键菜单 -->
-                    <controls:SettingsCard x:Uid="SettingsPage_WinUIContextMenuHeader">
+                    <controls:SettingsCard 
+                        x:Uid="SettingsPage_WinUIContextMenuHeader"
+                        IsClickEnabled="True"
+                        IsActionIconVisible="False"
+                        Click="OnWinUIContextMenuCardClick">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE8C1;" />
                         </controls:SettingsCard.HeaderIcon>

@@ -142,6 +142,19 @@
     <value>当窗口停靠在屏幕左侧时，也将导航栏放在窗口左侧</value>
   </data>
   
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Header" xml:space="preserve">
+    <value>托盘关闭窗口行为</value>
+  </data>
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Description" xml:space="preserve">
+    <value>选择点击托盘"关闭窗口"按钮时的行为</value>
+  </data>
+  <data name="SettingsPage_TrayCloseDestroyWindow.Content" xml:space="preserve">
+    <value>直接销毁窗口</value>
+  </data>
+  <data name="SettingsPage_TrayCloseRestartToTray.Content" xml:space="preserve">
+    <value>重启到仅托盘</value>
+  </data>
+  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>跟随系统</value>
   </data>

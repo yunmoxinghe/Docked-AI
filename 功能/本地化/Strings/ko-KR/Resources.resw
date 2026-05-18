@@ -138,6 +138,19 @@
     <value>창이 화면 왼쪽에 도킹되면 탐색 모음도 창 왼쪽에 배치합니다</value>
   </data>
   
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Header" xml:space="preserve">
+    <value>트레이 창 닫기 동작</value>
+  </data>
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Description" xml:space="preserve">
+    <value>트레이의 "창 닫기" 버튼을 클릭할 때의 동작 선택</value>
+  </data>
+  <data name="SettingsPage_TrayCloseDestroyWindow.Content" xml:space="preserve">
+    <value>창 직접 파괴</value>
+  </data>
+  <data name="SettingsPage_TrayCloseRestartToTray.Content" xml:space="preserve">
+    <value>트레이만으로 재시작</value>
+  </data>
+  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>시스템 따라가기</value>
   </data>

@@ -138,6 +138,19 @@
     <value>Cuando la ventana esté acoplada al lado izquierdo de la pantalla, la barra de navegación también se colocará a la izquierda de la ventana</value>
   </data>
   
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Header" xml:space="preserve">
+    <value>Comportamiento de cerrar ventana en la bandeja</value>
+  </data>
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Description" xml:space="preserve">
+    <value>Elegir el comportamiento al hacer clic en el botón "Cerrar ventana" en la bandeja</value>
+  </data>
+  <data name="SettingsPage_TrayCloseDestroyWindow.Content" xml:space="preserve">
+    <value>Destruir ventana directamente</value>
+  </data>
+  <data name="SettingsPage_TrayCloseRestartToTray.Content" xml:space="preserve">
+    <value>Reiniciar solo en bandeja</value>
+  </data>
+  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>Seguir el sistema</value>
   </data>

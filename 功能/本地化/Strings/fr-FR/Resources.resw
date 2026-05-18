@@ -138,6 +138,19 @@
     <value>Lorsque la fenêtre est ancrée à gauche de l'écran, la barre de navigation est également placée à gauche de la fenêtre</value>
   </data>
   
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Header" xml:space="preserve">
+    <value>Comportement de fermeture de fenêtre dans la barre d'état</value>
+  </data>
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Description" xml:space="preserve">
+    <value>Choisir le comportement lors du clic sur le bouton "Fermer la fenêtre" dans la barre d'état</value>
+  </data>
+  <data name="SettingsPage_TrayCloseDestroyWindow.Content" xml:space="preserve">
+    <value>Détruire directement la fenêtre</value>
+  </data>
+  <data name="SettingsPage_TrayCloseRestartToTray.Content" xml:space="preserve">
+    <value>Redémarrer en mode barre d'état uniquement</value>
+  </data>
+  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>Suivre le système</value>
   </data>

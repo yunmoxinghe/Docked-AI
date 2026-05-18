@@ -152,6 +152,11 @@ namespace Docked_AI
                 bool isAutoLaunch = _autoLaunchHandler.IsAutoLaunch();
                 System.Diagnostics.Debug.WriteLine($"[App] IsAutoLaunch: {isAutoLaunch}");
                 
+                // Check if this is a tray-only restart
+                var cmdArgs = Environment.GetCommandLineArgs();
+                bool isTrayOnlyRestart = cmdArgs.Length > 1 && Array.Exists(cmdArgs, arg => arg.Contains("--tray-only"));
+                System.Diagnostics.Debug.WriteLine($"[App] IsTrayOnlyRestart: {isTrayOnlyRestart}");
+                
                 if (isAutoLaunch)
                 {
                     System.Diagnostics.Debug.WriteLine("[App] Handling auto-launch");
@@ -159,8 +164,8 @@ namespace Docked_AI
                 }
 
                 // Handle normal launch
-                // 从图标启动时（非自启动），自动显示主窗口
-                bool shouldShowWindow = !isAutoLaunch;
+                // 从图标启动时（非自启动且非仅托盘重启），自动显示主窗口
+                bool shouldShowWindow = !isAutoLaunch && !isTrayOnlyRestart;
                 System.Diagnostics.Debug.WriteLine($"[App] Calling NormalLaunchHandler.Handle with shouldShowWindow={shouldShowWindow}");
                 
                 _normalLaunchHandler.Handle(ExitApplication, shouldShowWindow: shouldShowWindow);

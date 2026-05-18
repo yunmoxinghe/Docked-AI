@@ -18,6 +18,7 @@ namespace Docked_AI.Features.Pages.Settings
         private const string EnableTopBarMenuButtonKey = "TopBarSettings_EnableMenuButton";
         private const string WindowDockSideKey = "WindowSettings_DockSide";
         private const string PlaceNavigationBarOnLeftWhenDockedLeftKey = "WindowSettings_PlaceNavigationBarOnLeftWhenDockedLeft";
+        private const string TrayCloseWindowBehaviorKey = "TraySettings_CloseWindowBehavior";
         
         private static readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
 
@@ -218,6 +219,28 @@ namespace Docked_AI.Features.Pages.Settings
                 _localSettings.Values[PlaceNavigationBarOnLeftWhenDockedLeftKey] = value;
             }
         }
+
+        /// <summary>
+        /// 获取或设置托盘"关闭窗口"按钮的行为
+        /// </summary>
+        public static TrayCloseWindowBehavior CloseWindowBehavior
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(TrayCloseWindowBehaviorKey, out object? value))
+                {
+                    if (value is int intValue && Enum.IsDefined(typeof(TrayCloseWindowBehavior), intValue))
+                    {
+                        return (TrayCloseWindowBehavior)intValue;
+                    }
+                }
+                return TrayCloseWindowBehavior.DestroyWindow; // 默认直接销毁窗口
+            }
+            set
+            {
+                _localSettings.Values[TrayCloseWindowBehaviorKey] = (int)value;
+            }
+        }
     }
 
     /// <summary>
@@ -270,5 +293,21 @@ namespace Docked_AI.Features.Pages.Settings
         /// 钻取动画（向前导航）
         /// </summary>
         DrillIn = 5
+    }
+
+    /// <summary>
+    /// 托盘"关闭窗口"按钮的行为
+    /// </summary>
+    public enum TrayCloseWindowBehavior
+    {
+        /// <summary>
+        /// 直接销毁窗口（释放内存，保留托盘）
+        /// </summary>
+        DestroyWindow = 0,
+
+        /// <summary>
+        /// 重启到仅托盘（完全重启应用，不显示窗口）
+        /// </summary>
+        RestartToTrayOnly = 1
     }
 }

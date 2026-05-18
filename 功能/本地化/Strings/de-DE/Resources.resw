@@ -138,6 +138,19 @@
     <value>Wenn das Fenster links am Bildschirm angedockt ist, wird die Navigationsleiste ebenfalls links im Fenster platziert</value>
   </data>
   
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Header" xml:space="preserve">
+    <value>Tray-Fenster schließen Verhalten</value>
+  </data>
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Description" xml:space="preserve">
+    <value>Wählen Sie das Verhalten beim Klicken auf die Schaltfläche "Fenster schließen" im Tray</value>
+  </data>
+  <data name="SettingsPage_TrayCloseDestroyWindow.Content" xml:space="preserve">
+    <value>Fenster direkt zerstören</value>
+  </data>
+  <data name="SettingsPage_TrayCloseRestartToTray.Content" xml:space="preserve">
+    <value>Nur im Tray neu starten</value>
+  </data>
+  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>System folgen</value>
   </data>
