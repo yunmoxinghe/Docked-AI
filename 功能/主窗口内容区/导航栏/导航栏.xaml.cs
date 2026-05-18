@@ -61,8 +61,8 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         public void SelectHomeItem()
         {
             _suppressSelectionChanged = true;
-            NavView.SelectedItem = null;
-            TopNavView.SelectedItem = HomeNavigationItem;
+            NavView.SelectedItem = HomeNavigationItem;
+            TopNavView.SelectedItem = null;
             _suppressSelectionChanged = false;
         }
 
@@ -90,6 +90,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                 WebAppEventBus.ShortcutsRefreshRequested -= OnShortcutsRefreshRequested;
             };
             Loaded += NavigationBar_Loaded;
+            SizeChanged += NavigationBar_SizeChanged;
             
             // 添加双击空白区域触发固定按钮
             NavView.DoubleTapped += OnNavViewDoubleTapped;
@@ -98,6 +99,13 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             UpdateAINavigationItemVisibility();
             // 初始化返回按钮（默认隐藏）
             BackNavigationItem.Visibility = Visibility.Collapsed;
+        }
+
+        private void NavigationBar_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            // 强制刷新 NavView 布局以修复 FooterMenuItems 显示问题
+            NavView.InvalidateMeasure();
+            NavView.InvalidateArrange();
         }
 
         public void UpdateAINavigationItemVisibility()
@@ -155,7 +163,16 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         private async void NavigationBar_Loaded(object sender, RoutedEventArgs e)
         {
             Loaded -= NavigationBar_Loaded;
+            
             await RestorePersistedShortcutsAsync();
+            
+            // 延迟刷新布局以修复 FooterMenuItems 显示问题
+            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+            {
+                NavView.InvalidateMeasure();
+                NavView.InvalidateArrange();
+                NavView.UpdateLayout();
+            });
         }
 
         private void OnShortcutCreated(object? sender, WebAppShortcut shortcut)
@@ -337,6 +354,23 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             return ".png";
         }
 
+        // 顶部 NavigationView 的 SelectionChanged 处理
+        private void TopNavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+        {
+            if (_suppressSelectionChanged)
+            {
+                return;
+            }
+
+            // 当 TopNavView 中的项被选中时，清除 NavView 的选中状态
+            if (args.SelectedItemContainer != null && NavView.SelectedItem != null)
+            {
+                _suppressSelectionChanged = true;
+                NavView.SelectedItem = null;
+                _suppressSelectionChanged = false;
+            }
+        }
+
         // 顶部 NavigationView 的 ItemInvoked 处理
         private void TopNavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
@@ -349,18 +383,6 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             {
                 WindowStateToggleRequested?.Invoke(this, EventArgs.Empty);
                 return;
-            }
-
-            if (tagText == "0") // Home
-            {
-                _suppressSelectionChanged = true;
-                NavView.SelectedItem = null;
-                _suppressSelectionChanged = false;
-                
-                TopNavView.SelectedItem = HomeNavigationItem;
-                _lastSelectedNavigationItem = HomeNavigationItem;
-                
-                NavigationRequested?.Invoke(this, new NavigationRequest(typeof(HomePage), null));
             }
         }
 
@@ -451,6 +473,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
 
             Type pageType = sectionIndex switch
             {
+                0 => typeof(HomePage),
                 1 => typeof(NewPage),
                 2 => typeof(AIPage),
                 _ => typeof(HomePage)
@@ -483,6 +506,14 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             if (args.SelectedItemContainer?.Tag is not string tagText)
             {
                 return;
+            }
+
+            // 当 NavView 中的项被选中时，清除 TopNavView 的选中状态
+            if (TopNavView.SelectedItem != null)
+            {
+                _suppressSelectionChanged = true;
+                TopNavView.SelectedItem = null;
+                _suppressSelectionChanged = false;
             }
 
             if (tagText == "settings")
@@ -565,17 +596,17 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                 return;
             }
 
-            if (_webShortcutItems.TryGetValue(shortcutId, out NavigationViewItem? navItem))
-            {
-                NavView.MenuItems.Remove(navItem);
-                _webShortcutItems.Remove(shortcutId);
-
-                if (NavView.SelectedItem is NavigationViewItem selectedItem && selectedItem == navItem)
+                if (_webShortcutItems.TryGetValue(shortcutId, out NavigationViewItem? navItem))
                 {
-                    NavView.SelectedItem = HomeNavigationItem;
-                    NavigationRequested?.Invoke(this, new NavigationRequest(typeof(HomePage), null));
+                    NavView.MenuItems.Remove(navItem);
+                    _webShortcutItems.Remove(shortcutId);
+
+                    if (NavView.SelectedItem is NavigationViewItem selectedItem && selectedItem == navItem)
+                    {
+                        NavView.SelectedItem = HomeNavigationItem;
+                        NavigationRequested?.Invoke(this, new NavigationRequest(typeof(HomePage), null));
+                    }
                 }
-            }
 
             // 触发快捷方式移除事件，通知清除缓存
             ShortcutRemoved?.Invoke(this, shortcutId);

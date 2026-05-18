@@ -27,6 +27,7 @@
 
         <navBar:NavigationBar
             x:Name="NavBar"
-            Grid.Column="4" />
+            Grid.Column="4"
+            VerticalAlignment="Stretch" />
     </Grid>
 </UserControl>
