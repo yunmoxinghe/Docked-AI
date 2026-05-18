@@ -43,6 +43,9 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
 
         public void SetNavigationBarPlacement(bool isOnLeft)
         {
+            TopNavView.HorizontalAlignment = isOnLeft ? HorizontalAlignment.Left : HorizontalAlignment.Right;
+            TopNavView.FlowDirection = isOnLeft ? FlowDirection.LeftToRight : FlowDirection.RightToLeft;
+            
             NavView.HorizontalAlignment = isOnLeft ? HorizontalAlignment.Left : HorizontalAlignment.Right;
             NavView.FlowDirection = isOnLeft ? FlowDirection.LeftToRight : FlowDirection.RightToLeft;
         }
@@ -51,13 +54,15 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         {
             _suppressSelectionChanged = true;
             NavView.SelectedItem = CreateNavigationItem;
+            TopNavView.SelectedItem = null;
             _suppressSelectionChanged = false;
         }
 
         public void SelectHomeItem()
         {
             _suppressSelectionChanged = true;
-            NavView.SelectedItem = HomeNavigationItem;
+            NavView.SelectedItem = null;
+            TopNavView.SelectedItem = HomeNavigationItem;
             _suppressSelectionChanged = false;
         }
 
@@ -67,6 +72,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             {
                 _suppressSelectionChanged = true;
                 NavView.SelectedItem = navItem;
+                TopNavView.SelectedItem = null;
                 _suppressSelectionChanged = false;
             }
         }
@@ -331,22 +337,11 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             return ".png";
         }
 
-        private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+        // 顶部 NavigationView 的 ItemInvoked 处理
+        private void TopNavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
             if (args.InvokedItemContainer?.Tag is not string tagText)
             {
-                return;
-            }
-
-            if (tagText == "dock")
-            {
-                DockToggleRequested?.Invoke(this, EventArgs.Empty);
-                return;
-            }
-
-            if (tagText == "back")
-            {
-                BackRequested?.Invoke(this, EventArgs.Empty);
                 return;
             }
 
@@ -356,9 +351,43 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                 return;
             }
 
+            if (tagText == "0") // Home
+            {
+                _suppressSelectionChanged = true;
+                NavView.SelectedItem = null;
+                _suppressSelectionChanged = false;
+                
+                TopNavView.SelectedItem = HomeNavigationItem;
+                _lastSelectedNavigationItem = HomeNavigationItem;
+                
+                NavigationRequested?.Invoke(this, new NavigationRequest(typeof(HomePage), null));
+            }
+        }
+
+        private void NavView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+        {
+            if (args.InvokedItemContainer?.Tag is not string tagText)
+            {
+                return;
+            }
+
+            // 处理停靠切换
+            if (tagText == "dock")
+            {
+                DockToggleRequested?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
+            // 处理返回按钮
+            if (tagText == "back")
+            {
+                BackRequested?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
+            // 处理设置页面
             if (tagText == "settings")
             {
-                // 防抖检查
                 var now = DateTime.Now;
                 var timeSinceLastNavigation = (now - _lastNavigationTime).TotalMilliseconds;
                 string navigationKey = "settings";
