@@ -103,6 +103,9 @@ namespace Docked_AI.Features.Tray
 
             System.Diagnostics.Debug.WriteLine("[TrayIconManager] Tray icon initialized successfully.");
 
+            // 订阅托盘评价按钮设置变化事件
+            Docked_AI.Features.Pages.Lab.LabPage.HideTrayRateButtonSettingsChanged += OnHideTrayRateButtonSettingsChanged;
+
             // 初始化全局快捷键（在托盘图标创建之后）
             try
             {
@@ -209,6 +212,15 @@ namespace Docked_AI.Features.Tray
                 _touchMenu?.Items.Clear();
                 _touchMenu = null;
             }
+        }
+
+        /// <summary>
+        /// 处理托盘评价按钮设置变化
+        /// </summary>
+        private void OnHideTrayRateButtonSettingsChanged(object? sender, EventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("[TrayIconManager] Hide tray rate button setting changed, refreshing menu...");
+            RefreshTrayMenu();
         }
 
         /// <summary>
@@ -447,6 +459,9 @@ namespace Docked_AI.Features.Tray
             // 释放托管资源
             if (disposing)
             {
+                // 取消订阅托盘评价按钮设置变化事件
+                Docked_AI.Features.Pages.Lab.LabPage.HideTrayRateButtonSettingsChanged -= OnHideTrayRateButtonSettingsChanged;
+
                 // 释放快捷键管理器资源
                 _hotkeyManager?.Dispose();
 

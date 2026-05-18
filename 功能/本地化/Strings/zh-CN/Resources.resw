@@ -202,6 +202,9 @@
   <data name="TrayMenu_Restart" xml:space="preserve">
     <value>重启应用</value>
   </data>
+  <data name="TrayMenu_RateApp" xml:space="preserve">
+    <value>评价应用</value>
+  </data>
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>退出</value>
   </data>
@@ -466,6 +469,12 @@
   <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
     <value>关于</value>
   </data>
+  <data name="SettingsPage_RateAppCard.Header" xml:space="preserve">
+    <value>评价应用</value>
+  </data>
+  <data name="SettingsPage_RateAppCard.Description" xml:space="preserve">
+    <value>喜欢这个应用吗？给我们评分和评论吧！</value>
+  </data>
   
   <!-- 设置页面 - Frame 动画 -->
   <data name="SettingsPage_BackButtonHeader.Header" xml:space="preserve">
@@ -569,6 +578,15 @@
   </data>
   <data name="LabPage_TopAppBarSection.Text" xml:space="preserve">
     <value>顶部应用栏</value>
+  </data>
+  <data name="LabPage_TrayMenuSection.Text" xml:space="preserve">
+    <value>托盘菜单</value>
+  </data>
+  <data name="LabPage_HideTrayRateButtonHeader.Header" xml:space="preserve">
+    <value>隐藏托盘评价按钮</value>
+  </data>
+  <data name="LabPage_HideTrayRateButtonHeader.Description" xml:space="preserve">
+    <value>在托盘右键菜单中隐藏评价应用选项</value>
   </data>
   <data name="LabPage_TopBarVisibilityHeader.Header" xml:space="preserve">
     <value>显示顶部应用栏</value>

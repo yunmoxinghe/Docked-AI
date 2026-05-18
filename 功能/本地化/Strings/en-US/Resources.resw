@@ -201,6 +201,9 @@
   <data name="TrayMenu_Restart" xml:space="preserve">
     <value>Restart App</value>
   </data>
+  <data name="TrayMenu_RateApp" xml:space="preserve">
+    <value>Rate App</value>
+  </data>
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>Exit</value>
   </data>
@@ -466,6 +469,12 @@
   <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
     <value>About</value>
   </data>
+  <data name="SettingsPage_RateAppCard.Header" xml:space="preserve">
+    <value>Rate App</value>
+  </data>
+  <data name="SettingsPage_RateAppCard.Description" xml:space="preserve">
+    <value>Love this app? Give us a rating and review!</value>
+  </data>
   
   <!-- Settings Page - Frame Animation -->
   <data name="SettingsPage_BackButtonHeader.Header" xml:space="preserve">
@@ -569,6 +578,15 @@
   </data>
   <data name="LabPage_TopAppBarSection.Text" xml:space="preserve">
     <value>Top App Bar</value>
+  </data>
+  <data name="LabPage_TrayMenuSection.Text" xml:space="preserve">
+    <value>Tray Menu</value>
+  </data>
+  <data name="LabPage_HideTrayRateButtonHeader.Header" xml:space="preserve">
+    <value>Hide Tray Rate Button</value>
+  </data>
+  <data name="LabPage_HideTrayRateButtonHeader.Description" xml:space="preserve">
+    <value>Hide the "Rate App" option in the tray context menu</value>
   </data>
   <data name="LabPage_TopBarVisibilityHeader.Header" xml:space="preserve">
     <value>Show Top App Bar</value>

@@ -47,6 +47,11 @@ namespace Docked_AI.Features.Pages.Lab
             // 应用当前设置（返回按钮由 CanGoBack 自动驱动，无需手动设置）
             TopAppBarService.SetMenuButtonVisible(ExperimentalSettings.EnableTopBarMenuButton);
 
+            // 初始化托盘评价按钮设置
+            HideTrayRateButtonToggle.Toggled -= OnHideTrayRateButtonToggled;
+            HideTrayRateButtonToggle.IsOn = ExperimentalSettings.HideTrayRateButton;
+            HideTrayRateButtonToggle.Toggled += OnHideTrayRateButtonToggled;
+
             UpdateMargin();
         }
 
@@ -126,5 +131,24 @@ namespace Docked_AI.Features.Pages.Lab
                 TopAppBarService.SetMenuButtonVisible(toggle.IsOn);
             }
         }
+
+        private void OnHideTrayRateButtonToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggle)
+            {
+                ExperimentalSettings.HideTrayRateButton = toggle.IsOn;
+                RaiseHideTrayRateButtonSettingsChanged();
+            }
+        }
+
+        private void OnHideTrayRateButtonCardClick(object sender, RoutedEventArgs e)
+        {
+            // 点击卡片时切换 ToggleSwitch 状态
+            HideTrayRateButtonToggle.IsOn = !HideTrayRateButtonToggle.IsOn;
+        }
+
+        // Event to notify when hide tray rate button settings change
+        public static event System.EventHandler? HideTrayRateButtonSettingsChanged;
+        internal static void RaiseHideTrayRateButtonSettingsChanged() => HideTrayRateButtonSettingsChanged?.Invoke(null, System.EventArgs.Empty);
     }
 }

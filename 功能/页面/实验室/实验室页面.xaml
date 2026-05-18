@@ -123,6 +123,39 @@
 
                 </StackPanel>
 
+                <Border Height="16" />
+
+                <!-- 托盘菜单设置分组 -->
+                <TextBlock
+                    x:Uid="LabPage_TrayMenuSection"
+                    Text="托盘菜单"
+                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                    Margin="1,0,0,4"/>
+
+                <StackPanel Spacing="4">
+                    <StackPanel.ChildrenTransitions>
+                        <EntranceThemeTransition FromVerticalOffset="50" />
+                        <RepositionThemeTransition IsStaggeringEnabled="True" />
+                    </StackPanel.ChildrenTransitions>
+
+                    <!-- 隐藏托盘评价按钮 -->
+                    <controls:SettingsCard 
+                        x:Uid="LabPage_HideTrayRateButtonHeader"
+                        Header="隐藏托盘评价按钮"
+                        Description="在托盘右键菜单中隐藏评价应用选项"
+                        IsClickEnabled="True"
+                        IsActionIconVisible="False"
+                        Click="OnHideTrayRateButtonCardClick">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE735;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch
+                            x:Name="HideTrayRateButtonToggle"
+                            Toggled="OnHideTrayRateButtonToggled"/>
+                    </controls:SettingsCard>
+
+                </StackPanel>
+
                 <Border Height="40" />
             </StackPanel>
         </ScrollViewer>

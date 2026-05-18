@@ -17,6 +17,7 @@ using Docked_AI.Features.Pages.Lab;
 using Docked_AI.Features.UnifiedCalls.InAppDialog;
 using Docked_AI.Features.UnifiedCalls.TopAppBar;
 using Docked_AI.功能.统一调用;
+using Docked_AI.功能.统一调用.应用评价;
 
 namespace Docked_AI.Features.Pages.Settings
 {
@@ -901,5 +902,28 @@ namespace Docked_AI.Features.Pages.Settings
 
         // Event to notify when hotkey settings change
         public static event EventHandler? HotkeySettingsChanged;
+
+        // 评价应用
+        private async void OnRateAppClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await StoreRatingService.RequestRatingAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Rate app failed: {ex.Message}");
+                
+                // 显示错误提示
+                if (this.XamlRoot != null)
+                {
+                    var dialog = CreateMessageDialog(
+                        LocalizationHelper.GetString("SettingsPage_ErrorTitle"),
+                        "无法打开评价功能，请稍后重试。",
+                        closeButtonText: LocalizationHelper.GetString("SettingsPage_ConfirmButton"));
+                    await InAppDialogService.ShowAsync(dialog, this);
+                }
+            }
+        }
     }
 }

@@ -344,6 +344,21 @@
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                         
                         <controls:SettingsExpander.Items>
+                            <!-- 评价应用 -->
+                            <controls:SettingsCard 
+                                x:Uid="SettingsPage_RateAppCard"
+                                Header="评价应用"
+                                Description="喜欢这个应用吗？给我们评分和评论吧！"
+                                IsClickEnabled="True"
+                                Click="OnRateAppClick">
+                                <controls:SettingsCard.HeaderIcon>
+                                    <FontIcon Glyph="&#xE735;" />
+                                </controls:SettingsCard.HeaderIcon>
+                                <controls:SettingsCard.ActionIcon>
+                                    <FontIcon Glyph="&#xE8A7;"/>
+                                </controls:SettingsCard.ActionIcon>
+                            </controls:SettingsCard>
+                            
                             <controls:SettingsCard x:Uid="SettingsPage_LinksHeader"
                                               HorizontalContentAlignment="Left"
                                               ContentAlignment="Left">

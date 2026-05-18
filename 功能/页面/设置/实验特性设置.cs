@@ -19,6 +19,7 @@ namespace Docked_AI.Features.Pages.Settings
         private const string WindowDockSideKey = "WindowSettings_DockSide";
         private const string PlaceNavigationBarOnLeftWhenDockedLeftKey = "WindowSettings_PlaceNavigationBarOnLeftWhenDockedLeft";
         private const string TrayCloseWindowBehaviorKey = "TraySettings_CloseWindowBehavior";
+        private const string HideTrayRateButtonKey = "TraySettings_HideTrayRateButton";
         
         private static readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
 
@@ -239,6 +240,25 @@ namespace Docked_AI.Features.Pages.Settings
             set
             {
                 _localSettings.Values[TrayCloseWindowBehaviorKey] = (int)value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否隐藏托盘菜单中的评价按钮
+        /// </summary>
+        public static bool HideTrayRateButton
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(HideTrayRateButtonKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return false; // 默认显示评价按钮
+            }
+            set
+            {
+                _localSettings.Values[HideTrayRateButtonKey] = value;
             }
         }
     }

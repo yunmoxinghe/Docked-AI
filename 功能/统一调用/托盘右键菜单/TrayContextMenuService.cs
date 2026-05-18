@@ -3,6 +3,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Docked_AI.Features.Localization;
 using Docked_AI.功能.统一调用;
+using Docked_AI.功能.统一调用.应用评价;
+using Docked_AI.Features.Pages.Settings;
 
 namespace Docked_AI.功能.统一调用.托盘右键菜单;
 
@@ -145,6 +147,13 @@ public static class TrayContextMenuService
                     menuItem.Click += OnRestart;
                     menuItem.Text = LocalizationHelper.GetString("TrayMenu_Restart");
                 }
+                else if (menuItem.Name == $"{prefix}RateApp")
+                {
+                    menuItem.Click += OnRateApp;
+                    menuItem.Text = LocalizationHelper.GetString("TrayMenu_RateApp");
+                    // 根据设置决定是否显示评价按钮
+                    menuItem.Visibility = ExperimentalSettings.HideTrayRateButton ? Visibility.Collapsed : Visibility.Visible;
+                }
                 else if (menuItem.Name == $"{prefix}Exit")
                 {
                     menuItem.Click += (s, e) => onExit?.Invoke();
@@ -238,6 +247,15 @@ public static class TrayContextMenuService
         restartItem.Click += OnRestart;
         flyout.Items.Add(restartItem);
 
+        // 评价应用
+        var rateItem = new MenuFlyoutItem
+        {
+            Text = LocalizationHelper.GetString("TrayMenu_RateApp"),
+            Icon = new FontIcon { Glyph = "\uE735" } // 星星图标
+        };
+        rateItem.Click += OnRateApp;
+        flyout.Items.Add(rateItem);
+
         // 分隔线
         flyout.Items.Add(new MenuFlyoutSeparator());
 
@@ -263,6 +281,21 @@ public static class TrayContextMenuService
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"[TrayContextMenu] Restart failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 评价应用
+    /// </summary>
+    private static async void OnRateApp(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await StoreRatingService.RequestRatingAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[TrayContextMenu] Rate app failed: {ex.Message}");
         }
     }
 

@@ -22,6 +22,12 @@
             </MenuFlyoutItem.Icon>
         </MenuFlyoutItem>
         
+        <MenuFlyoutItem x:Name="MouseRateApp" Text="评价应用">
+            <MenuFlyoutItem.Icon>
+                <FontIcon Glyph="&#xE735;"/>
+            </MenuFlyoutItem.Icon>
+        </MenuFlyoutItem>
+        
         <MenuFlyoutSeparator/>
         
         <MenuFlyoutItem x:Name="MouseExit" Text="退出">
@@ -48,6 +54,12 @@
         <MenuFlyoutItem x:Name="TouchRestart" Text="重启应用">
             <MenuFlyoutItem.Icon>
                 <FontIcon Glyph="&#xE72C;"/>
+            </MenuFlyoutItem.Icon>
+        </MenuFlyoutItem>
+        
+        <MenuFlyoutItem x:Name="TouchRateApp" Text="评价应用">
+            <MenuFlyoutItem.Icon>
+                <FontIcon Glyph="&#xE735;"/>
             </MenuFlyoutItem.Icon>
         </MenuFlyoutItem>
         
