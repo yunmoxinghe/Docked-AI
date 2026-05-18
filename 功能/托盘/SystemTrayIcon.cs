@@ -162,8 +162,12 @@ namespace Docked_AI.Features.Tray
             if (!string.IsNullOrEmpty(tip))
             {
                 data.uFlags |= NIF_TIP | NIF_SHOWTIP;
-                for (int i = 0; i < tip.Length && i < 128; i++)
+                // 限制最大长度为 127，留一个位置给 null 终止符
+                int maxLength = Math.Min(tip.Length, 127);
+                for (int i = 0; i < maxLength; i++)
                     data.szTip[i] = (ushort)tip[i];
+                // 添加 null 终止符
+                data.szTip[maxLength] = 0;
             }
 
             if (message == NIM_ADD || message == NIM_SETVERSION)

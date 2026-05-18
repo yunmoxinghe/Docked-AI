@@ -42,13 +42,11 @@ namespace Docked_AI.Features.Pages.New
                 System.Diagnostics.Debug.WriteLine($"NewPage: navigating to WebAppPage with URL: {url}");
                 CreateScrollViewer.Visibility = Visibility.Collapsed;
                 SubPageFrame.Visibility = Visibility.Visible;
+                // 使用 EntranceNavigationTransitionInfo（官方推荐的轻量级动画）
                 SubPageFrame.Navigate(
                     typeof(WebAppPage),
                     url,
-                    new SlideNavigationTransitionInfo
-                    {
-                        Effect = SlideNavigationTransitionEffect.FromRight
-                    });
+                    new EntranceNavigationTransitionInfo());
             }
             else
             {
@@ -110,13 +108,11 @@ namespace Docked_AI.Features.Pages.New
         {
             CreateScrollViewer.Visibility = Visibility.Collapsed;
             SubPageFrame.Visibility = Visibility.Visible;
+            // 使用 EntranceNavigationTransitionInfo（官方推荐的轻量级动画）
             SubPageFrame.Navigate(
                 typeof(WebAppPage),
                 null,
-                new SlideNavigationTransitionInfo
-                {
-                    Effect = SlideNavigationTransitionEffect.FromRight
-                });
+                new EntranceNavigationTransitionInfo());
         }
 
         // Edge 收藏夹 - 选择文件夹导入

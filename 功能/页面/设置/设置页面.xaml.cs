@@ -340,10 +340,9 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void OnLabCardClick(object sender, RoutedEventArgs e)
         {
-            Frame.Navigate(typeof(LabPage), null, new Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo
-            {
-                Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromRight
-            });
+            // 使用 EntranceNavigationTransitionInfo（官方推荐的轻量级动画）
+            // 或使用 SuppressNavigationTransitionInfo 完全禁用动画以获得最快速度
+            Frame.Navigate(typeof(LabPage), null, new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo());
         }
 
         // Event to notify when rounded webview settings change

@@ -172,23 +172,57 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                 var existingUrls = new HashSet<string>(existingShortcuts.Select(s => s.Url), StringComparer.OrdinalIgnoreCase);
                 var allShortcuts = existingShortcuts.ToList();
 
+                // 读取 Favicons
+                System.Diagnostics.Debug.WriteLine("[EdgeBookmarkSync] Loading favicons from Edge database...");
+                Dictionary<string, byte[]> favicons;
+                using (var faviconReader = new EdgeFaviconReader())
+                {
+                    if (faviconReader.IsFaviconsDbAvailable())
+                    {
+                        var newBookmarks = targetBookmarks.Where(b => !existingUrls.Contains(b.Url)).ToList();
+                        favicons = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+                        
+                        foreach (var bookmark in newBookmarks)
+                        {
+                            // 先尝试精确匹配，失败则尝试域名匹配
+                            var iconData = faviconReader.GetFaviconByDomain(bookmark.Url);
+                            if (iconData != null && iconData.Length > 0)
+                            {
+                                favicons[bookmark.Url] = iconData;
+                            }
+                        }
+                        
+                        System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Loaded {favicons.Count} favicons");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("[EdgeBookmarkSync] Favicons database not available");
+                        favicons = new Dictionary<string, byte[]>();
+                    }
+                }
+
                 // 添加新的书签
                 int addedCount = 0;
                 foreach (var bookmark in targetBookmarks)
                 {
                     if (!existingUrls.Contains(bookmark.Url))
                     {
+                        // 尝试获取图标，如果没有则为 null
+                        favicons.TryGetValue(bookmark.Url, out var iconBytes);
+
                         var shortcut = new WebAppShortcut(
                             Guid.NewGuid().ToString(),
                             bookmark.Name,
                             bookmark.Url,
-                            null // 可以后续添加图标获取功能
+                            iconBytes
                         );
 
                         allShortcuts.Add(shortcut);
                         existingUrls.Add(bookmark.Url); // 防止重复添加
                         addedCount++;
-                        System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Added: {bookmark.Name} - {bookmark.Url}");
+                        
+                        var iconStatus = iconBytes != null ? $"with icon ({iconBytes.Length} bytes)" : "without icon";
+                        System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Added: {bookmark.Name} - {bookmark.Url} {iconStatus}");
                     }
                 }
 

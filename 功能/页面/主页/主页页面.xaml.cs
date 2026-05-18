@@ -156,7 +156,8 @@ namespace Docked_AI.Features.Pages.Home
 
         private void OnCardClick(WebAppShortcut shortcut)
         {
-            Frame.Navigate(typeof(WebBrowserPage), shortcut);
+            // 使用 EntranceNavigationTransitionInfo（官方推荐的轻量级动画）
+            Frame.Navigate(typeof(WebBrowserPage), shortcut, new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo());
         }
     }
 }
