@@ -255,7 +255,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             }
         }
 
-        private static IconElement BuildShortcutIcon(WebAppShortcut shortcut)
+        private IconElement BuildShortcutIcon(WebAppShortcut shortcut)
         {
             string cacheDir = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -265,51 +265,88 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             string extension = DetectImageExtension(shortcut.IconBytes ?? Array.Empty<byte>());
             string iconPath = Path.Combine(cacheDir, $"{shortcut.Id}{extension}");
 
+            // 尝试从 IconBytes 加载
             if (shortcut.IconBytes is { Length: > 0 })
             {
                 try
                 {
                     File.WriteAllBytes(iconPath, shortcut.IconBytes);
-                    return new ImageIcon
-                    {
-                        Source = new BitmapImage(new Uri(iconPath))
-                    };
+                    var icon = CreateImageIconWithFallback(new Uri(iconPath), shortcut.Id);
+                    if (icon != null) return icon;
                 }
-                catch
+                catch (Exception ex)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[NavigationBar] 保存图标失败: {iconPath}, {ex.Message}");
                 }
             }
 
+            // 尝试从缓存加载
             if (File.Exists(iconPath))
             {
                 try
                 {
-                    return new ImageIcon
-                    {
-                        Source = new BitmapImage(new Uri(iconPath))
-                    };
+                    var icon = CreateImageIconWithFallback(new Uri(iconPath), shortcut.Id);
+                    if (icon != null) return icon;
                 }
-                catch
+                catch (Exception ex)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[NavigationBar] 读取缓存图标失败: {iconPath}, {ex.Message}");
                 }
             }
 
+            // 尝试从网站 favicon 加载
             if (Uri.TryCreate(shortcut.Url, UriKind.Absolute, out Uri? websiteUri))
             {
                 try
                 {
                     Uri faviconUri = new Uri(websiteUri.GetLeftPart(UriPartial.Authority) + "/favicon.ico");
-                    return new ImageIcon
-                    {
-                        Source = new BitmapImage(faviconUri)
-                    };
+                    var icon = CreateImageIconWithFallback(faviconUri, shortcut.Id);
+                    if (icon != null) return icon;
                 }
-                catch
+                catch (Exception ex)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[NavigationBar] 创建 Favicon URI 失败: {shortcut.Url}, {ex.Message}");
                 }
             }
 
-            return new FontIcon { Glyph = "\uE8A7" };
+            // 所有方法都失败时，返回地球图标作为后备
+            System.Diagnostics.Debug.WriteLine($"[NavigationBar] 所有图标加载方法失败，使用地球图标: {shortcut.Name}");
+            return new FontIcon { Glyph = "\uE774" }; // Globe 地球图标
+        }
+
+        private ImageIcon? CreateImageIconWithFallback(Uri imageUri, string shortcutId)
+        {
+            try
+            {
+                var bitmapImage = new BitmapImage();
+                var imageIcon = new ImageIcon { Source = bitmapImage };
+                
+                // 监听图片加载失败事件，失败时切换到地球图标
+                bitmapImage.ImageFailed += (s, e) =>
+                {
+                    System.Diagnostics.Debug.WriteLine($"[NavigationBar] 图标加载失败: {imageUri}, 错误: {e.ErrorMessage}");
+                    
+                    // 在 UI 线程上切换到地球图标
+                    DispatcherQueue.TryEnqueue(() =>
+                    {
+                        if (_webShortcutItems.TryGetValue(shortcutId, out var navItem))
+                        {
+                            navItem.Icon = new FontIcon { Glyph = "\uE774" }; // Globe 地球图标
+                            System.Diagnostics.Debug.WriteLine($"[NavigationBar] 已切换到地球图标: {shortcutId}");
+                        }
+                    });
+                };
+                
+                // 开始加载图片
+                bitmapImage.UriSource = imageUri;
+                
+                return imageIcon;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[NavigationBar] 创建 ImageIcon 失败: {imageUri}, {ex.Message}");
+                return null;
+            }
         }
 
         private static string DetectImageExtension(byte[] bytes)
