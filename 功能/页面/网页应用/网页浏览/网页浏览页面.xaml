@@ -9,114 +9,14 @@
     NavigationCacheMode="Disabled">
     <Grid Background="Transparent">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="40" />
+            <RowDefinition Height="48" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="40" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-
-        <Border
-            x:Name="TopBarHost"
-            Grid.Row="0"
-            CornerRadius="4,4,0,0"
-            Background="#01000000"
-            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-            BorderThickness="0"
-            PointerPressed="TopBarHost_PointerPressed">
-            <Grid x:Name="TopBarGrid">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <Viewbox Width="20" Height="20" VerticalAlignment="Center" IsHitTestVisible="False">
-                    <Grid Width="20" Height="20">
-                        <Image
-                            x:Name="SiteIconImage"
-                            Stretch="UniformToFill"
-                            Visibility="Collapsed" />
-                        <FontIcon
-                            x:Name="SiteIconFallback"
-                            Glyph="&#xE774;"
-                            FontSize="16"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center" />
-                    </Grid>
-                </Viewbox>
-                <StackPanel
-                    x:Name="TitleStackPanel"
-                    Grid.Column="1"
-                    VerticalAlignment="Center"
-                    IsHitTestVisible="False">
-                    <TextBlock
-                        x:Name="TitleText"
-                        TextTrimming="CharacterEllipsis"
-                        FontWeight="SemiBold"
-                        TextWrapping="NoWrap" />
-                    <TextBlock
-                        x:Name="UrlText"
-                        TextTrimming="CharacterEllipsis"
-                        TextWrapping="NoWrap"
-                        ToolTipService.ToolTip="">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock" BasedOn="{StaticResource CaptionTextBlockStyle}">
-                                <Setter Property="FontSize" Value="{StaticResource CaptionTextBlockFontSize}" />
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                </StackPanel>
-                <Button
-                    x:Name="CloseButton"
-                    Grid.Column="2"
-                    Width="32"
-                    Height="32"
-                    Padding="0"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    VerticalAlignment="Center"
-                    Click="CloseButton_Click"
-                    x:Uid="WebBrowser_CloseButton"
-                    ToolTipService.ToolTip="">
-                    <FontIcon 
-                        Glyph="&#xE711;" 
-                        FontSize="12"
-                        Foreground="{x:Bind _topBarForegroundBrush, Mode=OneTime}"/>
-                </Button>
-                <ProgressBar
-                    x:Name="LoadingProgressBar"
-                    Grid.ColumnSpan="3"
-                    VerticalAlignment="Bottom"
-                    IsIndeterminate="True"
-                    Visibility="Collapsed"
-                    Height="2"
-                    Margin="0,0,0,-2"
-                    IsHitTestVisible="False" />
-            </Grid>
-        </Border>
-
-        <!-- 顶部栏下方的自适应色块 -->
-        <Border
-            x:Name="TopBarExtension"
-            Grid.Row="1"
-            Background="Transparent" />
-
-        <!-- 中心区域背景 -->
-        <Border
-            x:Name="CenterAreaBackground"
-            Grid.Row="2"
-            Background="Transparent" />
-
-        <!-- 底部栏上方的自适应色块 -->
-        <Border
-            x:Name="BottomBarExtension"
-            Grid.Row="3"
-            Background="Transparent" />
 
         <controls:WebView2
             x:Name="WebView"
             Grid.Row="1"
-            Grid.RowSpan="3"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch">
             <controls:WebView2.ContextFlyout>
@@ -166,7 +66,6 @@
         <Border
             x:Name="RoundedWebViewContainer"
             Grid.Row="1"
-            Grid.RowSpan="3"
             Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
             Visibility="Collapsed">
             <controls:WebView2
@@ -219,7 +118,7 @@
 
         <Border
             x:Name="BottomBarHost"
-            Grid.Row="4"
+            Grid.Row="2"
             CornerRadius="0,0,4,4"
             Background="Transparent"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"

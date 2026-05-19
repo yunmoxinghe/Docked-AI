@@ -2,6 +2,7 @@ using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.Pages.Settings;
 using Docked_AI.Features.MainWindowContent.ContentArea;
 using Docked_AI.Features.UnifiedCalls.InAppDialog;
+using Docked_AI.Features.UnifiedCalls.TopAppBar;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -10,6 +11,7 @@ using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Web.WebView2.Core;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.Json;
@@ -45,8 +47,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private string? _contextMenuSelectedText;
         private string? _contextMenuLinkUrl;
 
-        private readonly SolidColorBrush _topBarBackgroundBrush = new(Windows.UI.Color.FromArgb(1, 0, 0, 0)); // 几乎透明但能接收事件
-        private readonly SolidColorBrush _bottomBarBackgroundBrush = new(Windows.UI.Color.FromArgb(1, 0, 0, 0)); // 几乎透明但能接收事件
+        private readonly SolidColorBrush _topBarBackgroundBrush = new(Windows.UI.Color.FromArgb(1, 0, 0, 0));
+        private readonly SolidColorBrush _bottomBarBackgroundBrush = new(Windows.UI.Color.FromArgb(1, 0, 0, 0));
         private readonly SolidColorBrush _topBarForegroundBrush = new();
         private readonly SolidColorBrush _bottomBarForegroundBrush = new();
         private readonly SolidColorBrush _topBarSecondaryForegroundBrush = new();
@@ -57,38 +59,35 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private Microsoft.UI.Xaml.Controls.WebView2? _activeWebView;
         private bool _hasReceivedFirstTint;
         private bool _hasAppliedThemeColor;
-        private string? _instanceId; // WebView 实例唯一标识符
+        private string? _instanceId;
+        
+        // 顶部栏UI元素
+        private StackPanel? _topBarContent;
+        private Image? _topBarIcon;
+        private FontIcon? _topBarIconFallback;
+        private TextBlock? _topBarTitle;
+        private Button? _unpinButton;
 
         public WebBrowserPage()
         {
             InitializeComponent();
 
-            // 生成唯一实例 ID
             _instanceId = Guid.NewGuid().ToString();
 
-            // 根据设置决定使用哪个 WebView
             _useRoundedWebView = ExperimentalSettings.EnableRoundedWebView;
             UpdateWebViewVisibility();
 
-            // 根据设置配置右键菜单（在 WebView 初始化之前）
             bool useWinUIContextMenu = ExperimentalSettings.EnableWinUIContextMenu;
             if (!useWinUIContextMenu)
             {
-                // 如果不使用 WinUI 右键菜单，移除 ContextFlyout
                 WebView.ContextFlyout = null;
                 RoundedWebView.ContextFlyout = null;
             }
 
-            // 初始化前景色为主题默认文本颜色
             InitializeForegroundColors();
+            InitializeTopBar();
 
-            TopBarHost.Background = _topBarBackgroundBrush;
-            TopBarExtension.Background = _topBarBackgroundBrush;
             BottomBarHost.Background = _bottomBarBackgroundBrush;
-            BottomBarExtension.Background = _bottomBarBackgroundBrush;
-            TitleText.Foreground = _topBarForegroundBrush;
-            UrlText.Foreground = _topBarSecondaryForegroundBrush;
-            SiteIconFallback.Foreground = _topBarSecondaryForegroundBrush;
 
             BackButton.Foreground = _bottomBarForegroundBrush;
             ForwardButton.Foreground = _bottomBarForegroundBrush;
@@ -96,33 +95,168 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             CopyUrlButton.Foreground = _bottomBarForegroundBrush;
             OpenExternalButton.Foreground = _bottomBarForegroundBrush;
 
-            // 设置按钮的悬停和禁用状态颜色
             SetButtonStateColors(BackButton);
             SetButtonStateColors(ForwardButton);
             SetButtonStateColors(RefreshButton);
             SetButtonStateColors(CopyUrlButton);
             SetButtonStateColors(OpenExternalButton);
 
-            // 设置自适应间距
-            ApplyResponsiveSpacing();
-            SizeChanged += (s, e) => ApplyResponsiveSpacing();
             BottomBarHost.SizeChanged += (s, e) => ApplyBottomBarResponsiveLayout();
 
             Loaded += WebBrowserPage_Loaded;
             Unloaded += WebBrowserPage_Unloaded;
             
-            // 监听设置变化
             Pages.Settings.SettingsPage.RoundedWebViewSettingsChanged += OnRoundedWebViewSettingsChanged;
             Pages.Settings.SettingsPage.WinUIContextMenuSettingsChanged += OnWinUIContextMenuSettingsChanged;
+            Pages.Settings.SettingsPage.WebViewPerformanceSettingsChanged += OnWebViewPerformanceSettingsChanged;
             
-            // 监听 Frame 的 SizeChanged 以同步圆角
             if (_useRoundedWebView)
             {
                 this.SizeChanged += OnPageSizeChanged;
             }
+        }
+
+        private void InitializeTopBar()
+        {
+            // 创建居中的标签页内容
+            _topBarContent = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Spacing = 8
+            };
+
+            // 创建图标容器
+            var iconViewbox = new Viewbox
+            {
+                Width = 16,
+                Height = 16,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            var iconGrid = new Grid
+            {
+                Width = 16,
+                Height = 16
+            };
+
+            _topBarIcon = new Image
+            {
+                Stretch = Stretch.UniformToFill,
+                Visibility = Visibility.Collapsed
+            };
+
+            _topBarIconFallback = new FontIcon
+            {
+                Glyph = "\uE774",
+                FontSize = 14,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            iconGrid.Children.Add(_topBarIcon);
+            iconGrid.Children.Add(_topBarIconFallback);
+            iconViewbox.Child = iconGrid;
+
+            // 创建标题文本
+            _topBarTitle = new TextBlock
+            {
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
+                TextWrapping = TextWrapping.NoWrap,
+                VerticalAlignment = VerticalAlignment.Center,
+                MaxWidth = 300
+            };
+
+            _topBarContent.Children.Add(iconViewbox);
+            _topBarContent.Children.Add(_topBarTitle);
+
+            // 创建取消固定按钮
+            _unpinButton = new Button
+            {
+                Width = 40,
+                Height = 40,
+                Background = new SolidColorBrush(Colors.Transparent),
+                BorderThickness = new Thickness(0),
+                CornerRadius = new CornerRadius(4),
+                Content = new FontIcon
+                {
+                    Glyph = "\uE8BB",
+                    FontSize = 16
+                }
+            };
+            _unpinButton.Click += CloseButton_Click;
+        }
+
+        private void SetupTopBar()
+        {
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] SetupTopBar 被调用");
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] _topBarContent.Children.Count = {_topBarContent?.Children.Count}");
             
-            // 监听父容器变化以同步动态圆角
-            this.SizeChanged += OnPageSizeChangedForCorners;
+            // 在页面加载后设置顶部栏
+            TopAppBarService.SetCenterContent(_topBarContent);
+            TopAppBarService.SetRightContent(_unpinButton);
+            TopAppBarService.IsVisible = true;
+            
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 顶部栏内容已设置，IsVisible = true");
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] TopAppBarService.IsVisible = {TopAppBarService.IsVisible}");
+            
+            // 设置初始背景为透明（等待取色）
+            var topAppBar = TopAppBarService.TopAppBar;
+            if (topAppBar != null)
+            {
+                topAppBar.Background = _topBarBackgroundBrush;
+                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 顶部栏背景已设置，Visibility = {topAppBar.Visibility}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 警告：TopAppBar 为 null");
+            }
+            
+            // 恢复标题和图标（如果已有数据）
+            UpdateTopBarContent();
+        }
+        
+        private void UpdateTopBarContent()
+        {
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] UpdateTopBarContent 被调用");
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] _topBarTitle = {(_topBarTitle != null ? "not null" : "null")}");
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] _currentShortcut = {(_currentShortcut != null ? "not null" : "null")}");
+            
+            // 更新标题
+            if (_topBarTitle != null && _currentShortcut != null)
+            {
+                if (_activeWebView?.CoreWebView2 != null && !string.IsNullOrWhiteSpace(_activeWebView.CoreWebView2.DocumentTitle))
+                {
+                    // 如果有网页标题，使用网页标题
+                    _topBarTitle.Text = _activeWebView.CoreWebView2.DocumentTitle;
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 标题设置为网页标题: {_topBarTitle.Text}");
+                }
+                else
+                {
+                    // 否则使用快捷方式名称或 URL
+                    _topBarTitle.Text = string.IsNullOrWhiteSpace(_currentShortcut.Name) 
+                        ? (_pendingNavigationUri?.Host ?? _currentShortcut.Url) 
+                        : _currentShortcut.Name;
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 标题设置为快捷方式名称: {_topBarTitle.Text}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 无法更新标题：_topBarTitle 或 _currentShortcut 为 null");
+            }
+            
+            // 更新图标（如果已有数据）
+            if (_currentShortcut != null && _currentShortcut.IconBytes != null && _currentShortcut.IconBytes.Length > 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 显示快捷方式图标");
+                _ = ShowShortcutIconAsync(_currentShortcut.IconBytes);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 无图标数据");
+            }
         }
 
         private void UpdateWebViewVisibility()
@@ -208,25 +342,20 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void InitializeForegroundColors()
         {
-            // 从主题资源获取默认文本颜色
             if (Application.Current.Resources.TryGetValue("TextFillColorPrimaryBrush", out object? resource) 
                 && resource is SolidColorBrush themeBrush)
             {
                 _topBarForegroundBrush.Color = themeBrush.Color;
                 _bottomBarForegroundBrush.Color = themeBrush.Color;
-                System.Diagnostics.Debug.WriteLine($"[InitializeForegroundColors] 从主题获取: {themeBrush.Color}");
             }
             else
             {
-                // 回退：根据当前主题选择黑色或白色
                 var theme = Application.Current.RequestedTheme;
                 var defaultColor = theme == ApplicationTheme.Dark ? Colors.White : Colors.Black;
                 _topBarForegroundBrush.Color = defaultColor;
                 _bottomBarForegroundBrush.Color = defaultColor;
-                System.Diagnostics.Debug.WriteLine($"[InitializeForegroundColors] 使用默认: {defaultColor}, 主题: {theme}");
             }
 
-            // 初始化次要前景色（用于URL和图标）
             if (Application.Current.Resources.TryGetValue("TextFillColorSecondaryBrush", out object? secondaryResource) 
                 && secondaryResource is SolidColorBrush secondaryBrush)
             {
@@ -234,7 +363,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
             else
             {
-                // 回退：使用主色的70%透明度
                 var baseColor = _topBarForegroundBrush.Color;
                 _topBarSecondaryForegroundBrush.Color = Windows.UI.Color.FromArgb(
                     (byte)(baseColor.A * 0.7),
@@ -244,16 +372,13 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 );
             }
 
-            // 初始化禁用状态颜色
             if (Application.Current.Resources.TryGetValue("TextFillColorDisabledBrush", out object? disabledResource) 
                 && disabledResource is SolidColorBrush disabledBrush)
             {
                 _bottomBarDisabledForegroundBrush.Color = disabledBrush.Color;
-                System.Diagnostics.Debug.WriteLine($"[InitializeForegroundColors] 禁用颜色从主题: {disabledBrush.Color}");
             }
             else
             {
-                // 回退：使用主色的60%透明度（提高可见度）
                 var baseColor = _bottomBarForegroundBrush.Color;
                 _bottomBarDisabledForegroundBrush.Color = Windows.UI.Color.FromArgb(
                     (byte)(baseColor.A * 0.6),
@@ -261,12 +386,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     baseColor.G,
                     baseColor.B
                 );
-                System.Diagnostics.Debug.WriteLine($"[InitializeForegroundColors] 禁用颜色计算: {_bottomBarDisabledForegroundBrush.Color}");
             }
             
-            // 初始化悬停状态颜色（比正常状态稍亮）
             _bottomBarHoverForegroundBrush.Color = AdjustColorBrightness(_bottomBarForegroundBrush.Color, 0.15);
-            System.Diagnostics.Debug.WriteLine($"[InitializeForegroundColors] 悬停颜色: {_bottomBarHoverForegroundBrush.Color}");
         }
 
         private void SetButtonStateColors(AppBarButton button)
@@ -301,6 +423,15 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 RoundedWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = !useWinUIContextMenu;
                 UpdateContextMenuForWebView(RoundedWebView, useWinUIContextMenu);
             }
+        }
+
+        private void OnWebViewPerformanceSettingsChanged(object? sender, EventArgs e)
+        {
+            // 性能设置改变时，应用新设置
+            // 注意：某些设置需要重启 WebView 才能生效（如浏览器参数）
+            ApplyMemoryModeSettings();
+            
+            System.Diagnostics.Debug.WriteLine("[OnWebViewPerformanceSettingsChanged] 性能设置已更新，某些设置需要重新加载页面才能生效");
         }
 
         private void UpdateContextMenuConfiguration(bool useWinUIContextMenu)
@@ -404,89 +535,10 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void OnPageSizeChangedForCorners(object sender, SizeChangedEventArgs e)
         {
-            SyncDynamicCorners();
+            // 不再需要同步圆角，因为使用统一顶部栏
         }
 
-        private void SyncDynamicCorners()
-        {
-            // 尝试从父级容器获取 CornerRadius
-            DependencyObject? parent = this.Parent;
-            CornerRadius cornerRadius = new CornerRadius(0);
-            string foundIn = "default";
-            
-            while (parent != null)
-            {
-                if (parent is Frame frame && frame.CornerRadius != new CornerRadius(0))
-                {
-                    cornerRadius = frame.CornerRadius;
-                    foundIn = $"Frame (CornerRadius={cornerRadius})";
-                    break;
-                }
-                if (parent is Border border && border.CornerRadius != new CornerRadius(0))
-                {
-                    cornerRadius = border.CornerRadius;
-                    foundIn = $"Border (CornerRadius={cornerRadius})";
-                    break;
-                }
-                if (parent is Grid grid && grid.CornerRadius != new CornerRadius(0))
-                {
-                    cornerRadius = grid.CornerRadius;
-                    foundIn = $"Grid (CornerRadius={cornerRadius})";
-                    break;
-                }
-                
-                parent = VisualTreeHelper.GetParent(parent);
-            }
-            
-            // 如果没有找到圆角，使用默认值 12
-            if (cornerRadius == new CornerRadius(0))
-            {
-                cornerRadius = new CornerRadius(12);
-            }
-            
-            // 确保最小圆角为 4
-            const double minCornerRadius = 4.0;
-            double topLeft = Math.Max(minCornerRadius, cornerRadius.TopLeft);
-            double topRight = Math.Max(minCornerRadius, cornerRadius.TopRight);
-            double bottomLeft = Math.Max(minCornerRadius, cornerRadius.BottomLeft);
-            double bottomRight = Math.Max(minCornerRadius, cornerRadius.BottomRight);
-            
-            // 直接给顶部栏和底部栏设置圆角
-            // 顶部栏：只有顶部圆角
-            TopBarHost.CornerRadius = new CornerRadius(
-                topLeft,
-                topRight,
-                0,
-                0
-            );
-            
-            // 底部栏：只有底部圆角
-            BottomBarHost.CornerRadius = new CornerRadius(
-                0,
-                0,
-                bottomRight,
-                bottomLeft
-            );
-            
-            // 调试输出
-            System.Diagnostics.Debug.WriteLine($"[SyncDynamicCorners] Found in: {foundIn}");
-            System.Diagnostics.Debug.WriteLine($"[SyncDynamicCorners] Original CornerRadius: {cornerRadius}");
-            System.Diagnostics.Debug.WriteLine($"[SyncDynamicCorners] Applied (with min=4): TopLeft={topLeft}, TopRight={topRight}, BottomLeft={bottomLeft}, BottomRight={bottomRight}");
-            System.Diagnostics.Debug.WriteLine($"[SyncDynamicCorners] TopBarHost.CornerRadius: {TopBarHost.CornerRadius}");
-            System.Diagnostics.Debug.WriteLine($"[SyncDynamicCorners] BottomBarHost.CornerRadius: {BottomBarHost.CornerRadius}");
-        }
 
-        private void ApplyResponsiveSpacing()
-        {
-            // 根据窗口宽度计算自适应间距
-            double width = ActualWidth;
-            double horizontalPadding = Math.Max(8, Math.Min(16, width * 0.02));
-            double verticalPadding = 8;
-            double stackPanelMargin = Math.Max(8, Math.Min(16, width * 0.015));
-
-            TopBarGrid.Padding = new Thickness(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding);
-            TitleStackPanel.Margin = new Thickness(stackPanelMargin, 0, stackPanelMargin, 0);
-        }
 
         private void ApplyBottomBarResponsiveLayout()
         {
@@ -600,11 +652,17 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
 
             _currentShortcut = shortcut;
-            TitleText.Text = string.IsNullOrWhiteSpace(shortcut.Name) ? uri.Host : shortcut.Name;
+            if (_topBarTitle != null)
+            {
+                _topBarTitle.Text = string.IsNullOrWhiteSpace(shortcut.Name) ? uri.Host : shortcut.Name;
+            }
             _ = ShowShortcutIconAsync(shortcut.IconBytes);
 
             _pendingNavigationUri = uri;
             TryNavigatePendingUri();
+            
+            // 首次导航时设置顶部栏
+            SetupTopBar();
         }
 
         protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
@@ -616,8 +674,23 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         void INavigationAware.OnNavigatedTo(object? parameter)
         {
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] INavigationAware.OnNavigatedTo called for cached page");
-            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] _activeWebView 是否为 null: {_activeWebView == null}");
-            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] _isWebViewReady: {_isWebViewReady}");
+            
+            // 重新设置顶部栏（因为可能被其他页面清除了）
+            SetupTopBar();
+            
+            // 如果 WebView 被暂停，恢复它
+            if (ExperimentalSettings.SuspendInactiveWebView && _activeWebView?.CoreWebView2 != null)
+            {
+                try
+                {
+                    _activeWebView.CoreWebView2.Resume();
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 已恢复");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 恢复 WebView 失败: {ex.Message}");
+                }
+            }
             
             // 缓存页面被重新激活时，检查 WebView 状态
             if (_activeWebView == null)
@@ -678,16 +751,39 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         void INavigationAware.OnNavigatedFrom()
         {
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] INavigationAware.OnNavigatedFrom called");
-            // 页面被切换走时，不需要做特殊处理
-            // 保持 WebView 活跃状态以便快速切换回来
+            
+            // 注意：不隐藏顶部栏，因为 TopAppBarContainer 的 Visibility 会影响中间内容的显示
+            // 新页面会通过 SetupTopBar 覆盖内容，无需手动隐藏
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 保持顶部栏可见，等待新页面覆盖内容");
+            
+            // 如果启用了暂停不活跃 WebView 的功能
+            if (ExperimentalSettings.SuspendInactiveWebView && _activeWebView?.CoreWebView2 != null)
+            {
+                try
+                {
+                    _ = _activeWebView.CoreWebView2.TrySuspendAsync();
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 已暂停");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 暂停 WebView 失败: {ex.Message}");
+                }
+            }
+            
+            // 如果启用了自动清理缓存
+            if (ExperimentalSettings.AutoClearCache && _activeWebView?.CoreWebView2 != null)
+            {
+                _ = ClearBrowsingDataAsync();
+            }
         }
 
         private async void WebBrowserPage_Loaded(object sender, RoutedEventArgs e)
         {
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] Loaded 事件触发");
             
-            // 注册 WebView 实例（仅在首次加载时）
-            // 使用 shortcut.Id 作为实例 ID，这样可以与缓存键对应
+            // 注意：不在这里设置顶部栏，因为 Loaded 在页面缓存切换时也会触发
+            // 顶部栏的设置由 INavigationAware.OnNavigatedTo 负责
+            
             if (_currentShortcut != null && !WebViewManager.IsRegistered(_currentShortcut.Id))
             {
                 System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 未注册，尝试注册: {_currentShortcut.Id}");
@@ -695,7 +791,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 if (!WebViewManager.RegisterWebView(_currentShortcut.Id))
                 {
                     System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 无法注册 WebView，已达到数量限制");
-                    // 不显示弹窗，因为这是内部状态管理
                     return;
                 }
             }
@@ -707,43 +802,32 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             await EnsureWebViewInitializedAsync();
             TryNavigatePendingUri();
             
-            // 如果使用圆角 WebView，同步圆角
             if (_useRoundedWebView)
             {
                 SyncCornerRadiusFromParent();
             }
-            
-            // 同步动态圆角
-            SyncDynamicCorners();
-            
-            // 确保 TopBarHost 可以接收双击事件
-            System.Diagnostics.Debug.WriteLine("========================================");
-            System.Diagnostics.Debug.WriteLine("[WebBrowserPage_Loaded] 检查 TopBarHost 状态:");
-            System.Diagnostics.Debug.WriteLine($"  Background: {TopBarHost.Background}");
-            if (TopBarHost.Background is SolidColorBrush brush)
-            {
-                System.Diagnostics.Debug.WriteLine($"  Background Color: A={brush.Color.A}, R={brush.Color.R}, G={brush.Color.G}, B={brush.Color.B}");
-            }
-            System.Diagnostics.Debug.WriteLine($"  IsDoubleTapEnabled: {TopBarHost.IsDoubleTapEnabled}");
-            System.Diagnostics.Debug.WriteLine($"  IsTapEnabled: {TopBarHost.IsTapEnabled}");
-            System.Diagnostics.Debug.WriteLine("========================================");
-            
-            // 添加单击测试
-            TopBarHost.Tapped += (s, args) =>
-            {
-                System.Diagnostics.Debug.WriteLine("[TopBarHost] 单击事件触发");
-            };
         }
 
         private void WebBrowserPage_Unloaded(object sender, RoutedEventArgs e)
         {
-            // 注意：由于页面会被缓存，Unloaded 在页面从 Frame 移除时也会触发
-            // 但我们不应该在这里注销 WebView，因为页面还在缓存中
-            // 只有在页面真正被销毁时才注销（通过 RemoveCachedPage 触发）
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] Unloaded 事件触发");
             
-            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] Unloaded 事件触发，但不注销 WebView（页面可能被缓存）");
-            
-            // 不调用 DisposeWebView，保持 WebView 活跃
+            // 延迟检查：如果页面真的被移除了（不在可视树中），才清理
+            // 使用 DispatcherQueue 延迟执行，让 Loaded 事件有机会先触发
+            DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+            {
+                // 检查页面是否还在可视树中
+                if (XamlRoot == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 页面已从可视树移除，但由于缓存机制不清理顶部栏");
+                    // 注意：即使页面从可视树移除，也不清理顶部栏
+                    // 因为页面可能被缓存，稍后会恢复
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 页面仍在可视树中，Unloaded 是误触发");
+                }
+            });
         }
 
         private async Task EnsureWebViewInitializedAsync()
@@ -759,14 +843,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 {
                     Language = GetWebViewLanguage(),
                     // 优化触摸板滚动体验的浏览器参数
-                    AdditionalBrowserArguments = string.Join(" ", new[]
-                    {
-                        "--enable-features=msEdgeFluentOverlayScrollbar",
-                        "--enable-smooth-scrolling",
-                        "--enable-gpu-rasterization",
-                        "--enable-zero-copy",
-                        "--disable-features=msExperimentalScrolling"
-                    })
+                    AdditionalBrowserArguments = BuildBrowserArguments()
                 };
                 CoreWebView2Environment environment = await CoreWebView2Environment.CreateWithOptionsAsync(
                     browserExecutableFolder: null,
@@ -793,6 +870,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     // 根据设置决定是否禁用默认右键菜单
                     bool useWinUIContextMenu = ExperimentalSettings.EnableWinUIContextMenu;
                     _activeWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = !useWinUIContextMenu;
+                    
+                    // 应用内存模式设置
+                    ApplyMemoryModeSettings();
                     
                     _activeWebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
                     _activeWebView.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
@@ -830,7 +910,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
 
             _activeWebView.Source = _pendingNavigationUri;
-            UrlText.Text = _pendingNavigationUri.AbsoluteUri;
             _pendingNavigationUri = null;
         }
 
@@ -998,17 +1077,13 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void CoreWebView2_NavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
         {
-            LoadingProgressBar.Visibility = Visibility.Visible;
-            // 重置取色状态，准备接收新页面的颜色
             _hasReceivedFirstTint = false;
             _hasAppliedThemeColor = false;
         }
 
         private async void CoreWebView2_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
         {
-            LoadingProgressBar.Visibility = Visibility.Collapsed;
             UpdateNavigationButtons();
-            UpdateUrlText();
             
             // 分层取色策略：优先使用 theme-color
             await TryApplyThemeColorAsync();
@@ -1024,6 +1099,130 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             return CultureInfo.CurrentUICulture.Name;
         }
 
+        private string BuildBrowserArguments()
+        {
+            var args = new List<string>
+            {
+                "--enable-smooth-scrolling",
+                "--enable-zero-copy",
+                "--disable-features=msExperimentalScrolling"
+            };
+
+            // 构建 enable-features 列表
+            var enableFeatures = new List<string>
+            {
+                "msEdgeFluentOverlayScrollbar"  // 细滚动条
+            };
+
+            // GPU 优化设置
+            if (ExperimentalSettings.EnableHardwareAcceleration)
+            {
+                args.Add("--enable-accelerated-2d-canvas");
+                args.Add("--enable-gpu-rasterization");
+            }
+            else
+            {
+                args.Add("--disable-gpu");
+                args.Add("--disable-accelerated-2d-canvas");
+            }
+
+            if (ExperimentalSettings.EnableHardwareOverlays)
+            {
+                args.Add("--enable-hardware-overlays");
+            }
+
+            if (ExperimentalSettings.EnableHardwareVideoDecoder)
+            {
+                enableFeatures.Add("VaapiVideoDecoder");
+                args.Add("--enable-accelerated-video-decode");
+            }
+
+            if (ExperimentalSettings.DisableSoftwareRasterizer)
+            {
+                args.Add("--disable-software-rasterizer");
+            }
+
+            // 应用性能优化设置
+            if (ExperimentalSettings.DisableBackgroundNetwork)
+            {
+                args.Add("--disable-background-networking");
+                args.Add("--disable-sync");
+                args.Add("--disable-preconnect");
+                args.Add("--no-pings");
+            }
+
+            if (ExperimentalSettings.DisableExtensions)
+            {
+                args.Add("--disable-extensions");
+            }
+
+            if (ExperimentalSettings.DisablePlugins)
+            {
+                args.Add("--disable-plugins");
+            }
+
+            // 磁盘缓存大小限制
+            int cacheSizeMB = ExperimentalSettings.DiskCacheSize;
+            int cacheSizeBytes = cacheSizeMB * 1024 * 1024;
+            args.Add($"--disk-cache-size={cacheSizeBytes}");
+            args.Add($"--media-cache-size={cacheSizeBytes}");
+
+            // 其他优化
+            args.Add("--disable-breakpad");
+            args.Add("--disable-component-update");
+
+            // 合并所有 enable-features
+            if (enableFeatures.Count > 0)
+            {
+                args.Add($"--enable-features={string.Join(",", enableFeatures)}");
+            }
+
+            return string.Join(" ", args);
+        }
+
+        private void ApplyMemoryModeSettings()
+        {
+            if (_activeWebView?.CoreWebView2 == null)
+            {
+                return;
+            }
+
+            try
+            {
+                var memoryMode = ExperimentalSettings.MemoryMode;
+                _activeWebView.CoreWebView2.MemoryUsageTargetLevel = memoryMode == WebViewMemoryMode.Low
+                    ? CoreWebView2MemoryUsageTargetLevel.Low
+                    : CoreWebView2MemoryUsageTargetLevel.Normal;
+
+                System.Diagnostics.Debug.WriteLine($"[ApplyMemoryModeSettings] 内存模式设置为: {memoryMode}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ApplyMemoryModeSettings] 设置内存模式失败: {ex.Message}");
+            }
+        }
+
+        private async Task ClearBrowsingDataAsync()
+        {
+            if (_activeWebView?.CoreWebView2?.Profile == null)
+            {
+                return;
+            }
+
+            try
+            {
+                await _activeWebView.CoreWebView2.Profile.ClearBrowsingDataAsync(
+                    CoreWebView2BrowsingDataKinds.DiskCache |
+                    CoreWebView2BrowsingDataKinds.DownloadHistory
+                );
+                System.Diagnostics.Debug.WriteLine($"[ClearBrowsingDataAsync] 缓存已清理");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ClearBrowsingDataAsync] 清理缓存失败: {ex.Message}");
+            }
+        }
+
         private void CoreWebView2_DocumentTitleChanged(object? sender, object e)
         {
             if (_activeWebView?.CoreWebView2 is null)
@@ -1036,13 +1235,19 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             {
                 if (_currentShortcut is not null && !string.IsNullOrWhiteSpace(_currentShortcut.Name))
                 {
-                    TitleText.Text = _currentShortcut.Name;
+                    if (_topBarTitle != null)
+                    {
+                        _topBarTitle.Text = _currentShortcut.Name;
+                    }
                 }
 
                 return;
             }
 
-            TitleText.Text = title;
+            if (_topBarTitle != null)
+            {
+                _topBarTitle.Text = title;
+            }
         }
 
         private async void CoreWebView2_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
@@ -1117,49 +1322,41 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void ApplyBarTint(bool isTop, Windows.UI.Color sampledColor)
         {
-            // 确保Alpha值至少为1，以便接收指针事件
             var tinted = Windows.UI.Color.FromArgb(byte.MaxValue, sampledColor.R, sampledColor.G, sampledColor.B);
             SolidColorBrush background = isTop ? _topBarBackgroundBrush : _bottomBarBackgroundBrush;
             SolidColorBrush foreground = isTop ? _topBarForegroundBrush : _bottomBarForegroundBrush;
 
-            System.Diagnostics.Debug.WriteLine($"[ApplyBarTint] isTop={isTop}, 背景色={tinted}, 采样色={sampledColor}");
-
-            // 改进的防闪烁逻辑：
-            // 只在首次接收且颜色与当前背景相同（仍是初始透明状态）时过滤纯白
-            // 这样可以避免白色主题网站的颜色跳变
+            // 防闪烁逻辑
             if (!_hasReceivedFirstTint)
             {
-                // 检查是否为初始状态（Alpha=1的黑色）
                 bool isCurrentlyInitial = background.Color.A <= 1 && 
                     background.Color.R == 0 && background.Color.G == 0 && background.Color.B == 0;
                 
                 bool isPureWhite = sampledColor.R == 255 && sampledColor.G == 255 && sampledColor.B == 255;
                 
-                // 只有在当前是初始状态且采样到纯白时才过滤
                 if (isCurrentlyInitial && isPureWhite)
                 {
-                    // 首次加载时忽略纯白色，保持初始状态，等待真实内容加载
-                    System.Diagnostics.Debug.WriteLine("[ApplyBarTint] 首次加载忽略纯白色");
                     return;
                 }
                 
-                // 标记已接收到第一次有效颜色
                 _hasReceivedFirstTint = true;
             }
 
-            // 使用动画平滑过渡背景色
             AnimateColorChange(background, tinted);
             
             var contrastColor = GetContrastingForeground(sampledColor);
-            
-            System.Diagnostics.Debug.WriteLine($"[ApplyBarTint] 对比色={contrastColor}");
-            
-            // 使用动画平滑过渡前景色
             AnimateColorChange(foreground, contrastColor);
 
-            // 更新次要前景色（用于URL和图标）
             if (isTop)
             {
+                // 更新顶部栏的统一顶部应用栏背景
+                var topAppBar = TopAppBarService.TopAppBar;
+                if (topAppBar != null)
+                {
+                    topAppBar.Background = background;
+                }
+                
+                // 更新次要前景色
                 var secondaryColor = Windows.UI.Color.FromArgb(
                     (byte)(contrastColor.A * 0.7),
                     contrastColor.R,
@@ -1167,30 +1364,37 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     contrastColor.B
                 );
                 AnimateColorChange(_topBarSecondaryForegroundBrush, secondaryColor);
+                
+                // 更新顶部栏UI元素的颜色
+                if (_topBarTitle != null)
+                {
+                    _topBarTitle.Foreground = _topBarForegroundBrush;
+                }
+                if (_topBarIconFallback != null)
+                {
+                    _topBarIconFallback.Foreground = _topBarSecondaryForegroundBrush;
+                }
+                if (_unpinButton?.Content is FontIcon unpinIcon)
+                {
+                    unpinIcon.Foreground = _topBarForegroundBrush;
+                }
             }
             else
             {
-                // 更新底部栏的悬停状态颜色
-                // 根据背景亮度决定是变亮还是变暗
+                // 底部栏
                 double luminance = CalculateLuminance(sampledColor);
-                double adjustFactor = luminance < LuminanceThreshold ? 0.2 : -0.2; // 暗背景变亮，亮背景变暗
+                double adjustFactor = luminance < LuminanceThreshold ? 0.2 : -0.2;
                 var hoverColor = AdjustColorBrightness(contrastColor, adjustFactor);
-                
-                System.Diagnostics.Debug.WriteLine($"[ApplyBarTint] 底部栏 - 背景亮度={luminance:F3}, 对比色={contrastColor}, 悬停色={hoverColor}");
                 AnimateColorChange(_bottomBarHoverForegroundBrush, hoverColor);
                 
-                // 更新底部栏的禁用状态颜色
-                // 使用更高的不透明度以确保在白色背景上可见
                 var disabledColor = Windows.UI.Color.FromArgb(
-                    (byte)(contrastColor.A * 0.6),  // 提高到 60% 不透明度
+                    (byte)(contrastColor.A * 0.6),
                     contrastColor.R,
                     contrastColor.G,
                     contrastColor.B
                 );
-                System.Diagnostics.Debug.WriteLine($"[ApplyBarTint] 底部栏 - 禁用颜色={disabledColor}");
                 AnimateColorChange(_bottomBarDisabledForegroundBrush, disabledColor);
                 
-                // 强制更新按钮的Resources和Foreground（确保立即生效）
                 UpdateButtonResources();
             }
         }
@@ -1399,12 +1603,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             ForwardButton.IsEnabled = _activeWebView.CanGoForward;
         }
 
-        private void UpdateUrlText()
-        {
-            Uri? uri = _activeWebView?.Source;
-            UrlText.Text = uri?.AbsoluteUri ?? string.Empty;
-        }
-
         private async Task ShowShortcutIconAsync(byte[]? iconBytes)
         {
             if (iconBytes is not { Length: > 0 })
@@ -1421,9 +1619,15 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 stream.Seek(0);
                 await bitmap.SetSourceAsync(stream);
 
-                SiteIconImage.Source = bitmap;
-                SiteIconImage.Visibility = Visibility.Visible;
-                SiteIconFallback.Visibility = Visibility.Collapsed;
+                if (_topBarIcon != null)
+                {
+                    _topBarIcon.Source = bitmap;
+                    _topBarIcon.Visibility = Visibility.Visible;
+                }
+                if (_topBarIconFallback != null)
+                {
+                    _topBarIconFallback.Visibility = Visibility.Collapsed;
+                }
             }
             catch
             {
@@ -1433,9 +1637,15 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void ShowFallbackIcon()
         {
-            SiteIconImage.Source = null;
-            SiteIconImage.Visibility = Visibility.Collapsed;
-            SiteIconFallback.Visibility = Visibility.Visible;
+            if (_topBarIcon != null)
+            {
+                _topBarIcon.Source = null;
+                _topBarIcon.Visibility = Visibility.Collapsed;
+            }
+            if (_topBarIconFallback != null)
+            {
+                _topBarIconFallback.Visibility = Visibility.Visible;
+            }
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
@@ -1826,64 +2036,20 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         // ==================== 右键菜单相关方法结束 ====================
 
-        private void TopBarHost_PointerPressed(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-        {
-            var now = DateTime.Now;
-            var timeSinceLastClick = (now - _lastClickTime).TotalMilliseconds;
-            
-            System.Diagnostics.Debug.WriteLine($"[TopBarHost_PointerPressed] 点击事件触发，距离上次点击: {timeSinceLastClick}ms");
-            
-            if (timeSinceLastClick <= DoubleClickMaxDelayMs && timeSinceLastClick > 0)
-            {
-                // 检测到双击
-                System.Diagnostics.Debug.WriteLine("========================================");
-                System.Diagnostics.Debug.WriteLine("[TopBarHost_PointerPressed] ✓ 检测到双击！");
-                System.Diagnostics.Debug.WriteLine("========================================");
-                
-                HandleDoubleClick();
-                _lastClickTime = DateTime.MinValue; // 重置，避免三击被识别为双击
-            }
-            else
-            {
-                // 单击
-                _lastClickTime = now;
-            }
-        }
-        
         private void HandleDoubleClick()
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("[HandleDoubleClick] 开始处理双击");
-
-                System.Diagnostics.Debug.WriteLine("[HandleDoubleClick] 尝试直接调用主窗口方法");
                 var window = GetMainWindowInstance();
                 if (window is Docked_AI.MainWindow mainWindow)
                 {
-                    System.Diagnostics.Debug.WriteLine("[HandleDoubleClick] ✓ 找到主窗口，调用 ToggleWindowState");
                     mainWindow.ToggleWindowState();
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"[HandleDoubleClick] ✗ 窗口类型不匹配: {window?.GetType().Name ?? "null"}");
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[HandleDoubleClick] ✗ 异常: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[HandleDoubleClick] 堆栈: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"[HandleDoubleClick] 异常: {ex.Message}");
             }
-        }
-
-        private void TopBarHost_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
-        {
-            System.Diagnostics.Debug.WriteLine("========================================");
-            System.Diagnostics.Debug.WriteLine("[TopBarHost_DoubleTapped] 双击事件触发！");
-            System.Diagnostics.Debug.WriteLine($"[TopBarHost_DoubleTapped] Sender: {sender?.GetType().Name}");
-            System.Diagnostics.Debug.WriteLine($"[TopBarHost_DoubleTapped] OriginalSource: {e.OriginalSource?.GetType().Name}");
-            System.Diagnostics.Debug.WriteLine("========================================");
-            
-            HandleDoubleClick();
         }
 
         private Window? GetMainWindowInstance()

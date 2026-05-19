@@ -21,6 +21,11 @@ public static class TopAppBarService
     }
 
     /// <summary>
+    /// 获取顶部应用栏容器（用于自定义背景等）
+    /// </summary>
+    public static Grid? TopAppBar => _contentArea?.TopAppBar;
+
+    /// <summary>
     /// 显示或隐藏顶部应用栏
     /// </summary>
     public static bool IsVisible

@@ -54,12 +54,69 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         public bool CanGoBack => ContentFrame.CanGoBack;
 
         /// <summary>
-        /// 返回上一页（Frame 自动使用反向动画）
+        /// 返回上一页（使用缓存机制）
         /// </summary>
         public void GoBack()
         {
-            if (ContentFrame.CanGoBack)
+            if (!ContentFrame.CanGoBack)
+            {
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] GoBack 被调用，BackStack 深度: {ContentFrame.BackStackDepth}");
+
+            // 获取 BackStack 中的上一页信息
+            var backEntry = ContentFrame.BackStack[ContentFrame.BackStack.Count - 1];
+            Type pageType = backEntry.SourcePageType;
+            object? parameter = backEntry.Parameter;
+
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] 返回到页面: {pageType.Name}");
+
+            // 生成缓存键
+            string? cacheKey = GenerateCacheKey(pageType, parameter);
+
+            // 检查是否已缓存
+            if (!string.IsNullOrEmpty(cacheKey) && _pageCacheManager.IsPageCached(cacheKey))
+            {
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] 使用缓存页面返回: {cacheKey}");
+
+                // 移除 BackStack 中的最后一项（因为我们要手动导航）
+                ContentFrame.BackStack.RemoveAt(ContentFrame.BackStack.Count - 1);
+
+                // 调用当前页面的 OnNavigatedFrom
+                if (_currentPage is INavigationAware currentNavigationAware)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ContentArea] 调用当前页面的 INavigationAware.OnNavigatedFrom");
+                    currentNavigationAware.OnNavigatedFrom();
+                }
+
+                // 从缓存获取页面
+                Page cachedPage = _pageCacheManager.GetOrCreatePage(pageType, parameter, cacheKey);
+
+                // 直接设置内容
+                ContentFrame.Content = cachedPage;
+                _currentPage = cachedPage;
+                _currentPageType = pageType;
+                _currentPageParameter = parameter;
+
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] 已设置缓存页面到 Frame.Content，BackStack 深度: {ContentFrame.BackStackDepth}");
+
+                // 手动调用 OnNavigatedTo
+                if (cachedPage is INavigationAware navigationAware)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ContentArea] 调用 INavigationAware.OnNavigatedTo");
+                    navigationAware.OnNavigatedTo(parameter);
+                }
+
+                // 手动触发 Navigated 事件
+                OnCachedPageNavigated(pageType, parameter);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] 页面未缓存，使用 Frame.GoBack");
+                // 如果没有缓存，使用 Frame 的默认 GoBack（不移除 BackStack，让 Frame 自己处理）
                 ContentFrame.GoBack();
+            }
         }
 
         private const double TopBarHeight = 48.0;
@@ -285,12 +342,9 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                 return;
             }
 
-            // 页面未接管，执行默认返回
-            if (ContentFrame.CanGoBack)
-            {
-                System.Diagnostics.Debug.WriteLine("[ContentArea] 执行默认返回");
-                ContentFrame.GoBack();
-            }
+            // 页面未接管，执行默认返回（使用缓存机制）
+            System.Diagnostics.Debug.WriteLine("[ContentArea] 执行默认返回");
+            GoBack();
         }
 
         private DateTime _lastTopBarTapTime = DateTime.MinValue;
@@ -525,6 +579,13 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             if (!string.IsNullOrEmpty(cacheKey) && _pageCacheManager.IsPageCached(cacheKey))
             {
                 System.Diagnostics.Debug.WriteLine($"[ContentArea] 页面已缓存，直接使用");
+                
+                // 在切换页面前，调用当前页面的 OnNavigatedFrom
+                if (_currentPage is INavigationAware currentNavigationAware)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[ContentArea] 调用当前页面的 INavigationAware.OnNavigatedFrom");
+                    currentNavigationAware.OnNavigatedFrom();
+                }
                 
                 // 把当前页手动加入 BackStack，模拟 Frame.Navigate 的行为
                 if (ContentFrame.Content is Page currentPage && _currentPageType != null)

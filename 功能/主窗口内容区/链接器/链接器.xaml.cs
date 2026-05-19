@@ -195,17 +195,12 @@ namespace Docked_AI.Features.MainWindowContent.Linker
         }
 
         /// <summary>
-        /// 网页浏览页面有自己的顶部栏实现，导航到该页面时彻底隐藏 TopAppBarService 的顶部栏和返回按钮。
+        /// 同步顶部应用栏的可见性
         /// </summary>
         private void SyncTopAppBarVisibility(Type pageType)
         {
-            if (pageType == typeof(WebBrowserPage))
-            {
-                TopAppBarService.IsVisible = false;
-                // 返回按钮在独立图标层，需单独隐藏
-                ContentHost.SetBackButtonVisible(false);
-                NavBar.UpdateBackButtonVisibility(false);
-            }
+            // WebBrowserPage 现在使用统一顶部栏，不需要特殊处理
+            // 顶部栏的显示由页面自己控制
         }
 
         private void OnNavigationRequested(object? sender, NavRequest request)
