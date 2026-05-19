@@ -21,6 +21,21 @@ namespace Docked_AI.Features.Pages.Settings
         private const string TrayCloseWindowBehaviorKey = "TraySettings_CloseWindowBehavior";
         private const string HideTrayRateButtonKey = "TraySettings_HideTrayRateButton";
         
+        // WebView2 性能优化设置
+        private const string WebViewMemoryModeKey = "WebSettings_MemoryMode";
+        private const string WebViewAutoClearCacheKey = "WebSettings_AutoClearCache";
+        private const string WebViewSuspendInactiveKey = "WebSettings_SuspendInactive";
+        private const string WebViewDisableBackgroundNetworkKey = "WebSettings_DisableBackgroundNetwork";
+        private const string WebViewDisableExtensionsKey = "WebSettings_DisableExtensions";
+        private const string WebViewDisablePluginsKey = "WebSettings_DisablePlugins";
+        private const string WebViewDiskCacheSizeKey = "WebSettings_DiskCacheSize";
+        
+        // GPU 优化设置
+        private const string WebViewEnableHardwareAccelerationKey = "WebSettings_EnableHardwareAcceleration";
+        private const string WebViewEnableHardwareOverlaysKey = "WebSettings_EnableHardwareOverlays";
+        private const string WebViewEnableHardwareVideoDecoderKey = "WebSettings_EnableHardwareVideoDecoder";
+        private const string WebViewDisableSoftwareRasterizerKey = "WebSettings_DisableSoftwareRasterizer";
+        
         private static readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
 
         /// <summary>
@@ -261,6 +276,236 @@ namespace Docked_AI.Features.Pages.Settings
                 _localSettings.Values[HideTrayRateButtonKey] = value;
             }
         }
+
+        /// <summary>
+        /// 获取或设置 WebView2 内存模式
+        /// </summary>
+        public static WebViewMemoryMode MemoryMode
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(WebViewMemoryModeKey, out object? value))
+                {
+                    if (value is int intValue && Enum.IsDefined(typeof(WebViewMemoryMode), intValue))
+                    {
+                        return (WebViewMemoryMode)intValue;
+                    }
+                }
+                return WebViewMemoryMode.Normal; // 默认正常模式
+            }
+            set
+            {
+                _localSettings.Values[WebViewMemoryModeKey] = (int)value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否自动清理缓存
+        /// </summary>
+        public static bool AutoClearCache
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(WebViewAutoClearCacheKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return false; // 默认关闭
+            }
+            set
+            {
+                _localSettings.Values[WebViewAutoClearCacheKey] = value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否暂停不活跃的 WebView
+        /// </summary>
+        public static bool SuspendInactiveWebView
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(WebViewSuspendInactiveKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return false; // 默认关闭
+            }
+            set
+            {
+                _localSettings.Values[WebViewSuspendInactiveKey] = value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否禁用后台网络
+        /// </summary>
+        public static bool DisableBackgroundNetwork
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(WebViewDisableBackgroundNetworkKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return false; // 默认关闭
+            }
+            set
+            {
+                _localSettings.Values[WebViewDisableBackgroundNetworkKey] = value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否禁用扩展
+        /// </summary>
+        public static bool DisableExtensions
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(WebViewDisableExtensionsKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return true; // 默认禁用扩展
+            }
+            set
+            {
+                _localSettings.Values[WebViewDisableExtensionsKey] = value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否禁用插件
+        /// </summary>
+        public static bool DisablePlugins
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(WebViewDisablePluginsKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return true; // 默认禁用插件
+            }
+            set
+            {
+                _localSettings.Values[WebViewDisablePluginsKey] = value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置磁盘缓存大小（MB）
+        /// </summary>
+        public static int DiskCacheSize
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(WebViewDiskCacheSizeKey, out object? value))
+                {
+                    return value is int intValue ? intValue : 100;
+                }
+                return 100; // 默认 100MB
+            }
+            set
+            {
+                // 限制范围在 10-500 MB 之间
+                int clampedValue = Math.Max(10, Math.Min(500, value));
+                _localSettings.Values[WebViewDiskCacheSizeKey] = clampedValue;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否启用硬件加速
+        /// </summary>
+        public static bool EnableHardwareAcceleration
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(WebViewEnableHardwareAccelerationKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return true; // 默认开启
+            }
+            set
+            {
+                _localSettings.Values[WebViewEnableHardwareAccelerationKey] = value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否启用硬件叠加层
+        /// </summary>
+        public static bool EnableHardwareOverlays
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(WebViewEnableHardwareOverlaysKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return true; // 默认开启
+            }
+            set
+            {
+                _localSettings.Values[WebViewEnableHardwareOverlaysKey] = value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否启用硬件视频解码
+        /// </summary>
+        public static bool EnableHardwareVideoDecoder
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(WebViewEnableHardwareVideoDecoderKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return true; // 默认开启
+            }
+            set
+            {
+                _localSettings.Values[WebViewEnableHardwareVideoDecoderKey] = value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否禁用软件光栅化
+        /// </summary>
+        public static bool DisableSoftwareRasterizer
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(WebViewDisableSoftwareRasterizerKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return true; // 默认开启（禁用软件光栅化）
+            }
+            set
+            {
+                _localSettings.Values[WebViewDisableSoftwareRasterizerKey] = value;
+            }
+        }
+    }
+
+    /// <summary>
+    /// WebView2 内存模式
+    /// </summary>
+    public enum WebViewMemoryMode
+    {
+        /// <summary>
+        /// 正常模式（默认）
+        /// </summary>
+        Normal = 0,
+
+        /// <summary>
+        /// 低内存模式（推荐后台标签页）
+        /// </summary>
+        Low = 1
     }
 
     /// <summary>
