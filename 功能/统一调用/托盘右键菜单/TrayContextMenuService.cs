@@ -156,7 +156,7 @@ public static class TrayContextMenuService
                 }
                 else if (menuItem.Name == $"{prefix}Exit")
                 {
-                    menuItem.Click += (s, e) => onExit?.Invoke();
+                    menuItem.Click += (s, e) => OnSmartExit(onExit);
                     menuItem.Text = LocalizationHelper.GetString("TrayMenu_Exit");
                 }
             }
@@ -265,7 +265,7 @@ public static class TrayContextMenuService
             Text = LocalizationHelper.GetString("TrayMenu_Exit"),
             Icon = new FontIcon { Glyph = "\uF3B1" } // 关闭图标
         };
-        exitItem.Click += (s, e) => onExit?.Invoke();
+        exitItem.Click += (s, e) => OnSmartExit(onExit);
         flyout.Items.Add(exitItem);
     }
 
@@ -298,6 +298,176 @@ public static class TrayContextMenuService
             System.Diagnostics.Debug.WriteLine($"[TrayContextMenu] Rate app failed: {ex.Message}");
         }
     }
+
+    /// <summary>
+    /// 智能退出：自动判断使用优雅退出还是强制退出
+    /// </summary>
+    private static void OnSmartExit(Action? normalExitAction)
+    {
+        System.Diagnostics.Debug.WriteLine("[TrayContextMenu] Smart exit requested");
+        
+        // 在独立线程上执行退出逻辑
+        System.Threading.ThreadPool.QueueUserWorkItem(_ =>
+        {
+            try
+            {
+                // 尝试优雅退出（带超时）
+                bool gracefulExitSucceeded = TryGracefulExit(normalExitAction, timeoutMs: 2000);
+                
+                if (!gracefulExitSucceeded)
+                {
+                    System.Diagnostics.Debug.WriteLine("[TrayContextMenu] ⚠️ Graceful exit failed or timed out, forcing exit...");
+                    ForceExit();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TrayContextMenu] Smart exit error: {ex.Message}");
+                // 发生异常时强制退出
+                ForceExit();
+            }
+        });
+    }
+
+    /// <summary>
+    /// 尝试优雅退出（带超时）
+    /// </summary>
+    /// <param name="normalExitAction">正常退出回调</param>
+    /// <param name="timeoutMs">超时时间（毫秒）</param>
+    /// <returns>是否成功退出</returns>
+    private static bool TryGracefulExit(Action? normalExitAction, int timeoutMs)
+    {
+        if (normalExitAction == null)
+        {
+            System.Diagnostics.Debug.WriteLine("[TrayContextMenu] No normal exit action provided, using force exit");
+            return false;
+        }
+
+        System.Diagnostics.Debug.WriteLine($"[TrayContextMenu] Attempting graceful exit (timeout: {timeoutMs}ms)...");
+        
+        var exitCompleted = new System.Threading.ManualResetEventSlim(false);
+        bool exitSucceeded = false;
+
+        try
+        {
+            // 尝试在主 UI 线程上执行优雅退出
+            var dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
+            
+            // 如果当前不在 UI 线程，尝试获取主 UI 线程的 DispatcherQueue
+            if (dispatcherQueue == null)
+            {
+                // 尝试通过 App 实例获取
+                var app = Microsoft.UI.Xaml.Application.Current as App;
+                if (app?.MainWindow != null)
+                {
+                    var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(app.MainWindow);
+                    // 通过窗口句柄获取 DispatcherQueue（需要在主线程上）
+                    System.Diagnostics.Debug.WriteLine("[TrayContextMenu] Attempting to get DispatcherQueue from main window");
+                }
+            }
+
+            if (dispatcherQueue != null)
+            {
+                bool enqueued = dispatcherQueue.TryEnqueue(() =>
+                {
+                    try
+                    {
+                        System.Diagnostics.Debug.WriteLine("[TrayContextMenu] Executing graceful exit on UI thread");
+                        normalExitAction?.Invoke();
+                        exitSucceeded = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[TrayContextMenu] Graceful exit failed: {ex.Message}");
+                    }
+                    finally
+                    {
+                        exitCompleted.Set();
+                    }
+                });
+
+                if (!enqueued)
+                {
+                    System.Diagnostics.Debug.WriteLine("[TrayContextMenu] Failed to enqueue graceful exit");
+                    return false;
+                }
+
+                // 等待退出完成或超时
+                bool completed = exitCompleted.Wait(timeoutMs);
+                
+                if (!completed)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[TrayContextMenu] Graceful exit timed out after {timeoutMs}ms");
+                    return false;
+                }
+
+                System.Diagnostics.Debug.WriteLine($"[TrayContextMenu] Graceful exit completed: {exitSucceeded}");
+                return exitSucceeded;
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[TrayContextMenu] No DispatcherQueue available, cannot perform graceful exit");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[TrayContextMenu] TryGracefulExit error: {ex.Message}");
+            return false;
+        }
+        finally
+        {
+            exitCompleted.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// 强制退出（不依赖 UI 线程）
+    /// </summary>
+    private static void ForceExit()
+    {
+        try
+        {
+            System.Diagnostics.Debug.WriteLine("[TrayContextMenu] Executing force exit in 500ms...");
+            
+            // 短暂延迟，让菜单有时间关闭
+            System.Threading.Thread.Sleep(500);
+            
+            System.Diagnostics.Debug.WriteLine("[TrayContextMenu] Force exiting application...");
+            
+            // 强制退出进程（退出码 1 表示异常退出）
+            Environment.Exit(1);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[TrayContextMenu] Force exit failed: {ex.Message}");
+            
+            // 如果 Environment.Exit 失败，尝试终止进程
+            try
+            {
+                System.Diagnostics.Process.GetCurrentProcess().Kill();
+            }
+            catch
+            {
+                // 最后的手段：调用 Win32 API 终止进程
+                TerminateProcess(System.Diagnostics.Process.GetCurrentProcess().Handle, 1);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 强制退出应用（紧急情况使用，已废弃，使用 OnSmartExit 代替）
+    /// 在独立线程上执行，不依赖主 UI 线程
+    /// </summary>
+    [Obsolete("Use OnSmartExit instead")]
+    private static void OnForceExit(object sender, RoutedEventArgs e)
+    {
+        ForceExit();
+    }
+
+    // Win32 API：终止进程（最后的手段）
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool TerminateProcess(IntPtr hProcess, uint uExitCode);
 
     /// <summary>
     /// 添加自定义菜单项
