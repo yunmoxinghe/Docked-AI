@@ -30,15 +30,14 @@ inclusion: always
 dotnet run
 
 # 调试模式（详细输出）
-dotnet build "Docked AI.csproj" -c Debug /p:Platform=x64
-winapp run .\bin\x64\Debug\net10.0-windows10.0.26100.0\win-x64 --debug-output
+dotnet run -c Debug /p:Platform=x64 --debug-output
 
 # 清理已注册的包
 winapp unregister "Docked AI"
 
 # 构建特定配置
-dotnet build -c Debug /p:Platform=x64
-dotnet build -c Release /p:Platform=x64
+dotnet run -c Debug /p:Platform=x64
+dotnet run -c Release /p:Platform=x64
 
 # 发布特定平台
 dotnet publish -c Release -r win-x64
@@ -103,14 +102,14 @@ winapp package .\bin\Release\net10.0-windows10.0.19041.0\win-x64
 
 **运行前：**
 - 确保已还原依赖项：`dotnet restore`
-- 验证项目构建无错误
+- 验证项目运行无错误
 - 检查是否已安装所需的 NuGet 包
 
 ## 关键约束
 
 **必须做：**
 - 开发期间使用 `dotnet run` 进行快速迭代
-- 调查崩溃或错误时使用 `winapp run --debug-output`
+- 调查崩溃或错误时使用 `dotnet run --debug-output`
 - 使用 `DispatcherQueue` 将 UI 代码保持在 UI 线程上
 - 编写 AOT 兼容代码（不使用反射）
 - 本地化所有面向用户的字符串
@@ -120,7 +119,7 @@ winapp package .\bin\Release\net10.0-windows10.0.19041.0\win-x64
 - 使用反射或动态代码生成（会破坏 AOT）
 - 在 UI 线程上执行阻塞操作
 - 硬编码用户可见文本（必须使用本地化）
-- 构建时忘记指定 `/p:Platform=x64`
+- 运行时忘记指定 `/p:Platform=x64`
 
 ## 参考文档
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Windows.Storage;
+using Microsoft.Data.Sqlite;
 using Docked_AI.Features.Pages.WebApp.Shared;
 
 namespace Docked_AI.Features.Pages.WebApp.EdgeSync
@@ -172,32 +173,81 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                 var existingUrls = new HashSet<string>(existingShortcuts.Select(s => s.Url), StringComparer.OrdinalIgnoreCase);
                 var allShortcuts = existingShortcuts.ToList();
 
-                // 读取 Favicons
+                // 读取 Favicons（在后台线程执行，避免阻塞 UI）
                 System.Diagnostics.Debug.WriteLine("[EdgeBookmarkSync] Loading favicons from Edge database...");
-                Dictionary<string, byte[]> favicons;
-                using (var faviconReader = new EdgeFaviconReader())
+                Dictionary<string, byte[]> favicons = new Dictionary<string, byte[]>();
+                bool faviconLoadFailed = false;
+                
+                if (!EdgeFaviconReader.IsFaviconsDbAvailable())
                 {
-                    if (faviconReader.IsFaviconsDbAvailable())
+                    System.Diagnostics.Debug.WriteLine("[EdgeBookmarkSync] Favicons database not available");
+                }
+                else
+                {
+                    var newBookmarks = targetBookmarks.Where(b => !existingUrls.Contains(b.Url)).ToList();
+                    
+                    if (newBookmarks.Count > 0)
                     {
-                        var newBookmarks = targetBookmarks.Where(b => !existingUrls.Contains(b.Url)).ToList();
-                        favicons = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
-                        
-                        foreach (var bookmark in newBookmarks)
+                        // 在后台线程执行 favicon 加载，避免阻塞 UI
+                        try
                         {
-                            // 先尝试精确匹配，失败则尝试域名匹配
-                            var iconData = faviconReader.GetFaviconByDomain(bookmark.Url);
-                            if (iconData != null && iconData.Length > 0)
+                            favicons = await Task.Run(() =>
                             {
-                                favicons[bookmark.Url] = iconData;
-                            }
+                                var result = new Dictionary<string, byte[]>();
+                                EdgeFaviconReader? faviconReader = null;
+                                
+                                try
+                                {
+                                    faviconReader = new EdgeFaviconReader();
+                                    
+                                    System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Testing database connection with first bookmark...");
+                                    
+                                    // 测试连接 - 如果这里失败，就跳过所有 favicon 加载
+                                    var testIcon = faviconReader.GetFaviconByDomain(newBookmarks[0].Url);
+                                    
+                                    // 连接成功，继续加载其余的
+                                    if (testIcon != null && testIcon.Length > 0)
+                                    {
+                                        result[newBookmarks[0].Url] = testIcon;
+                                    }
+                                    
+                                    // 加载剩余的 favicons
+                                    for (int i = 1; i < newBookmarks.Count; i++)
+                                    {
+                                        var bookmark = newBookmarks[i];
+                                        var iconData = faviconReader.GetFaviconByDomain(bookmark.Url);
+                                        if (iconData != null && iconData.Length > 0)
+                                        {
+                                            result[bookmark.Url] = iconData;
+                                        }
+                                    }
+                                    
+                                    System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Loaded {result.Count} favicons");
+                                }
+                                catch (SqliteException ex) when (ex.SqliteErrorCode == 5)
+                                {
+                                    System.Diagnostics.Debug.WriteLine("[EdgeBookmarkSync] Database is busy (Edge is running), skipping all favicon loading");
+                                    result.Clear();
+                                    throw; // 重新抛出以设置 faviconLoadFailed
+                                }
+                                finally
+                                {
+                                    faviconReader?.Dispose();
+                                }
+                                
+                                return result;
+                            });
                         }
-                        
-                        System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Loaded {favicons.Count} favicons");
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine("[EdgeBookmarkSync] Favicons database not available");
-                        favicons = new Dictionary<string, byte[]>();
+                        catch (SqliteException ex) when (ex.SqliteErrorCode == 5)
+                        {
+                            System.Diagnostics.Debug.WriteLine("[EdgeBookmarkSync] Database is busy (Edge is running), skipping all favicon loading");
+                            faviconLoadFailed = true;
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Failed to load favicons: {ex.Message}");
+                            faviconLoadFailed = true;
+                        }
                     }
                 }
 
@@ -239,7 +289,21 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                 LastSyncTime = DateTime.Now;
                 result.Success = true;
                 result.AddedCount = addedCount;
-                result.Message = $"同步完成，新增 {addedCount} 个书签";
+                
+                // 根据图标加载情况生成消息
+                if (faviconLoadFailed)
+                {
+                    result.Message = $"同步完成，新增 {addedCount} 个书签（图标加载失败，可能 Edge 正在运行）";
+                }
+                else if (addedCount > 0 && favicons.Count == 0)
+                {
+                    result.Message = $"同步完成，新增 {addedCount} 个书签（未找到图标）";
+                }
+                else
+                {
+                    result.Message = $"同步完成，新增 {addedCount} 个书签";
+                }
+                
                 System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Sync completed: {result.Message}");
             }
             catch (JsonException jsonEx)

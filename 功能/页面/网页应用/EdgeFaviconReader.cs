@@ -21,9 +21,19 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
         }
 
         /// <summary>
-        /// 检查 Favicons 数据库是否存在
+        /// 检查 Favicons 数据库是否存在（静态方法）
         /// </summary>
-        public bool IsFaviconsDbAvailable()
+        public static bool IsFaviconsDbAvailable()
+        {
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var faviconsDbPath = Path.Combine(localAppData, @"Microsoft\Edge\User Data\Default\Favicons");
+            return File.Exists(faviconsDbPath);
+        }
+
+        /// <summary>
+        /// 检查当前实例的 Favicons 数据库是否存在
+        /// </summary>
+        private bool IsFaviconsDbAvailableForInstance()
         {
             return File.Exists(_faviconsDbPath);
         }
@@ -36,18 +46,42 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
             if (_connection != null)
                 return;
 
-            if (!IsFaviconsDbAvailable())
+            if (!IsFaviconsDbAvailableForInstance())
                 throw new FileNotFoundException("Edge Favicons 数据库文件不存在", _faviconsDbPath);
 
-            var connectionString = new SqliteConnectionStringBuilder
+            try
             {
-                DataSource = _faviconsDbPath,
-                Mode = SqliteOpenMode.ReadOnly,
-                Cache = SqliteCacheMode.Shared
-            }.ToString();
+                var connectionString = new SqliteConnectionStringBuilder
+                {
+                    DataSource = _faviconsDbPath,
+                    Mode = SqliteOpenMode.ReadOnly,
+                    Cache = SqliteCacheMode.Shared
+                }.ToString();
 
-            _connection = new SqliteConnection(connectionString);
-            _connection.Open();
+                _connection = new SqliteConnection(connectionString);
+                
+                // 设置繁忙超时为 1 秒，避免长时间阻塞
+                _connection.Open();
+                using var command = _connection.CreateCommand();
+                command.CommandText = "PRAGMA busy_timeout = 1000";
+                command.ExecuteNonQuery();
+                
+                System.Diagnostics.Debug.WriteLine("[EdgeFaviconReader] Database connection opened successfully");
+            }
+            catch (SqliteException ex) when (ex.SqliteErrorCode == 5) // SQLITE_BUSY
+            {
+                System.Diagnostics.Debug.WriteLine("[EdgeFaviconReader] Database is locked by Edge browser, skipping favicon loading");
+                _connection?.Dispose();
+                _connection = null;
+                throw; // 重新抛出，让调用者知道连接失败
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] Failed to open database: {ex.Message}");
+                _connection?.Dispose();
+                _connection = null;
+                throw;
+            }
         }
 
         /// <summary>
@@ -96,9 +130,14 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                 System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] No favicon found for {pageUrl}");
                 return null;
             }
+            catch (SqliteException ex) when (ex.SqliteErrorCode == 5) // SQLITE_BUSY
+            {
+                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] Database busy for {pageUrl}, Edge may be running. Skipping favicon.");
+                return null;
+            }
             catch (SqliteException ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] SQLite Error for {pageUrl}: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] SQLite Error {ex.SqliteErrorCode} for {pageUrl}: {ex.Message}");
                 return null;
             }
             catch (Exception ex)
@@ -196,6 +235,16 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                     return imageData;
                 }
 
+                return null;
+            }
+            catch (SqliteException ex) when (ex.SqliteErrorCode == 5) // SQLITE_BUSY
+            {
+                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] Database busy for {pageUrl}, Edge may be running. Skipping favicon.");
+                return null;
+            }
+            catch (SqliteException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] SQLite Error {ex.SqliteErrorCode} for {pageUrl}: {ex.Message}");
                 return null;
             }
             catch (Exception ex)

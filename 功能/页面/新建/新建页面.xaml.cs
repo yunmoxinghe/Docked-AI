@@ -229,9 +229,11 @@ namespace Docked_AI.Features.Pages.New
 
                 var progressText = new TextBlock
                 {
-                    Text = "正在导入收藏夹...",
+                    Text = "正在导入收藏夹...\n\n提示：为获取完整图标，请先关闭 Edge 浏览器",
                     TextAlignment = TextAlignment.Center,
-                    Margin = new Thickness(0, 16, 0, 0)
+                    Margin = new Thickness(0, 16, 0, 0),
+                    TextWrapping = TextWrapping.Wrap,
+                    MaxWidth = 300
                 };
 
                 var progressContent = new StackPanel
@@ -269,9 +271,27 @@ namespace Docked_AI.Features.Pages.New
                         WebAppEventBus.RequestRefresh();
                     }
 
+                    // 根据结果消息判断是否有图标加载问题
+                    string message;
+                    if (result.Message.Contains("图标加载失败") || result.Message.Contains("Edge 正在运行"))
+                    {
+                        message = $"成功导入 {result.AddedCount} 个新书签！\n\n" +
+                                 "⚠️ 图标加载失败（Edge 浏览器正在运行）\n" +
+                                 "提示：关闭 Edge 后重新导入可获取完整图标";
+                    }
+                    else if (result.Message.Contains("未找到图标"))
+                    {
+                        message = $"成功导入 {result.AddedCount} 个新书签！\n\n" +
+                                 "提示：部分书签未找到图标";
+                    }
+                    else
+                    {
+                        message = $"成功导入 {result.AddedCount} 个新书签！\n\n你可以在主页和侧边栏中看到它们。";
+                    }
+
                     var successDialog = CreateMessageDialog(
                         "导入完成",
-                        $"成功导入 {result.AddedCount} 个新书签！\n\n你可以在主页和侧边栏中看到它们。",
+                        message,
                         closeButtonText: "确定");
                     await InAppDialogService.ShowAsync(successDialog, this);
                 }
