@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -112,7 +112,6 @@
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
     <value>アプリの表示言語を選択</value>
   </data>
-  
   <data name="SettingsPage_DockSideHeader.Header" xml:space="preserve">
     <value>ウィンドウのドック位置</value>
   </data>
@@ -137,7 +136,6 @@
   <data name="SettingsPage_LeftDockNavigationHeader.Description" xml:space="preserve">
     <value>ウィンドウを画面左側にドックしたとき、ナビゲーションバーもウィンドウ左側に配置します</value>
   </data>
-  
   <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Header" xml:space="preserve">
     <value>トレイのウィンドウを閉じる動作</value>
   </data>
@@ -150,7 +148,6 @@
   <data name="SettingsPage_TrayCloseRestartToTray.Content" xml:space="preserve">
     <value>トレイのみに再起動</value>
   </data>
-  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>システムに従う</value>
   </data>
@@ -401,9 +398,6 @@
   <data name="SettingsPage_InteractionSection.Text" xml:space="preserve">
     <value>インタラクション</value>
   </data>
-  <data name="SettingsPage_RoundedWebViewHeader.Header" xml:space="preserve">
-    <value>WebView2 角丸</value>
-  </data>
   <data name="SettingsPage_AILabHeader.Header" xml:space="preserve">
     <value>AI ラボ</value>
   </data>
@@ -422,7 +416,6 @@
   <data name="WebBrowser_CloseButton" xml:space="preserve">
     <value>このページを閉じる</value>
   </data>
-  
   <!-- AI ページ -->
   <data name="AIPage_Title.Text" xml:space="preserve">
     <value>AI ラボ</value>
@@ -430,7 +423,6 @@
   <data name="AIPage_Description.Text" xml:space="preserve">
     <value>AI 機能と実験的な機能を探索</value>
   </data>
-  
   <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
     <value>について</value>
   </data>
@@ -442,9 +434,6 @@
   </data>
   <data name="SettingsPage_StartupToggleError" xml:space="preserve">
     <value>スタートアップ設定の切り替え中にエラーが発生しました。後でもう一度お試しください。</value>
-  </data>
-  <data name="SettingsPage_RoundedWebViewHeader.Description" xml:space="preserve">
-    <value>Webブラウザの角丸効果を有効にし、角丸サイズは親コンテナと自動同期します</value>
   </data>
   <data name="SettingsPage_HotkeyDialog.Title" xml:space="preserve">
     <value>ホットキーを設定</value>
@@ -482,7 +471,6 @@
   <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
     <value>WebブラウザにWinUIスタイルのコンテキストメニューを有効にする（デフォルトはブラウザネイティブメニュー）</value>
   </data>
-
   <!-- 設定ページ - ラボ入口 -->
   <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
     <value>ラボ 📦</value>
@@ -490,7 +478,6 @@
   <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
     <value>実験的な機能を探索する</value>
   </data>
-
   <!-- ラボページ -->
   <data name="LabPage_Title.Text" xml:space="preserve">
     <value>ラボ 📦</value>
@@ -506,12 +493,6 @@
   </data>
   <data name="LabPage_AILabHeader.Description" xml:space="preserve">
     <value>サイドバーに AI ラボのエントリを表示する</value>
-  </data>
-  <data name="LabPage_RoundedWebViewHeader.Header" xml:space="preserve">
-    <value>WebView2 角丸</value>
-  </data>
-  <data name="LabPage_RoundedWebViewHeader.Description" xml:space="preserve">
-    <value>Webブラウザの角丸効果を有効にする。角丸サイズは親コンテナと自動同期</value>
   </data>
   <data name="LabPage_WinUIContextMenuHeader.Header" xml:space="preserve">
     <value>WinUI コンテキストメニュー</value>

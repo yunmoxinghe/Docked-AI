@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -112,7 +112,6 @@
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
     <value>Anzeigesprache der App auswählen</value>
   </data>
-  
   <data name="SettingsPage_DockSideHeader.Header" xml:space="preserve">
     <value>Fenster-Andockposition</value>
   </data>
@@ -137,7 +136,6 @@
   <data name="SettingsPage_LeftDockNavigationHeader.Description" xml:space="preserve">
     <value>Wenn das Fenster links am Bildschirm angedockt ist, wird die Navigationsleiste ebenfalls links im Fenster platziert</value>
   </data>
-  
   <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Header" xml:space="preserve">
     <value>Tray-Fenster schließen Verhalten</value>
   </data>
@@ -150,7 +148,6 @@
   <data name="SettingsPage_TrayCloseRestartToTray.Content" xml:space="preserve">
     <value>Nur im Tray neu starten</value>
   </data>
-  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>System folgen</value>
   </data>
@@ -401,9 +398,6 @@
   <data name="SettingsPage_InteractionSection.Text" xml:space="preserve">
     <value>Interaktion</value>
   </data>
-  <data name="SettingsPage_RoundedWebViewHeader.Header" xml:space="preserve">
-    <value>WebView2 abgerundete Ecken</value>
-  </data>
   <data name="SettingsPage_AILabHeader.Header" xml:space="preserve">
     <value>KI-Labor</value>
   </data>
@@ -422,7 +416,6 @@
   <data name="WebBrowser_CloseButton" xml:space="preserve">
     <value>Diese Seite schließen</value>
   </data>
-  
   <!-- KI-Seite -->
   <data name="AIPage_Title.Text" xml:space="preserve">
     <value>KI-Labor</value>
@@ -430,7 +423,6 @@
   <data name="AIPage_Description.Text" xml:space="preserve">
     <value>Erkunden Sie KI-Funktionen und experimentelle Fähigkeiten</value>
   </data>
-  
   <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
     <value>Über</value>
   </data>
@@ -442,9 +434,6 @@
   </data>
   <data name="SettingsPage_StartupToggleError" xml:space="preserve">
     <value>Beim Umschalten der Starteinstellungen ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut.</value>
-  </data>
-  <data name="SettingsPage_RoundedWebViewHeader.Description" xml:space="preserve">
-    <value>Abgerundete Ecken für Webbrowser aktivieren, Eckenradius synchronisiert sich automatisch mit dem übergeordneten Container</value>
   </data>
   <data name="SettingsPage_HotkeyDialog.Title" xml:space="preserve">
     <value>Tastenkombination festlegen</value>
@@ -482,7 +471,6 @@
   <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
     <value>WinUI-Stil-Kontextmenü für Webbrowser aktivieren (Standard verwendet natives Browsermenü)</value>
   </data>
-
   <!-- Einstellungsseite - Labor-Eintrag -->
   <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
     <value>Labor 📦</value>
@@ -490,7 +478,6 @@
   <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
     <value>Experimentelle Funktionen erkunden</value>
   </data>
-
   <!-- Laborseite -->
   <data name="LabPage_Title.Text" xml:space="preserve">
     <value>Labor 📦</value>
@@ -506,12 +493,6 @@
   </data>
   <data name="LabPage_AILabHeader.Description" xml:space="preserve">
     <value>AI-Labor-Eintrag in der Seitenleiste anzeigen</value>
-  </data>
-  <data name="LabPage_RoundedWebViewHeader.Header" xml:space="preserve">
-    <value>WebView2 abgerundete Ecken</value>
-  </data>
-  <data name="LabPage_RoundedWebViewHeader.Description" xml:space="preserve">
-    <value>Abgerundete Ecken für Webbrowser aktivieren, Radius synchronisiert sich automatisch mit dem übergeordneten Container</value>
   </data>
   <data name="LabPage_WinUIContextMenuHeader.Header" xml:space="preserve">
     <value>WinUI-Kontextmenü</value>

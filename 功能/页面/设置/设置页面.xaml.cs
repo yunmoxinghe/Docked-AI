@@ -265,17 +265,14 @@ namespace Docked_AI.Features.Pages.Settings
                 LeftDockNavigationToggle.Toggled += OnLeftDockNavigationToggled;
             }
 
-            // 加载三个实验特性开关
+            // 加载实验特性开关
             AILabToggle.Toggled -= OnAILabToggled;
-            RoundedWebViewToggle.Toggled -= OnRoundedWebViewToggled;
             WinUIContextMenuToggle.Toggled -= OnWinUIContextMenuToggled;
 
             AILabToggle.IsOn = ExperimentalSettings.EnableAILab;
-            RoundedWebViewToggle.IsOn = ExperimentalSettings.EnableRoundedWebView;
             WinUIContextMenuToggle.IsOn = ExperimentalSettings.EnableWinUIContextMenu;
 
             AILabToggle.Toggled += OnAILabToggled;
-            RoundedWebViewToggle.Toggled += OnRoundedWebViewToggled;
             WinUIContextMenuToggle.Toggled += OnWinUIContextMenuToggled;
         }
 
@@ -309,21 +306,6 @@ namespace Docked_AI.Features.Pages.Settings
             AILabToggle.IsOn = !AILabToggle.IsOn;
         }
 
-        private void OnRoundedWebViewToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.EnableRoundedWebView = toggle.IsOn;
-                RaiseRoundedWebViewSettingsChanged();
-            }
-        }
-
-        private void OnRoundedWebViewCardClick(object sender, RoutedEventArgs e)
-        {
-            // 点击卡片时切换 ToggleSwitch 状态
-            RoundedWebViewToggle.IsOn = !RoundedWebViewToggle.IsOn;
-        }
-
         private void OnWinUIContextMenuToggled(object sender, RoutedEventArgs e)
         {
             if (sender is ToggleSwitch toggle)
@@ -345,10 +327,6 @@ namespace Docked_AI.Features.Pages.Settings
             // 或使用 SuppressNavigationTransitionInfo 完全禁用动画以获得最快速度
             Frame.Navigate(typeof(LabPage), null, new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo());
         }
-
-        // Event to notify when rounded webview settings change
-        public static event EventHandler? RoundedWebViewSettingsChanged;
-        internal static void RaiseRoundedWebViewSettingsChanged() => RoundedWebViewSettingsChanged?.Invoke(null, EventArgs.Empty);
 
         // Event to notify when WinUI context menu settings change
         public static event EventHandler? WinUIContextMenuSettingsChanged;

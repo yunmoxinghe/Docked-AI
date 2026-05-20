@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -112,7 +112,6 @@
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
     <value>앱 표시 언어 선택</value>
   </data>
-  
   <data name="SettingsPage_DockSideHeader.Header" xml:space="preserve">
     <value>창 도킹 위치</value>
   </data>
@@ -137,7 +136,6 @@
   <data name="SettingsPage_LeftDockNavigationHeader.Description" xml:space="preserve">
     <value>창이 화면 왼쪽에 도킹되면 탐색 모음도 창 왼쪽에 배치합니다</value>
   </data>
-  
   <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Header" xml:space="preserve">
     <value>트레이 창 닫기 동작</value>
   </data>
@@ -150,7 +148,6 @@
   <data name="SettingsPage_TrayCloseRestartToTray.Content" xml:space="preserve">
     <value>트레이만으로 재시작</value>
   </data>
-  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>시스템 따라가기</value>
   </data>
@@ -401,9 +398,6 @@
   <data name="SettingsPage_InteractionSection.Text" xml:space="preserve">
     <value>상호 작용</value>
   </data>
-  <data name="SettingsPage_RoundedWebViewHeader.Header" xml:space="preserve">
-    <value>WebView2 둥근 모서리</value>
-  </data>
   <data name="SettingsPage_AILabHeader.Header" xml:space="preserve">
     <value>AI 연구소</value>
   </data>
@@ -422,7 +416,6 @@
   <data name="WebBrowser_CloseButton" xml:space="preserve">
     <value>이 페이지 닫기</value>
   </data>
-  
   <!-- AI 페이지 -->
   <data name="AIPage_Title.Text" xml:space="preserve">
     <value>AI 연구소</value>
@@ -430,7 +423,6 @@
   <data name="AIPage_Description.Text" xml:space="preserve">
     <value>AI 기능 및 실험적 기능 탐색</value>
   </data>
-  
   <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
     <value>정보</value>
   </data>
@@ -442,9 +434,6 @@
   </data>
   <data name="SettingsPage_StartupToggleError" xml:space="preserve">
     <value>시작 설정을 전환하는 중 오류가 발생했습니다. 나중에 다시 시도하세요.</value>
-  </data>
-  <data name="SettingsPage_RoundedWebViewHeader.Description" xml:space="preserve">
-    <value>웹 브라우저의 둥근 모서리 효과를 활성화하고, 모서리 반경은 상위 컨테이너와 자동 동기화됩니다</value>
   </data>
   <data name="SettingsPage_HotkeyDialog.Title" xml:space="preserve">
     <value>단축키 설정</value>
@@ -482,7 +471,6 @@
   <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
     <value>웹 브라우저에 WinUI 스타일 컨텍스트 메뉴 활성화 (기본값은 브라우저 네이티브 메뉴)</value>
   </data>
-
   <!-- 설정 페이지 - 실험실 입구 -->
   <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
     <value>실험실 📦</value>
@@ -490,7 +478,6 @@
   <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
     <value>실험적 기능 탐색</value>
   </data>
-
   <!-- 실험실 페이지 -->
   <data name="LabPage_Title.Text" xml:space="preserve">
     <value>실험실 📦</value>
@@ -506,12 +493,6 @@
   </data>
   <data name="LabPage_AILabHeader.Description" xml:space="preserve">
     <value>사이드바에 AI 실험실 항목 표시</value>
-  </data>
-  <data name="LabPage_RoundedWebViewHeader.Header" xml:space="preserve">
-    <value>WebView2 둥근 모서리</value>
-  </data>
-  <data name="LabPage_RoundedWebViewHeader.Description" xml:space="preserve">
-    <value>웹 브라우저에 둥근 모서리 효과 활성화, 크기는 상위 컨테이너와 자동 동기화</value>
   </data>
   <data name="LabPage_WinUIContextMenuHeader.Header" xml:space="preserve">
     <value>WinUI 컨텍스트 메뉴</value>

@@ -62,60 +62,6 @@
             </controls:WebView2.ContextFlyout>
         </controls:WebView2>
 
-        <!-- 圆角容器（实验特性） -->
-        <Border
-            x:Name="RoundedWebViewContainer"
-            Grid.Row="1"
-            Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
-            Visibility="Collapsed">
-            <controls:WebView2
-                x:Name="RoundedWebView"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch">
-                <controls:WebView2.ContextFlyout>
-                    <MenuFlyout x:Name="RoundedWebViewContextMenu">
-                        <MenuFlyoutItem x:Name="BackMenuItem2" x:Uid="WebBrowser_BackMenuItem" Click="BackMenuItem_Click">
-                            <MenuFlyoutItem.Icon>
-                                <SymbolIcon Symbol="Back" />
-                            </MenuFlyoutItem.Icon>
-                        </MenuFlyoutItem>
-                        <MenuFlyoutItem x:Name="ForwardMenuItem2" x:Uid="WebBrowser_ForwardMenuItem" Click="ForwardMenuItem_Click">
-                            <MenuFlyoutItem.Icon>
-                                <SymbolIcon Symbol="Forward" />
-                            </MenuFlyoutItem.Icon>
-                        </MenuFlyoutItem>
-                        <MenuFlyoutItem x:Name="RefreshMenuItem2" x:Uid="WebBrowser_RefreshMenuItem" Click="RefreshMenuItem_Click">
-                            <MenuFlyoutItem.Icon>
-                                <SymbolIcon Symbol="Refresh" />
-                            </MenuFlyoutItem.Icon>
-                        </MenuFlyoutItem>
-                        <MenuFlyoutSeparator />
-                        <MenuFlyoutItem x:Name="CopyMenuItem2" x:Uid="WebBrowser_CopyMenuItem" Click="CopyMenuItem_Click">
-                            <MenuFlyoutItem.Icon>
-                                <SymbolIcon Symbol="Copy" />
-                            </MenuFlyoutItem.Icon>
-                        </MenuFlyoutItem>
-                        <MenuFlyoutItem x:Name="CopyLinkMenuItem2" x:Uid="WebBrowser_CopyLinkMenuItem" Click="CopyLinkMenuItem_Click" IsEnabled="False">
-                            <MenuFlyoutItem.Icon>
-                                <FontIcon Glyph="&#xE71B;" />
-                            </MenuFlyoutItem.Icon>
-                        </MenuFlyoutItem>
-                        <MenuFlyoutSeparator />
-                        <MenuFlyoutItem x:Name="CopyUrlMenuItem2" x:Uid="WebBrowser_CopyUrlMenuItem" Click="CopyUrlMenuItem_Click">
-                            <MenuFlyoutItem.Icon>
-                                <FontIcon Glyph="&#xE8C8;" />
-                            </MenuFlyoutItem.Icon>
-                        </MenuFlyoutItem>
-                        <MenuFlyoutItem x:Name="OpenExternalMenuItem2" x:Uid="WebBrowser_OpenExternalMenuItem" Click="OpenExternalMenuItem_Click">
-                            <MenuFlyoutItem.Icon>
-                                <SymbolIcon Symbol="World" />
-                            </MenuFlyoutItem.Icon>
-                        </MenuFlyoutItem>
-                    </MenuFlyout>
-                </controls:WebView2.ContextFlyout>
-            </controls:WebView2>
-        </Border>
-
         <Border
             x:Name="BottomBarHost"
             Grid.Row="2"

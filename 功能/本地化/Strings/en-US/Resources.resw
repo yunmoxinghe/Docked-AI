@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -58,12 +58,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  
   <!-- Common -->
   <data name="AppDisplayName" xml:space="preserve">
     <value>Docked AI</value>
   </data>
-  
   <!-- Home Page -->
   <data name="HomePage_Title.Text" xml:space="preserve">
     <value>Home</value>
@@ -71,7 +69,6 @@
   <data name="HomePage_EmptyText.Text" xml:space="preserve">
     <value>No pinned web pages yet</value>
   </data>
-  
   <!-- Settings Page -->
   <data name="SettingsPage_Title.Text" xml:space="preserve">
     <value>Settings</value>
@@ -115,7 +112,6 @@
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
     <value>Select app display language</value>
   </data>
-  
   <data name="SettingsPage_DockSideHeader.Header" xml:space="preserve">
     <value>Window Dock Position</value>
   </data>
@@ -140,7 +136,6 @@
   <data name="SettingsPage_LeftDockNavigationHeader.Description" xml:space="preserve">
     <value>When the window is docked to the left side of the screen, place the navigation bar on the left side of the window too</value>
   </data>
-  
   <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Header" xml:space="preserve">
     <value>Tray Close Window Behavior</value>
   </data>
@@ -153,7 +148,6 @@
   <data name="SettingsPage_TrayCloseRestartToTray.Content" xml:space="preserve">
     <value>Restart to Tray Only</value>
   </data>
-  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>Follow System</value>
   </data>
@@ -190,7 +184,6 @@
   <data name="SettingsPage_LicenseLink.Content" xml:space="preserve">
     <value>View License</value>
   </data>
-  
   <!-- Tray Menu -->
   <data name="TrayMenu_OpenWindow" xml:space="preserve">
     <value>Open Main Window</value>
@@ -207,7 +200,6 @@
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>Exit</value>
   </data>
-  
   <!-- Navigation -->
   <data name="Nav_Home.Content" xml:space="preserve">
     <value>Home</value>
@@ -230,7 +222,6 @@
   <data name="Nav_WindowStateToggle" xml:space="preserve">
     <value>Toggle Window State</value>
   </data>
-  
   <!-- New Page -->
   <data name="NewPage_Title.Text" xml:space="preserve">
     <value>New</value>
@@ -241,7 +232,6 @@
   <data name="NewPage_PinWebHeader.Description" xml:space="preserve">
     <value>Pin frequently used websites as standalone app entries.</value>
   </data>
-  
   <!-- Web App Page -->
   <data name="WebAppPage_RestoreAutoIcon.Content" xml:space="preserve">
     <value>Restore Auto Icon</value>
@@ -261,7 +251,6 @@
   <data name="WebAppPage_Confirm.Content" xml:space="preserve">
     <value>Confirm</value>
   </data>
-  
   <!-- Web Browser Page -->
   <data name="WebBrowserPage_Back.Label" xml:space="preserve">
     <value>Back</value>
@@ -278,7 +267,6 @@
   <data name="WebBrowserPage_OpenExternal.Label" xml:space="preserve">
     <value>Open Externally</value>
   </data>
-  
   <!-- Web App Page Status Messages -->
   <data name="WebAppPage_IconRestored" xml:space="preserve">
     <value>Auto icon restored</value>
@@ -319,7 +307,6 @@
   <data name="WebAppPage_ShortcutCreated" xml:space="preserve">
     <value>Web shortcut created</value>
   </data>
-  
   <!-- Settings Page Dialog -->
   <data name="SettingsPage_RestartTitle" xml:space="preserve">
     <value>Restart Required</value>
@@ -351,7 +338,6 @@
   <data name="SettingsPage_MaxWebViewHeader.Description" xml:space="preserve">
     <value>Set the maximum number of web browsers that can be opened simultaneously (1-20)</value>
   </data>
-  
   <!-- Navigation Bar WebView Limit -->
   <data name="Nav_WebViewLimitTitle" xml:space="preserve">
     <value>Browser Limit Reached</value>
@@ -362,7 +348,6 @@
   <data name="Nav_WebViewLimitClose" xml:space="preserve">
     <value>OK</value>
   </data>
-  
   <!-- Language Options -->
   <data name="Language_SimplifiedChinese.Text" xml:space="preserve">
     <value>Simplified Chinese</value>
@@ -412,16 +397,13 @@
   <data name="Language_Spanish.Content" xml:space="preserve">
     <value>Spanish</value>
   </data>
-  
   <!-- Navigation Menu -->
   <data name="Nav_UnpinShortcut" xml:space="preserve">
     <value>Unpin</value>
   </data>
-  
   <data name="WebBrowser_CloseButton" xml:space="preserve">
     <value>Close this page</value>
   </data>
-  
   <!-- AI Page -->
   <data name="AIPage_Title.Text" xml:space="preserve">
     <value>AI Lab</value>
@@ -429,7 +411,6 @@
   <data name="AIPage_Description.Text" xml:space="preserve">
     <value>Explore AI features and experimental capabilities</value>
   </data>
-  
   <!-- Web Browser Context Menu -->
   <data name="WebBrowser_BackMenuItem.Text" xml:space="preserve">
     <value>Back</value>
@@ -452,7 +433,6 @@
   <data name="WebBrowser_OpenExternalMenuItem.Text" xml:space="preserve">
     <value>Open in Browser</value>
   </data>
-  
   <!-- Settings Page - Section Titles -->
   <data name="SettingsPage_GeneralSection.Text" xml:space="preserve">
     <value>General</value>
@@ -475,7 +455,6 @@
   <data name="SettingsPage_RateAppCard.Description" xml:space="preserve">
     <value>Love this app? Give us a rating and review!</value>
   </data>
-  
   <!-- Settings Page - Frame Animation -->
   <data name="SettingsPage_BackButtonHeader.Header" xml:space="preserve">
     <value>Sidebar Back Button</value>
@@ -507,7 +486,6 @@
   <data name="SettingsPage_AnimationDrill.Content" xml:space="preserve">
     <value>Drill Animation</value>
   </data>
-  
   <!-- Settings Page - Experimental Features -->
   <data name="SettingsPage_ExperimentalHeader.Header" xml:space="preserve">
     <value>Experimental Features</value>
@@ -515,17 +493,11 @@
   <data name="SettingsPage_ExperimentalHeader.Description" xml:space="preserve">
     <value>Enable experimental features (may be unstable)</value>
   </data>
-  <data name="SettingsPage_RoundedWebViewHeader.Header" xml:space="preserve">
-    <value>WebView2 Rounded Corners</value>
-  </data>
   <data name="SettingsPage_AILabHeader.Header" xml:space="preserve">
     <value>AI Lab</value>
   </data>
   <data name="SettingsPage_AILabHeader.Description" xml:space="preserve">
     <value>Show AI Lab entry in the sidebar</value>
-  </data>
-  <data name="SettingsPage_RoundedWebViewHeader.Description" xml:space="preserve">
-    <value>Enable rounded corners for web browser, corner radius automatically syncs with parent container</value>
   </data>
   <data name="SettingsPage_WinUIContextMenuHeader.Header" xml:space="preserve">
     <value>WinUI Context Menu</value>
@@ -533,7 +505,6 @@
   <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
     <value>Enable WinUI-style context menu for web browser (default uses native browser menu)</value>
   </data>
-  
   <!-- Settings Page - Lab Entry -->
   <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
     <value>Lab 📦</value>
@@ -541,7 +512,6 @@
   <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
     <value>Explore experimental features</value>
   </data>
-
   <!-- Lab Page -->
   <data name="LabPage_Title.Text" xml:space="preserve">
     <value>Lab 📦</value>
@@ -557,12 +527,6 @@
   </data>
   <data name="LabPage_AILabHeader.Description" xml:space="preserve">
     <value>Show AI Lab entry in the sidebar</value>
-  </data>
-  <data name="LabPage_RoundedWebViewHeader.Header" xml:space="preserve">
-    <value>WebView2 Rounded Corners</value>
-  </data>
-  <data name="LabPage_RoundedWebViewHeader.Description" xml:space="preserve">
-    <value>Enable rounded corners for web browser, corner radius automatically syncs with parent container</value>
   </data>
   <data name="LabPage_WinUIContextMenuHeader.Header" xml:space="preserve">
     <value>WinUI Context Menu</value>
@@ -618,7 +582,6 @@
   <data name="LabPage_TopBarRightClearButton.Content" xml:space="preserve">
     <value>Clear</value>
   </data>
-  
   <!-- Settings Page - Hotkey Dialog -->
   <data name="SettingsPage_HotkeyDialog.Title" xml:space="preserve">
     <value>Set Hotkey</value>
@@ -638,7 +601,6 @@
   <data name="SettingsPage_HotkeyDialogHint.Text" xml:space="preserve">
     <value>Tip: At least one modifier key (Ctrl, Alt, Shift, or Win) is required</value>
   </data>
-  
   <!-- Settings Page - C# Code Strings -->
   <data name="SettingsPage_ErrorTitle" xml:space="preserve">
     <value>Error</value>
@@ -647,7 +609,7 @@
     <value>An error occurred while toggling startup settings. Please try again later.</value>
   </data>
   <data name="SettingsPage_OpenSettingsError" xml:space="preserve">
-    <value>Unable to open system settings page. Please manually navigate to Windows Settings > Apps > Startup.</value>
+    <value>Unable to open system settings page. Please manually navigate to Windows Settings &gt; Apps &gt; Startup.</value>
   </data>
   <data name="SettingsPage_ConfirmButton" xml:space="preserve">
     <value>OK</value>

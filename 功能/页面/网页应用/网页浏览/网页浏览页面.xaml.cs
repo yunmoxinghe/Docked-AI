@@ -55,8 +55,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private readonly SolidColorBrush _bottomBarDisabledForegroundBrush = new();
         private readonly SolidColorBrush _bottomBarHoverForegroundBrush = new();
         private bool _isDisposed;
-        private bool _useRoundedWebView;
-        private Microsoft.UI.Xaml.Controls.WebView2? _activeWebView;
         private bool _hasReceivedFirstTint;
         private bool _hasAppliedThemeColor;
         private string? _instanceId;
@@ -74,14 +72,10 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
             _instanceId = Guid.NewGuid().ToString();
 
-            _useRoundedWebView = ExperimentalSettings.EnableRoundedWebView;
-            UpdateWebViewVisibility();
-
             bool useWinUIContextMenu = ExperimentalSettings.EnableWinUIContextMenu;
             if (!useWinUIContextMenu)
             {
                 WebView.ContextFlyout = null;
-                RoundedWebView.ContextFlyout = null;
             }
 
             InitializeForegroundColors();
@@ -106,14 +100,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             Loaded += WebBrowserPage_Loaded;
             Unloaded += WebBrowserPage_Unloaded;
             
-            Pages.Settings.SettingsPage.RoundedWebViewSettingsChanged += OnRoundedWebViewSettingsChanged;
             Pages.Settings.SettingsPage.WinUIContextMenuSettingsChanged += OnWinUIContextMenuSettingsChanged;
             Pages.Settings.SettingsPage.WebViewPerformanceSettingsChanged += OnWebViewPerformanceSettingsChanged;
-            
-            if (_useRoundedWebView)
-            {
-                this.SizeChanged += OnPageSizeChanged;
-            }
         }
 
         private void InitializeTopBar()
@@ -227,10 +215,10 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             // 更新标题
             if (_topBarTitle != null && _currentShortcut != null)
             {
-                if (_activeWebView?.CoreWebView2 != null && !string.IsNullOrWhiteSpace(_activeWebView.CoreWebView2.DocumentTitle))
+                if (WebView?.CoreWebView2 != null && !string.IsNullOrWhiteSpace(WebView.CoreWebView2.DocumentTitle))
                 {
                     // 如果有网页标题，使用网页标题
-                    _topBarTitle.Text = _activeWebView.CoreWebView2.DocumentTitle;
+                    _topBarTitle.Text = WebView.CoreWebView2.DocumentTitle;
                     System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 标题设置为网页标题: {_topBarTitle.Text}");
                 }
                 else
@@ -256,87 +244,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             else
             {
                 System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 无图标数据");
-            }
-        }
-
-        private void UpdateWebViewVisibility()
-        {
-            System.Diagnostics.Debug.WriteLine($"[UpdateWebViewVisibility] _useRoundedWebView: {_useRoundedWebView}");
-            System.Diagnostics.Debug.WriteLine($"[UpdateWebViewVisibility] WebView 是否为 null: {WebView == null}");
-            System.Diagnostics.Debug.WriteLine($"[UpdateWebViewVisibility] RoundedWebView 是否为 null: {RoundedWebView == null}");
-            
-            // 保存旧的 WebView 引用
-            var oldWebView = _activeWebView;
-            
-            if (_useRoundedWebView)
-            {
-                if (WebView != null)
-                {
-                    WebView.Visibility = Visibility.Collapsed;
-                    // 如果旧的 WebView 是普通 WebView，清理它
-                    if (oldWebView == WebView && oldWebView != null)
-                    {
-                        CleanupWebViewInstance(oldWebView);
-                    }
-                }
-                if (RoundedWebViewContainer != null)
-                {
-                    RoundedWebViewContainer.Visibility = Visibility.Visible;
-                }
-                _activeWebView = RoundedWebView;
-            }
-            else
-            {
-                if (WebView != null)
-                {
-                    WebView.Visibility = Visibility.Visible;
-                }
-                if (RoundedWebViewContainer != null)
-                {
-                    RoundedWebViewContainer.Visibility = Visibility.Collapsed;
-                    // 如果旧的 WebView 是圆角 WebView，清理它
-                    if (oldWebView == RoundedWebView && oldWebView != null)
-                    {
-                        CleanupWebViewInstance(oldWebView);
-                    }
-                }
-                _activeWebView = WebView;
-            }
-            
-            System.Diagnostics.Debug.WriteLine($"[UpdateWebViewVisibility] _activeWebView 设置为: {(_activeWebView == WebView ? "WebView" : _activeWebView == RoundedWebView ? "RoundedWebView" : "null")}");
-        }
-        
-        /// <summary>
-        /// 清理 WebView 实例（但不关闭，只是停止导航和移除事件）
-        /// </summary>
-        private void CleanupWebViewInstance(Microsoft.UI.Xaml.Controls.WebView2 webView)
-        {
-            if (webView?.CoreWebView2 != null)
-            {
-                try
-                {
-                    System.Diagnostics.Debug.WriteLine($"[CleanupWebViewInstance] 清理 WebView 实例");
-                    
-                    // 停止当前导航
-                    webView.CoreWebView2.Stop();
-                    
-                    // 移除事件订阅
-                    webView.CoreWebView2.WebMessageReceived -= CoreWebView2_WebMessageReceived;
-                    webView.CoreWebView2.DocumentTitleChanged -= CoreWebView2_DocumentTitleChanged;
-                    webView.CoreWebView2.HistoryChanged -= CoreWebView2_HistoryChanged;
-                    webView.CoreWebView2.NavigationStarting -= CoreWebView2_NavigationStarting;
-                    webView.CoreWebView2.NavigationCompleted -= CoreWebView2_NavigationCompleted;
-                    webView.CoreWebView2.ContextMenuRequested -= CoreWebView2_ContextMenuRequested;
-                    
-                    // 清空 Source
-                    webView.Source = null;
-                    
-                    System.Diagnostics.Debug.WriteLine($"[CleanupWebViewInstance] WebView 实例已清理");
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[CleanupWebViewInstance] 清理失败: {ex.Message}");
-                }
             }
         }
 
@@ -399,29 +306,16 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             button.Resources["AppBarButtonForegroundDisabled"] = _bottomBarDisabledForegroundBrush;
         }
 
-        private void OnRoundedWebViewSettingsChanged(object? sender, EventArgs e)
-        {
-            // 设置改变时，需要重新加载页面才能生效
-            // 这里只是更新标志，实际切换需要重新导航
-            _useRoundedWebView = ExperimentalSettings.EnableRoundedWebView;
-        }
-
         private void OnWinUIContextMenuSettingsChanged(object? sender, EventArgs e)
         {
             // 设置改变时，更新右键菜单配置
             bool useWinUIContextMenu = ExperimentalSettings.EnableWinUIContextMenu;
             
-            // 更新两个 WebView 的配置
+            // 更新 WebView 的配置
             if (WebView?.CoreWebView2 != null)
             {
                 WebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = !useWinUIContextMenu;
                 UpdateContextMenuForWebView(WebView, useWinUIContextMenu);
-            }
-            
-            if (RoundedWebView?.CoreWebView2 != null)
-            {
-                RoundedWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = !useWinUIContextMenu;
-                UpdateContextMenuForWebView(RoundedWebView, useWinUIContextMenu);
             }
         }
 
@@ -436,11 +330,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void UpdateContextMenuConfiguration(bool useWinUIContextMenu)
         {
-            // 配置当前激活的 WebView
-            if (_activeWebView != null)
-            {
-                UpdateContextMenuForWebView(_activeWebView, useWinUIContextMenu);
-            }
+            // 配置 WebView
+            UpdateContextMenuForWebView(WebView, useWinUIContextMenu);
         }
 
         private void UpdateContextMenuForWebView(Microsoft.UI.Xaml.Controls.WebView2 webView, bool useWinUIContextMenu)
@@ -467,16 +358,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             if (useWinUIContextMenu)
             {
                 // 恢复 ContextFlyout（如果之前被移除）
-                if (webView.ContextFlyout == null)
+                if (webView.ContextFlyout == null && webView == WebView)
                 {
-                    if (webView == WebView)
-                    {
-                        webView.ContextFlyout = WebViewContextMenu;
-                    }
-                    else if (webView == RoundedWebView)
-                    {
-                        webView.ContextFlyout = RoundedWebViewContextMenu;
-                    }
+                    webView.ContextFlyout = WebViewContextMenu;
                 }
             }
             else
@@ -485,60 +369,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 webView.ContextFlyout = null;
             }
         }
-
-        private void OnPageSizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            if (!_useRoundedWebView)
-            {
-                return;
-            }
-
-            // 同步上层 Frame 的圆角到 Border
-            SyncCornerRadiusFromParent();
-        }
-
-        private void SyncCornerRadiusFromParent()
-        {
-            // 尝试从父级 Frame 获取 CornerRadius
-            DependencyObject? parent = this.Parent;
-            CornerRadius cornerRadius = new CornerRadius(0);
-            
-            while (parent != null)
-            {
-                if (parent is Frame frame && frame.CornerRadius != new CornerRadius(0))
-                {
-                    cornerRadius = frame.CornerRadius;
-                    break;
-                }
-                if (parent is Border border && border.CornerRadius != new CornerRadius(0))
-                {
-                    cornerRadius = border.CornerRadius;
-                    break;
-                }
-                if (parent is Grid grid && grid.CornerRadius != new CornerRadius(0))
-                {
-                    cornerRadius = grid.CornerRadius;
-                    break;
-                }
-                
-                parent = VisualTreeHelper.GetParent(parent);
-            }
-            
-            // 如果没有找到圆角，使用默认值 12
-            if (cornerRadius == new CornerRadius(0))
-            {
-                cornerRadius = new CornerRadius(12);
-            }
-            
-            RoundedWebViewContainer.CornerRadius = cornerRadius;
-        }
-
-        private void OnPageSizeChangedForCorners(object sender, SizeChangedEventArgs e)
-        {
-            // 不再需要同步圆角，因为使用统一顶部栏
-        }
-
-
 
         private void ApplyBottomBarResponsiveLayout()
         {
@@ -679,11 +509,11 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             SetupTopBar();
             
             // 如果 WebView 被暂停，恢复它
-            if (ExperimentalSettings.SuspendInactiveWebView && _activeWebView?.CoreWebView2 != null)
+            if (ExperimentalSettings.SuspendInactiveWebView && WebView?.CoreWebView2 != null)
             {
                 try
                 {
-                    _activeWebView.CoreWebView2.Resume();
+                    WebView.CoreWebView2.Resume();
                     System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 已恢复");
                 }
                 catch (Exception ex)
@@ -693,52 +523,26 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
             
             // 缓存页面被重新激活时，检查 WebView 状态
-            if (_activeWebView == null)
+            if (WebView == null)
             {
-                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 缓存页面激活时 _activeWebView 为 null，尝试重新获取");
-                
-                // 重新根据设置获取正确的 WebView 实例
-                _useRoundedWebView = ExperimentalSettings.EnableRoundedWebView;
-                UpdateWebViewVisibility();
-                
-                if (_activeWebView != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 已重新获取 WebView 实例: {(_useRoundedWebView ? "RoundedWebView" : "WebView")}");
-                    
-                    // 如果 WebView 未初始化，触发初始化
-                    if (!_isWebViewReady || _activeWebView.CoreWebView2 == null)
-                    {
-                        System.Diagnostics.Debug.WriteLine("[WebBrowserPage] WebView 需要初始化，触发异步初始化");
-                        _ = EnsureWebViewInitializedAsync().ContinueWith(t =>
-                        {
-                            if (t.IsCompletedSuccessfully)
-                            {
-                                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] WebView 初始化完成");
-                                TryNavigatePendingUri();
-                            }
-                            else
-                            {
-                                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 初始化失败: {t.Exception?.Message}");
-                            }
-                        });
-                    }
-                }
+                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 缓存页面激活时 WebView 为 null");
+                return;
             }
-            else if (_activeWebView.CoreWebView2 == null)
+
+            // 如果 WebView 未初始化，触发初始化
+            if (!_isWebViewReady || WebView.CoreWebView2 == null)
             {
-                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] CoreWebView2 为 null，可能需要重新初始化");
-                
-                // 触发异步初始化
+                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] WebView 需要初始化，触发异步初始化");
                 _ = EnsureWebViewInitializedAsync().ContinueWith(t =>
                 {
                     if (t.IsCompletedSuccessfully)
                     {
-                        System.Diagnostics.Debug.WriteLine("[WebBrowserPage] CoreWebView2 重新初始化完成");
+                        System.Diagnostics.Debug.WriteLine("[WebBrowserPage] WebView 初始化完成");
                         TryNavigatePendingUri();
                     }
                     else
                     {
-                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] CoreWebView2 重新初始化失败: {t.Exception?.Message}");
+                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 初始化失败: {t.Exception?.Message}");
                     }
                 });
             }
@@ -757,11 +561,11 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 保持顶部栏可见，等待新页面覆盖内容");
             
             // 如果启用了暂停不活跃 WebView 的功能
-            if (ExperimentalSettings.SuspendInactiveWebView && _activeWebView?.CoreWebView2 != null)
+            if (ExperimentalSettings.SuspendInactiveWebView && WebView?.CoreWebView2 != null)
             {
                 try
                 {
-                    _ = _activeWebView.CoreWebView2.TrySuspendAsync();
+                    _ = WebView.CoreWebView2.TrySuspendAsync();
                     System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 已暂停");
                 }
                 catch (Exception ex)
@@ -771,7 +575,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
             
             // 如果启用了自动清理缓存
-            if (ExperimentalSettings.AutoClearCache && _activeWebView?.CoreWebView2 != null)
+            if (ExperimentalSettings.AutoClearCache && WebView?.CoreWebView2 != null)
             {
                 _ = ClearBrowsingDataAsync();
             }
@@ -801,11 +605,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             
             await EnsureWebViewInitializedAsync();
             TryNavigatePendingUri();
-            
-            if (_useRoundedWebView)
-            {
-                SyncCornerRadiusFromParent();
-            }
         }
 
         private void WebBrowserPage_Unloaded(object sender, RoutedEventArgs e)
@@ -832,7 +631,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private async Task EnsureWebViewInitializedAsync()
         {
-            if (_isWebViewReady || _activeWebView == null)
+            if (_isWebViewReady || WebView == null)
             {
                 return;
             }
@@ -849,36 +648,36 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     browserExecutableFolder: null,
                     userDataFolder: null,
                     options: options);
-                await _activeWebView.EnsureCoreWebView2Async(environment);
+                await WebView.EnsureCoreWebView2Async(environment);
                 
                 // 设置 WebView2 背景透明
-                _activeWebView.DefaultBackgroundColor = Microsoft.UI.Colors.Transparent;
+                WebView.DefaultBackgroundColor = Microsoft.UI.Colors.Transparent;
 
-                if (_activeWebView.CoreWebView2 is not null)
+                if (WebView.CoreWebView2 is not null)
                 {
-                    _activeWebView.CoreWebView2.Settings.IsWebMessageEnabled = true;
+                    WebView.CoreWebView2.Settings.IsWebMessageEnabled = true;
                     
                     // 优化触摸板和滚动体验
-                    _activeWebView.CoreWebView2.Settings.IsSwipeNavigationEnabled = true;
+                    WebView.CoreWebView2.Settings.IsSwipeNavigationEnabled = true;
                     
                     // 禁用触摸板缩放
-                    _activeWebView.CoreWebView2.Settings.IsZoomControlEnabled = false;
+                    WebView.CoreWebView2.Settings.IsZoomControlEnabled = false;
                     
                     // 禁用状态栏（悬停链接时左下角不显示 URL）
-                    _activeWebView.CoreWebView2.Settings.IsStatusBarEnabled = false;
+                    WebView.CoreWebView2.Settings.IsStatusBarEnabled = false;
                     
                     // 根据设置决定是否禁用默认右键菜单
                     bool useWinUIContextMenu = ExperimentalSettings.EnableWinUIContextMenu;
-                    _activeWebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = !useWinUIContextMenu;
+                    WebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = !useWinUIContextMenu;
                     
                     // 应用内存模式设置
                     ApplyMemoryModeSettings();
                     
-                    _activeWebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
-                    _activeWebView.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
-                    _activeWebView.CoreWebView2.HistoryChanged += CoreWebView2_HistoryChanged;
-                    _activeWebView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
-                    _activeWebView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
+                    WebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
+                    WebView.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
+                    WebView.CoreWebView2.HistoryChanged += CoreWebView2_HistoryChanged;
+                    WebView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
+                    WebView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
                     
                     // 根据设置配置右键菜单
                     UpdateContextMenuConfiguration(useWinUIContextMenu);
@@ -904,18 +703,18 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void TryNavigatePendingUri()
         {
-            if (!_isWebViewReady || _pendingNavigationUri is null || _activeWebView == null)
+            if (!_isWebViewReady || _pendingNavigationUri is null || WebView == null)
             {
                 return;
             }
 
-            _activeWebView.Source = _pendingNavigationUri;
+            WebView.Source = _pendingNavigationUri;
             _pendingNavigationUri = null;
         }
 
         private async Task EnsureTintScriptInstalledAsync()
         {
-            if (_activeWebView?.CoreWebView2 is null)
+            if (WebView?.CoreWebView2 is null)
             {
                 return;
             }
@@ -1072,7 +871,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
   schedule();
 })();";
 
-            await _activeWebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(script);
+            await WebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(script);
         }
 
         private void CoreWebView2_NavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
@@ -1182,7 +981,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void ApplyMemoryModeSettings()
         {
-            if (_activeWebView?.CoreWebView2 == null)
+            if (WebView?.CoreWebView2 == null)
             {
                 return;
             }
@@ -1190,7 +989,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             try
             {
                 var memoryMode = ExperimentalSettings.MemoryMode;
-                _activeWebView.CoreWebView2.MemoryUsageTargetLevel = memoryMode == WebViewMemoryMode.Low
+                WebView.CoreWebView2.MemoryUsageTargetLevel = memoryMode == WebViewMemoryMode.Low
                     ? CoreWebView2MemoryUsageTargetLevel.Low
                     : CoreWebView2MemoryUsageTargetLevel.Normal;
 
@@ -1204,14 +1003,14 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private async Task ClearBrowsingDataAsync()
         {
-            if (_activeWebView?.CoreWebView2?.Profile == null)
+            if (WebView?.CoreWebView2?.Profile == null)
             {
                 return;
             }
 
             try
             {
-                await _activeWebView.CoreWebView2.Profile.ClearBrowsingDataAsync(
+                await WebView.CoreWebView2.Profile.ClearBrowsingDataAsync(
                     CoreWebView2BrowsingDataKinds.DiskCache |
                     CoreWebView2BrowsingDataKinds.DownloadHistory
                 );
@@ -1225,12 +1024,12 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void CoreWebView2_DocumentTitleChanged(object? sender, object e)
         {
-            if (_activeWebView?.CoreWebView2 is null)
+            if (WebView?.CoreWebView2 is null)
             {
                 return;
             }
 
-            string title = _activeWebView.CoreWebView2.DocumentTitle ?? string.Empty;
+            string title = WebView.CoreWebView2.DocumentTitle ?? string.Empty;
             if (string.IsNullOrWhiteSpace(title))
             {
                 if (_currentShortcut is not null && !string.IsNullOrWhiteSpace(_currentShortcut.Name))
@@ -1598,9 +1397,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void UpdateNavigationButtons()
         {
-            if (_activeWebView == null) return;
-            BackButton.IsEnabled = _activeWebView.CanGoBack;
-            ForwardButton.IsEnabled = _activeWebView.CanGoForward;
+            if (WebView == null) return;
+            BackButton.IsEnabled = WebView.CanGoBack;
+            ForwardButton.IsEnabled = WebView.CanGoForward;
         }
 
         private async Task ShowShortcutIconAsync(byte[]? iconBytes)
@@ -1650,9 +1449,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_activeWebView != null && _activeWebView.CanGoBack)
+            if (WebView != null && WebView.CanGoBack)
             {
-                _activeWebView.GoBack();
+                WebView.GoBack();
             }
         }
 
@@ -1673,9 +1472,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void ForwardButton_Click(object sender, RoutedEventArgs e)
         {
-            if (_activeWebView != null && _activeWebView.CanGoForward)
+            if (WebView != null && WebView.CanGoForward)
             {
-                _activeWebView.GoForward();
+                WebView.GoForward();
             }
         }
 
@@ -1708,31 +1507,20 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 _lastReloadTime = now;
                 
                 System.Diagnostics.Debug.WriteLine("[TryReloadWebView] 开始重载流程");
-                System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] _activeWebView 是否为 null: {_activeWebView == null}");
+                System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] WebView 是否为 null: {WebView == null}");
                 System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] _isWebViewReady: {_isWebViewReady}");
                 
-                // 检查 WebView 是否存在，如果不存在则尝试重新获取
-                if (_activeWebView == null)
+                // 检查 WebView 是否存在
+                if (WebView == null)
                 {
-                    System.Diagnostics.Debug.WriteLine("[TryReloadWebView] _activeWebView 为 null，尝试重新获取");
-                    
-                    // 重新根据设置获取正确的 WebView 实例
-                    _useRoundedWebView = ExperimentalSettings.EnableRoundedWebView;
-                    UpdateWebViewVisibility();
-                    
-                    if (_activeWebView == null)
-                    {
-                        System.Diagnostics.Debug.WriteLine("[TryReloadWebView] 无法获取 WebView 实例");
-                        return;
-                    }
-                    
-                    System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] 已重新获取 WebView 实例: {(_useRoundedWebView ? "RoundedWebView" : "WebView")}");
+                    System.Diagnostics.Debug.WriteLine("[TryReloadWebView] WebView 为 null");
+                    return;
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] CoreWebView2 是否为 null: {_activeWebView.CoreWebView2 == null}");
+                System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] CoreWebView2 是否为 null: {WebView.CoreWebView2 == null}");
                 
                 // 检查 CoreWebView2 是否已初始化
-                if (_activeWebView.CoreWebView2 == null)
+                if (WebView.CoreWebView2 == null)
                 {
                     System.Diagnostics.Debug.WriteLine("[TryReloadWebView] CoreWebView2 未初始化，尝试重新初始化");
                     
@@ -1741,16 +1529,16 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     await EnsureWebViewInitializedAsync();
                     
                     System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] 初始化完成，_isWebViewReady: {_isWebViewReady}");
-                    System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] CoreWebView2 是否为 null: {_activeWebView?.CoreWebView2 == null}");
+                    System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] CoreWebView2 是否为 null: {WebView?.CoreWebView2 == null}");
                     
                     // 如果初始化成功且有待导航的 URI，则导航
-                    if (_isWebViewReady && _activeWebView?.Source != null)
+                    if (_isWebViewReady && WebView?.Source != null)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] 重新导航到: {_activeWebView.Source}");
-                        var currentSource = _activeWebView.Source;
-                        _activeWebView.Source = null;
+                        System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] 重新导航到: {WebView.Source}");
+                        var currentSource = WebView.Source;
+                        WebView.Source = null;
                         await Task.Delay(50);
-                        _activeWebView.Source = currentSource;
+                        WebView.Source = currentSource;
                     }
                     else if (_pendingNavigationUri != null)
                     {
@@ -1766,7 +1554,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
                 // 正常重载
                 System.Diagnostics.Debug.WriteLine("[TryReloadWebView] 执行正常重载");
-                _activeWebView.Reload();
+                WebView.Reload();
                 System.Diagnostics.Debug.WriteLine("[TryReloadWebView] 重载命令已发送");
             }
             catch (Exception ex)
@@ -1777,13 +1565,10 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 // 如果重载失败，尝试重新导航到当前 URL
                 try
                 {
-                    if (_activeWebView?.Source != null)
+                    if (WebView?.Source != null)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] 尝试重新导航到: {_activeWebView.Source}");
-                        var currentSource = _activeWebView.Source;
-                        
-                        // 清理当前 WebView 实例
-                        CleanupWebViewInstance(_activeWebView);
+                        System.Diagnostics.Debug.WriteLine($"[TryReloadWebView] 尝试重新导航到: {WebView.Source}");
+                        var currentSource = WebView.Source;
                         
                         // 短暂延迟后重新初始化
                         await Task.Delay(100);
@@ -1793,9 +1578,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                         await EnsureWebViewInitializedAsync();
                         
                         // 导航到之前的 URL
-                        if (_isWebViewReady && _activeWebView != null)
+                        if (_isWebViewReady && WebView != null)
                         {
-                            _activeWebView.Source = currentSource;
+                            WebView.Source = currentSource;
                         }
                     }
                 }
@@ -1813,7 +1598,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         }
         private void CopyUrlButton_Click(object sender, RoutedEventArgs e)
         {
-            Uri? uri = _activeWebView?.Source;
+            Uri? uri = WebView?.Source;
             if (uri is null)
             {
                 return;
@@ -1827,7 +1612,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private async void OpenExternalButton_Click(object sender, RoutedEventArgs e)
         {
-            Uri? uri = _activeWebView?.Source;
+            Uri? uri = WebView?.Source;
             if (uri is null)
             {
                 return;
@@ -1855,22 +1640,18 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             _contextMenuSelectedText = e.ContextMenuTarget.SelectionText;
             
             // 根据当前使用的 WebView 更新对应的菜单项
-            if (_useRoundedWebView)
-            {
-                CopyMenuItem2.IsEnabled = true;
-                CopyLinkMenuItem2.IsEnabled = !string.IsNullOrEmpty(_contextMenuLinkUrl);
-            }
-            else
+            CopyMenuItem.IsEnabled = true;
+            CopyLinkMenuItem.IsEnabled = !string.IsNullOrEmpty(_contextMenuLinkUrl);
             {
                 CopyMenuItem.IsEnabled = true;
                 CopyLinkMenuItem.IsEnabled = !string.IsNullOrEmpty(_contextMenuLinkUrl);
             }
             
             // 显示自定义菜单
-            var flyout = _activeWebView?.ContextFlyout as MenuFlyout;
+            var flyout = WebView?.ContextFlyout as MenuFlyout;
             if (flyout != null)
             {
-                flyout.ShowAt(_activeWebView, new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions
+                flyout.ShowAt(WebView, new Microsoft.UI.Xaml.Controls.Primitives.FlyoutShowOptions
                 {
                     Position = new Windows.Foundation.Point(e.Location.X, e.Location.Y)
                 });
@@ -1879,17 +1660,17 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void BackMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            if (_activeWebView != null && _activeWebView.CanGoBack)
+            if (WebView != null && WebView.CanGoBack)
             {
-                _activeWebView.GoBack();
+                WebView.GoBack();
             }
         }
 
         private void ForwardMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            if (_activeWebView != null && _activeWebView.CanGoForward)
+            if (WebView != null && WebView.CanGoForward)
             {
-                _activeWebView.GoForward();
+                WebView.GoForward();
             }
         }
 
@@ -1913,10 +1694,10 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 }
 
                 // 否则，实时从网页获取选中的文本
-                if (_activeWebView?.CoreWebView2 != null)
+                if (WebView?.CoreWebView2 != null)
                 {
                     string script = "window.getSelection().toString()";
-                    string result = await _activeWebView.CoreWebView2.ExecuteScriptAsync(script);
+                    string result = await WebView.CoreWebView2.ExecuteScriptAsync(script);
                     
                     // ExecuteScriptAsync 返回 JSON 字符串字面量，用 JsonDocument 避免 AOT 下的反射序列化路径。
                     string? selectedText = null;
@@ -1967,7 +1748,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void CopyUrlMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            Uri? uri = _activeWebView?.Source;
+            Uri? uri = WebView?.Source;
             if (uri is null)
             {
                 return;
@@ -1988,7 +1769,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private async void OpenExternalMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            Uri? uri = _activeWebView?.Source;
+            Uri? uri = WebView?.Source;
             if (uri is null)
             {
                 return;
@@ -2088,22 +1869,12 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             _isDisposed = true;
             Loaded -= WebBrowserPage_Loaded;
             Unloaded -= WebBrowserPage_Unloaded;
-            Pages.Settings.SettingsPage.RoundedWebViewSettingsChanged -= OnRoundedWebViewSettingsChanged;
             Pages.Settings.SettingsPage.WinUIContextMenuSettingsChanged -= OnWinUIContextMenuSettingsChanged;
             
-            if (_useRoundedWebView)
-            {
-                this.SizeChanged -= OnPageSizeChanged;
-            }
-            
-            // 移除动态圆角监听
-            this.SizeChanged -= OnPageSizeChangedForCorners;
-
-            // 清理两个 WebView 实例（不管哪个是活跃的）
+            // 清理 WebView 实例
             CleanupAndCloseWebView(WebView);
-            CleanupAndCloseWebView(RoundedWebView);
             
-            _activeWebView = null;
+            WebView = null;
             _pendingNavigationUri = null;
             _currentShortcut = null;
             _isWebViewReady = false;
@@ -2161,7 +1932,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         /// </summary>
         private async Task TryApplyThemeColorAsync()
         {
-            if (_activeWebView?.CoreWebView2 is null)
+            if (WebView?.CoreWebView2 is null)
             {
                 return;
             }
@@ -2177,7 +1948,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
     return null;
 })();";
 
-                string result = await _activeWebView.CoreWebView2.ExecuteScriptAsync(script);
+                string result = await WebView.CoreWebView2.ExecuteScriptAsync(script);
                 
                 // 移除 JSON 字符串的引号
                 if (!string.IsNullOrWhiteSpace(result) && result != "null")
@@ -2203,7 +1974,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         /// </summary>
         private async Task TryScreenshotSamplingAsync()
         {
-            if (_activeWebView?.CoreWebView2 is null)
+            if (WebView?.CoreWebView2 is null)
             {
                 return;
             }
@@ -2211,7 +1982,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             try
             {
                 using var stream = new InMemoryRandomAccessStream();
-                await _activeWebView.CoreWebView2.CapturePreviewAsync(
+                await WebView.CoreWebView2.CapturePreviewAsync(
                     CoreWebView2CapturePreviewImageFormat.Png, 
                     stream);
 

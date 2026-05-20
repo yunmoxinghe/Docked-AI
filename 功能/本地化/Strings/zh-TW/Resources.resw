@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -112,7 +112,6 @@
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
     <value>選擇應用程式顯示語言</value>
   </data>
-  
   <data name="SettingsPage_DockSideHeader.Header" xml:space="preserve">
     <value>視窗停靠位置</value>
   </data>
@@ -137,7 +136,6 @@
   <data name="SettingsPage_LeftDockNavigationHeader.Description" xml:space="preserve">
     <value>當視窗停靠在螢幕左側時，也將導覽列放在視窗左側</value>
   </data>
-  
   <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Header" xml:space="preserve">
     <value>系統匣關閉視窗行為</value>
   </data>
@@ -150,7 +148,6 @@
   <data name="SettingsPage_TrayCloseRestartToTray.Content" xml:space="preserve">
     <value>重啟到僅系統匣</value>
   </data>
-  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>跟隨系統</value>
   </data>
@@ -401,9 +398,6 @@
   <data name="SettingsPage_InteractionSection.Text" xml:space="preserve">
     <value>互動</value>
   </data>
-  <data name="SettingsPage_RoundedWebViewHeader.Header" xml:space="preserve">
-    <value>WebView2 圓角</value>
-  </data>
   <data name="SettingsPage_AILabHeader.Header" xml:space="preserve">
     <value>AI 實驗室</value>
   </data>
@@ -422,7 +416,6 @@
   <data name="WebBrowser_CloseButton" xml:space="preserve">
     <value>關閉此頁面</value>
   </data>
-  
   <!-- AI 頁面 -->
   <data name="AIPage_Title.Text" xml:space="preserve">
     <value>AI 實驗室</value>
@@ -430,7 +423,6 @@
   <data name="AIPage_Description.Text" xml:space="preserve">
     <value>探索 AI 功能和實驗性特性</value>
   </data>
-  
   <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
     <value>關於</value>
   </data>
@@ -442,9 +434,6 @@
   </data>
   <data name="SettingsPage_StartupToggleError" xml:space="preserve">
     <value>切換啟動設定時發生錯誤，請稍後重試。</value>
-  </data>
-  <data name="SettingsPage_RoundedWebViewHeader.Description" xml:space="preserve">
-    <value>為網頁瀏覽器啟用圓角效果，圓角大小自動同步上層容器</value>
   </data>
   <data name="SettingsPage_HotkeyDialog.Title" xml:space="preserve">
     <value>設定快速鍵</value>
@@ -482,7 +471,6 @@
   <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
     <value>為網頁瀏覽器啟用 WinUI 風格的右鍵選單（預設使用瀏覽器原生選單）</value>
   </data>
-
   <!-- 設定頁面 - 實驗室入口 -->
   <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
     <value>實驗室 📦</value>
@@ -490,7 +478,6 @@
   <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
     <value>探索實驗性功能</value>
   </data>
-
   <!-- 實驗室頁面 -->
   <data name="LabPage_Title.Text" xml:space="preserve">
     <value>實驗室 📦</value>
@@ -506,12 +493,6 @@
   </data>
   <data name="LabPage_AILabHeader.Description" xml:space="preserve">
     <value>在側邊欄顯示 AI 實驗室入口</value>
-  </data>
-  <data name="LabPage_RoundedWebViewHeader.Header" xml:space="preserve">
-    <value>WebView2 圓角</value>
-  </data>
-  <data name="LabPage_RoundedWebViewHeader.Description" xml:space="preserve">
-    <value>為網頁瀏覽器啟用圓角效果，圓角大小自動同步上層容器</value>
   </data>
   <data name="LabPage_WinUIContextMenuHeader.Header" xml:space="preserve">
     <value>WinUI 右鍵選單</value>

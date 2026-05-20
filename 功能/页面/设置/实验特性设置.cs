@@ -8,7 +8,6 @@ namespace Docked_AI.Features.Pages.Settings
     /// </summary>
     public static class ExperimentalSettings
     {
-        private const string EnableRoundedWebViewKey = "ExperimentalFeature_EnableRoundedWebView";
         private const string EnableWinUIContextMenuKey = "ExperimentalFeature_EnableWinUIContextMenu";
         private const string MaxWebViewCountKey = "WebSettings_MaxWebViewCount";
         private const string FrameNavigationAnimationKey = "NavigationSettings_FrameAnimation";
@@ -37,25 +36,6 @@ namespace Docked_AI.Features.Pages.Settings
         private const string WebViewDisableSoftwareRasterizerKey = "WebSettings_DisableSoftwareRasterizer";
         
         private static readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
-
-        /// <summary>
-        /// 获取或设置是否启用 WebView2 圆角特性
-        /// </summary>
-        public static bool EnableRoundedWebView
-        {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(EnableRoundedWebViewKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return false; // 默认关闭
-            }
-            set
-            {
-                _localSettings.Values[EnableRoundedWebViewKey] = value;
-            }
-        }
 
         /// <summary>
         /// 获取或设置是否启用 WinUI 右键菜单

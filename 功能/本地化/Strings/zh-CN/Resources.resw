@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -58,12 +58,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  
   <!-- 通用 -->
   <data name="AppDisplayName" xml:space="preserve">
     <value>Docked AI</value>
   </data>
-  
   <!-- 主页 -->
   <data name="HomePage_Title.Text" xml:space="preserve">
     <value>主页</value>
@@ -71,7 +69,6 @@
   <data name="HomePage_EmptyText.Text" xml:space="preserve">
     <value>暂无已固定的网页</value>
   </data>
-  
   <!-- 设置页 -->
   <data name="SettingsPage_Title.Text" xml:space="preserve">
     <value>设置</value>
@@ -109,14 +106,12 @@
   <data name="SettingsPage_HotkeyConfigHeader.Description" xml:space="preserve">
     <value>点击按钮修改快捷键组合</value>
   </data>
-  
   <data name="SettingsPage_LanguageHeader.Header" xml:space="preserve">
     <value>语言</value>
   </data>
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
     <value>选择应用显示语言</value>
   </data>
-  
   <data name="SettingsPage_DockSideHeader.Header" xml:space="preserve">
     <value>窗口停靠位置</value>
   </data>
@@ -141,7 +136,6 @@
   <data name="SettingsPage_LeftDockNavigationHeader.Description" xml:space="preserve">
     <value>当窗口停靠在屏幕左侧时，也将导航栏放在窗口左侧</value>
   </data>
-  
   <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Header" xml:space="preserve">
     <value>托盘关闭窗口行为</value>
   </data>
@@ -154,7 +148,6 @@
   <data name="SettingsPage_TrayCloseRestartToTray.Content" xml:space="preserve">
     <value>重启到仅托盘</value>
   </data>
-  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>跟随系统</value>
   </data>
@@ -191,7 +184,6 @@
   <data name="SettingsPage_LicenseLink.Content" xml:space="preserve">
     <value>查看开源协议</value>
   </data>
-  
   <!-- 托盘菜单 -->
   <data name="TrayMenu_OpenWindow" xml:space="preserve">
     <value>打开主窗口</value>
@@ -208,7 +200,6 @@
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>退出</value>
   </data>
-  
   <!-- 导航栏 -->
   <data name="Nav_Home.Content" xml:space="preserve">
     <value>主页</value>
@@ -231,7 +222,6 @@
   <data name="Nav_WindowStateToggle" xml:space="preserve">
     <value>切换窗口状态</value>
   </data>
-  
   <!-- 新建页面 -->
   <data name="NewPage_Title.Text" xml:space="preserve">
     <value>新建</value>
@@ -242,7 +232,6 @@
   <data name="NewPage_PinWebHeader.Description" xml:space="preserve">
     <value>把常用网站固定成独立应用入口。</value>
   </data>
-  
   <!-- 网页应用页面 -->
   <data name="WebAppPage_RestoreAutoIcon.Content" xml:space="preserve">
     <value>恢复自动图标</value>
@@ -262,7 +251,6 @@
   <data name="WebAppPage_Confirm.Content" xml:space="preserve">
     <value>确定</value>
   </data>
-  
   <!-- 网页浏览页面 -->
   <data name="WebBrowserPage_Back.Label" xml:space="preserve">
     <value>后退</value>
@@ -279,7 +267,6 @@
   <data name="WebBrowserPage_OpenExternal.Label" xml:space="preserve">
     <value>外部打开</value>
   </data>
-  
   <!-- 网页应用页面状态消息 -->
   <data name="WebAppPage_IconRestored" xml:space="preserve">
     <value>已恢复自动图标</value>
@@ -320,7 +307,6 @@
   <data name="WebAppPage_ShortcutCreated" xml:space="preserve">
     <value>已创建网页入口</value>
   </data>
-  
   <!-- 设置页面对话框 -->
   <data name="SettingsPage_RestartTitle" xml:space="preserve">
     <value>需要重启</value>
@@ -352,7 +338,6 @@
   <data name="SettingsPage_MaxWebViewHeader.Description" xml:space="preserve">
     <value>设置同时可以打开的网页浏览器数量（1-20）</value>
   </data>
-  
   <!-- 导航栏 WebView 限制提示 -->
   <data name="Nav_WebViewLimitTitle" xml:space="preserve">
     <value>已达到浏览器数量限制</value>
@@ -366,7 +351,6 @@
   <data name="WebBrowser_CloseButton" xml:space="preserve">
     <value>关闭此页面</value>
   </data>
-  
   <!-- 语言选项 -->
   <data name="Language_SimplifiedChinese.Text" xml:space="preserve">
     <value>简体中文</value>
@@ -416,12 +400,10 @@
   <data name="Language_Spanish.Content" xml:space="preserve">
     <value>Español</value>
   </data>
-  
   <!-- 导航栏菜单 -->
   <data name="Nav_UnpinShortcut" xml:space="preserve">
     <value>取消固定</value>
   </data>
-  
   <!-- AI 页面 -->
   <data name="AIPage_Title.Text" xml:space="preserve">
     <value>AI 实验室</value>
@@ -429,7 +411,6 @@
   <data name="AIPage_Description.Text" xml:space="preserve">
     <value>探索 AI 功能和实验性特性</value>
   </data>
-  
   <!-- 网页浏览器右键菜单 -->
   <data name="WebBrowser_BackMenuItem.Text" xml:space="preserve">
     <value>后退</value>
@@ -452,7 +433,6 @@
   <data name="WebBrowser_OpenExternalMenuItem.Text" xml:space="preserve">
     <value>在浏览器中打开</value>
   </data>
-  
   <!-- 设置页面 - 分组标题 -->
   <data name="SettingsPage_GeneralSection.Text" xml:space="preserve">
     <value>常规</value>
@@ -475,7 +455,6 @@
   <data name="SettingsPage_RateAppCard.Description" xml:space="preserve">
     <value>喜欢这个应用吗？给我们评分和评论吧！</value>
   </data>
-  
   <!-- 设置页面 - Frame 动画 -->
   <data name="SettingsPage_BackButtonHeader.Header" xml:space="preserve">
     <value>侧边栏返回按钮</value>
@@ -507,7 +486,6 @@
   <data name="SettingsPage_AnimationDrill.Content" xml:space="preserve">
     <value>钻取动画</value>
   </data>
-  
   <!-- 设置页面 - 实验特性 -->
   <data name="SettingsPage_ExperimentalHeader.Header" xml:space="preserve">
     <value>实验特性</value>
@@ -521,19 +499,12 @@
   <data name="SettingsPage_AILabHeader.Description" xml:space="preserve">
     <value>在侧边栏显示 AI 实验室入口</value>
   </data>
-  <data name="SettingsPage_RoundedWebViewHeader.Header" xml:space="preserve">
-    <value>WebView2 圆角</value>
-  </data>
-  <data name="SettingsPage_RoundedWebViewHeader.Description" xml:space="preserve">
-    <value>为网页浏览器启用圆角效果，圆角大小自动同步上层容器</value>
-  </data>
   <data name="SettingsPage_WinUIContextMenuHeader.Header" xml:space="preserve">
     <value>WinUI 右键菜单</value>
   </data>
   <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
     <value>为网页浏览器启用 WinUI 风格的右键菜单（默认使用浏览器原生菜单）</value>
   </data>
-  
   <!-- 设置页面 - 实验室入口 -->
   <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
     <value>实验室 📦</value>
@@ -541,7 +512,6 @@
   <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
     <value>探索实验性功能</value>
   </data>
-
   <!-- 实验室页面 -->
   <data name="LabPage_Title.Text" xml:space="preserve">
     <value>实验室 📦</value>
@@ -557,12 +527,6 @@
   </data>
   <data name="LabPage_AILabHeader.Description" xml:space="preserve">
     <value>在侧边栏显示 AI 实验室入口</value>
-  </data>
-  <data name="LabPage_RoundedWebViewHeader.Header" xml:space="preserve">
-    <value>WebView2 圆角</value>
-  </data>
-  <data name="LabPage_RoundedWebViewHeader.Description" xml:space="preserve">
-    <value>为网页浏览器启用圆角效果，圆角大小自动同步上层容器</value>
   </data>
   <data name="LabPage_WinUIContextMenuHeader.Header" xml:space="preserve">
     <value>WinUI 右键菜单</value>
@@ -618,7 +582,6 @@
   <data name="LabPage_TopBarRightClearButton.Content" xml:space="preserve">
     <value>清除</value>
   </data>
-  
   <!-- 设置页面 - 快捷键对话框 -->
   <data name="SettingsPage_HotkeyDialog.Title" xml:space="preserve">
     <value>设置快捷键</value>
@@ -638,7 +601,6 @@
   <data name="SettingsPage_HotkeyDialogHint.Text" xml:space="preserve">
     <value>提示：至少需要一个修饰键（Ctrl、Alt、Shift 或 Win）</value>
   </data>
-  
   <!-- 设置页面 - C# 代码中使用的字符串 -->
   <data name="SettingsPage_ErrorTitle" xml:space="preserve">
     <value>错误</value>
@@ -647,7 +609,7 @@
     <value>切换自启动设置时发生错误，请稍后重试。</value>
   </data>
   <data name="SettingsPage_OpenSettingsError" xml:space="preserve">
-    <value>无法打开系统设置页面，请手动前往 Windows 设置 > 应用 > 启动。</value>
+    <value>无法打开系统设置页面，请手动前往 Windows 设置 &gt; 应用 &gt; 启动。</value>
   </data>
   <data name="SettingsPage_ConfirmButton" xml:space="preserve">
     <value>确定</value>

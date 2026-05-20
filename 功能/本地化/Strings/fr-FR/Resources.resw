@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -112,7 +112,6 @@
   <data name="SettingsPage_LanguageHeader.Description" xml:space="preserve">
     <value>Sélectionner la langue d'affichage</value>
   </data>
-  
   <data name="SettingsPage_DockSideHeader.Header" xml:space="preserve">
     <value>Position d'ancrage de la fenêtre</value>
   </data>
@@ -137,7 +136,6 @@
   <data name="SettingsPage_LeftDockNavigationHeader.Description" xml:space="preserve">
     <value>Lorsque la fenêtre est ancrée à gauche de l'écran, la barre de navigation est également placée à gauche de la fenêtre</value>
   </data>
-  
   <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Header" xml:space="preserve">
     <value>Comportement de fermeture de fenêtre dans la barre d'état</value>
   </data>
@@ -150,7 +148,6 @@
   <data name="SettingsPage_TrayCloseRestartToTray.Content" xml:space="preserve">
     <value>Redémarrer en mode barre d'état uniquement</value>
   </data>
-  
   <data name="SettingsPage_LanguageSystem.Content" xml:space="preserve">
     <value>Suivre le système</value>
   </data>
@@ -401,9 +398,6 @@
   <data name="SettingsPage_InteractionSection.Text" xml:space="preserve">
     <value>Interaction</value>
   </data>
-  <data name="SettingsPage_RoundedWebViewHeader.Header" xml:space="preserve">
-    <value>Coins arrondis WebView2</value>
-  </data>
   <data name="SettingsPage_AILabHeader.Header" xml:space="preserve">
     <value>Labo IA</value>
   </data>
@@ -422,7 +416,6 @@
   <data name="WebBrowser_CloseButton" xml:space="preserve">
     <value>Fermer cette page</value>
   </data>
-  
   <!-- Page IA -->
   <data name="AIPage_Title.Text" xml:space="preserve">
     <value>Labo IA</value>
@@ -430,7 +423,6 @@
   <data name="AIPage_Description.Text" xml:space="preserve">
     <value>Explorez les fonctionnalités IA et les capacités expérimentales</value>
   </data>
-  
   <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
     <value>À propos</value>
   </data>
@@ -442,9 +434,6 @@
   </data>
   <data name="SettingsPage_StartupToggleError" xml:space="preserve">
     <value>Une erreur s'est produite lors du basculement des paramètres de démarrage. Veuillez réessayer plus tard.</value>
-  </data>
-  <data name="SettingsPage_RoundedWebViewHeader.Description" xml:space="preserve">
-    <value>Activer les coins arrondis pour le navigateur web, le rayon se synchronise automatiquement avec le conteneur parent</value>
   </data>
   <data name="SettingsPage_HotkeyDialog.Title" xml:space="preserve">
     <value>Définir le raccourci</value>
@@ -482,7 +471,6 @@
   <data name="SettingsPage_WinUIContextMenuHeader.Description" xml:space="preserve">
     <value>Activer le menu contextuel de style WinUI pour le navigateur web (par défaut utilise le menu natif du navigateur)</value>
   </data>
-
   <!-- Page de paramètres - Entrée du laboratoire -->
   <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
     <value>Laboratoire 📦</value>
@@ -490,7 +478,6 @@
   <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
     <value>Explorer les fonctionnalités expérimentales</value>
   </data>
-
   <!-- Page du laboratoire -->
   <data name="LabPage_Title.Text" xml:space="preserve">
     <value>Laboratoire 📦</value>
@@ -506,12 +493,6 @@
   </data>
   <data name="LabPage_AILabHeader.Description" xml:space="preserve">
     <value>Afficher l'entrée du laboratoire IA dans la barre latérale</value>
-  </data>
-  <data name="LabPage_RoundedWebViewHeader.Header" xml:space="preserve">
-    <value>Coins arrondis WebView2</value>
-  </data>
-  <data name="LabPage_RoundedWebViewHeader.Description" xml:space="preserve">
-    <value>Activer les coins arrondis pour le navigateur web, le rayon se synchronise automatiquement avec le conteneur parent</value>
   </data>
   <data name="LabPage_WinUIContextMenuHeader.Header" xml:space="preserve">
     <value>Menu contextuel WinUI</value>

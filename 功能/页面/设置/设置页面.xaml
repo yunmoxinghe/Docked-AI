@@ -416,20 +416,6 @@
                             Toggled="OnAILabToggled"/>
                     </controls:SettingsCard>
 
-                    <!-- WebView2 圆角 -->
-                    <controls:SettingsCard 
-                        x:Uid="SettingsPage_RoundedWebViewHeader"
-                        IsClickEnabled="True"
-                        IsActionIconVisible="False"
-                        Click="OnRoundedWebViewCardClick">
-                        <controls:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE7C8;" />
-                        </controls:SettingsCard.HeaderIcon>
-                        <ToggleSwitch
-                            x:Name="RoundedWebViewToggle"
-                            Toggled="OnRoundedWebViewToggled"/>
-                    </controls:SettingsCard>
-
                     <!-- WinUI 右键菜单 -->
                     <controls:SettingsCard 
                         x:Uid="SettingsPage_WinUIContextMenuHeader"
