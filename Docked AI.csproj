@@ -166,8 +166,8 @@
     <AppxPackageCompression>maximum</AppxPackageCompression>
   </PropertyGroup>
 
-  <!-- 调试时自动结束旧进程 -->
-  <Target Name="KillDockedAIProcess" BeforeTargets="PreBuildEvent">
+  <!-- 调试运行/编译前自动结束旧进程，避免 WinApp loose layout 复制 exe 时被占用 -->
+  <Target Name="KillDockedAIProcess" BeforeTargets="PrepareForBuild;_WinAppPrepareRunArguments;_WinAppCopyContentToLooseLayout">
     <Exec Command="taskkill /F /IM &quot;Docked AI.exe&quot; 2&gt;nul || exit 0" IgnoreExitCode="true" />
   </Target>
 </Project>

@@ -14,6 +14,11 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
+        <Border
+            x:Name="TopBarTintHost"
+            Grid.Row="0"
+            Background="Transparent" />
+
         <controls:WebView2
             x:Name="WebView"
             Grid.Row="1"

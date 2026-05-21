@@ -21,9 +21,9 @@ public static class TopAppBarService
     }
 
     /// <summary>
-    /// 获取顶部应用栏容器（用于自定义背景等）
+    /// 获取顶部应用栏背景层（用于自定义背景等）
     /// </summary>
-    public static Grid? TopAppBar => _contentArea?.TopAppBar;
+    public static Grid? TopAppBar => _contentArea?.TopAppBarBackground;
 
     /// <summary>
     /// 显示或隐藏顶部应用栏
@@ -61,6 +61,21 @@ public static class TopAppBarService
     }
 
     /// <summary>
+    /// 使用统一顶部栏样式设置右侧图标按钮。
+    /// </summary>
+    public static Button? SetRightIconButton(string glyph, RoutedEventHandler clickHandler, string? toolTip = null)
+    {
+        if (_contentArea is null)
+        {
+            return null;
+        }
+
+        var button = _contentArea.TopAppBar.CreateIconButton(glyph, clickHandler, toolTip);
+        SetRightContent(button);
+        return button;
+    }
+
+    /// <summary>
     /// 设置中间内容
     /// </summary>
     public static void SetCenterContent(object? content)
@@ -77,6 +92,57 @@ public static class TopAppBarService
         SetLeftContent(null);
         SetCenterContent(null);
         SetRightContent(null);
+        ResetBackground();
+        ResetForeground();
+        ResetChromeVisibility();
+    }
+
+    /// <summary>
+    /// 设置顶部应用栏背景。传入 null 会恢复默认背景。
+    /// </summary>
+    public static void SetBackground(Microsoft.UI.Xaml.Media.Brush? brush)
+    {
+        _contentArea?.TopAppBar.SetBackground(brush);
+    }
+
+    /// <summary>
+    /// 恢复顶部应用栏默认背景。
+    /// </summary>
+    public static void ResetBackground()
+    {
+        _contentArea?.TopAppBar.ResetBackground();
+    }
+
+    /// <summary>
+    /// 设置顶部应用栏内置按钮前景色。传入 null 会恢复默认前景色。
+    /// </summary>
+    public static void SetForeground(Microsoft.UI.Xaml.Media.Brush? brush)
+    {
+        _contentArea?.TopAppBar.SetForeground(brush);
+    }
+
+    /// <summary>
+    /// 恢复顶部应用栏内置按钮默认前景色。
+    /// </summary>
+    public static void ResetForeground()
+    {
+        _contentArea?.TopAppBar.ResetForeground();
+    }
+
+    /// <summary>
+    /// 设置顶部应用栏背景/分隔线层是否可见，不影响标题和按钮。
+    /// </summary>
+    public static void SetChromeVisible(bool visible)
+    {
+        _contentArea?.TopAppBar.SetChromeVisible(visible);
+    }
+
+    /// <summary>
+    /// 恢复顶部应用栏背景/分隔线层显示。
+    /// </summary>
+    public static void ResetChromeVisibility()
+    {
+        _contentArea?.TopAppBar.ResetChromeVisibility();
     }
 
     /// <summary>

@@ -10,6 +10,7 @@ using System.Numerics;
 using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.Pages.WebApp.Browser;
 using Docked_AI.Features.Pages.Settings;
+using Docked_AI.Features.UnifiedCalls.TopAppBar;
 using Microsoft.UI.Xaml.Media.Animation;
 
 namespace Docked_AI.Features.MainWindowContent.ContentArea
@@ -127,32 +128,37 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         public Grid OverlayContainer => OverlayLayer;
 
         /// <summary>
-        /// 顶部应用栏容器
+        /// 顶部应用栏独立控件
         /// </summary>
-        public Grid TopAppBar => TopAppBarContainer;
+        public TopAppBarControl TopAppBar => TopAppBarHost;
+
+        /// <summary>
+        /// 顶部应用栏背景容器，保留给需要定制背景的页面使用
+        /// </summary>
+        public Grid TopAppBarBackground => TopAppBarHost.AppBarBackground;
 
         /// <summary>
         /// 顶部应用栏左侧面板
         /// </summary>
-        public StackPanel TopBarLeft => TopBarLeftPanel;
+        public StackPanel TopBarLeft => TopAppBarHost.LeftContentPanel;
 
         /// <summary>
         /// 顶部应用栏右侧面板
         /// </summary>
-        public StackPanel TopBarRight => TopBarRightPanel;
+        public StackPanel TopBarRight => TopAppBarHost.RightContentPanel;
 
         /// <summary>
         /// 顶部应用栏中间内容
         /// </summary>
-        public ContentPresenter TopBarCenter => TopBarCenterContent;
+        public ContentPresenter TopBarCenter => TopAppBarHost.CenterContent;
 
         /// <summary>
         /// 显示或隐藏顶部应用栏（带淡入淡出动画）
         /// </summary>
         public bool IsTopBarVisible
         {
-            get => TopAppBarContainer.Visibility == Visibility.Visible;
-            set => SetTopBarVisibleAnimated(value);
+            get => TopAppBarHost.IsAppBarVisible;
+            set => TopAppBarHost.IsAppBarVisible = value;
         }
 
         private UIElement? _pageTitle;
@@ -191,38 +197,6 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             sb.Begin();
         }
 
-        private void SetTopBarVisibleAnimated(bool visible)
-        {
-            var visual = ElementCompositionPreview.GetElementVisual(TopAppBarContainer);
-            var compositor = visual.Compositor;
-
-            if (visible)
-            {
-                TopAppBarContainer.Visibility = Visibility.Visible;
-                var fadeIn = compositor.CreateScalarKeyFrameAnimation();
-                fadeIn.InsertKeyFrame(0f, 0f);
-                fadeIn.InsertKeyFrame(1f, 1f);
-                fadeIn.Duration = TimeSpan.FromMilliseconds(200);
-                visual.StartAnimation("Opacity", fadeIn);
-            }
-            else
-            {
-                var fadeOut = compositor.CreateScalarKeyFrameAnimation();
-                fadeOut.InsertKeyFrame(0f, 1f);
-                fadeOut.InsertKeyFrame(1f, 0f);
-                fadeOut.Duration = TimeSpan.FromMilliseconds(150);
-
-                var batch = compositor.CreateScopedBatch(CompositionBatchTypes.Animation);
-                visual.StartAnimation("Opacity", fadeOut);
-                batch.End();
-                batch.Completed += (_, _) =>
-                {
-                    TopAppBarContainer.Visibility = Visibility.Collapsed;
-                    visual.Opacity = 1f; // 重置，下次显示时从正确状态开始
-                };
-            }
-        }
-
         public ContentArea()
         {
             InitializeComponent();
@@ -230,6 +204,8 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             _pageCacheManager.PageAutoRemoved += OnPageAutoRemoved;
             ContentFrame.Navigated += ContentFrame_Navigated;
             ContentGrid.Loaded += ContentGrid_Loaded;
+            TopAppBarHost.BackButtonClicked += TopAppBarHost_BackButtonClicked;
+            TopAppBarHost.MenuButtonClicked += TopAppBarHost_MenuButtonClicked;
             
             // 初始化 Frame 动画
             UpdateFrameAnimation();
@@ -251,7 +227,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         /// </summary>
         public void RefreshBackButton()
         {
-            SetBackButtonVisibleAnimated(ContentFrame.CanGoBack);
+            TopAppBarHost.SetBackButtonVisible(ContentFrame.CanGoBack);
         }
 
         /// <summary>
@@ -259,54 +235,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         /// </summary>
         public void SetBackButtonVisible(bool visible)
         {
-            SetBackButtonVisibleAnimated(visible);
-        }
-
-        /// <summary>
-        /// 设置返回按钮的可见性（带淡入淡出动画）
-        /// </summary>
-        private void SetBackButtonVisibleAnimated(bool visible)
-        {
-            var visual = ElementCompositionPreview.GetElementVisual(BackButton);
-            var compositor = visual.Compositor;
-
-            if (visible)
-            {
-                // 淡入显示
-                if (BackButton.Visibility == Visibility.Visible) return; // 已显示，跳过
-                
-                BackButton.Visibility = Visibility.Visible;
-                BackButton.IsEnabled = true;
-                
-                var fadeIn = compositor.CreateScalarKeyFrameAnimation();
-                fadeIn.InsertKeyFrame(0f, 0f);
-                fadeIn.InsertKeyFrame(1f, 1f);
-                fadeIn.Duration = TimeSpan.FromMilliseconds(200);
-                fadeIn.Target = "Opacity";
-                
-                visual.StartAnimation("Opacity", fadeIn);
-            }
-            else
-            {
-                // 淡出隐藏
-                if (BackButton.Visibility == Visibility.Collapsed) return; // 已隐藏，跳过
-                
-                var fadeOut = compositor.CreateScalarKeyFrameAnimation();
-                fadeOut.InsertKeyFrame(0f, visual.Opacity);
-                fadeOut.InsertKeyFrame(1f, 0f);
-                fadeOut.Duration = TimeSpan.FromMilliseconds(150);
-                fadeOut.Target = "Opacity";
-                
-                var batch = compositor.CreateScopedBatch(CompositionBatchTypes.Animation);
-                visual.StartAnimation("Opacity", fadeOut);
-                batch.End();
-                
-                batch.Completed += (_, _) =>
-                {
-                    BackButton.Visibility = Visibility.Collapsed;
-                    visual.Opacity = 1f; // 重置透明度，下次显示时从正确状态开始
-                };
-            }
+            TopAppBarHost.SetBackButtonVisible(visible);
         }
 
         /// <summary>
@@ -314,7 +243,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         /// </summary>
         public void SetMenuButtonVisible(bool visible)
         {
-            MenuButton.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            TopAppBarHost.SetMenuButtonVisible(visible);
         }
 
         /// <summary>
@@ -322,7 +251,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         /// </summary>
         public void SetMoreButtonVisible(bool visible)
         {
-            MoreButton.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+            TopAppBarHost.SetMoreButtonVisible(visible);
         }
 
         /// <summary>
@@ -330,10 +259,10 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         /// </summary>
         public MenuFlyout? GetMoreMenu()
         {
-            return MoreMenuFlyout;
+            return TopAppBarHost.MoreMenu;
         }
 
-        private void BackButton_Click(object sender, RoutedEventArgs e)
+        private void TopAppBarHost_BackButtonClicked(object? sender, EventArgs e)
         {
             // 优先让当前页面接管返回逻辑
             if (ContentFrame.Content is IBackHandler handler && handler.OnBackRequested())
@@ -370,34 +299,9 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             }
         }
 
-        private void TopBarMiddle_DoubleTapped(object sender, Microsoft.UI.Xaml.Input.DoubleTappedRoutedEventArgs e)
-        {
-            TopBarDoubleTapped?.Invoke(this, EventArgs.Empty);
-        }
-
-        private void MenuButton_Click(object sender, RoutedEventArgs e)
+        private void TopAppBarHost_MenuButtonClicked(object? sender, EventArgs e)
         {
             MenuButtonClicked?.Invoke(this, EventArgs.Empty);
-        }
-
-        private void BackButton_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-        {
-            AnimatedIcon.SetState(BackAnimatedIcon, "PointerOver");
-        }
-
-        private void BackButton_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-        {
-            AnimatedIcon.SetState(BackAnimatedIcon, "Normal");
-        }
-
-        private void MenuButton_PointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-        {
-            AnimatedIcon.SetState(MenuAnimatedIcon, "PointerOver");
-        }
-
-        private void MenuButton_PointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
-        {
-            AnimatedIcon.SetState(MenuAnimatedIcon, "Normal");
         }
 
         #endregion

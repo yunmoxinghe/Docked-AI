@@ -81,6 +81,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             InitializeForegroundColors();
             InitializeTopBar();
 
+            TopBarTintHost.Background = _topBarBackgroundBrush;
             BottomBarHost.Background = _bottomBarBackgroundBrush;
 
             BackButton.Foreground = _bottomBarForegroundBrush;
@@ -138,6 +139,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             _topBarIconFallback = new FontIcon
             {
                 Glyph = "\uE774",
+                Width = 16,
+                Height = 16,
                 FontSize = 14,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
@@ -153,6 +156,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 TextTrimming = TextTrimming.CharacterEllipsis,
                 FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
                 TextWrapping = TextWrapping.NoWrap,
+                HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
                 MaxWidth = 300
             };
@@ -161,20 +165,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             _topBarContent.Children.Add(_topBarTitle);
 
             // 创建取消固定按钮
-            _unpinButton = new Button
-            {
-                Width = 40,
-                Height = 40,
-                Background = new SolidColorBrush(Colors.Transparent),
-                BorderThickness = new Thickness(0),
-                CornerRadius = new CornerRadius(4),
-                Content = new FontIcon
-                {
-                    Glyph = "\uE8BB",
-                    FontSize = 16
-                }
-            };
-            _unpinButton.Click += CloseButton_Click;
+            // 右侧按钮由独立顶部栏统一创建，避免页面自管导致尺寸/裁切不一致。
         }
 
         private void SetupTopBar()
@@ -184,23 +175,15 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             
             // 在页面加载后设置顶部栏
             TopAppBarService.SetCenterContent(_topBarContent);
-            TopAppBarService.SetRightContent(_unpinButton);
+            _unpinButton = TopAppBarService.SetRightIconButton("\uE733", CloseButton_Click, "关闭");
+            TopAppBarService.SetForeground(_topBarForegroundBrush);
             TopAppBarService.IsVisible = true;
             
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 顶部栏内容已设置，IsVisible = true");
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] TopAppBarService.IsVisible = {TopAppBarService.IsVisible}");
             
-            // 设置初始背景为透明（等待取色）
-            var topAppBar = TopAppBarService.TopAppBar;
-            if (topAppBar != null)
-            {
-                topAppBar.Background = _topBarBackgroundBrush;
-                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 顶部栏背景已设置，Visibility = {topAppBar.Visibility}");
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 警告：TopAppBar 为 null");
-            }
+            // 网页主题色只绘制在本页的 TopBarTintHost，统一顶栏隐藏背景/模糊/分隔线以透出本页色块。
+            TopAppBarService.SetChromeVisible(false);
             
             // 恢复标题和图标（如果已有数据）
             UpdateTopBarContent();
@@ -498,6 +481,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         protected override void OnNavigatedFrom(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
         {
             base.OnNavigatedFrom(e);
+            RestoreSharedTopAppBarBackground();
         }
 
         // INavigationAware 实现
@@ -556,9 +540,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         {
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] INavigationAware.OnNavigatedFrom called");
             
-            // 注意：不隐藏顶部栏，因为 TopAppBarContainer 的 Visibility 会影响中间内容的显示
-            // 新页面会通过 SetupTopBar 覆盖内容，无需手动隐藏
-            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 保持顶部栏可见，等待新页面覆盖内容");
+            RestoreSharedTopAppBarBackground();
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 已恢复统一顶部栏背景，等待新页面覆盖内容");
             
             // 如果启用了暂停不活跃 WebView 的功能
             if (ExperimentalSettings.SuspendInactiveWebView && WebView?.CoreWebView2 != null)
@@ -1148,13 +1131,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
             if (isTop)
             {
-                // 更新顶部栏的统一顶部应用栏背景
-                var topAppBar = TopAppBarService.TopAppBar;
-                if (topAppBar != null)
-                {
-                    topAppBar.Background = background;
-                }
-                
                 // 更新次要前景色
                 var secondaryColor = Windows.UI.Color.FromArgb(
                     (byte)(contrastColor.A * 0.7),
@@ -1177,6 +1153,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 {
                     unpinIcon.Foreground = _topBarForegroundBrush;
                 }
+                TopAppBarService.SetForeground(_topBarForegroundBrush);
             }
             else
             {
@@ -1196,6 +1173,13 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 
                 UpdateButtonResources();
             }
+        }
+
+        private static void RestoreSharedTopAppBarBackground()
+        {
+            TopAppBarService.ResetBackground();
+            TopAppBarService.ResetForeground();
+            TopAppBarService.ResetChromeVisibility();
         }
 
         /// <summary>
