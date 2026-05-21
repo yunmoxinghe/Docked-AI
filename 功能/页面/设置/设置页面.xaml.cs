@@ -401,6 +401,16 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void LoadWebViewPerformanceSettings()
         {
+            // 快速启动模式
+            FastStartupModeToggle.Toggled -= OnFastStartupModeToggled;
+            FastStartupModeToggle.IsOn = ExperimentalSettings.FastStartupMode;
+            FastStartupModeToggle.Toggled += OnFastStartupModeToggled;
+
+            // 单进程模式
+            SingleProcessModeToggle.Toggled -= OnSingleProcessModeToggled;
+            SingleProcessModeToggle.IsOn = ExperimentalSettings.SingleProcessMode;
+            SingleProcessModeToggle.Toggled += OnSingleProcessModeToggled;
+
             // 内存模式
             MemoryModeComboBox.SelectionChanged -= OnMemoryModeChanged;
             MemoryModeComboBox.SelectedIndex = (int)ExperimentalSettings.MemoryMode;
@@ -463,6 +473,24 @@ namespace Docked_AI.Features.Pages.Settings
                     ExperimentalSettings.MemoryMode = (WebViewMemoryMode)modeValue;
                     RaiseWebViewPerformanceSettingsChanged();
                 }
+            }
+        }
+
+        private void OnFastStartupModeToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggle)
+            {
+                ExperimentalSettings.FastStartupMode = toggle.IsOn;
+                RaiseWebViewPerformanceSettingsChanged();
+            }
+        }
+
+        private void OnSingleProcessModeToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggle)
+            {
+                ExperimentalSettings.SingleProcessMode = toggle.IsOn;
+                RaiseWebViewPerformanceSettingsChanged();
             }
         }
 

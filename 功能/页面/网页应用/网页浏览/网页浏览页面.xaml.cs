@@ -532,7 +532,20 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] WebView 状态正常，无需特殊处理");
+                // WebView 已初始化，检查是否需要恢复导航
+                if (WebView.Source == null && _currentShortcut != null)
+                {
+                    System.Diagnostics.Debug.WriteLine("[WebBrowserPage] WebView 为空白页，恢复导航");
+                    if (Uri.TryCreate(_currentShortcut.Url, UriKind.Absolute, out Uri? uri))
+                    {
+                        _pendingNavigationUri = uri;
+                        TryNavigatePendingUri();
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 状态正常，当前 URL: {WebView.Source}");
+                }
             }
         }
 
@@ -574,30 +587,46 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             // 注意：不在这里设置顶部栏，因为 Loaded 在页面缓存切换时也会触发
             // 顶部栏的设置由 INavigationAware.OnNavigatedTo 负责
             
+            bool isAlreadyLinked = false;
+            
             if (_currentShortcut != null)
             {
                 // 检查是否已经链接，避免重复注册
                 if (WebViewManager.IsLinked(_currentShortcut.Id))
                 {
                     System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 已链接，跳过 RequestLink");
-                    return;
+                    isAlreadyLinked = true;
                 }
-                
-                // 请求链接 WebView（限制器会自动处理驱逐）
-                var result = WebViewManager.RequestLink(_currentShortcut.Id, this);
-                
-                if (!result.Success)
+                else
                 {
-                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 链接失败: {result.ErrorMessage}");
+                    // 请求链接 WebView（限制器会自动处理驱逐）
+                    var result = WebViewManager.RequestLink(_currentShortcut.Id, this);
+                    
+                    if (!result.Success)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 链接失败: {result.ErrorMessage}");
+                        WebViewManager.DiagnoseState();
+                        return;
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 链接成功{(result.EvictedOldest ? "（已驱逐最旧实例）" : "")}");
                     WebViewManager.DiagnoseState();
-                    return;
                 }
-                
-                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 链接成功{(result.EvictedOldest ? "（已驱逐最旧实例）" : "")}");
-                WebViewManager.DiagnoseState();
             }
             
+            // ✅ 无论是否已链接，都要确保 WebView 初始化和导航
             await EnsureWebViewInitializedAsync();
+            
+            // 如果是已链接的页面被重新激活，检查是否需要恢复导航
+            if (isAlreadyLinked && WebView?.Source == null && _currentShortcut != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 已链接页面为空白，恢复导航");
+                if (Uri.TryCreate(_currentShortcut.Url, UriKind.Absolute, out Uri? uri))
+                {
+                    _pendingNavigationUri = uri;
+                }
+            }
+            
             TryNavigatePendingUri();
         }
 
@@ -703,7 +732,15 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     // 根据设置配置右键菜单
                     UpdateContextMenuConfiguration(useWinUIContextMenu);
                     
-                    await EnsureTintScriptInstalledAsync();
+                    // ✅ 延迟注入脚本，不阻塞首次导航
+                    _ = Task.Run(async () => 
+                    {
+                        await Task.Delay(100); // 让首次导航先开始
+                        await DispatcherQueue.EnqueueAsync(async () => 
+                        {
+                            await EnsureTintScriptInstalledAsync();
+                        });
+                    });
                     
                     // 只有在 CoreWebView2 成功初始化后才设置为 ready
                     _isWebViewReady = true;
@@ -1004,6 +1041,30 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 "--disable-features=msExperimentalScrolling"
             };
 
+            // 🚀 启动速度优化（零内存成本）
+            args.Add("--dns-prefetch-disable=false");  // 启用 DNS 预解析
+            args.Add("--enable-tcp-fast-open");        // 启用 TCP Fast Open
+
+            // 🎨 消除白闪（无论是否快速启动模式都启用）
+            args.Add("--disable-backgrounding-occluded-windows");  // 禁用窗口遮挡时的背景化
+            args.Add("--disable-renderer-backgrounding");          // 禁用渲染器后台化
+            
+            // 🎯 进程模型优化
+            if (ExperimentalSettings.SingleProcessMode)
+            {
+                // 单进程模式：将所有服务合并到主进程
+                args.Add("--single-process");  // 完全单进程（最激进）
+            }
+            else
+            {
+                // 多进程模式：优化辅助进程
+                args.Add("--in-process-gpu");              // GPU 进程合并到主进程
+                args.Add("--disable-gpu-process-crash-limit");  // 禁用 GPU 进程崩溃限制
+                
+                // 将 Network Service 和 Storage Service 合并到主进程
+                args.Add("--enable-features=NetworkServiceInProcess");
+            }
+
             // 构建 enable-features 列表
             var enableFeatures = new List<string>
             {
@@ -1018,7 +1079,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
             else
             {
+                // 完全禁用 GPU 进程
                 args.Add("--disable-gpu");
+                args.Add("--disable-gpu-compositing");
                 args.Add("--disable-accelerated-2d-canvas");
             }
 
@@ -1043,8 +1106,13 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             {
                 args.Add("--disable-background-networking");
                 args.Add("--disable-sync");
-                args.Add("--disable-preconnect");
+                // ❌ 移除 --disable-preconnect，它严重影响首次加载速度
                 args.Add("--no-pings");
+            }
+            else
+            {
+                // ✅ 显式启用预连接优化
+                args.Add("--enable-preconnect");
             }
 
             if (ExperimentalSettings.DisableExtensions)
@@ -1063,9 +1131,15 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             args.Add($"--disk-cache-size={cacheSizeBytes}");
             args.Add($"--media-cache-size={cacheSizeBytes}");
 
-            // 其他优化
-            args.Add("--disable-breakpad");
-            args.Add("--disable-component-update");
+            // 快速启动模式：减少启动时的检查和初始化
+            if (ExperimentalSettings.FastStartupMode)
+            {
+                args.Add("--disable-breakpad");              // 禁用崩溃报告
+                args.Add("--disable-component-update");      // 禁用组件更新检查
+                args.Add("--disable-domain-reliability");    // 禁用域名可靠性监控
+                args.Add("--disable-background-timer-throttling");  // 减少后台定时器
+                args.Add("--disable-features=CalculateNativeWinOcclusion");  // 禁用窗口遮挡计算
+            }
 
             // 合并所有 enable-features
             if (enableFeatures.Count > 0)

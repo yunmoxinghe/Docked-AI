@@ -24,7 +24,8 @@
             Grid.Row="1"
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
-            Visibility="Visible">
+            Visibility="Visible"
+            DefaultBackgroundColor="Transparent">
             <controls:WebView2.ContextFlyout>
                 <MenuFlyout x:Name="WebViewContextMenu">
                     <MenuFlyoutItem x:Name="BackMenuItem" x:Uid="WebBrowser_BackMenuItem" Click="BackMenuItem_Click">

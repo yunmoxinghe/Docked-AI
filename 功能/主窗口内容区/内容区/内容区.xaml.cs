@@ -7,6 +7,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.Pages.WebApp.Browser;
 using Docked_AI.Features.Pages.Settings;
@@ -444,57 +445,72 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                 // 如果未注册但已达到限制，需要先移除最久未使用的页面
                 else if (!WebViewManager.CanCreateNew())
                 {
-                    System.Diagnostics.Debug.WriteLine($"[ContentArea] WebView 数量已达限制 ({WebViewManager.ActiveCount}/{WebViewManager.MaxCount})，触发 LRU 移除");
+                    System.Diagnostics.Debug.WriteLine($"[ContentArea] WebView 数量已达限制 ({WebViewManager.ActiveCount}/{WebViewManager.MaxCount})，触发异步 LRU 移除");
                     
-                    // 诊断：移除前的状态
-                    WebViewManager.DiagnoseState();
-                    
-                    // 获取按 LRU 顺序排列的缓存键（从最新到最旧）
-                    var cachedKeysInOrder = _pageCacheManager.GetCachedPageKeysInLRUOrder().ToList();
-                    
-                    System.Diagnostics.Debug.WriteLine($"[ContentArea] 当前缓存页面顺序（从新到旧）:");
-                    for (int i = 0; i < cachedKeysInOrder.Count; i++)
+                    // ⭐ 异步移除旧页面，不阻塞当前导航
+                    _ = Task.Run(() =>
                     {
-                        System.Diagnostics.Debug.WriteLine($"  [{i}] {cachedKeysInOrder[i]}");
-                    }
-                    
-                    // 从后往前找到最久未使用的 WebBrowser 页面（不是当前要打开的）
-                    string? oldestWebBrowserKey = null;
-                    for (int i = cachedKeysInOrder.Count - 1; i >= 0; i--)
-                    {
-                        var key = cachedKeysInOrder[i];
-                        if (key.StartsWith("WebBrowser_") && key != cacheKey)
+                        try
                         {
-                            oldestWebBrowserKey = key;
-                            break;
+                            // 诊断：移除前的状态
+                            WebViewManager.DiagnoseState();
+                            
+                            // 获取按 LRU 顺序排列的缓存键（从最新到最旧）
+                            var cachedKeysInOrder = _pageCacheManager.GetCachedPageKeysInLRUOrder().ToList();
+                            
+                            System.Diagnostics.Debug.WriteLine($"[ContentArea] 当前缓存页面顺序（从新到旧）:");
+                            for (int i = 0; i < cachedKeysInOrder.Count; i++)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"  [{i}] {cachedKeysInOrder[i]}");
+                            }
+                            
+                            // 从后往前找到最久未使用的 WebBrowser 页面（不是当前要打开的）
+                            string? oldestWebBrowserKey = null;
+                            for (int i = cachedKeysInOrder.Count - 1; i >= 0; i--)
+                            {
+                                var key = cachedKeysInOrder[i];
+                                if (key.StartsWith("WebBrowser_") && key != cacheKey)
+                                {
+                                    oldestWebBrowserKey = key;
+                                    break;
+                                }
+                            }
+                            
+                            if (oldestWebBrowserKey != null)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[ContentArea] 异步移除最久未使用的页面: {oldestWebBrowserKey}");
+                                string oldShortcutId = oldestWebBrowserKey.Substring("WebBrowser_".Length);
+                                
+                                // 获取页面实例并调用 DisposeWebView（会自动注销 WebView）
+                                var oldPage = _pageCacheManager.GetCachedPage(oldestWebBrowserKey);
+                                if (oldPage is WebBrowserPage oldWebBrowserPage)
+                                {
+                                    // 回到 UI 线程执行清理
+                                    DispatcherQueue.TryEnqueue(() =>
+                                    {
+                                        System.Diagnostics.Debug.WriteLine($"[ContentArea] 调用 DisposeWebView 清理旧页面");
+                                        oldWebBrowserPage.DisposeWebView();
+                                        
+                                        // 移除页面缓存
+                                        _pageCacheManager.RemovePage(oldestWebBrowserKey);
+                                        
+                                        System.Diagnostics.Debug.WriteLine($"[ContentArea] 旧页面已移除");
+                                        
+                                        // 诊断：移除后的状态
+                                        WebViewManager.DiagnoseState();
+                                    });
+                                }
+                            }
+                            else
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[ContentArea] 警告：未找到可移除的 WebBrowser 页面");
+                            }
                         }
-                    }
-                    
-                    if (oldestWebBrowserKey != null)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[ContentArea] 移除最久未使用的页面: {oldestWebBrowserKey}");
-                        string oldShortcutId = oldestWebBrowserKey.Substring("WebBrowser_".Length);
-                        
-                        // 获取页面实例并调用 DisposeWebView（会自动注销 WebView）
-                        var oldPage = _pageCacheManager.GetCachedPage(oldestWebBrowserKey);
-                        if (oldPage is WebBrowserPage oldWebBrowserPage)
+                        catch (Exception ex)
                         {
-                            System.Diagnostics.Debug.WriteLine($"[ContentArea] 调用 DisposeWebView 清理旧页面");
-                            oldWebBrowserPage.DisposeWebView();
+                            System.Diagnostics.Debug.WriteLine($"[ContentArea] 异步 LRU 移除失败: {ex.Message}");
                         }
-                        
-                        // 移除页面缓存
-                        _pageCacheManager.RemovePage(oldestWebBrowserKey);
-                        
-                        System.Diagnostics.Debug.WriteLine($"[ContentArea] 旧页面已移除");
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[ContentArea] 警告：未找到可移除的 WebBrowser 页面");
-                    }
-                    
-                    // 诊断：移除后的状态
-                    WebViewManager.DiagnoseState();
+                    });
                 }
             }
             

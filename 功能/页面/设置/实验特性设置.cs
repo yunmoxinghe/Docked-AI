@@ -28,6 +28,8 @@ namespace Docked_AI.Features.Pages.Settings
         private const string WebViewDisableExtensionsKey = "WebSettings_DisableExtensions";
         private const string WebViewDisablePluginsKey = "WebSettings_DisablePlugins";
         private const string WebViewDiskCacheSizeKey = "WebSettings_DiskCacheSize";
+        private const string WebViewFastStartupModeKey = "WebSettings_FastStartupMode";
+        private const string WebViewSingleProcessModeKey = "WebSettings_SingleProcessMode";
         
         // GPU 优化设置
         private const string WebViewEnableHardwareAccelerationKey = "WebSettings_EnableHardwareAcceleration";
@@ -392,6 +394,44 @@ namespace Docked_AI.Features.Pages.Settings
                 // 限制范围在 10-500 MB 之间
                 int clampedValue = Math.Max(10, Math.Min(500, value));
                 _localSettings.Values[WebViewDiskCacheSizeKey] = clampedValue;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否启用快速启动模式（优化首次网页打开速度）
+        /// </summary>
+        public static bool FastStartupMode
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(WebViewFastStartupModeKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return true; // 默认开启
+            }
+            set
+            {
+                _localSettings.Values[WebViewFastStartupModeKey] = value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否启用单进程模式（减少辅助进程，降低内存占用）
+        /// </summary>
+        public static bool SingleProcessMode
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(WebViewSingleProcessModeKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return false; // 默认关闭（多进程更稳定）
+            }
+            set
+            {
+                _localSettings.Values[WebViewSingleProcessModeKey] = value;
             }
         }
 

@@ -9,6 +9,7 @@ using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.Pages.WebApp.Browser;
 using Docked_AI.Features.Localization;
 using Docked_AI.Features.UnifiedCalls.TopAppBar;
+using Docked_AI.Features.UnifiedCalls.ContentArea;
 using SymbolIcon = Microsoft.UI.Xaml.Controls.SymbolIcon;
 using Symbol = Microsoft.UI.Xaml.Controls.Symbol;
 using Visibility = Microsoft.UI.Xaml.Visibility;
@@ -156,8 +157,8 @@ namespace Docked_AI.Features.Pages.Home
 
         private void OnCardClick(WebAppShortcut shortcut)
         {
-            // 使用 EntranceNavigationTransitionInfo（官方推荐的轻量级动画）
-            Frame.Navigate(typeof(WebBrowserPage), shortcut, new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo());
+            // ✅ 使用 ContentAreaService 导航，支持页面缓存和单实例
+            ContentAreaService.Navigate(typeof(WebBrowserPage), shortcut, new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo());
         }
     }
 }

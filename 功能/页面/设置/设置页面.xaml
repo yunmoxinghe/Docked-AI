@@ -277,6 +277,26 @@
                         </controls:SettingsExpander.HeaderIcon>
                         
                         <controls:SettingsExpander.Items>
+                            <!-- 快速启动模式 -->
+                            <controls:SettingsCard
+                                x:Uid="SettingsPage_FastStartupModeHeader"
+                                Header="快速启动模式"
+                                Description="优化首次网页打开速度（需重启 WebView）">
+                                <ToggleSwitch
+                                    x:Name="FastStartupModeToggle"
+                                    Toggled="OnFastStartupModeToggled"/>
+                            </controls:SettingsCard>
+
+                            <!-- 单进程模式 -->
+                            <controls:SettingsCard
+                                x:Uid="SettingsPage_SingleProcessModeHeader"
+                                Header="单进程模式"
+                                Description="减少辅助进程，降低内存占用（需重启 WebView，可能影响稳定性）">
+                                <ToggleSwitch
+                                    x:Name="SingleProcessModeToggle"
+                                    Toggled="OnSingleProcessModeToggled"/>
+                            </controls:SettingsCard>
+
                             <!-- 内存模式 -->
                             <controls:SettingsCard
                                 x:Uid="SettingsPage_MemoryModeHeader"
