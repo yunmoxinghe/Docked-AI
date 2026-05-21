@@ -112,23 +112,21 @@ public sealed partial class TopAppBarControl : UserControl
         {
             Width = 40,
             Height = 40,
-            MinWidth = 40,
-            MinHeight = 40,
             Padding = new Thickness(0),
-            HorizontalContentAlignment = HorizontalAlignment.Center,
-            VerticalContentAlignment = VerticalAlignment.Center,
-            Background = new SolidColorBrush(Microsoft.UI.Colors.Transparent),
+            Background = (Brush)Application.Current.Resources["SubtleFillColorTransparent"],
+            BackgroundSizing = BackgroundSizing.InnerBorderEdge,
             BorderThickness = new Thickness(0),
             CornerRadius = new CornerRadius(4),
-            Foreground = GetDefaultForegroundBrush(),
             Content = new FontIcon
             {
                 Glyph = glyph,
-                Width = 16,
-                Height = 16,
                 FontSize = 16
             }
         };
+
+        // 添加悬停和按下状态的资源覆盖
+        button.Resources["ButtonBackgroundPointerOver"] = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SubtleFillColorSecondary"]);
+        button.Resources["ButtonBackgroundPressed"] = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SubtleFillColorTertiary"]);
 
         if (!string.IsNullOrWhiteSpace(toolTip))
         {

@@ -62,7 +62,9 @@
                     x:Name="BackButton"
                     Width="40"
                     Height="40"
-                    Background="Transparent"
+                    Padding="0"
+                    Background="{ThemeResource SubtleFillColorTransparent}"
+                    BackgroundSizing="InnerBorderEdge"
                     BorderThickness="0"
                     Visibility="Collapsed"
                     ToolTipService.ToolTip="返回"
@@ -70,6 +72,12 @@
                     PointerEntered="BackButton_PointerEntered"
                     PointerExited="BackButton_PointerExited"
                     Click="BackButton_Click">
+                    <Button.Resources>
+                        <ResourceDictionary>
+                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource SubtleFillColorSecondary}"/>
+                            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="{ThemeResource SubtleFillColorTertiary}"/>
+                        </ResourceDictionary>
+                    </Button.Resources>
                     <controls:AnimatedIcon x:Name="BackAnimatedIcon" Width="16" Height="16">
                         <controls:AnimatedIcon.Source>
                             <animatedvisuals:AnimatedBackVisualSource />
@@ -84,7 +92,9 @@
                     x:Name="MenuButton"
                     Width="40"
                     Height="40"
-                    Background="Transparent"
+                    Padding="0"
+                    Background="{ThemeResource SubtleFillColorTransparent}"
+                    BackgroundSizing="InnerBorderEdge"
                     BorderThickness="0"
                     Visibility="Collapsed"
                     ToolTipService.ToolTip="菜单"
@@ -92,6 +102,12 @@
                     PointerEntered="MenuButton_PointerEntered"
                     PointerExited="MenuButton_PointerExited"
                     Click="MenuButton_Click">
+                    <Button.Resources>
+                        <ResourceDictionary>
+                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource SubtleFillColorSecondary}"/>
+                            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="{ThemeResource SubtleFillColorTertiary}"/>
+                        </ResourceDictionary>
+                    </Button.Resources>
                     <controls:AnimatedIcon x:Name="MenuAnimatedIcon" Width="16" Height="16">
                         <controls:AnimatedIcon.Source>
                             <animatedvisuals:AnimatedGlobalNavigationButtonVisualSource />
@@ -127,11 +143,19 @@
                     x:Name="MoreButton"
                     Width="40"
                     Height="40"
-                    Background="Transparent"
+                    Padding="0"
+                    Background="{ThemeResource SubtleFillColorTransparent}"
+                    BackgroundSizing="InnerBorderEdge"
                     BorderThickness="0"
                     Visibility="Collapsed"
                     ToolTipService.ToolTip="更多"
                     CornerRadius="4">
+                    <Button.Resources>
+                        <ResourceDictionary>
+                            <SolidColorBrush x:Key="ButtonBackgroundPointerOver" Color="{ThemeResource SubtleFillColorSecondary}"/>
+                            <SolidColorBrush x:Key="ButtonBackgroundPressed" Color="{ThemeResource SubtleFillColorTertiary}"/>
+                        </ResourceDictionary>
+                    </Button.Resources>
                     <FontIcon Glyph="&#xE712;" />
                     <Button.Flyout>
                         <MenuFlyout x:Name="MoreMenuFlyout" Placement="BottomEdgeAlignedRight" />
