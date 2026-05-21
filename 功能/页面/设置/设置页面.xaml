@@ -475,6 +475,21 @@
                                     <FontIcon Glyph="&#xE8A7;"/>
                                 </controls:SettingsCard.ActionIcon>
                             </controls:SettingsCard>
+
+                            <!-- 赞助作者 -->
+                            <controls:SettingsCard 
+                                x:Uid="SettingsPage_SponsorCard"
+                                Header="赞助作者"
+                                Description="如果这个应用对你有帮助，请考虑赞助支持开发"
+                                IsClickEnabled="True"
+                                Click="OnSponsorClick">
+                                <controls:SettingsCard.HeaderIcon>
+                                    <FontIcon Glyph="&#xEB51;" />
+                                </controls:SettingsCard.HeaderIcon>
+                                <controls:SettingsCard.ActionIcon>
+                                    <FontIcon Glyph="&#xE8A7;"/>
+                                </controls:SettingsCard.ActionIcon>
+                            </controls:SettingsCard>
                             
                             <controls:SettingsCard x:Uid="SettingsPage_LinksHeader"
                                               HorizontalContentAlignment="Left"

@@ -1072,5 +1072,105 @@ namespace Docked_AI.Features.Pages.Settings
                 }
             }
         }
+
+        // 赞助作者
+        private async void OnSponsorClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var dialog = CreateSponsorDialog();
+                await InAppDialogService.ShowAsync(dialog, this);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Show sponsor dialog failed: {ex.Message}");
+            }
+        }
+
+        private ContentDialog CreateSponsorDialog()
+        {
+            var dialog = new ContentDialog
+            {
+                XamlRoot = this.XamlRoot,
+                Title = LocalizationHelper.GetString("SettingsPage_SponsorDialogTitle") ?? "赞助作者",
+                CloseButtonText = LocalizationHelper.GetString("SettingsPage_CloseButton") ?? "关闭",
+                DefaultButton = ContentDialogButton.Close
+            };
+
+            // 创建包含两个收款码的布局
+            var stackPanel = new StackPanel
+            {
+                Spacing = 24,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+
+            // 添加说明文字
+            var descriptionText = new TextBlock
+            {
+                Text = LocalizationHelper.GetString("SettingsPage_SponsorDescription") ?? "感谢您的支持！您可以通过以下方式赞助：",
+                TextWrapping = TextWrapping.Wrap,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 0, 0, 16)
+            };
+            stackPanel.Children.Add(descriptionText);
+
+            // 创建收款码容器（水平排列）
+            var qrCodesPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 32,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+
+            // 微信收款码
+            var wechatPanel = CreateQRCodePanel(
+                "ms-appx:///Assets/赞助/微信.png",
+                LocalizationHelper.GetString("SettingsPage_WeChatPay") ?? "微信支付"
+            );
+            qrCodesPanel.Children.Add(wechatPanel);
+
+            // 支付宝收款码
+            var alipayPanel = CreateQRCodePanel(
+                "ms-appx:///Assets/赞助/支付宝.jpg",
+                LocalizationHelper.GetString("SettingsPage_Alipay") ?? "支付宝"
+            );
+            qrCodesPanel.Children.Add(alipayPanel);
+
+            stackPanel.Children.Add(qrCodesPanel);
+
+            dialog.Content = stackPanel;
+            return dialog;
+        }
+
+        private StackPanel CreateQRCodePanel(string imageSource, string label)
+        {
+            var panel = new StackPanel
+            {
+                Spacing = 12,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+
+            // 收款码图片
+            var image = new Microsoft.UI.Xaml.Controls.Image
+            {
+                Source = new Microsoft.UI.Xaml.Media.Imaging.BitmapImage(new Uri(imageSource)),
+                Width = 200,
+                Height = 200,
+                Stretch = Microsoft.UI.Xaml.Media.Stretch.Uniform
+            };
+            panel.Children.Add(image);
+
+            // 标签文字
+            var textBlock = new TextBlock
+            {
+                Text = label,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                FontSize = 16,
+                FontWeight = Microsoft.UI.Text.FontWeights.SemiBold
+            };
+            panel.Children.Add(textBlock);
+
+            return panel;
+        }
     }
 }

@@ -455,6 +455,27 @@
   <data name="SettingsPage_RateAppCard.Description" xml:space="preserve">
     <value>喜欢这个应用吗？给我们评分和评论吧！</value>
   </data>
+  <data name="SettingsPage_SponsorCard.Header" xml:space="preserve">
+    <value>赞助作者</value>
+  </data>
+  <data name="SettingsPage_SponsorCard.Description" xml:space="preserve">
+    <value>如果这个应用对你有帮助，请考虑赞助支持开发</value>
+  </data>
+  <data name="SettingsPage_SponsorDialogTitle" xml:space="preserve">
+    <value>赞助作者</value>
+  </data>
+  <data name="SettingsPage_SponsorDescription" xml:space="preserve">
+    <value>感谢您的支持！您可以通过以下方式赞助：</value>
+  </data>
+  <data name="SettingsPage_WeChatPay" xml:space="preserve">
+    <value>微信支付</value>
+  </data>
+  <data name="SettingsPage_Alipay" xml:space="preserve">
+    <value>支付宝</value>
+  </data>
+  <data name="SettingsPage_CloseButton" xml:space="preserve">
+    <value>关闭</value>
+  </data>
   <!-- 设置页面 - Frame 动画 -->
   <data name="SettingsPage_BackButtonHeader.Header" xml:space="preserve">
     <value>侧边栏返回按钮</value>

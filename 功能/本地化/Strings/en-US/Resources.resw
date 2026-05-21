@@ -455,6 +455,27 @@
   <data name="SettingsPage_RateAppCard.Description" xml:space="preserve">
     <value>Love this app? Give us a rating and review!</value>
   </data>
+  <data name="SettingsPage_SponsorCard.Header" xml:space="preserve">
+    <value>Sponsor Author</value>
+  </data>
+  <data name="SettingsPage_SponsorCard.Description" xml:space="preserve">
+    <value>If this app helps you, please consider sponsoring the development</value>
+  </data>
+  <data name="SettingsPage_SponsorDialogTitle" xml:space="preserve">
+    <value>Sponsor Author</value>
+  </data>
+  <data name="SettingsPage_SponsorDescription" xml:space="preserve">
+    <value>Thank you for your support! You can sponsor via:</value>
+  </data>
+  <data name="SettingsPage_WeChatPay" xml:space="preserve">
+    <value>WeChat Pay</value>
+  </data>
+  <data name="SettingsPage_Alipay" xml:space="preserve">
+    <value>Alipay</value>
+  </data>
+  <data name="SettingsPage_CloseButton" xml:space="preserve">
+    <value>Close</value>
+  </data>
   <!-- Settings Page - Frame Animation -->
   <data name="SettingsPage_BackButtonHeader.Header" xml:space="preserve">
     <value>Sidebar Back Button</value>
