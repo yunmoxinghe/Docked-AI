@@ -158,10 +158,17 @@ namespace Docked_AI.Features.MainWindowContent.Linker
         private void OnPageCloseRequested(object? sender, string shortcutId)
         {
             System.Diagnostics.Debug.WriteLine($"[Linker] 收到页面关闭请求: {shortcutId}");
+            
+            // 诊断：关闭前的状态
+            WebViewManager.DiagnoseState();
+            
             ContentHost.RemoveCachedPage(shortcutId);
             ContentHost.Navigate(typeof(HomePage));
             NavBar.SelectHomeItem();
             NavBar.UpdateBackButtonVisibility(false);
+            
+            // 诊断：关闭后的状态
+            WebViewManager.DiagnoseState();
         }
 
         private void OnShortcutRemoved(object? sender, string shortcutId)

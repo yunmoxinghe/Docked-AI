@@ -568,22 +568,33 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         {
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] Loaded 事件触发");
             
+            // 诊断：Loaded 时的 WebView 状态
+            WebViewManager.DiagnoseState();
+            
             // 注意：不在这里设置顶部栏，因为 Loaded 在页面缓存切换时也会触发
             // 顶部栏的设置由 INavigationAware.OnNavigatedTo 负责
             
-            if (_currentShortcut != null && !WebViewManager.IsRegistered(_currentShortcut.Id))
+            if (_currentShortcut != null)
             {
-                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 未注册，尝试注册: {_currentShortcut.Id}");
-                
-                if (!WebViewManager.RegisterWebView(_currentShortcut.Id))
+                // 检查是否已经链接，避免重复注册
+                if (WebViewManager.IsLinked(_currentShortcut.Id))
                 {
-                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 无法注册 WebView，已达到数量限制");
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 已链接，跳过 RequestLink");
                     return;
                 }
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 已注册，跳过注册步骤");
+                
+                // 请求链接 WebView（限制器会自动处理驱逐）
+                var result = WebViewManager.RequestLink(_currentShortcut.Id, this);
+                
+                if (!result.Success)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 链接失败: {result.ErrorMessage}");
+                    WebViewManager.DiagnoseState();
+                    return;
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 链接成功{(result.EvictedOldest ? "（已驱逐最旧实例）" : "")}");
+                WebViewManager.DiagnoseState();
             }
             
             await EnsureWebViewInitializedAsync();
@@ -616,21 +627,46 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         {
             if (_isWebViewReady || WebView == null)
             {
+                System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] 跳过初始化: _isWebViewReady={_isWebViewReady}, WebView={WebView != null}");
                 return;
             }
 
+            System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] 开始初始化 WebView");
+
             try
             {
+                // 检查 WebView2 Runtime 是否可用
+                string? runtimeVersion = null;
+                try
+                {
+                    runtimeVersion = CoreWebView2Environment.GetAvailableBrowserVersionString();
+                    System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] WebView2 Runtime 版本: {runtimeVersion}");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] ❌ WebView2 Runtime 未安装或不可用: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] 请从以下地址下载并安装 WebView2 Runtime:");
+                    System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] https://developer.microsoft.com/microsoft-edge/webview2/");
+                    
+                    // 显示用户友好的错误消息
+                    await ShowWebView2RuntimeMissingDialogAsync();
+                    return;
+                }
+
                 CoreWebView2EnvironmentOptions options = new()
                 {
                     Language = GetWebViewLanguage(),
                     // 优化触摸板滚动体验的浏览器参数
                     AdditionalBrowserArguments = BuildBrowserArguments()
                 };
+                
+                System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] 创建 CoreWebView2Environment...");
                 CoreWebView2Environment environment = await CoreWebView2Environment.CreateWithOptionsAsync(
                     browserExecutableFolder: null,
                     userDataFolder: null,
                     options: options);
+                
+                System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] 初始化 CoreWebView2...");
                 await WebView.EnsureCoreWebView2Async(environment);
                 
                 // 设置 WebView2 背景透明
@@ -638,6 +674,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
                 if (WebView.CoreWebView2 is not null)
                 {
+                    System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] ✅ CoreWebView2 初始化成功");
+                    
                     WebView.CoreWebView2.Settings.IsWebMessageEnabled = true;
                     
                     // 优化触摸板和滚动体验
@@ -669,30 +707,106 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     
                     // 只有在 CoreWebView2 成功初始化后才设置为 ready
                     _isWebViewReady = true;
-                    System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] WebView 初始化成功");
+                    System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] ✅ WebView 初始化完成，准备导航");
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] CoreWebView2 为 null，初始化失败");
+                    System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] ❌ CoreWebView2 为 null，初始化失败");
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] WebView initialization failed: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] ❌ WebView 初始化失败: {ex.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] 错误消息: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] 堆栈跟踪: {ex.StackTrace}");
                 _isWebViewReady = false;
-                // Fall back to default initialization behavior.
+                
+                // 显示用户友好的错误消息
+                await ShowWebViewInitializationErrorDialogAsync(ex);
+            }
+        }
+
+        private async Task ShowWebView2RuntimeMissingDialogAsync()
+        {
+            try
+            {
+                if (DispatcherQueue == null)
+                {
+                    return;
+                }
+
+                await DispatcherQueue.EnqueueAsync(async () =>
+                {
+                    var dialog = new ContentDialog
+                    {
+                        Title = "WebView2 Runtime 未安装",
+                        Content = "此应用需要 Microsoft Edge WebView2 Runtime 才能显示网页内容。\n\n请访问以下网址下载并安装：\nhttps://developer.microsoft.com/microsoft-edge/webview2/",
+                        CloseButtonText = "确定",
+                        XamlRoot = XamlRoot
+                    };
+
+                    await dialog.ShowAsync();
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ShowWebView2RuntimeMissingDialogAsync] 显示对话框失败: {ex.Message}");
+            }
+        }
+
+        private async Task ShowWebViewInitializationErrorDialogAsync(Exception ex)
+        {
+            try
+            {
+                if (DispatcherQueue == null)
+                {
+                    return;
+                }
+
+                await DispatcherQueue.EnqueueAsync(async () =>
+                {
+                    var dialog = new ContentDialog
+                    {
+                        Title = "WebView 初始化失败",
+                        Content = $"无法初始化 WebView 控件。\n\n错误类型: {ex.GetType().Name}\n错误消息: {ex.Message}",
+                        CloseButtonText = "确定",
+                        XamlRoot = XamlRoot
+                    };
+
+                    await dialog.ShowAsync();
+                });
+            }
+            catch (Exception dialogEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ShowWebViewInitializationErrorDialogAsync] 显示对话框失败: {dialogEx.Message}");
             }
         }
 
         private void TryNavigatePendingUri()
         {
+            System.Diagnostics.Debug.WriteLine($"[TryNavigatePendingUri] 被调用");
+            System.Diagnostics.Debug.WriteLine($"[TryNavigatePendingUri] _isWebViewReady={_isWebViewReady}");
+            System.Diagnostics.Debug.WriteLine($"[TryNavigatePendingUri] _pendingNavigationUri={_pendingNavigationUri}");
+            System.Diagnostics.Debug.WriteLine($"[TryNavigatePendingUri] WebView={WebView != null}");
+            System.Diagnostics.Debug.WriteLine($"[TryNavigatePendingUri] WebView.CoreWebView2={WebView?.CoreWebView2 != null}");
+            
             if (!_isWebViewReady || _pendingNavigationUri is null || WebView == null)
             {
+                System.Diagnostics.Debug.WriteLine($"[TryNavigatePendingUri] 跳过导航：条件不满足");
                 return;
             }
 
-            WebView.Source = _pendingNavigationUri;
-            _pendingNavigationUri = null;
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[TryNavigatePendingUri] ✅ 开始导航到: {_pendingNavigationUri}");
+                WebView.Source = _pendingNavigationUri;
+                _pendingNavigationUri = null;
+                System.Diagnostics.Debug.WriteLine($"[TryNavigatePendingUri] ✅ 导航请求已发送");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TryNavigatePendingUri] ❌ 导航失败: {ex.Message}");
+            }
         }
 
         private async Task EnsureTintScriptInstalledAsync()
@@ -1841,7 +1955,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         }
 
         /// <summary>
-        /// 清理并释放 WebView 资源（公开方法，供 PageCacheManager 调用）
+        /// 清理并释放 WebView 资源（公开方法，供 PageCacheManager 和 WebViewManager 调用）
         /// </summary>
         public void DisposeWebView()
         {
@@ -1851,6 +1965,17 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
 
             _isDisposed = true;
+            
+            System.Diagnostics.Debug.WriteLine($"[DisposeWebView] 开始清理 WebView: {_currentShortcut?.Id ?? "null"}");
+            
+            // ⭐ 取消链接 WebView（防护：只在有 shortcut 时调用）
+            if (_currentShortcut != null)
+            {
+                WebViewManager.Unlink(_currentShortcut.Id);
+                System.Diagnostics.Debug.WriteLine($"[DisposeWebView] 已取消链接 WebView: {_currentShortcut.Id}");
+                WebViewManager.DiagnoseState();
+            }
+            
             Loaded -= WebBrowserPage_Loaded;
             Unloaded -= WebBrowserPage_Unloaded;
             Pages.Settings.SettingsPage.WinUIContextMenuSettingsChanged -= OnWinUIContextMenuSettingsChanged;
@@ -1862,6 +1987,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             _pendingNavigationUri = null;
             _currentShortcut = null;
             _isWebViewReady = false;
+            
+            System.Diagnostics.Debug.WriteLine($"[DisposeWebView] 清理完成");
         }
         
         /// <summary>

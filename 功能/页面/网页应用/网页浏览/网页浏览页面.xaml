@@ -23,7 +23,8 @@
             x:Name="WebView"
             Grid.Row="1"
             HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch">
+            VerticalAlignment="Stretch"
+            Visibility="Visible">
             <controls:WebView2.ContextFlyout>
                 <MenuFlyout x:Name="WebViewContextMenu">
                     <MenuFlyoutItem x:Name="BackMenuItem" x:Uid="WebBrowser_BackMenuItem" Click="BackMenuItem_Click">

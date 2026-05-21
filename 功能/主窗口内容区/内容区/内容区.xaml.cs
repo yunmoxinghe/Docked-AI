@@ -368,9 +368,9 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                     System.Diagnostics.Debug.WriteLine($"[ContentArea] 清理被移除的 WebBrowserPage: {shortcutId}");
                 }
                 
-                // 注销 WebView
-                WebViewManager.UnregisterWebView(shortcutId);
-                System.Diagnostics.Debug.WriteLine($"[ContentArea] 自动注销 WebView: {shortcutId}");
+                // 取消链接 WebView
+                WebViewManager.Unlink(shortcutId);
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] 自动取消链接 WebView: {shortcutId}");
             }
         }
 
@@ -436,18 +436,27 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             {
                 string shortcutId = cacheKey.Substring("WebBrowser_".Length);
                 
-                // 如果该 WebView 已经注册，直接使用缓存
-                if (WebViewManager.IsRegistered(shortcutId))
+                // 如果该 WebView 已经链接，直接使用缓存
+                if (WebViewManager.IsLinked(shortcutId))
                 {
-                    System.Diagnostics.Debug.WriteLine($"[ContentArea] WebView 已注册，使用缓存");
+                    System.Diagnostics.Debug.WriteLine($"[ContentArea] WebView 已链接，使用缓存");
                 }
                 // 如果未注册但已达到限制，需要先移除最久未使用的页面
                 else if (!WebViewManager.CanCreateNew())
                 {
                     System.Diagnostics.Debug.WriteLine($"[ContentArea] WebView 数量已达限制 ({WebViewManager.ActiveCount}/{WebViewManager.MaxCount})，触发 LRU 移除");
                     
+                    // 诊断：移除前的状态
+                    WebViewManager.DiagnoseState();
+                    
                     // 获取按 LRU 顺序排列的缓存键（从最新到最旧）
                     var cachedKeysInOrder = _pageCacheManager.GetCachedPageKeysInLRUOrder().ToList();
+                    
+                    System.Diagnostics.Debug.WriteLine($"[ContentArea] 当前缓存页面顺序（从新到旧）:");
+                    for (int i = 0; i < cachedKeysInOrder.Count; i++)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"  [{i}] {cachedKeysInOrder[i]}");
+                    }
                     
                     // 从后往前找到最久未使用的 WebBrowser 页面（不是当前要打开的）
                     string? oldestWebBrowserKey = null;
@@ -466,16 +475,26 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                         System.Diagnostics.Debug.WriteLine($"[ContentArea] 移除最久未使用的页面: {oldestWebBrowserKey}");
                         string oldShortcutId = oldestWebBrowserKey.Substring("WebBrowser_".Length);
                         
-                        // 先注销 WebView
-                        WebViewManager.UnregisterWebView(oldShortcutId);
+                        // 获取页面实例并调用 DisposeWebView（会自动注销 WebView）
+                        var oldPage = _pageCacheManager.GetCachedPage(oldestWebBrowserKey);
+                        if (oldPage is WebBrowserPage oldWebBrowserPage)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[ContentArea] 调用 DisposeWebView 清理旧页面");
+                            oldWebBrowserPage.DisposeWebView();
+                        }
                         
-                        // 再移除页面缓存
+                        // 移除页面缓存
                         _pageCacheManager.RemovePage(oldestWebBrowserKey);
+                        
+                        System.Diagnostics.Debug.WriteLine($"[ContentArea] 旧页面已移除");
                     }
                     else
                     {
                         System.Diagnostics.Debug.WriteLine($"[ContentArea] 警告：未找到可移除的 WebBrowser 页面");
                     }
+                    
+                    // 诊断：移除后的状态
+                    WebViewManager.DiagnoseState();
                 }
             }
             
@@ -617,13 +636,13 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         {
             string cacheKey = $"WebBrowser_{shortcutId}";
             
-            // 获取页面实例以便清理（不更新访问顺序）
+            // 获取页面实例以便清理
             var page = _pageCacheManager.GetCachedPage(cacheKey);
             if (page is WebBrowserPage webBrowserPage)
             {
-                // 注销 WebView
-                WebViewManager.UnregisterWebView(shortcutId);
-                System.Diagnostics.Debug.WriteLine($"[ContentArea] 清理缓存页面，注销 WebView: {shortcutId}");
+                // 调用 DisposeWebView 会自动取消链接
+                webBrowserPage.DisposeWebView();
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] 清理缓存页面: {shortcutId}");
             }
             
             _pageCacheManager.RemovePage(cacheKey);
@@ -640,6 +659,9 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         public async System.Threading.Tasks.Task RestartCurrentTabAsync()
         {
             System.Diagnostics.Debug.WriteLine("[ContentArea] RestartCurrentTabAsync 被调用");
+            
+            // 诊断：重启前的状态
+            WebViewManager.DiagnoseState();
             
             // 检查当前页面是否是 WebBrowserPage
             if (_currentPage is not WebBrowserPage currentWebBrowserPage)
@@ -684,10 +706,13 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             // Step 1: 移除旧的缓存页面
             _pageCacheManager.RemovePage(currentCacheKey);
             
-            // Step 2: 注销 WebView
-            WebViewManager.UnregisterWebView(currentShortcut.Id);
+            // Step 2: 调用 DisposeWebView 会自动取消链接
+            // （不需要手动调用 Unlink）
             
             System.Diagnostics.Debug.WriteLine("[ContentArea] 已清理旧实例");
+            
+            // 诊断：清理后的状态
+            WebViewManager.DiagnoseState();
 
             // Step 3: 显示加载状态（可选）
             // 这里可以添加一个 Loading UI
@@ -698,6 +723,9 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             // Step 4: 重新导航到同一个页面（会创建新实例）
             System.Diagnostics.Debug.WriteLine("[ContentArea] 创建新实例");
             Navigate(typeof(WebBrowserPage), currentShortcut);
+            
+            // 诊断：重启后的状态
+            WebViewManager.DiagnoseState();
             
             System.Diagnostics.Debug.WriteLine("[ContentArea] 标签重启完成");
         }

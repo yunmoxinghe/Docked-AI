@@ -108,12 +108,20 @@ public sealed partial class TopAppBarControl : UserControl
 
     public Button CreateIconButton(string glyph, RoutedEventHandler clickHandler, string? toolTip = null)
     {
+        // 安全获取背景画刷
+        Brush? backgroundBrush = null;
+        if (Application.Current.Resources.TryGetValue("SubtleFillColorTransparent", out object? bgResource))
+        {
+            backgroundBrush = bgResource is Brush brush ? brush : 
+                             bgResource is Windows.UI.Color color ? new SolidColorBrush(color) : null;
+        }
+        
         var button = new Button
         {
             Width = 40,
             Height = 40,
             Padding = new Thickness(0),
-            Background = (Brush)Application.Current.Resources["SubtleFillColorTransparent"],
+            Background = backgroundBrush ?? new SolidColorBrush(Microsoft.UI.Colors.Transparent),
             BackgroundSizing = BackgroundSizing.InnerBorderEdge,
             BorderThickness = new Thickness(0),
             CornerRadius = new CornerRadius(4),
@@ -125,8 +133,25 @@ public sealed partial class TopAppBarControl : UserControl
         };
 
         // 添加悬停和按下状态的资源覆盖
-        button.Resources["ButtonBackgroundPointerOver"] = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SubtleFillColorSecondary"]);
-        button.Resources["ButtonBackgroundPressed"] = new SolidColorBrush((Windows.UI.Color)Application.Current.Resources["SubtleFillColorTertiary"]);
+        if (Application.Current.Resources.TryGetValue("SubtleFillColorSecondary", out object? secondaryResource))
+        {
+            var secondaryBrush = secondaryResource is Brush brush ? brush : 
+                                 secondaryResource is Windows.UI.Color color ? new SolidColorBrush(color) : null;
+            if (secondaryBrush != null)
+            {
+                button.Resources["ButtonBackgroundPointerOver"] = secondaryBrush;
+            }
+        }
+
+        if (Application.Current.Resources.TryGetValue("SubtleFillColorTertiary", out object? tertiaryResource))
+        {
+            var tertiaryBrush = tertiaryResource is Brush brush ? brush : 
+                                tertiaryResource is Windows.UI.Color color ? new SolidColorBrush(color) : null;
+            if (tertiaryBrush != null)
+            {
+                button.Resources["ButtonBackgroundPressed"] = tertiaryBrush;
+            }
+        }
 
         if (!string.IsNullOrWhiteSpace(toolTip))
         {

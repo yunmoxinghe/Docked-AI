@@ -648,8 +648,8 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             // 触发快捷方式移除事件，通知清除缓存
             ShortcutRemoved?.Invoke(this, shortcutId);
 
-            // 注销 WebView 实例
-            WebViewManager.UnregisterWebView(shortcutId);
+            // 取消链接 WebView 实例
+            WebViewManager.Unlink(shortcutId);
 
             _ = PersistShortcutsAsync();
         }
