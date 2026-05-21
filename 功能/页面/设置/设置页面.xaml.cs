@@ -1087,16 +1087,8 @@ namespace Docked_AI.Features.Pages.Settings
             }
         }
 
-        private ContentDialog CreateSponsorDialog()
+        private static UnifiedInAppDialog CreateSponsorDialog()
         {
-            var dialog = new ContentDialog
-            {
-                XamlRoot = this.XamlRoot,
-                Title = LocalizationHelper.GetString("SettingsPage_SponsorDialogTitle") ?? "赞助作者",
-                CloseButtonText = LocalizationHelper.GetString("SettingsPage_CloseButton") ?? "关闭",
-                DefaultButton = ContentDialogButton.Close
-            };
-
             // 创建包含两个收款码的布局
             var stackPanel = new StackPanel
             {
@@ -1110,6 +1102,7 @@ namespace Docked_AI.Features.Pages.Settings
                 Text = LocalizationHelper.GetString("SettingsPage_SponsorDescription") ?? "感谢您的支持！您可以通过以下方式赞助：",
                 TextWrapping = TextWrapping.Wrap,
                 HorizontalAlignment = HorizontalAlignment.Center,
+                FontSize = 14,
                 Margin = new Thickness(0, 0, 0, 16)
             };
             stackPanel.Children.Add(descriptionText);
@@ -1138,11 +1131,19 @@ namespace Docked_AI.Features.Pages.Settings
 
             stackPanel.Children.Add(qrCodesPanel);
 
-            dialog.Content = stackPanel;
+            // 使用统一弹窗接口
+            var dialog = new UnifiedInAppDialog();
+            dialog.Configure(
+                LocalizationHelper.GetString("SettingsPage_SponsorDialogTitle") ?? "赞助作者",
+                stackPanel,
+                primaryButtonText: null,
+                closeButtonText: LocalizationHelper.GetString("SettingsPage_CloseButton") ?? "关闭",
+                defaultButton: ContentDialogButton.Close);
+            
             return dialog;
         }
 
-        private StackPanel CreateQRCodePanel(string imageSource, string label)
+        private static StackPanel CreateQRCodePanel(string imageSource, string label)
         {
             var panel = new StackPanel
             {
