@@ -1,4 +1,5 @@
 using Docked_AI.Features.Pages.Settings;
+using Docked_AI.Features.Pages.WebApp.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,12 +8,93 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 {
     /// <summary>
     /// WebView 实例管理器，用于跟踪和限制同时打开的 WebView 数量
-    /// 负责自动驱逐最旧的 WebView 以保持数量限制
+    /// 使用 LRU 策略自动驱逐最久未使用的 WebView 以保持数量限制
     /// </summary>
     public static class WebViewManager
     {
-        private static readonly Dictionary<string, WeakReference<WebBrowserPage>> _activeWebViews = new();
+        private static LRUManager<string, WebBrowserPage>? _lruCache;
         private static readonly object _lock = new();
+        private static int _currentMaxCount = -1;
+
+        /// <summary>
+        /// 确保 LRU 缓存已初始化，并在容量变化时重新创建
+        /// </summary>
+        private static void EnsureLRUCache()
+        {
+            int maxCount = ExperimentalSettings.MaxWebViewCount;
+            
+            if (_lruCache == null || _currentMaxCount != maxCount)
+            {
+                // 保存旧缓存的数据
+                var oldData = _lruCache?.GetSnapshot().ToList();
+                
+                // 创建新的 LRU 缓存
+                _lruCache = new LRUManager<string, WebBrowserPage>(maxCount, OnWebViewEvicted);
+                _lruCache.ItemEvicted += OnLRUItemEvicted;
+                _currentMaxCount = maxCount;
+                
+                System.Diagnostics.Debug.WriteLine($"[WebViewManager] 初始化 LRU 缓存，容量: {maxCount}");
+                
+                // 恢复旧数据（如果有）
+                if (oldData != null)
+                {
+                    foreach (var kvp in oldData)
+                    {
+                        _lruCache.AddOrUpdate(kvp.Key, kvp.Value);
+                    }
+                    System.Diagnostics.Debug.WriteLine($"[WebViewManager] 恢复了 {_lruCache.Count} 个 WebView 链接");
+                }
+            }
+        }
+
+        /// <summary>
+        /// LRU 淘汰回调（用于清理资源）
+        /// </summary>
+        private static void OnWebViewEvicted(string instanceId, WebBrowserPage page)
+        {
+            System.Diagnostics.Debug.WriteLine($"[WebViewManager] LRU 淘汰 WebView: {instanceId}");
+            
+            // 异步清理资源（完全不阻塞）
+            _ = System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    page.DispatcherQueue?.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+                    {
+                        try
+                        {
+                            // ⭐ skipUnlink = true，因为 LRU 已经从缓存中移除了
+                            page.DisposeWebView(skipUnlink: true);
+                            System.Diagnostics.Debug.WriteLine($"[WebViewManager] 异步驱逐完成: {instanceId}");
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[WebViewManager] 异步驱逐时出错: {ex.Message}");
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WebViewManager] 异步驱逐失败: {ex.Message}");
+                }
+            });
+            
+            // ⭐ 触发事件通知 PageCacheManager 删除缓存
+            WebViewEvicted?.Invoke(null, new WebViewEvictedEventArgs(instanceId));
+        }
+
+        /// <summary>
+        /// WebView 被淘汰事件
+        /// </summary>
+        public static event EventHandler<WebViewEvictedEventArgs>? WebViewEvicted;
+
+        /// <summary>
+        /// LRU 事件处理器
+        /// </summary>
+        private static void OnLRUItemEvicted(object? sender, LRUEvictionEventArgs<string, WebBrowserPage> e)
+        {
+            System.Diagnostics.Debug.WriteLine($"[WebViewManager] LRU 事件触发: {e.Key}");
+        }
 
         /// <summary>
         /// 获取当前活跃的 WebView 数量
@@ -23,8 +105,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             {
                 lock (_lock)
                 {
-                    CleanupDeadReferences();
-                    return _activeWebViews.Count;
+                    EnsureLRUCache();
+                    return _lruCache!.Count;
                 }
             }
         }
@@ -41,8 +123,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         {
             lock (_lock)
             {
-                CleanupDeadReferences();
-                return _activeWebViews.Count < MaxCount;
+                EnsureLRUCache();
+                return _lruCache!.Count < MaxCount;
             }
         }
 
@@ -66,69 +148,25 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
             lock (_lock)
             {
-                CleanupDeadReferences();
+                EnsureLRUCache();
 
-                // 如果已经链接，直接返回成功
-                if (_activeWebViews.ContainsKey(instanceId))
+                // 如果已经链接，更新访问顺序
+                if (_lruCache!.ContainsKey(instanceId))
                 {
-                    System.Diagnostics.Debug.WriteLine($"[WebViewManager] WebView 已链接: {instanceId}");
+                    _lruCache.TryGet(instanceId, out _); // 更新访问顺序
+                    System.Diagnostics.Debug.WriteLine($"[WebViewManager] WebView 已链接，更新访问顺序: {instanceId}");
                     return new WebViewLinkResult { Success = true, AlreadyLinked = true };
                 }
 
-                // ⭐ 立即注册新的（不管是否超限）
-                _activeWebViews[instanceId] = new WeakReference<WebBrowserPage>(page);
-                System.Diagnostics.Debug.WriteLine($"[WebViewManager] 链接 WebView: {instanceId}, 当前数量: {_activeWebViews.Count}/{MaxCount}");
+                // 添加新的 WebView（LRU 会自动处理淘汰）
+                var result = _lruCache.AddOrUpdate(instanceId, page);
+                
+                System.Diagnostics.Debug.WriteLine($"[WebViewManager] 链接 WebView: {instanceId}, 当前数量: {_lruCache.Count}/{MaxCount}");
 
-                // 如果超限，异步驱逐最旧的
-                if (_activeWebViews.Count > MaxCount)
+                if (result.wasEvicted)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[WebViewManager] 超出限制，异步驱逐最旧的 WebView");
-
-                    // 找到最旧的 WebView（排除刚注册的）
-                    var oldestEntry = FindOldestWebView(instanceId);
-                    if (oldestEntry != null)
-                    {
-                        var oldKey = oldestEntry.Value.Key;
-                        var oldPageRef = oldestEntry.Value.Value;
-
-                        // ⭐ 立即从字典中移除（这样 DisposeWebView 中的 Unlink 就不会重复）
-                        _activeWebViews.Remove(oldKey);
-                        System.Diagnostics.Debug.WriteLine($"[WebViewManager] 已从字典移除: {oldKey}, 当前数量: {_activeWebViews.Count}/{MaxCount}");
-
-                        // 异步清理资源（完全不阻塞）
-                        _ = System.Threading.Tasks.Task.Run(() =>
-                        {
-                            try
-                            {
-                                if (oldPageRef.TryGetTarget(out var oldPage))
-                                {
-                                    oldPage.DispatcherQueue?.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
-                                    {
-                                        try
-                                        {
-                                            // ⭐ 注意：DisposeWebView 内部会调用 Unlink，但因为已经从字典移除，所以不会有问题
-                                            oldPage.DisposeWebView();
-                                            System.Diagnostics.Debug.WriteLine($"[WebViewManager] 异步驱逐完成: {oldKey}");
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            System.Diagnostics.Debug.WriteLine($"[WebViewManager] 异步驱逐时出错: {ex.Message}");
-                                        }
-                                    });
-                                }
-                                else
-                                {
-                                    System.Diagnostics.Debug.WriteLine($"[WebViewManager] 旧页面已被 GC 回收: {oldKey}");
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"[WebViewManager] 异步驱逐失败: {ex.Message}");
-                            }
-                        });
-
-                        return new WebViewLinkResult { Success = true, AlreadyLinked = false, EvictedOldest = true };
-                    }
+                    System.Diagnostics.Debug.WriteLine($"[WebViewManager] LRU 自动淘汰了: {result.evictedKey}");
+                    return new WebViewLinkResult { Success = true, AlreadyLinked = false, EvictedOldest = true };
                 }
 
                 return new WebViewLinkResult { Success = true, AlreadyLinked = false };
@@ -148,10 +186,11 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
             lock (_lock)
             {
-                bool removed = _activeWebViews.Remove(instanceId);
+                EnsureLRUCache();
+                bool removed = _lruCache!.Remove(instanceId);
                 if (removed)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[WebViewManager] 取消链接 WebView: {instanceId}, 当前数量: {_activeWebViews.Count}/{MaxCount}");
+                    System.Diagnostics.Debug.WriteLine($"[WebViewManager] 取消链接 WebView: {instanceId}, 当前数量: {_lruCache.Count}/{MaxCount}");
                 }
                 else
                 {
@@ -172,8 +211,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
             lock (_lock)
             {
-                CleanupDeadReferences();
-                return _activeWebViews.ContainsKey(instanceId);
+                EnsureLRUCache();
+                return _lruCache!.ContainsKey(instanceId);
             }
         }
 
@@ -184,8 +223,20 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         {
             lock (_lock)
             {
-                CleanupDeadReferences();
-                return _activeWebViews.Keys.ToArray();
+                EnsureLRUCache();
+                return _lruCache!.GetKeys().ToArray();
+            }
+        }
+
+        /// <summary>
+        /// 获取按 LRU 顺序排列的 WebView ID 列表（从最新到最旧）
+        /// </summary>
+        public static string[] GetWebViewIdsInLRUOrder()
+        {
+            lock (_lock)
+            {
+                EnsureLRUCache();
+                return _lruCache!.GetKeysInLRUOrder().ToArray();
             }
         }
 
@@ -196,7 +247,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         {
             lock (_lock)
             {
-                _activeWebViews.Clear();
+                EnsureLRUCache();
+                _lruCache!.Clear();
                 System.Diagnostics.Debug.WriteLine("[WebViewManager] 已清除所有 WebView 链接");
             }
         }
@@ -208,18 +260,20 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         {
             lock (_lock)
             {
-                CleanupDeadReferences();
+                EnsureLRUCache();
                 System.Diagnostics.Debug.WriteLine("========== WebView 状态诊断 ==========");
-                System.Diagnostics.Debug.WriteLine($"当前链接数量: {_activeWebViews.Count}/{MaxCount}");
+                System.Diagnostics.Debug.WriteLine($"当前链接数量: {_lruCache!.Count}/{MaxCount}");
                 System.Diagnostics.Debug.WriteLine($"可以创建新实例: {CanCreateNew()}");
                 
-                if (_activeWebViews.Count > 0)
+                if (_lruCache.Count > 0)
                 {
-                    System.Diagnostics.Debug.WriteLine("已链接的 WebView ID:");
-                    foreach (var kvp in _activeWebViews)
+                    System.Diagnostics.Debug.WriteLine("已链接的 WebView ID (LRU 顺序，最新→最旧):");
+                    var idsInOrder = _lruCache.GetKeysInLRUOrder();
+                    int index = 1;
+                    foreach (var id in idsInOrder)
                     {
-                        bool isAlive = kvp.Value.TryGetTarget(out _);
-                        System.Diagnostics.Debug.WriteLine($"  - {kvp.Key} (alive: {isAlive})");
+                        System.Diagnostics.Debug.WriteLine($"  {index}. {id}");
+                        index++;
                     }
                 }
                 else
@@ -229,40 +283,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 
                 System.Diagnostics.Debug.WriteLine("=====================================");
             }
-        }
-
-        /// <summary>
-        /// 清理已失效的弱引用
-        /// </summary>
-        private static void CleanupDeadReferences()
-        {
-            var deadKeys = _activeWebViews
-                .Where(kvp => !kvp.Value.TryGetTarget(out _))
-                .Select(kvp => kvp.Key)
-                .ToList();
-
-            foreach (var key in deadKeys)
-            {
-                _activeWebViews.Remove(key);
-                System.Diagnostics.Debug.WriteLine($"[WebViewManager] 清理僵尸链接: {key}");
-            }
-        }
-
-        /// <summary>
-        /// 找到最旧的 WebView（排除指定的 ID）
-        /// </summary>
-        private static KeyValuePair<string, WeakReference<WebBrowserPage>>? FindOldestWebView(string excludeId)
-        {
-            // 简单策略：返回第一个不是 excludeId 的
-            // 更复杂的策略可以基于访问时间戳
-            foreach (var kvp in _activeWebViews)
-            {
-                if (kvp.Key != excludeId && kvp.Value.TryGetTarget(out _))
-                {
-                    return kvp;
-                }
-            }
-            return null;
         }
     }
 
@@ -290,5 +310,18 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         /// 错误消息（如果失败）
         /// </summary>
         public string? ErrorMessage { get; set; }
+    }
+
+    /// <summary>
+    /// WebView 淘汰事件参数
+    /// </summary>
+    public class WebViewEvictedEventArgs : EventArgs
+    {
+        public string InstanceId { get; }
+
+        public WebViewEvictedEventArgs(string instanceId)
+        {
+            InstanceId = instanceId;
+        }
     }
 }

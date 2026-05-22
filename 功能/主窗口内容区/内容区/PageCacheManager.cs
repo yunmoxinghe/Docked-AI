@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Docked_AI.Features.Pages.WebApp.Common;
 
 namespace Docked_AI.Features.MainWindowContent.ContentArea
 {
@@ -14,10 +15,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
     /// </summary>
     public class PageCacheManager
     {
-        private readonly Dictionary<string, Page> _cachedPages = new();
-        private readonly LinkedList<string> _accessOrder = new(); // 记录访问顺序，最新的在前面
-        private readonly Dictionary<string, LinkedListNode<string>> _accessNodes = new();
-        private readonly int _maxCacheSize;
+        private readonly LRUManager<string, Page> _lruCache;
         private string? _currentPageKey;
         private readonly object _cacheLock = new(); // 线程安全锁
         
@@ -35,7 +33,40 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
 
         public PageCacheManager(int maxCacheSize = 20)
         {
-            _maxCacheSize = maxCacheSize;
+            // 初始化 LRU 管理器，并注册淘汰回调
+            _lruCache = new LRUManager<string, Page>(maxCacheSize, OnPageEvicted);
+            _lruCache.ItemEvicted += OnLRUItemEvicted;
+        }
+
+        /// <summary>
+        /// LRU 淘汰回调（用于清理资源）
+        /// </summary>
+        private void OnPageEvicted(string cacheKey, Page page)
+        {
+            // 如果是 WebBrowserPage，调用其清理方法
+            if (page is Pages.WebApp.Browser.WebBrowserPage webBrowserPage)
+            {
+                try
+                {
+                    webBrowserPage.DisposeWebView();
+                    System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 已调用 WebBrowserPage.DisposeWebView: {cacheKey}");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 调用 DisposeWebView 失败: {ex.Message}");
+                }
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 缓存已满，自动移除最久未使用的页面: {cacheKey}");
+        }
+
+        /// <summary>
+        /// LRU 事件处理器
+        /// </summary>
+        private void OnLRUItemEvicted(object? sender, LRUEvictionEventArgs<string, Page> e)
+        {
+            // 触发页面移除事件
+            PageAutoRemoved?.Invoke(this, e.Key);
         }
 
         /// <summary>
@@ -56,20 +87,42 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             lock (_cacheLock)
             {
                 // 检查缓存中是否已存在
-                if (_cachedPages.TryGetValue(cacheKey, out Page? cachedPage))
+                if (_lruCache.TryGet(cacheKey, out Page? cachedPage) && cachedPage != null)
                 {
+                    // ⭐ 检查 WebBrowserPage 是否被销毁
+                    if (cachedPage is Pages.WebApp.Browser.WebBrowserPage webBrowserPage)
+                    {
+                        // 使用反射检查 _isDisposed 字段
+                        var isDisposedField = webBrowserPage.GetType().GetField("_isDisposed", 
+                            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                        
+                        if (isDisposedField != null && isDisposedField.GetValue(webBrowserPage) is bool isDisposed && isDisposed)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 缓存页面已被销毁，重新创建: {cacheKey}");
+                            
+                            // 从缓存中移除
+                            _lruCache.Remove(cacheKey);
+                            
+                            // 创建新实例
+                            var recreatedPage = CreatePageInstance(pageType);
+                            _lruCache.AddOrUpdate(cacheKey, recreatedPage);
+                            _currentPageKey = cacheKey;
+                            System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 已重新创建页面: {cacheKey}");
+                            
+                            return recreatedPage;
+                        }
+                    }
+                    
                     System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 使用缓存页面: {cacheKey}");
                     _currentPageKey = cacheKey;
-                    
-                    // 更新访问顺序（移到最前面）
-                    UpdateAccessOrderUnsafe(cacheKey);
-                    
                     return cachedPage;
                 }
 
                 // 创建新实例并缓存
                 var newPage = CreatePageInstance(pageType);
-                AddPageToCacheUnsafe(cacheKey, newPage);
+                _lruCache.AddOrUpdate(cacheKey, newPage);
+                _currentPageKey = cacheKey;
+                System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 添加页面到缓存: {cacheKey}, 当前缓存数: {_lruCache.Count}");
                 
                 return newPage;
             }
@@ -87,65 +140,9 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
 
             lock (_cacheLock)
             {
-                AddPageToCacheUnsafe(cacheKey, page);
-            }
-        }
-
-        /// <summary>
-        /// 将已存在的页面实例添加到缓存（不加锁，内部使用）
-        /// </summary>
-        private void AddPageToCacheUnsafe(string cacheKey, Page page)
-        {
-            // 如果已存在，更新访问顺序
-            if (_cachedPages.ContainsKey(cacheKey))
-            {
-                UpdateAccessOrderUnsafe(cacheKey);
-                return;
-            }
-
-            // 检查缓存大小限制
-            if (_cachedPages.Count >= _maxCacheSize)
-            {
-                RemoveLeastRecentlyUsedPageUnsafe();
-            }
-
-            _cachedPages[cacheKey] = page;
-            _currentPageKey = cacheKey;
-            
-            // 添加到访问顺序列表（最前面）
-            var node = _accessOrder.AddFirst(cacheKey);
-            _accessNodes[cacheKey] = node;
-            
-            System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 添加页面到缓存: {cacheKey}, 当前缓存数: {_cachedPages.Count}");
-        }
-
-        /// <summary>
-        /// 更新页面的访问顺序（移到最前面，不加锁，内部使用）
-        /// </summary>
-        private void UpdateAccessOrderUnsafe(string cacheKey)
-        {
-            if (_accessNodes.TryGetValue(cacheKey, out var node))
-            {
-                _accessOrder.Remove(node);
-                var newNode = _accessOrder.AddFirst(cacheKey);
-                _accessNodes[cacheKey] = newNode;
-            }
-        }
-
-        /// <summary>
-        /// 移除最近最少使用的页面（不加锁，内部使用）
-        /// </summary>
-        private void RemoveLeastRecentlyUsedPageUnsafe()
-        {
-            if (_accessOrder.Last != null)
-            {
-                string lruKey = _accessOrder.Last.Value;
-                RemovePageUnsafe(lruKey);
-                System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 缓存已满，自动移除最久未使用的页面: {lruKey}");
-                
-                // 触发页面移除事件（在锁外触发，避免死锁）
-                // 注意：事件处理器不应该回调到 PageCacheManager 的公共方法
-                PageAutoRemoved?.Invoke(this, lruKey);
+                _lruCache.AddOrUpdate(cacheKey, page);
+                _currentPageKey = cacheKey;
+                System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 添加页面到缓存: {cacheKey}, 当前缓存数: {_lruCache.Count}");
             }
         }
 
@@ -161,50 +158,54 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         {
             lock (_cacheLock)
             {
-                return RemovePageUnsafe(cacheKey);
+                if (_lruCache.TryGet(cacheKey, out Page? page) && page != null)
+                {
+                    // 如果是 WebBrowserPage，调用其清理方法
+                    if (page is Pages.WebApp.Browser.WebBrowserPage webBrowserPage)
+                    {
+                        try
+                        {
+                            webBrowserPage.DisposeWebView();
+                            System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 已调用 WebBrowserPage.DisposeWebView: {cacheKey}");
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 调用 DisposeWebView 失败: {ex.Message}");
+                        }
+                    }
+                }
+
+                bool removed = _lruCache.Remove(cacheKey);
+                if (removed)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 移除缓存页面: {cacheKey}");
+                    if (_currentPageKey == cacheKey)
+                    {
+                        _currentPageKey = null;
+                    }
+                }
+                return removed;
             }
         }
 
         /// <summary>
-        /// 移除指定的缓存页面（不加锁，内部使用）
+        /// 移除指定的缓存页面（不调用 DisposeWebView，用于 WebViewManager 已经销毁的情况）
         /// </summary>
-        private bool RemovePageUnsafe(string cacheKey)
+        public bool RemovePageWithoutDispose(string cacheKey)
         {
-            if (_cachedPages.TryGetValue(cacheKey, out Page? page))
+            lock (_cacheLock)
             {
-                // 如果是 WebBrowserPage，调用其清理方法
-                if (page is Pages.WebApp.Browser.WebBrowserPage webBrowserPage)
+                bool removed = _lruCache.Remove(cacheKey);
+                if (removed)
                 {
-                    try
+                    System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 移除缓存页面（无需 Dispose）: {cacheKey}");
+                    if (_currentPageKey == cacheKey)
                     {
-                        webBrowserPage.DisposeWebView();
-                        System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 已调用 WebBrowserPage.DisposeWebView: {cacheKey}");
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 调用 DisposeWebView 失败: {ex.Message}");
+                        _currentPageKey = null;
                     }
                 }
-                
-                _cachedPages.Remove(cacheKey);
-                
-                // 从访问顺序中移除
-                if (_accessNodes.TryGetValue(cacheKey, out var node))
-                {
-                    _accessOrder.Remove(node);
-                    _accessNodes.Remove(cacheKey);
-                }
-                
-                System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 移除缓存页面: {cacheKey}");
-                
-                if (_currentPageKey == cacheKey)
-                {
-                    _currentPageKey = null;
-                }
-                
-                return true;
+                return removed;
             }
-            return false;
         }
 
         /// <summary>
@@ -214,9 +215,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         {
             lock (_cacheLock)
             {
-                _cachedPages.Clear();
-                _accessOrder.Clear();
-                _accessNodes.Clear();
+                _lruCache.Clear();
                 _currentPageKey = null;
                 System.Diagnostics.Debug.WriteLine("[PageCacheManager] 已清除所有缓存");
             }
@@ -231,7 +230,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             {
                 lock (_cacheLock)
                 {
-                    return _cachedPages.Count;
+                    return _lruCache.Count;
                 }
             }
         }
@@ -243,7 +242,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         {
             lock (_cacheLock)
             {
-                return _cachedPages.Keys.ToArray();
+                return _lruCache.GetKeys();
             }
         }
 
@@ -254,7 +253,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         {
             lock (_cacheLock)
             {
-                return _accessOrder.ToArray();
+                return _lruCache.GetKeysInLRUOrder();
             }
         }
 
@@ -265,7 +264,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         {
             lock (_cacheLock)
             {
-                bool cached = _cachedPages.ContainsKey(cacheKey);
+                bool cached = _lruCache.ContainsKey(cacheKey);
                 System.Diagnostics.Debug.WriteLine($"[PageCacheManager] IsPageCached({cacheKey}): {cached}");
                 return cached;
             }
@@ -280,7 +279,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         {
             lock (_cacheLock)
             {
-                _cachedPages.TryGetValue(cacheKey, out Page? page);
+                _lruCache.TryGet(cacheKey, out Page? page);
                 return page;
             }
         }

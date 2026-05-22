@@ -150,6 +150,9 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             TopAppBarHost.BackButtonClicked += TopAppBarHost_BackButtonClicked;
             TopAppBarHost.MenuButtonClicked += TopAppBarHost_MenuButtonClicked;
             
+            // 订阅 WebViewManager 的淘汰事件
+            Pages.WebApp.Browser.WebViewManager.WebViewEvicted += OnWebViewEvicted;
+            
             // 初始化 Frame 动画
             UpdateFrameAnimation();
             
@@ -300,6 +303,23 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             
             // PageCacheManager 已经调用了 DisposeWebView，这里只需要记录日志
             // WebView 的 Unlink 由 WebBrowserPage.DisposeWebView 自动处理
+        }
+
+        /// <summary>
+        /// WebView 被 LRU 淘汰事件处理
+        /// </summary>
+        private void OnWebViewEvicted(object? sender, Pages.WebApp.Browser.WebViewEvictedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] WebView 被 LRU 淘汰: {e.InstanceId}");
+            
+            // ⭐ 直接从 LRU 缓存中删除，不调用 DisposeWebView（已经被 WebViewManager 调用过了）
+            string cacheKey = $"WebBrowserPage_{e.InstanceId}";
+            bool removed = _pageCacheManager.RemovePageWithoutDispose(cacheKey);
+            
+            if (removed)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] 已从 PageCache 删除: {cacheKey}");
+            }
         }
 
         private void ContentGrid_Loaded(object sender, RoutedEventArgs e)

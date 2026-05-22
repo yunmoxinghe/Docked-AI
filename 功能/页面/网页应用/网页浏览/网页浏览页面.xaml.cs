@@ -50,6 +50,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private WebAppShortcut? _currentShortcut;
         private string? _contextMenuSelectedText;
         private string? _contextMenuLinkUrl;
+        private bool _needsWebViewRecreation; // ⭐ 标记是否需要重新创建 WebView
 
         private readonly SolidColorBrush _topBarBackgroundBrush = new(Windows.UI.Color.FromArgb(1, 0, 0, 0));
         private readonly SolidColorBrush _bottomBarBackgroundBrush = new(Windows.UI.Color.FromArgb(1, 0, 0, 0));
@@ -478,6 +479,35 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             _pendingNavigationUri = uri;
             TryNavigatePendingUri();
             
+            // ⭐ 链接 WebView 到 LRU 管理器（在 _currentShortcut 设置之后）
+            if (_currentShortcut != null)
+            {
+                if (!WebViewManager.IsLinked(_currentShortcut.Id))
+                {
+                    var result = WebViewManager.RequestLink(_currentShortcut.Id, this);
+                    if (result.Success)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 已链接到 LRU: {_currentShortcut.Id}");
+                        if (result.EvictedOldest)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] LRU 淘汰了旧的 WebView");
+                        }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 链接失败: {result.ErrorMessage}");
+                    }
+                }
+                else
+                {
+                    // 已经链接，更新访问顺序
+                    WebViewManager.RequestLink(_currentShortcut.Id, this);
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 已链接，更新访问顺序: {_currentShortcut.Id}");
+                }
+                
+                WebViewManager.DiagnoseState();
+            }
+            
             // 首次导航时设置顶部栏
             SetupTopBar();
         }
@@ -493,29 +523,58 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         {
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] INavigationAware.OnNavigatedTo called");
             
-            // 重新设置顶部栏（因为可能被其他页面清除了）
-            SetupTopBar();
+            // ⭐ 如果页面被 LRU 清理过，需要重置 _isDisposed 标志以允许重新初始化
+            if (_isDisposed)
+            {
+                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 页面之前被清理过，重置状态以允许恢复");
+                _isDisposed = false;
+                _isWebViewReady = false;
+                _hasReceivedFirstTint = false;
+                _hasAppliedThemeColor = false;
+                
+                // 重新订阅事件
+                Loaded += WebBrowserPage_Loaded;
+                Unloaded += WebBrowserPage_Unloaded;
+                Pages.Settings.SettingsPage.WinUIContextMenuSettingsChanged += OnWinUIContextMenuSettingsChanged;
+                Pages.Settings.SettingsPage.WebViewPerformanceSettingsChanged += OnWebViewPerformanceSettingsChanged;
+                
+                // ⭐ 恢复待导航的 URI（如果有 _currentShortcut）
+                if (_currentShortcut != null && Uri.TryCreate(_currentShortcut.Url, UriKind.Absolute, out Uri? uri))
+                {
+                    _pendingNavigationUri = uri;
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 恢复待导航 URI: {uri}");
+                }
+            }
             
-            // ⭐ 链接 WebView 到 LRU 管理器
+            // ⭐ 如果需要重新创建 WebView，先重新创建
+            if (_needsWebViewRecreation)
+            {
+                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 需要重新创建 WebView");
+                RecreateWebView();
+                _needsWebViewRecreation = false;
+            }
+            
+            // ⭐ 重新链接到 LRU（页面恢复时必须重新加入 LRU 管理）
             if (_currentShortcut != null)
             {
-                if (!WebViewManager.IsLinked(_currentShortcut.Id))
+                var result = WebViewManager.RequestLink(_currentShortcut.Id, this);
+                if (result.Success)
                 {
-                    var result = WebViewManager.RequestLink(_currentShortcut.Id, this);
-                    if (result.Success)
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 页面恢复，重新链接到 LRU: {_currentShortcut.Id}");
+                    if (result.EvictedOldest)
                     {
-                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 已链接到 LRU: {_currentShortcut.Id}");
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 链接失败: {result.ErrorMessage}");
+                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] LRU 淘汰了旧的 WebView");
                     }
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 已经链接: {_currentShortcut.Id}");
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 重新链接失败: {result.ErrorMessage}");
                 }
+                WebViewManager.DiagnoseState();
             }
+            
+            // 重新设置顶部栏（因为可能被其他页面清除了）
+            SetupTopBar();
             
             // 如果 WebView 被暂停，恢复它
             if (ExperimentalSettings.SuspendInactiveWebView && WebView?.CoreWebView2 != null)
@@ -630,13 +689,60 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private async Task EnsureWebViewInitializedAsync()
         {
-            if (_isWebViewReady || WebView == null)
+            if (WebView == null)
             {
-                System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] 跳过初始化: _isWebViewReady={_isWebViewReady}, WebView={WebView != null}");
+                System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] WebView 为 null，无法初始化");
+                return;
+            }
+
+            // ⭐ 如果 WebView 已经 ready 且 CoreWebView2 存在，直接返回
+            if (_isWebViewReady && WebView.CoreWebView2 != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] WebView 已就绪，跳过初始化");
                 return;
             }
 
             System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] 开始初始化 WebView");
+            
+            // ⭐ 检查 CoreWebView2 是否已经初始化（可能是首次加载，CoreWebView2 还未初始化）
+            if (WebView.CoreWebView2 != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] CoreWebView2 已存在，重新配置");
+                
+                // 重新配置设置
+                bool useWinUIContextMenu = ExperimentalSettings.EnableWinUIContextMenu;
+                WebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = !useWinUIContextMenu;
+                WebView.CoreWebView2.Settings.IsSwipeNavigationEnabled = true;
+                WebView.CoreWebView2.Settings.IsZoomControlEnabled = false;
+                WebView.CoreWebView2.Settings.IsStatusBarEnabled = false;
+                
+                // 应用内存模式设置
+                ApplyMemoryModeSettings();
+                
+                // 重新订阅事件
+                WebView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
+                WebView.CoreWebView2.DocumentTitleChanged += CoreWebView2_DocumentTitleChanged;
+                WebView.CoreWebView2.HistoryChanged += CoreWebView2_HistoryChanged;
+                WebView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
+                WebView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
+                
+                // 根据设置配置右键菜单
+                UpdateContextMenuConfiguration(useWinUIContextMenu);
+                
+                // 重新注入脚本
+                _ = Task.Run(async () => 
+                {
+                    await Task.Delay(100);
+                    await DispatcherQueue.EnqueueAsync(async () => 
+                    {
+                        await EnsureTintScriptInstalledAsync();
+                    });
+                });
+                
+                _isWebViewReady = true;
+                System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] ✅ WebView 重新配置完成");
+                return;
+            }
 
             try
             {
@@ -2057,7 +2163,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         /// <summary>
         /// 清理并释放 WebView 资源（公开方法，供 PageCacheManager 和 WebViewManager 调用）
         /// </summary>
-        public void DisposeWebView()
+        /// <param name="skipUnlink">是否跳过 Unlink 操作（LRU 淘汰时已经移除，不需要再次 Unlink）</param>
+        public void DisposeWebView(bool skipUnlink = false)
         {
             if (_isDisposed)
             {
@@ -2066,10 +2173,10 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
             _isDisposed = true;
             
-            System.Diagnostics.Debug.WriteLine($"[DisposeWebView] 开始清理 WebView: {_currentShortcut?.Id ?? "null"}");
+            System.Diagnostics.Debug.WriteLine($"[DisposeWebView] 开始清理 WebView: {_currentShortcut?.Id ?? "null"}, skipUnlink: {skipUnlink}");
             
-            // ⭐ 取消链接 WebView（防护：只在有 shortcut 时调用）
-            if (_currentShortcut != null)
+            // ⭐ 取消链接 WebView（防护：只在有 shortcut 且不跳过时调用）
+            if (_currentShortcut != null && !skipUnlink)
             {
                 WebViewManager.Unlink(_currentShortcut.Id);
                 System.Diagnostics.Debug.WriteLine($"[DisposeWebView] 已取消链接 WebView: {_currentShortcut.Id}");
@@ -2079,20 +2186,24 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             Loaded -= WebBrowserPage_Loaded;
             Unloaded -= WebBrowserPage_Unloaded;
             Pages.Settings.SettingsPage.WinUIContextMenuSettingsChanged -= OnWinUIContextMenuSettingsChanged;
+            Pages.Settings.SettingsPage.WebViewPerformanceSettingsChanged -= OnWebViewPerformanceSettingsChanged;
             
             // 清理 WebView 实例
             CleanupAndCloseWebView(WebView);
             
-            WebView = null;
+            // ⭐ 标记需要重新创建 WebView
+            _needsWebViewRecreation = true;
+            
             _pendingNavigationUri = null;
-            _currentShortcut = null;
+            // ⭐ 不清空 _currentShortcut，因为恢复时需要它来重新导航
+            // _currentShortcut = null;
             _isWebViewReady = false;
             
-            System.Diagnostics.Debug.WriteLine($"[DisposeWebView] 清理完成");
+            System.Diagnostics.Debug.WriteLine($"[DisposeWebView] 清理完成，标记需要重新创建 WebView");
         }
         
         /// <summary>
-        /// 清理并关闭 WebView 实例
+        /// 清理 WebView 实例（完全释放资源以节省内存）
         /// </summary>
         private void CleanupAndCloseWebView(Microsoft.UI.Xaml.Controls.WebView2? webView)
         {
@@ -2123,18 +2234,81 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             {
                 try
                 {
-                    // 清空 Source
-                    webView.Source = null;
-                    
-                    // 关闭 WebView
+                    // ⭐ 完全关闭 WebView 以释放内存
                     webView.Close();
-                    
-                    System.Diagnostics.Debug.WriteLine($"[CleanupAndCloseWebView] WebView 已关闭");
+                    System.Diagnostics.Debug.WriteLine($"[CleanupAndCloseWebView] WebView 已关闭并释放资源");
                 }
                 catch (Exception ex)
                 {
                     System.Diagnostics.Debug.WriteLine($"[CleanupAndCloseWebView] 关闭 WebView 失败: {ex.Message}");
                 }
+            }
+        }
+
+        /// <summary>
+        /// 重新创建 WebView 控件（在 LRU 清理后恢复页面时使用）
+        /// </summary>
+        private void RecreateWebView()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[RecreateWebView] 开始重新创建 WebView");
+                
+                // 找到 WebView 的父容器（Grid，Row=1）
+                if (Content is Grid rootGrid && rootGrid.Children.Count > 0)
+                {
+                    // 查找旧的 WebView 并移除
+                    Microsoft.UI.Xaml.Controls.WebView2? oldWebView = null;
+                    foreach (var child in rootGrid.Children)
+                    {
+                        if (child is Microsoft.UI.Xaml.Controls.WebView2 wv)
+                        {
+                            oldWebView = wv;
+                            break;
+                        }
+                    }
+                    
+                    if (oldWebView != null)
+                    {
+                        rootGrid.Children.Remove(oldWebView);
+                        System.Diagnostics.Debug.WriteLine("[RecreateWebView] 已移除旧的 WebView");
+                    }
+                    
+                    // 创建新的 WebView
+                    var newWebView = new Microsoft.UI.Xaml.Controls.WebView2
+                    {
+                        Name = "WebView",
+                        HorizontalAlignment = HorizontalAlignment.Stretch,
+                        VerticalAlignment = VerticalAlignment.Stretch,
+                        DefaultBackgroundColor = Microsoft.UI.Colors.Transparent
+                    };
+                    
+                    // 设置 Grid.Row
+                    Grid.SetRow(newWebView, 1);
+                    
+                    // 配置右键菜单
+                    bool useWinUIContextMenu = ExperimentalSettings.EnableWinUIContextMenu;
+                    if (useWinUIContextMenu)
+                    {
+                        newWebView.ContextFlyout = WebViewContextMenu;
+                    }
+                    
+                    // 添加到 Grid
+                    rootGrid.Children.Add(newWebView);
+                    
+                    // 更新字段引用
+                    WebView = newWebView;
+                    
+                    System.Diagnostics.Debug.WriteLine("[RecreateWebView] ✅ WebView 重新创建成功");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[RecreateWebView] ❌ 无法找到根 Grid");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[RecreateWebView] ❌ 重新创建 WebView 失败: {ex.Message}");
             }
         }
 
