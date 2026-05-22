@@ -9,6 +9,7 @@ using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.Pages.WebApp.Browser;
 using Docked_AI.Features.Localization;
 using Docked_AI.Features.UnifiedCalls.TopAppBar;
+using Docked_AI.Features.MainWindowContent.ContentArea;
 using Docked_AI.Features.UnifiedCalls.ContentArea;
 using SymbolIcon = Microsoft.UI.Xaml.Controls.SymbolIcon;
 using Symbol = Microsoft.UI.Xaml.Controls.Symbol;

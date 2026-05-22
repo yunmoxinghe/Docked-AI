@@ -489,7 +489,7 @@
                                 IsClickEnabled="True"
                                 Click="OnRateAppClick">
                                 <controls:SettingsCard.HeaderIcon>
-                                    <FontIcon Glyph="&#xE735;" />
+                                    <FontIcon Glyph="&#xE90A;" />
                                 </controls:SettingsCard.HeaderIcon>
                                 <controls:SettingsCard.ActionIcon>
                                     <FontIcon Glyph="&#xE8A7;"/>

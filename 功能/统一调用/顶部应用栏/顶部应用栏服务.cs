@@ -1,5 +1,4 @@
 using System;
-using Docked_AI.Features.MainWindowContent.ContentArea;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -10,12 +9,12 @@ namespace Docked_AI.Features.UnifiedCalls.TopAppBar;
 /// </summary>
 public static class TopAppBarService
 {
-    private static ContentArea? _contentArea;
+    private static MainWindowContent.ContentArea.ContentArea? _contentArea;
 
     /// <summary>
     /// 注册内容区实例（由链接器在初始化时调用）
     /// </summary>
-    public static void Register(ContentArea contentArea)
+    public static void Register(MainWindowContent.ContentArea.ContentArea contentArea)
     {
         _contentArea = contentArea;
     }

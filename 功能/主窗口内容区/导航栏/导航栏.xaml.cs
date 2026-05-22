@@ -5,6 +5,7 @@ using Docked_AI.Features.Pages.Settings;
 using Docked_AI.Features.Pages.WebApp.Browser;
 using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.Localization;
+using Docked_AI.Features.MainWindowContent.ContentArea;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -24,10 +25,8 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         private NavigationViewItemBase? _lastSelectedNavigationItem;
         private bool _suppressSelectionChanged;
         
-        // 导航防抖相关
-        private DateTime _lastNavigationTime = DateTime.MinValue;
-        private string? _lastNavigationKey = null;
-        private const int NavigationDebounceMs = 300; // 导航防抖时间（毫秒）
+        // 导航防抖器（使用 Stopwatch 实现线程安全）
+        private readonly NavigationDebouncer _navigationDebouncer = new(300);
 
         public event EventHandler<NavigationRequest>? NavigationRequested;
         public event EventHandler? DockToggleRequested;
@@ -447,18 +446,12 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             // 处理设置页面
             if (tagText == "settings")
             {
-                var now = DateTime.Now;
-                var timeSinceLastNavigation = (now - _lastNavigationTime).TotalMilliseconds;
                 string navigationKey = "settings";
                 
-                if (_lastNavigationKey == navigationKey && timeSinceLastNavigation < NavigationDebounceMs)
+                if (_navigationDebouncer.ShouldDebounce(navigationKey))
                 {
-                    System.Diagnostics.Debug.WriteLine($"[NavigationBar] 导航防抖：忽略快速点击设置 ({timeSinceLastNavigation:F0}ms < {NavigationDebounceMs}ms)");
                     return;
                 }
-                
-                _lastNavigationTime = now;
-                _lastNavigationKey = navigationKey;
                 
                 NavigationRequested?.Invoke(this, new NavigationRequest(typeof(SettingsPage), null));
                 return;
@@ -475,19 +468,12 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                     if (isAlreadySelected)
                     {
                         // 已选中，触发重启（不改变选中状态，不触发 SelectionChanged）
-                        // 防抖检查：避免快速重启
-                        var now = DateTime.Now;
-                        var timeSinceLastNavigation = (now - _lastNavigationTime).TotalMilliseconds;
                         string navigationKey = $"restart:{shortcutId}";
                         
-                        if (_lastNavigationKey == navigationKey && timeSinceLastNavigation < NavigationDebounceMs)
+                        if (_navigationDebouncer.ShouldDebounce(navigationKey))
                         {
-                            System.Diagnostics.Debug.WriteLine($"[NavigationBar] 重启防抖：忽略快速点击 ({timeSinceLastNavigation:F0}ms < {NavigationDebounceMs}ms)");
                             return;
                         }
-                        
-                        _lastNavigationTime = now;
-                        _lastNavigationKey = navigationKey;
                         
                         System.Diagnostics.Debug.WriteLine($"[NavigationBar] 点击已选中的标签，触发重启: {shortcut.Name}");
                         WebAppRestartRequested?.Invoke(this, shortcutId);
@@ -517,18 +503,12 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             };
 
             // 防抖检查
-            var currentTime = DateTime.Now;
-            var timeSinceLastNav = (currentTime - _lastNavigationTime).TotalMilliseconds;
             string navKey = $"invoke:{sectionIndex}";
             
-            if (_lastNavigationKey == navKey && timeSinceLastNav < NavigationDebounceMs)
+            if (_navigationDebouncer.ShouldDebounce(navKey))
             {
-                System.Diagnostics.Debug.WriteLine($"[NavigationBar] 导航防抖：忽略快速点击 ({timeSinceLastNav:F0}ms < {NavigationDebounceMs}ms)");
                 return;
             }
-            
-            _lastNavigationTime = currentTime;
-            _lastNavigationKey = navKey;
 
             NavigationRequested?.Invoke(this, new NavigationRequest(pageType, null));
         }
@@ -565,13 +545,10 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                 if (_webShortcuts.TryGetValue(shortcutId, out WebAppShortcut? shortcut))
                 {
                     // 防抖检查：避免快速点击创建多个标签页
-                    var now = DateTime.Now;
-                    var timeSinceLastNavigation = (now - _lastNavigationTime).TotalMilliseconds;
                     string navigationKey = $"webapp:{shortcutId}";
                     
-                    if (_lastNavigationKey == navigationKey && timeSinceLastNavigation < NavigationDebounceMs)
+                    if (_navigationDebouncer.ShouldDebounce(navigationKey))
                     {
-                        System.Diagnostics.Debug.WriteLine($"[NavigationBar] 导航防抖：忽略快速点击 ({timeSinceLastNavigation:F0}ms < {NavigationDebounceMs}ms)");
                         // 恢复之前的选中状态
                         _suppressSelectionChanged = true;
                         NavView.SelectedItem = _lastSelectedNavigationItem;
@@ -579,8 +556,6 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                         return;
                     }
                     
-                    _lastNavigationTime = now;
-                    _lastNavigationKey = navigationKey;
                     _lastSelectedNavigationItem = args.SelectedItemContainer;
                     
                     // 只在切换标签时触发导航（ItemInvoked 已经处理了重启逻辑）

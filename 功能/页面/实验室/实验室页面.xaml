@@ -147,7 +147,7 @@
                         IsActionIconVisible="False"
                         Click="OnHideTrayRateButtonCardClick">
                         <controls:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE735;" />
+                            <FontIcon Glyph="&#xE90A;" />
                         </controls:SettingsCard.HeaderIcon>
                         <ToggleSwitch
                             x:Name="HideTrayRateButtonToggle"

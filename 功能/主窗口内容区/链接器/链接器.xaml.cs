@@ -41,6 +41,7 @@ namespace Docked_AI.Features.MainWindowContent.Linker
         {
             InitializeComponent();
             TopAppBarService.Register(ContentHost);
+            UnifiedCalls.ContentArea.ContentAreaService.Register(ContentHost);
             
             // ⭐ 不在构造函数中导航到首页，延迟到 LoadContent() 调用
             // ContentHost.Navigate(typeof(HomePage));
@@ -85,6 +86,7 @@ namespace Docked_AI.Features.MainWindowContent.Linker
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
+            UnifiedCalls.ContentArea.ContentAreaService.Unregister();
             Pages.Settings.SettingsPage.AILabSettingsChanged -= OnAILabSettingsChanged;
             Pages.Settings.SettingsPage.DockSideSettingsChanged -= OnDockSideSettingsChanged;
             SizeChanged -= OnSizeChanged;

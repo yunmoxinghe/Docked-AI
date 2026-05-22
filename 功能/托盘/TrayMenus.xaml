@@ -24,7 +24,7 @@
         
         <MenuFlyoutItem x:Name="MouseRateApp" Text="评价应用">
             <MenuFlyoutItem.Icon>
-                <FontIcon Glyph="&#xE735;"/>
+                <FontIcon Glyph="&#xE90A;"/>
             </MenuFlyoutItem.Icon>
         </MenuFlyoutItem>
         
@@ -59,7 +59,7 @@
         
         <MenuFlyoutItem x:Name="TouchRateApp" Text="评价应用">
             <MenuFlyoutItem.Icon>
-                <FontIcon Glyph="&#xE735;"/>
+                <FontIcon Glyph="&#xE90A;"/>
             </MenuFlyoutItem.Icon>
         </MenuFlyoutItem>
         

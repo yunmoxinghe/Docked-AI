@@ -9,6 +9,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
     /// <summary>
     /// 页面缓存管理器，用于缓存已创建的页面实例，实现快速切换
     /// 使用 LRU（最近最少使用）策略自动管理缓存
+    /// 线程安全：所有公共方法使用锁保护
     /// </summary>
     public class PageCacheManager
     {
@@ -17,6 +18,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         private readonly Dictionary<string, LinkedListNode<string>> _accessNodes = new();
         private readonly int _maxCacheSize;
         private string? _currentPageKey;
+        private readonly object _cacheLock = new(); // 线程安全锁
 
         public PageCacheManager(int maxCacheSize = 20)
         {
@@ -35,29 +37,32 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             object? parameter,
             string? cacheKey)
         {
-            // 如果没有缓存键，直接创建新实例
+            // 如果没有缓存键，直接创建新实例（不需要锁）
             if (string.IsNullOrEmpty(cacheKey))
             {
                 return CreatePageInstance(pageType);
             }
 
-            // 检查缓存中是否已存在
-            if (_cachedPages.TryGetValue(cacheKey, out Page? cachedPage))
+            lock (_cacheLock)
             {
-                System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 使用缓存页面: {cacheKey}");
-                _currentPageKey = cacheKey;
-                
-                // 更新访问顺序（移到最前面）
-                UpdateAccessOrder(cacheKey);
-                
-                return cachedPage;
-            }
+                // 检查缓存中是否已存在
+                if (_cachedPages.TryGetValue(cacheKey, out Page? cachedPage))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 使用缓存页面: {cacheKey}");
+                    _currentPageKey = cacheKey;
+                    
+                    // 更新访问顺序（移到最前面）
+                    UpdateAccessOrderUnsafe(cacheKey);
+                    
+                    return cachedPage;
+                }
 
-            // 创建新实例并缓存
-            var newPage = CreatePageInstance(pageType);
-            AddPageToCache(cacheKey, newPage);
-            
-            return newPage;
+                // 创建新实例并缓存
+                var newPage = CreatePageInstance(pageType);
+                AddPageToCacheUnsafe(cacheKey, newPage);
+                
+                return newPage;
+            }
         }
 
         /// <summary>
@@ -70,17 +75,28 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                 throw new ArgumentException("Cache key cannot be null or empty", nameof(cacheKey));
             }
 
+            lock (_cacheLock)
+            {
+                AddPageToCacheUnsafe(cacheKey, page);
+            }
+        }
+
+        /// <summary>
+        /// 将已存在的页面实例添加到缓存（不加锁，内部使用）
+        /// </summary>
+        private void AddPageToCacheUnsafe(string cacheKey, Page page)
+        {
             // 如果已存在，更新访问顺序
             if (_cachedPages.ContainsKey(cacheKey))
             {
-                UpdateAccessOrder(cacheKey);
+                UpdateAccessOrderUnsafe(cacheKey);
                 return;
             }
 
             // 检查缓存大小限制
             if (_cachedPages.Count >= _maxCacheSize)
             {
-                RemoveLeastRecentlyUsedPage();
+                RemoveLeastRecentlyUsedPageUnsafe();
             }
 
             _cachedPages[cacheKey] = page;
@@ -94,9 +110,9 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         }
 
         /// <summary>
-        /// 更新页面的访问顺序（移到最前面）
+        /// 更新页面的访问顺序（移到最前面，不加锁，内部使用）
         /// </summary>
-        private void UpdateAccessOrder(string cacheKey)
+        private void UpdateAccessOrderUnsafe(string cacheKey)
         {
             if (_accessNodes.TryGetValue(cacheKey, out var node))
             {
@@ -107,17 +123,18 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         }
 
         /// <summary>
-        /// 移除最近最少使用的页面
+        /// 移除最近最少使用的页面（不加锁，内部使用）
         /// </summary>
-        private void RemoveLeastRecentlyUsedPage()
+        private void RemoveLeastRecentlyUsedPageUnsafe()
         {
             if (_accessOrder.Last != null)
             {
                 string lruKey = _accessOrder.Last.Value;
-                RemovePage(lruKey);
+                RemovePageUnsafe(lruKey);
                 System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 缓存已满，自动移除最久未使用的页面: {lruKey}");
                 
-                // 触发页面移除事件
+                // 触发页面移除事件（在锁外触发，避免死锁）
+                // 注意：事件处理器不应该回调到 PageCacheManager 的公共方法
                 PageAutoRemoved?.Invoke(this, lruKey);
             }
         }
@@ -131,6 +148,17 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         /// 移除指定的缓存页面
         /// </summary>
         public bool RemovePage(string cacheKey)
+        {
+            lock (_cacheLock)
+            {
+                return RemovePageUnsafe(cacheKey);
+            }
+        }
+
+        /// <summary>
+        /// 移除指定的缓存页面（不加锁，内部使用）
+        /// </summary>
+        private bool RemovePageUnsafe(string cacheKey)
         {
             if (_cachedPages.TryGetValue(cacheKey, out Page? page))
             {
@@ -174,36 +202,63 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         /// </summary>
         public void ClearCache()
         {
-            _cachedPages.Clear();
-            _accessOrder.Clear();
-            _accessNodes.Clear();
-            _currentPageKey = null;
-            System.Diagnostics.Debug.WriteLine("[PageCacheManager] 已清除所有缓存");
+            lock (_cacheLock)
+            {
+                _cachedPages.Clear();
+                _accessOrder.Clear();
+                _accessNodes.Clear();
+                _currentPageKey = null;
+                System.Diagnostics.Debug.WriteLine("[PageCacheManager] 已清除所有缓存");
+            }
         }
 
         /// <summary>
         /// 获取当前缓存的页面数量
         /// </summary>
-        public int CachedPageCount => _cachedPages.Count;
+        public int CachedPageCount
+        {
+            get
+            {
+                lock (_cacheLock)
+                {
+                    return _cachedPages.Count;
+                }
+            }
+        }
 
         /// <summary>
         /// 获取所有缓存的页面键
         /// </summary>
-        public IEnumerable<string> GetCachedPageKeys() => _cachedPages.Keys.ToArray();
+        public IEnumerable<string> GetCachedPageKeys()
+        {
+            lock (_cacheLock)
+            {
+                return _cachedPages.Keys.ToArray();
+            }
+        }
 
         /// <summary>
         /// 获取按LRU顺序排列的缓存页面键（从最新到最旧）
         /// </summary>
-        public IEnumerable<string> GetCachedPageKeysInLRUOrder() => _accessOrder.ToArray();
+        public IEnumerable<string> GetCachedPageKeysInLRUOrder()
+        {
+            lock (_cacheLock)
+            {
+                return _accessOrder.ToArray();
+            }
+        }
 
         /// <summary>
         /// 检查指定页面是否已缓存
         /// </summary>
         public bool IsPageCached(string cacheKey)
         {
-            bool cached = _cachedPages.ContainsKey(cacheKey);
-            System.Diagnostics.Debug.WriteLine($"[PageCacheManager] IsPageCached({cacheKey}): {cached}");
-            return cached;
+            lock (_cacheLock)
+            {
+                bool cached = _cachedPages.ContainsKey(cacheKey);
+                System.Diagnostics.Debug.WriteLine($"[PageCacheManager] IsPageCached({cacheKey}): {cached}");
+                return cached;
+            }
         }
 
         /// <summary>
@@ -213,8 +268,11 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         /// <returns>页面实例，如果不存在则返回 null</returns>
         public Page? GetCachedPage(string cacheKey)
         {
-            _cachedPages.TryGetValue(cacheKey, out Page? page);
-            return page;
+            lock (_cacheLock)
+            {
+                _cachedPages.TryGetValue(cacheKey, out Page? page);
+                return page;
+            }
         }
 
         private Page CreatePageInstance(

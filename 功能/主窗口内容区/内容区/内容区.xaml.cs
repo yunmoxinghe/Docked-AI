@@ -24,9 +24,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         private CompositionRoundedRectangleGeometry? _clipGeometry;
         private CompositionRoundedRectangleGeometry? _gridClipGeometry;
         private readonly PageCacheManager _pageCacheManager;
-        private Page? _currentPage;
-        private Type? _currentPageType;
-        private object? _currentPageParameter;
+        private readonly NavigationService _navigationService;
 
         public event EventHandler<NavigationEventArgs>? Navigated;
 
@@ -43,82 +41,24 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         /// <summary>
         /// 当前显示的页面类型
         /// </summary>
-        public Type? CurrentPageType => _currentPageType;
+        public Type? CurrentPageType => _navigationService.CurrentPageType;
 
         /// <summary>
         /// 当前显示的页面参数
         /// </summary>
-        public object? CurrentPageParameter => _currentPageParameter;
+        public object? CurrentPageParameter => _navigationService.CurrentPageParameter;
 
         /// <summary>
         /// 是否可以返回（Frame 内置 BackStack）
         /// </summary>
-        public bool CanGoBack => ContentFrame.CanGoBack;
+        public bool CanGoBack => _navigationService.CanGoBack;
 
         /// <summary>
         /// 返回上一页（使用缓存机制）
         /// </summary>
         public void GoBack()
         {
-            if (!ContentFrame.CanGoBack)
-            {
-                return;
-            }
-
-            System.Diagnostics.Debug.WriteLine($"[ContentArea] GoBack 被调用，BackStack 深度: {ContentFrame.BackStackDepth}");
-
-            // 获取 BackStack 中的上一页信息
-            var backEntry = ContentFrame.BackStack[ContentFrame.BackStack.Count - 1];
-            Type pageType = backEntry.SourcePageType;
-            object? parameter = backEntry.Parameter;
-
-            System.Diagnostics.Debug.WriteLine($"[ContentArea] 返回到页面: {pageType.Name}");
-
-            // 生成缓存键
-            string? cacheKey = GenerateCacheKey(pageType, parameter);
-
-            // 检查是否已缓存
-            if (!string.IsNullOrEmpty(cacheKey) && _pageCacheManager.IsPageCached(cacheKey))
-            {
-                System.Diagnostics.Debug.WriteLine($"[ContentArea] 使用缓存页面返回: {cacheKey}");
-
-                // 移除 BackStack 中的最后一项（因为我们要手动导航）
-                ContentFrame.BackStack.RemoveAt(ContentFrame.BackStack.Count - 1);
-
-                // 调用当前页面的 OnNavigatedFrom
-                if (_currentPage is INavigationAware currentNavigationAware)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[ContentArea] 调用当前页面的 INavigationAware.OnNavigatedFrom");
-                    currentNavigationAware.OnNavigatedFrom();
-                }
-
-                // 从缓存获取页面
-                Page cachedPage = _pageCacheManager.GetOrCreatePage(pageType, parameter, cacheKey);
-
-                // 直接设置内容
-                ContentFrame.Content = cachedPage;
-                _currentPage = cachedPage;
-                _currentPageType = pageType;
-                _currentPageParameter = parameter;
-
-                System.Diagnostics.Debug.WriteLine($"[ContentArea] 已设置缓存页面到 Frame.Content，BackStack 深度: {ContentFrame.BackStackDepth}");
-
-                // 手动调用 OnNavigatedTo
-                if (cachedPage is INavigationAware navigationAware)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[ContentArea] 调用 INavigationAware.OnNavigatedTo");
-                    navigationAware.OnNavigatedTo(parameter);
-                }
-
-                // 手动触发 Navigated 事件
-                OnCachedPageNavigated(pageType, parameter);
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"[ContentArea] 页面未缓存，使用 Frame.GoBack");
-                // 如果没有缓存，使用 Frame 的默认 GoBack（不移除 BackStack，让 Frame 自己处理）
-                ContentFrame.GoBack();
-            }
+            _navigationService.GoBack();
         }
 
         private const double TopBarHeight = 48.0;
@@ -203,7 +143,9 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             InitializeComponent();
             _pageCacheManager = new PageCacheManager(maxCacheSize: 20);
             _pageCacheManager.PageAutoRemoved += OnPageAutoRemoved;
-            ContentFrame.Navigated += ContentFrame_Navigated;
+            _navigationService = new NavigationService(ContentFrame, _pageCacheManager);
+            _navigationService.Navigated += OnNavigationServiceNavigated;
+            _navigationService.CachedPageNavigated += OnNavigationServiceCachedPageNavigated;
             ContentGrid.Loaded += ContentGrid_Loaded;
             TopAppBarHost.BackButtonClicked += TopAppBarHost_BackButtonClicked;
             TopAppBarHost.MenuButtonClicked += TopAppBarHost_MenuButtonClicked;
@@ -266,7 +208,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         private void TopAppBarHost_BackButtonClicked(object? sender, EventArgs e)
         {
             // 优先让当前页面接管返回逻辑
-            if (ContentFrame.Content is IBackHandler handler && handler.OnBackRequested())
+            if (_navigationService.CurrentPage is IBackHandler handler && handler.OnBackRequested())
             {
                 System.Diagnostics.Debug.WriteLine("[ContentArea] 返回被页面接管");
                 return;
@@ -354,25 +296,10 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
 
         private void OnPageAutoRemoved(object? sender, string cacheKey)
         {
-            System.Diagnostics.Debug.WriteLine($"[ContentArea] 页面被自动移除: {cacheKey}");
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] 页面被 LRU 自动移除: {cacheKey}");
             
-            // 从缓存键中提取 shortcutId
-            if (cacheKey.StartsWith("WebBrowser_"))
-            {
-                string shortcutId = cacheKey.Substring("WebBrowser_".Length);
-                
-                // 获取页面实例进行清理
-                var page = _pageCacheManager.GetCachedPage(cacheKey);
-                if (page is WebBrowserPage webBrowserPage)
-                {
-                    // 触发页面清理逻辑（如果有的话）
-                    System.Diagnostics.Debug.WriteLine($"[ContentArea] 清理被移除的 WebBrowserPage: {shortcutId}");
-                }
-                
-                // 取消链接 WebView
-                WebViewManager.Unlink(shortcutId);
-                System.Diagnostics.Debug.WriteLine($"[ContentArea] 自动取消链接 WebView: {shortcutId}");
-            }
+            // PageCacheManager 已经调用了 DisposeWebView，这里只需要记录日志
+            // WebView 的 Unlink 由 WebBrowserPage.DisposeWebView 自动处理
         }
 
         private void ContentGrid_Loaded(object sender, RoutedEventArgs e)
@@ -421,10 +348,6 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         {
             System.Diagnostics.Debug.WriteLine($"[ContentArea] Navigate 被调用: {pageType.Name}");
             
-            // 生成缓存键
-            string? cacheKey = GenerateCacheKey(pageType, parameter);
-            System.Diagnostics.Debug.WriteLine($"[ContentArea] 缓存键: {cacheKey ?? "null"}");
-            
             // 为 AI 页面设置特殊的反向钻取动画
             NavigationTransitionInfo? customTransition = transitionInfo; // 外部传入优先
             if (customTransition == null && pageType.Name == "AIPage")
@@ -432,194 +355,36 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                 customTransition = new DrillInNavigationTransitionInfo();
             }
             
-            // 如果是 WebBrowserPage，检查 WebView 数量限制
-            if (pageType == typeof(WebBrowserPage) && !string.IsNullOrEmpty(cacheKey))
-            {
-                string shortcutId = cacheKey.Substring("WebBrowser_".Length);
-                
-                // 如果该 WebView 已经链接，直接使用缓存
-                if (WebViewManager.IsLinked(shortcutId))
-                {
-                    System.Diagnostics.Debug.WriteLine($"[ContentArea] WebView 已链接，使用缓存");
-                }
-                // 如果未注册但已达到限制，需要先移除最久未使用的页面
-                else if (!WebViewManager.CanCreateNew())
-                {
-                    System.Diagnostics.Debug.WriteLine($"[ContentArea] WebView 数量已达限制 ({WebViewManager.ActiveCount}/{WebViewManager.MaxCount})，触发异步 LRU 移除");
-                    
-                    // ⭐ 异步移除旧页面，不阻塞当前导航
-                    _ = Task.Run(() =>
-                    {
-                        try
-                        {
-                            // 诊断：移除前的状态
-                            WebViewManager.DiagnoseState();
-                            
-                            // 获取按 LRU 顺序排列的缓存键（从最新到最旧）
-                            var cachedKeysInOrder = _pageCacheManager.GetCachedPageKeysInLRUOrder().ToList();
-                            
-                            System.Diagnostics.Debug.WriteLine($"[ContentArea] 当前缓存页面顺序（从新到旧）:");
-                            for (int i = 0; i < cachedKeysInOrder.Count; i++)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"  [{i}] {cachedKeysInOrder[i]}");
-                            }
-                            
-                            // 从后往前找到最久未使用的 WebBrowser 页面（不是当前要打开的）
-                            string? oldestWebBrowserKey = null;
-                            for (int i = cachedKeysInOrder.Count - 1; i >= 0; i--)
-                            {
-                                var key = cachedKeysInOrder[i];
-                                if (key.StartsWith("WebBrowser_") && key != cacheKey)
-                                {
-                                    oldestWebBrowserKey = key;
-                                    break;
-                                }
-                            }
-                            
-                            if (oldestWebBrowserKey != null)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"[ContentArea] 异步移除最久未使用的页面: {oldestWebBrowserKey}");
-                                string oldShortcutId = oldestWebBrowserKey.Substring("WebBrowser_".Length);
-                                
-                                // 获取页面实例并调用 DisposeWebView（会自动注销 WebView）
-                                var oldPage = _pageCacheManager.GetCachedPage(oldestWebBrowserKey);
-                                if (oldPage is WebBrowserPage oldWebBrowserPage)
-                                {
-                                    // 回到 UI 线程执行清理
-                                    DispatcherQueue.TryEnqueue(() =>
-                                    {
-                                        System.Diagnostics.Debug.WriteLine($"[ContentArea] 调用 DisposeWebView 清理旧页面");
-                                        oldWebBrowserPage.DisposeWebView();
-                                        
-                                        // 移除页面缓存
-                                        _pageCacheManager.RemovePage(oldestWebBrowserKey);
-                                        
-                                        System.Diagnostics.Debug.WriteLine($"[ContentArea] 旧页面已移除");
-                                        
-                                        // 诊断：移除后的状态
-                                        WebViewManager.DiagnoseState();
-                                    });
-                                }
-                            }
-                            else
-                            {
-                                System.Diagnostics.Debug.WriteLine($"[ContentArea] 警告：未找到可移除的 WebBrowser 页面");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[ContentArea] 异步 LRU 移除失败: {ex.Message}");
-                        }
-                    });
-                }
-            }
-            
-            // 检查是否已缓存
-            if (!string.IsNullOrEmpty(cacheKey) && _pageCacheManager.IsPageCached(cacheKey))
-            {
-                System.Diagnostics.Debug.WriteLine($"[ContentArea] 页面已缓存，直接使用");
-                
-                // 在切换页面前，调用当前页面的 OnNavigatedFrom
-                if (_currentPage is INavigationAware currentNavigationAware)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[ContentArea] 调用当前页面的 INavigationAware.OnNavigatedFrom");
-                    currentNavigationAware.OnNavigatedFrom();
-                }
-                
-                // 把当前页手动加入 BackStack，模拟 Frame.Navigate 的行为
-                if (ContentFrame.Content is Page currentPage && _currentPageType != null)
-                {
-                    ContentFrame.BackStack.Add(new PageStackEntry(_currentPageType, _currentPageParameter, null));
-                }
-
-                // 从缓存获取页面
-                Page cachedPage = _pageCacheManager.GetOrCreatePage(pageType, parameter, cacheKey);
-                
-                // 直接设置内容（跳过 Frame 导航）
-                ContentFrame.Content = cachedPage;
-                _currentPage = cachedPage;
-                _currentPageType = pageType;
-                _currentPageParameter = parameter;
-                
-                System.Diagnostics.Debug.WriteLine($"[ContentArea] 已设置缓存页面到 Frame.Content，BackStack 深度: {ContentFrame.BackStackDepth}");
-                
-                // 手动调用 OnNavigatedTo
-                if (cachedPage is INavigationAware navigationAware)
-                {
-                    System.Diagnostics.Debug.WriteLine($"[ContentArea] 调用 INavigationAware.OnNavigatedTo");
-                    navigationAware.OnNavigatedTo(parameter);
-                }
-
-                // 手动触发 Navigated 事件，通知 Linker
-                // NavigationEventArgs 不可直接构造，通过 ContentFrame_Navigated 的包装事件通知
-                OnCachedPageNavigated(pageType, parameter);
-            }
-            else
-            {
-                System.Diagnostics.Debug.WriteLine($"[ContentArea] 首次导航，使用 Frame.Navigate");
-                
-                // 首次导航，使用 Frame.Navigate 触发正常流程
-                // 如果有自定义动画，使用自定义动画；否则使用 Frame 的默认 ContentTransitions
-                if (customTransition != null)
-                {
-                    if (parameter != null)
-                    {
-                        ContentFrame.Navigate(pageType, parameter, customTransition);
-                    }
-                    else
-                    {
-                        ContentFrame.Navigate(pageType, null, customTransition);
-                    }
-                }
-                else
-                {
-                    if (parameter != null)
-                    {
-                        ContentFrame.Navigate(pageType, parameter);
-                    }
-                    else
-                    {
-                        ContentFrame.Navigate(pageType);
-                    }
-                }
-            }
+            // 使用导航服务进行导航
+            _navigationService.Navigate(pageType, parameter, customTransition);
         }
 
-        private void OnCachedPageNavigated(Type pageType, object? parameter)
+        private void OnNavigationServiceNavigated(object? sender, NavigationEventArgs e)
         {
-            // 智能刷新返回按钮
-            RefreshBackButton();
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] NavigationService.Navigated 事件触发: {e.SourcePageType.Name}");
             
-            CachedPageNavigated?.Invoke(this, (pageType, parameter));
-        }
-
-        private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
-        {
-            // Frame 导航完成后，将页面加入缓存
-            if (ContentFrame.Content is Page page)
+            // 如果是 WebBrowserPage，订阅关闭事件
+            if (ContentFrame.Content is WebBrowserPage webBrowserPage)
             {
-                string? cacheKey = GenerateCacheKey(e.SourcePageType, e.Parameter);
-                
-                if (!string.IsNullOrEmpty(cacheKey))
-                {
-                    _pageCacheManager.AddPageToCache(cacheKey, page);
-                    System.Diagnostics.Debug.WriteLine($"[ContentArea] 页面已缓存: {cacheKey}");
-                }
-                
-                _currentPage = page;
-                _currentPageType = e.SourcePageType;
-                _currentPageParameter = e.Parameter;
-                
-                if (page is WebBrowserPage webBrowserPage)
-                {
-                    webBrowserPage.PageCloseRequested += OnPageCloseRequested;
-                }
+                webBrowserPage.PageCloseRequested += OnPageCloseRequested;
             }
 
             // 智能刷新返回按钮
             RefreshBackButton();
             
+            // 转发导航事件
             Navigated?.Invoke(this, e);
+        }
+
+        private void OnNavigationServiceCachedPageNavigated(object? sender, (Type PageType, object? Parameter) e)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] NavigationService.CachedPageNavigated 事件触发: {e.PageType.Name}");
+            
+            // 智能刷新返回按钮
+            RefreshBackButton();
+            
+            // 转发缓存导航事件
+            CachedPageNavigated?.Invoke(this, e);
         }
 
         private void OnPageCloseRequested(object? sender, string shortcutId)
@@ -633,18 +398,6 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         // 页面关闭请求事件
         public event EventHandler<string>? PageCloseRequested;
 
-        private string? GenerateCacheKey(Type pageType, object? parameter)
-        {
-            // WebBrowserPage 使用 shortcut.Id 作为缓存键
-            if (pageType == typeof(WebBrowserPage) && parameter is WebAppShortcut shortcut)
-            {
-                return $"WebBrowser_{shortcut.Id}";
-            }
-            
-            // 其他页面不缓存（每次都创建新实例）
-            return null;
-        }
-
         /// <summary>
         /// 移除指定的缓存页面
         /// </summary>
@@ -652,16 +405,10 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         {
             string cacheKey = $"WebBrowser_{shortcutId}";
             
-            // 获取页面实例以便清理
-            var page = _pageCacheManager.GetCachedPage(cacheKey);
-            if (page is WebBrowserPage webBrowserPage)
-            {
-                // 调用 DisposeWebView 会自动取消链接
-                webBrowserPage.DisposeWebView();
-                System.Diagnostics.Debug.WriteLine($"[ContentArea] 清理缓存页面: {shortcutId}");
-            }
-            
+            // PageCacheManager.RemovePage 会自动调用 DisposeWebView
+            // DisposeWebView 会自动调用 WebViewManager.Unlink
             _pageCacheManager.RemovePage(cacheKey);
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] 移除缓存页面: {shortcutId}");
         }
 
         /// <summary>
@@ -676,11 +423,8 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         {
             System.Diagnostics.Debug.WriteLine("[ContentArea] RestartCurrentTabAsync 被调用");
             
-            // 诊断：重启前的状态
-            WebViewManager.DiagnoseState();
-            
             // 检查当前页面是否是 WebBrowserPage
-            if (_currentPage is not WebBrowserPage currentWebBrowserPage)
+            if (_navigationService.CurrentPage is not WebBrowserPage currentWebBrowserPage)
             {
                 System.Diagnostics.Debug.WriteLine("[ContentArea] 当前页面不是 WebBrowserPage，无法重启");
                 return;
@@ -719,29 +463,16 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
 
             System.Diagnostics.Debug.WriteLine($"[ContentArea] 准备重启标签: {currentShortcut.Name} ({currentShortcut.Id})");
 
-            // Step 1: 移除旧的缓存页面
+            // Step 1: 移除旧的缓存页面（会自动调用 DisposeWebView 和 Unlink）
             _pageCacheManager.RemovePage(currentCacheKey);
-            
-            // Step 2: 调用 DisposeWebView 会自动取消链接
-            // （不需要手动调用 Unlink）
-            
             System.Diagnostics.Debug.WriteLine("[ContentArea] 已清理旧实例");
-            
-            // 诊断：清理后的状态
-            WebViewManager.DiagnoseState();
-
-            // Step 3: 显示加载状态（可选）
-            // 这里可以添加一个 Loading UI
             
             // 给一点时间让旧实例完全释放
             await System.Threading.Tasks.Task.Delay(100);
 
-            // Step 4: 重新导航到同一个页面（会创建新实例）
+            // Step 2: 重新导航到同一个页面（会创建新实例）
             System.Diagnostics.Debug.WriteLine("[ContentArea] 创建新实例");
             Navigate(typeof(WebBrowserPage), currentShortcut);
-            
-            // 诊断：重启后的状态
-            WebViewManager.DiagnoseState();
             
             System.Diagnostics.Debug.WriteLine("[ContentArea] 标签重启完成");
         }

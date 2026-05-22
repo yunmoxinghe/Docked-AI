@@ -487,10 +487,31 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         // INavigationAware 实现
         void INavigationAware.OnNavigatedTo(object? parameter)
         {
-            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] INavigationAware.OnNavigatedTo called for cached page");
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] INavigationAware.OnNavigatedTo called");
             
             // 重新设置顶部栏（因为可能被其他页面清除了）
             SetupTopBar();
+            
+            // ⭐ 链接 WebView 到 LRU 管理器
+            if (_currentShortcut != null)
+            {
+                if (!WebViewManager.IsLinked(_currentShortcut.Id))
+                {
+                    var result = WebViewManager.RequestLink(_currentShortcut.Id, this);
+                    if (result.Success)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 已链接到 LRU: {_currentShortcut.Id}");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 链接失败: {result.ErrorMessage}");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 已经链接: {_currentShortcut.Id}");
+                }
+            }
             
             // 如果 WebView 被暂停，恢复它
             if (ExperimentalSettings.SuspendInactiveWebView && WebView?.CoreWebView2 != null)
@@ -506,17 +527,10 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 }
             }
             
-            // 缓存页面被重新激活时，检查 WebView 状态
-            if (WebView == null)
+            // 检查 WebView 状态并初始化
+            if (!_isWebViewReady || WebView?.CoreWebView2 == null)
             {
-                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 缓存页面激活时 WebView 为 null");
-                return;
-            }
-
-            // 如果 WebView 未初始化，触发初始化
-            if (!_isWebViewReady || WebView.CoreWebView2 == null)
-            {
-                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] WebView 需要初始化，触发异步初始化");
+                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] WebView 需要初始化");
                 _ = EnsureWebViewInitializedAsync().ContinueWith(t =>
                 {
                     if (t.IsCompletedSuccessfully)
@@ -530,22 +544,19 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     }
                 });
             }
+            else if (WebView.Source == null && _currentShortcut != null)
+            {
+                // WebView 已初始化但为空白页，恢复导航
+                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] WebView 为空白页，恢复导航");
+                if (Uri.TryCreate(_currentShortcut.Url, UriKind.Absolute, out Uri? uri))
+                {
+                    _pendingNavigationUri = uri;
+                    TryNavigatePendingUri();
+                }
+            }
             else
             {
-                // WebView 已初始化，检查是否需要恢复导航
-                if (WebView.Source == null && _currentShortcut != null)
-                {
-                    System.Diagnostics.Debug.WriteLine("[WebBrowserPage] WebView 为空白页，恢复导航");
-                    if (Uri.TryCreate(_currentShortcut.Url, UriKind.Absolute, out Uri? uri))
-                    {
-                        _pendingNavigationUri = uri;
-                        TryNavigatePendingUri();
-                    }
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 状态正常，当前 URL: {WebView.Source}");
-                }
+                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 状态正常，当前 URL: {WebView.Source}");
             }
         }
 
@@ -554,7 +565,7 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] INavigationAware.OnNavigatedFrom called");
             
             RestoreSharedTopAppBarBackground();
-            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 已恢复统一顶部栏背景，等待新页面覆盖内容");
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 已恢复统一顶部栏背景");
             
             // 如果启用了暂停不活跃 WebView 的功能
             if (ExperimentalSettings.SuspendInactiveWebView && WebView?.CoreWebView2 != null)
@@ -575,58 +586,19 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             {
                 _ = ClearBrowsingDataAsync();
             }
+            
+            // 注意：不在这里 Unlink，因为页面可能被缓存并稍后恢复
+            // Unlink 由 DisposeWebView 负责（当页面真正被销毁时）
         }
 
         private async void WebBrowserPage_Loaded(object sender, RoutedEventArgs e)
         {
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] Loaded 事件触发");
             
-            // 诊断：Loaded 时的 WebView 状态
-            WebViewManager.DiagnoseState();
+            // Loaded 事件只负责初始化 WebView，不干预导航和链接管理
+            // 链接管理由 INavigationAware.OnNavigatedTo 负责
             
-            // 注意：不在这里设置顶部栏，因为 Loaded 在页面缓存切换时也会触发
-            // 顶部栏的设置由 INavigationAware.OnNavigatedTo 负责
-            
-            bool isAlreadyLinked = false;
-            
-            if (_currentShortcut != null)
-            {
-                // 检查是否已经链接，避免重复注册
-                if (WebViewManager.IsLinked(_currentShortcut.Id))
-                {
-                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 已链接，跳过 RequestLink");
-                    isAlreadyLinked = true;
-                }
-                else
-                {
-                    // 请求链接 WebView（限制器会自动处理驱逐）
-                    var result = WebViewManager.RequestLink(_currentShortcut.Id, this);
-                    
-                    if (!result.Success)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 链接失败: {result.ErrorMessage}");
-                        WebViewManager.DiagnoseState();
-                        return;
-                    }
-                    
-                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 链接成功{(result.EvictedOldest ? "（已驱逐最旧实例）" : "")}");
-                    WebViewManager.DiagnoseState();
-                }
-            }
-            
-            // ✅ 无论是否已链接，都要确保 WebView 初始化和导航
             await EnsureWebViewInitializedAsync();
-            
-            // 如果是已链接的页面被重新激活，检查是否需要恢复导航
-            if (isAlreadyLinked && WebView?.Source == null && _currentShortcut != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 已链接页面为空白，恢复导航");
-                if (Uri.TryCreate(_currentShortcut.Url, UriKind.Absolute, out Uri? uri))
-                {
-                    _pendingNavigationUri = uri;
-                }
-            }
-            
             TryNavigatePendingUri();
         }
 
