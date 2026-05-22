@@ -19,6 +19,16 @@
             Grid.Row="0"
             Background="Transparent" />
 
+        <ProgressBar
+            x:Name="LoadingProgressBar"
+            Grid.Row="0"
+            VerticalAlignment="Bottom"
+            Height="3"
+            IsIndeterminate="True"
+            Visibility="Collapsed"
+            Background="Transparent"
+            Foreground="{ThemeResource AccentFillColorDefaultBrush}" />
+
         <controls:WebView2
             x:Name="WebView"
             Grid.Row="1"
