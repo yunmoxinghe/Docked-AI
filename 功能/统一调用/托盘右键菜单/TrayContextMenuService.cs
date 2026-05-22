@@ -430,8 +430,9 @@ public static class TrayContextMenuService
         {
             System.Diagnostics.Debug.WriteLine("[TrayContextMenu] Executing force exit in 500ms...");
             
-            // 短暂延迟，让菜单有时间关闭
-            System.Threading.Thread.Sleep(500);
+            // 使用异步延迟代替 Thread.Sleep，避免阻塞线程
+            // 注意：这里在后台线程上，使用 Task.Delay().Wait() 是安全的
+            System.Threading.Tasks.Task.Delay(500).Wait();
             
             System.Diagnostics.Debug.WriteLine("[TrayContextMenu] Force exiting application...");
             

@@ -142,7 +142,8 @@ namespace Docked_AI.Features.AppEntry.SingleInstance
                 {
                     System.Diagnostics.Debug.WriteLine($"[SingleInstanceCommunication] Listener error: {ex.Message}");
                     // 短暂延迟后继续，避免错误循环
-                    Thread.Sleep(100);
+                    // 使用 SpinWait 代替 Thread.Sleep，更适合短时间等待
+                    Thread.SpinWait(1000000); // 约 100ms
                 }
             }
 

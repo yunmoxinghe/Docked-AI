@@ -851,7 +851,7 @@ namespace Docked_AI.Features.Pages.Settings
                 isCapturingHotkey = true;
                 tempKey = VirtualKey.None;
                 tempCtrl = tempAlt = tempShift = tempWin = false;
-                displayText.Text = "按下快捷键...";
+                displayText.Text = LocalizationHelper.GetString("SettingsPage_HotkeyRecording");
             };
 
             recordButton.Unchecked += (_, _) => isCapturingHotkey = false;
@@ -886,7 +886,7 @@ namespace Docked_AI.Features.Pages.Settings
 
                 if (!ctrl && !alt && !shift && !win)
                 {
-                    displayText.Text = "需要至少一个修饰键";
+                    displayText.Text = LocalizationHelper.GetString("SettingsPage_HotkeyNeedModifier");
                     return;
                 }
 

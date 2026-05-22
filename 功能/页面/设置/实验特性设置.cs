@@ -1,5 +1,6 @@
 using System;
 using Windows.Storage;
+using Docked_AI.Features.Shared.AotOptimization;
 
 namespace Docked_AI.Features.Pages.Settings
 {
@@ -88,7 +89,7 @@ namespace Docked_AI.Features.Pages.Settings
             {
                 if (_localSettings.Values.TryGetValue(FrameNavigationAnimationKey, out object? value))
                 {
-                    if (value is int intValue && Enum.IsDefined(typeof(FrameAnimationType), intValue))
+                    if (value is int intValue && EnumValidationExtensions.IsValidFrameAnimationType(intValue))
                     {
                         return (FrameAnimationType)intValue;
                     }
@@ -186,7 +187,7 @@ namespace Docked_AI.Features.Pages.Settings
             {
                 if (_localSettings.Values.TryGetValue(WindowDockSideKey, out object? value))
                 {
-                    if (value is int intValue && Enum.IsDefined(typeof(WindowDockSide), intValue))
+                    if (value is int intValue && EnumValidationExtensions.IsValidWindowDockSide(intValue))
                     {
                         return (WindowDockSide)intValue;
                     }
@@ -227,7 +228,7 @@ namespace Docked_AI.Features.Pages.Settings
             {
                 if (_localSettings.Values.TryGetValue(TrayCloseWindowBehaviorKey, out object? value))
                 {
-                    if (value is int intValue && Enum.IsDefined(typeof(TrayCloseWindowBehavior), intValue))
+                    if (value is int intValue && EnumValidationExtensions.IsValidTrayCloseWindowBehavior(intValue))
                     {
                         return (TrayCloseWindowBehavior)intValue;
                     }
@@ -268,7 +269,7 @@ namespace Docked_AI.Features.Pages.Settings
             {
                 if (_localSettings.Values.TryGetValue(WebViewMemoryModeKey, out object? value))
                 {
-                    if (value is int intValue && Enum.IsDefined(typeof(WebViewMemoryMode), intValue))
+                    if (value is int intValue && EnumValidationExtensions.IsValidWebViewMemoryMode(intValue))
                     {
                         return (WebViewMemoryMode)intValue;
                     }

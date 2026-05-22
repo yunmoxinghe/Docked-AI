@@ -57,11 +57,13 @@
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Button
                                 x:Name="SelectFolderButton"
+                                x:Uid="NewPage_SelectFolder"
                                 Content="选择文件夹"
                                 Click="OnSelectFolderClick"
                                 Style="{StaticResource AccentButtonStyle}"/>
                             <Button
                                 x:Name="ImportAllButton"
+                                x:Uid="NewPage_ImportAll"
                                 Content="导入全部"
                                 Click="OnImportAllClick"/>
                         </StackPanel>

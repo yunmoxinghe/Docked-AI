@@ -352,50 +352,26 @@
     <value>关闭此页面</value>
   </data>
   <!-- 语言选项 -->
-  <data name="Language_SimplifiedChinese.Text" xml:space="preserve">
-    <value>简体中文</value>
-  </data>
   <data name="Language_SimplifiedChinese.Content" xml:space="preserve">
     <value>简体中文</value>
-  </data>
-  <data name="Language_TraditionalChinese.Text" xml:space="preserve">
-    <value>繁體中文</value>
   </data>
   <data name="Language_TraditionalChinese.Content" xml:space="preserve">
     <value>繁體中文</value>
   </data>
-  <data name="Language_English.Text" xml:space="preserve">
-    <value>English</value>
-  </data>
   <data name="Language_English.Content" xml:space="preserve">
     <value>English</value>
-  </data>
-  <data name="Language_Japanese.Text" xml:space="preserve">
-    <value>日本語</value>
   </data>
   <data name="Language_Japanese.Content" xml:space="preserve">
     <value>日本語</value>
   </data>
-  <data name="Language_Korean.Text" xml:space="preserve">
-    <value>한국어</value>
-  </data>
   <data name="Language_Korean.Content" xml:space="preserve">
     <value>한국어</value>
-  </data>
-  <data name="Language_French.Text" xml:space="preserve">
-    <value>Français</value>
   </data>
   <data name="Language_French.Content" xml:space="preserve">
     <value>Français</value>
   </data>
-  <data name="Language_German.Text" xml:space="preserve">
-    <value>Deutsch</value>
-  </data>
   <data name="Language_German.Content" xml:space="preserve">
     <value>Deutsch</value>
-  </data>
-  <data name="Language_Spanish.Text" xml:space="preserve">
-    <value>Español</value>
   </data>
   <data name="Language_Spanish.Content" xml:space="preserve">
     <value>Español</value>
@@ -679,6 +655,78 @@
 https://developer.microsoft.com/microsoft-edge/webview2/</value>
   </data>
   <data name="WebView2_NotInstalled_CloseButton" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <!-- 托盘菜单 - 文本 -->
+  <data name="TrayMenu_OpenWindowText.Text" xml:space="preserve">
+    <value>打开窗口</value>
+  </data>
+  <data name="TrayMenu_CloseWindowText.Text" xml:space="preserve">
+    <value>关闭窗口</value>
+  </data>
+  <data name="TrayMenu_RestartText.Text" xml:space="preserve">
+    <value>重启应用</value>
+  </data>
+  <data name="TrayMenu_RateAppText.Text" xml:space="preserve">
+    <value>评价应用</value>
+  </data>
+  <data name="TrayMenu_ExitText.Text" xml:space="preserve">
+    <value>退出</value>
+  </data>
+  <!-- 设置页面 - 内存模式 -->
+  <data name="SettingsPage_MemoryModeNormal.Content" xml:space="preserve">
+    <value>正常</value>
+  </data>
+  <data name="SettingsPage_MemoryModeLow.Content" xml:space="preserve">
+    <value>低内存</value>
+  </data>
+  <!-- 新建页面 - 按钮 -->
+  <data name="NewPage_SelectFolder.Content" xml:space="preserve">
+    <value>选择文件夹</value>
+  </data>
+  <data name="NewPage_ImportAll.Content" xml:space="preserve">
+    <value>导入全部</value>
+  </data>
+  <data name="NewPage_ImportProgress.Text" xml:space="preserve">
+    <value>正在导入收藏夹...
+
+提示：为获取完整图标，请先关闭 Edge 浏览器</value>
+  </data>
+  <!-- 实验室页面 - PlaceholderText -->
+  <data name="LabPage_CenterTitlePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>输入标题文本</value>
+  </data>
+  <!-- 实验室页面 - C# 代码中使用的状态文本 -->
+  <data name="LabPage_RightButtonCleared" xml:space="preserve">
+    <value>已清除右侧按钮</value>
+  </data>
+  <data name="LabPage_RightButtonSet" xml:space="preserve">
+    <value>已设置右侧按钮（点击按钮可清除）</value>
+  </data>
+  <data name="LabPage_RightContentCleared" xml:space="preserve">
+    <value>已清除右侧内容</value>
+  </data>
+  <data name="LabPage_DefaultTitle" xml:space="preserve">
+    <value>实验室 📦</value>
+  </data>
+  <!-- 设置页面 - C# 代码中使用的快捷键录制文本 -->
+  <data name="SettingsPage_HotkeyRecording" xml:space="preserve">
+    <value>按下快捷键...</value>
+  </data>
+  <data name="SettingsPage_HotkeyNeedModifier" xml:space="preserve">
+    <value>需要至少一个修饰键</value>
+  </data>
+  <!-- WebView2 初始化错误 - C# 代码中使用 -->
+  <data name="WebView2_InitFailed_Title" xml:space="preserve">
+    <value>WebView 初始化失败</value>
+  </data>
+  <data name="WebView2_InitFailed_Content" xml:space="preserve">
+    <value>无法初始化 WebView 控件。
+
+错误类型: {0}
+错误消息: {1}</value>
+  </data>
+  <data name="WebView2_InitFailed_CloseButton" xml:space="preserve">
     <value>确定</value>
   </data>
 </root>

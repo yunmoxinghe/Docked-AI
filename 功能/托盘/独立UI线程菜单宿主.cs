@@ -106,10 +106,13 @@ namespace Docked_AI.Features.Tray
                 SynchronizationContext.SetSynchronizationContext(frame);
                 
                 // 保持线程运行
+                // 使用 ManualResetEventSlim 代替 Thread.Sleep 循环，更高效
+                var shutdownEvent = new ManualResetEventSlim(false);
                 while (!_disposed)
                 {
-                    Thread.Sleep(100);
+                    shutdownEvent.Wait(100); // 等待 100ms 或直到信号
                 }
+                shutdownEvent.Dispose();
 
                 System.Diagnostics.Debug.WriteLine("[MenuThread] Message loop exited");
             }

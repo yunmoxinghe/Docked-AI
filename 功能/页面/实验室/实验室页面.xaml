@@ -83,6 +83,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                             <TextBox
                                 x:Name="CenterTitleInput"
+                                x:Uid="LabPage_CenterTitlePlaceholder"
                                 PlaceholderText="输入标题文本"
                                 Width="140"
                                 VerticalAlignment="Center"/>

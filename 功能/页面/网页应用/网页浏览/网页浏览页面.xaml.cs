@@ -780,9 +780,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 {
                     var dialog = new ContentDialog
                     {
-                        Title = "WebView 初始化失败",
-                        Content = $"无法初始化 WebView 控件。\n\n错误类型: {ex.GetType().Name}\n错误消息: {ex.Message}",
-                        CloseButtonText = "确定",
+                        Title = LocalizationHelper.GetString("WebView2_InitFailed_Title"),
+                        Content = string.Format(LocalizationHelper.GetString("WebView2_InitFailed_Content"), ex.GetType().Name, ex.Message),
+                        CloseButtonText = LocalizationHelper.GetString("WebView2_InitFailed_CloseButton"),
                         XamlRoot = XamlRoot
                     };
 

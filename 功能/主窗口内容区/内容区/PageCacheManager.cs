@@ -290,11 +290,6 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         /// </summary>
         private Page CreatePageInstance(Type pageType)
         {
-            if (!typeof(Page).IsAssignableFrom(pageType))
-            {
-                throw new ArgumentException($"Type {pageType.Name} is not a Page", nameof(pageType));
-            }
-
             // AOT 兼容：使用预注册的工厂函数创建实例
             if (_pageFactories.TryGetValue(pageType, out var factory))
             {
@@ -314,11 +309,6 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         /// </summary>
         public static void RegisterPageFactory(Type pageType, Func<Page> factory)
         {
-            if (!typeof(Page).IsAssignableFrom(pageType))
-            {
-                throw new ArgumentException($"Type {pageType.Name} is not a Page", nameof(pageType));
-            }
-            
             _pageFactories[pageType] = factory;
             System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 注册页面工厂: {pageType.Name}");
         }

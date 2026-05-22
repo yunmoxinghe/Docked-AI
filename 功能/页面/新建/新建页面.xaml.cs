@@ -10,6 +10,7 @@ using Docked_AI.Features.Pages.WebApp.EdgeSync;
 using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.UnifiedCalls.TopAppBar;
 using Docked_AI.Features.UnifiedCalls.InAppDialog;
+using Docked_AI.Features.Localization;
 
 namespace Docked_AI.Features.Pages.New
 {
@@ -229,7 +230,7 @@ namespace Docked_AI.Features.Pages.New
 
                 var progressText = new TextBlock
                 {
-                    Text = "正在导入收藏夹...\n\n提示：为获取完整图标，请先关闭 Edge 浏览器",
+                    Text = LocalizationHelper.GetString("NewPage_ImportProgress"),
                     TextAlignment = TextAlignment.Center,
                     Margin = new Thickness(0, 16, 0, 0),
                     TextWrapping = TextWrapping.Wrap,

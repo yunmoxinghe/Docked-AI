@@ -191,14 +191,6 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             Type pageType = backEntry.SourcePageType;
             object? parameter = backEntry.Parameter;
 
-            // AOT 兼容性检查：确保类型有无参构造函数
-            if (!typeof(Page).IsAssignableFrom(pageType))
-            {
-                System.Diagnostics.Debug.WriteLine($"[NavigationService] 类型 {pageType.Name} 不是 Page，使用 Frame.GoBack()");
-                _frame.GoBack();
-                return true;
-            }
-
             System.Diagnostics.Debug.WriteLine($"[NavigationService] 返回到页面: {pageType.Name}");
 
             // 生成缓存键

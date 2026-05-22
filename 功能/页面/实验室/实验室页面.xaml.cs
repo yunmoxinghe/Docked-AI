@@ -1,5 +1,6 @@
 using Docked_AI.Features.Pages.Settings;
 using Docked_AI.Features.UnifiedCalls.TopAppBar;
+using Docked_AI.Features.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -93,22 +94,22 @@ namespace Docked_AI.Features.Pages.Lab
             btn.Click += (_, _) =>
             {
                 TopAppBarService.SetRightContent(null);
-                RightButtonStatus.Text = "已清除右侧按钮";
+                RightButtonStatus.Text = LocalizationHelper.GetString("LabPage_RightButtonCleared");
             };
             TopAppBarService.SetRightContent(btn);
-            RightButtonStatus.Text = "已设置右侧按钮（点击按钮可清除）";
+            RightButtonStatus.Text = LocalizationHelper.GetString("LabPage_RightButtonSet");
         }
 
         private void OnClearRightButtonClick(object sender, RoutedEventArgs e)
         {
             TopAppBarService.SetRightContent(null);
-            RightButtonStatus.Text = "已清除右侧内容";
+            RightButtonStatus.Text = LocalizationHelper.GetString("LabPage_RightContentCleared");
         }
 
         private void OnSetCenterTitleClick(object sender, RoutedEventArgs e)
         {
             var text = CenterTitleInput.Text?.Trim();
-            if (string.IsNullOrEmpty(text)) text = "实验室 📦";
+            if (string.IsNullOrEmpty(text)) text = LocalizationHelper.GetString("LabPage_DefaultTitle");
             TopAppBarService.SetCenterContent(new TextBlock
             {
                 Text = text,

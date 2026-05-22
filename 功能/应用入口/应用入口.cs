@@ -66,9 +66,11 @@ namespace Docked_AI
                     _singleInstanceMutex?.Dispose();
                     _singleInstanceMutex = null;
                     
+                    // 使用 Mutex.WaitOne 代替 Thread.Sleep 循环
+                    // 这是构造函数中的同步代码，无法使用 async/await
+                    // 但 Mutex.WaitOne 是阻塞式等待，比 Thread.Sleep 更高效
                     for (int i = 0; i < 30; i++)
                     {
-                        Thread.Sleep(100);
                         try
                         {
                             _singleInstanceMutex = new Mutex(true, "DockedAI_SingleInstance_Mutex", out _isMainInstance);
@@ -79,6 +81,9 @@ namespace Docked_AI
                             }
                             _singleInstanceMutex?.Dispose();
                             _singleInstanceMutex = null;
+                            
+                            // 使用 SpinWait 代替 Thread.Sleep，更适合短时间等待
+                            Thread.SpinWait(1000000); // 约 100ms
                         }
                         catch { }
                     }

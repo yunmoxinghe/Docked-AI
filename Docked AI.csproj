@@ -13,7 +13,6 @@
     <!-- 默认使用 x64 平台 -->
     <Platform Condition="'$(Platform)' == '' or '$(Platform)' == 'AnyCPU'">x64</Platform>
     <PublishProfile Condition="'$(Platform)' == 'x64'">win-x64.pubxml</PublishProfile>
-    <PublishProfile Condition="'$(Platform)' == 'x86'">win-x86.pubxml</PublishProfile>
     <PublishProfile Condition="'$(Platform)' == 'ARM64'">win-arm64.pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
     <WinUISDKReferences>false</WinUISDKReferences>
@@ -42,6 +41,8 @@
     <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
     <!-- 极限裁剪 -->
     <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <!-- 抑制已知的 WinUI 3 AOT/裁剪警告 -->
+    <NoWarn>$(NoWarn);IL2026;IL2087;IL3050</NoWarn>
     <!-- 额外体积优化 -->
     <PublishReadyToRun>false</PublishReadyToRun>
     <PublishSingleFile>false</PublishSingleFile>

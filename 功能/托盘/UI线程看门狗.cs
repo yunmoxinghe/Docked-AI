@@ -84,17 +84,21 @@ namespace Docked_AI.Features.Tray
             Debug.WriteLine("[UIThreadWatchdog] Stopping...");
             _cts.Cancel();
             
-            // 使用 Task.Wait 的安全版本，避免死锁
+            // 使用 GetAwaiter().GetResult() 代替 Wait()，更安全
             try
             {
-                if (!_watchdogTask.Wait(TimeSpan.FromSeconds(1)))
+                // 创建一个超时任务
+                var timeoutTask = Task.Delay(TimeSpan.FromSeconds(1));
+                var completedTask = Task.WhenAny(_watchdogTask, timeoutTask).GetAwaiter().GetResult();
+                
+                if (completedTask == timeoutTask)
                 {
                     Debug.WriteLine("[UIThreadWatchdog] WARNING: Watchdog task did not complete in time");
                 }
             }
-            catch (AggregateException ex)
+            catch (Exception ex)
             {
-                Debug.WriteLine($"[UIThreadWatchdog] Stop error: {ex.InnerException?.Message ?? ex.Message}");
+                Debug.WriteLine($"[UIThreadWatchdog] Stop error: {ex.Message}");
             }
             
             _cts.Dispose();

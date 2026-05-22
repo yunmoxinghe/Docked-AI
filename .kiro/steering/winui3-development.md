@@ -86,9 +86,11 @@ winapp package .\bin\Release\net10.0-windows10.0.19041.0\win-x64
 
 ## 平台支持
 
-**目标平台：** x86、x64、ARM64
+**目标平台：** x64、ARM64
 **最低操作系统：** Windows 10 版本 1809 (Build 17763)
 **推荐操作系统：** Windows 11
+
+**注意：** 不再支持 x86 (32位) 平台。
 
 构建时必须明确指定平台：`/p:Platform=x64`
 
