@@ -139,13 +139,8 @@ namespace Docked_AI.Features.MainWindowContent.Linker
 
         private void UpdateContentOutsideMargin(double width)
         {
-            if (_isPinnedOrMaximized)
-            {
-                _contentOutsideMargin = CompactContentOutsideMargin;
-                return;
-            }
-
-            _contentOutsideMargin = width >= 1200 ? 24 : width >= 700 ? 16 : CompactContentOutsideMargin;
+            // 固定外边距，不随窗口宽度变化
+            _contentOutsideMargin = CompactContentOutsideMargin;
         }
 
         private void OnBackRequested(object? sender, EventArgs e)
