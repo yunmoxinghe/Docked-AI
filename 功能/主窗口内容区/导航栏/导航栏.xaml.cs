@@ -35,13 +35,27 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         public event EventHandler<string>? WebAppRestartRequested; // 网页应用重启请求事件
         public event EventHandler? BackRequested; // 返回请求事件
 
+        private bool _isNavigationBarOnLeft = false;
+
         public void UpdateDockToggleIcon(bool isPinned)
         {
-            DockToggleIcon.Glyph = isPinned ? "\uE8A0" : "\uE89F";
+            // 根据导航栏位置选择不同的图标
+            if (_isNavigationBarOnLeft)
+            {
+                // 左侧模式：使用 Pin/Unpin 图标
+                DockToggleIcon.Glyph = isPinned ? "\uEA5B" : "\uEA49";
+            }
+            else
+            {
+                // 右侧模式：使用原来的图标
+                DockToggleIcon.Glyph = isPinned ? "\uE8A0" : "\uE89F";
+            }
         }
 
         public void SetNavigationBarPlacement(bool isOnLeft)
         {
+            _isNavigationBarOnLeft = isOnLeft;
+            
             TopNavView.HorizontalAlignment = isOnLeft ? HorizontalAlignment.Left : HorizontalAlignment.Right;
             TopNavView.FlowDirection = isOnLeft ? FlowDirection.LeftToRight : FlowDirection.RightToLeft;
             
