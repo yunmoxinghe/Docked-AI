@@ -83,7 +83,20 @@ namespace Docked_AI.Features.Tray
 
             Debug.WriteLine("[UIThreadWatchdog] Stopping...");
             _cts.Cancel();
-            _watchdogTask.Wait(TimeSpan.FromSeconds(1));
+            
+            // 使用 Task.Wait 的安全版本，避免死锁
+            try
+            {
+                if (!_watchdogTask.Wait(TimeSpan.FromSeconds(1)))
+                {
+                    Debug.WriteLine("[UIThreadWatchdog] WARNING: Watchdog task did not complete in time");
+                }
+            }
+            catch (AggregateException ex)
+            {
+                Debug.WriteLine($"[UIThreadWatchdog] Stop error: {ex.InnerException?.Message ?? ex.Message}");
+            }
+            
             _cts.Dispose();
             _cts = null;
             _watchdogTask = null;

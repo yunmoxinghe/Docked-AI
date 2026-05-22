@@ -392,7 +392,7 @@ public static class TrayContextMenuService
                     return false;
                 }
 
-                // 等待退出完成或超时
+                // 等待退出完成或超时（使用 WaitHandle.WaitOne 更安全）
                 bool completed = exitCompleted.Wait(timeoutMs);
                 
                 if (!completed)

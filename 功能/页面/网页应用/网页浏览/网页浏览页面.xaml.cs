@@ -3,6 +3,7 @@ using Docked_AI.Features.Pages.Settings;
 using Docked_AI.Features.MainWindowContent.ContentArea;
 using Docked_AI.Features.UnifiedCalls.InAppDialog;
 using Docked_AI.Features.UnifiedCalls.TopAppBar;
+using Docked_AI.Features.Localization;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -751,9 +752,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 {
                     var dialog = new ContentDialog
                     {
-                        Title = "WebView2 Runtime 未安装",
-                        Content = "此应用需要 Microsoft Edge WebView2 Runtime 才能显示网页内容。\n\n请访问以下网址下载并安装：\nhttps://developer.microsoft.com/microsoft-edge/webview2/",
-                        CloseButtonText = "确定",
+                        Title = LocalizationHelper.GetString("WebView2_NotInstalled_Title"),
+                        Content = LocalizationHelper.GetString("WebView2_NotInstalled_Content"),
+                        CloseButtonText = LocalizationHelper.GetString("WebView2_NotInstalled_CloseButton"),
                         XamlRoot = XamlRoot
                     };
 

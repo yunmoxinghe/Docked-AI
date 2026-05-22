@@ -54,8 +54,11 @@ namespace Docked_AI.Features.Tray
             _menuThread.SetApartmentState(ApartmentState.STA);
             _menuThread.Start();
 
-            // 等待线程启动完成
-            _threadStarted.Wait();
+            // 等待线程启动完成（使用超时避免无限等待）
+            if (!_threadStarted.Wait(TimeSpan.FromSeconds(5)))
+            {
+                throw new TimeoutException("Menu thread initialization timed out after 5 seconds");
+            }
             System.Diagnostics.Debug.WriteLine("[IndependentUIThreadMenuHost] Initialized successfully");
         }
 

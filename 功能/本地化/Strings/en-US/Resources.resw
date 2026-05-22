@@ -668,4 +668,17 @@
   <data name="InAppDialog_OpenExternal_CancelButton" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <!-- WebView2 Error Dialog -->
+  <data name="WebView2_NotInstalled_Title" xml:space="preserve">
+    <value>WebView2 Runtime Not Installed</value>
+  </data>
+  <data name="WebView2_NotInstalled_Content" xml:space="preserve">
+    <value>This app requires Microsoft Edge WebView2 Runtime to display web content.
+
+Please visit the following URL to download and install:
+https://developer.microsoft.com/microsoft-edge/webview2/</value>
+  </data>
+  <data name="WebView2_NotInstalled_CloseButton" xml:space="preserve">
+    <value>OK</value>
+  </data>
 </root>

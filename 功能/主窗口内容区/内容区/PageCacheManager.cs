@@ -10,6 +10,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
     /// 页面缓存管理器，用于缓存已创建的页面实例，实现快速切换
     /// 使用 LRU（最近最少使用）策略自动管理缓存
     /// 线程安全：所有公共方法使用锁保护
+    /// AOT 兼容：使用工厂模式替代反射创建页面实例
     /// </summary>
     public class PageCacheManager
     {
@@ -19,6 +20,18 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         private readonly int _maxCacheSize;
         private string? _currentPageKey;
         private readonly object _cacheLock = new(); // 线程安全锁
+        
+        // AOT 兼容：页面工厂字典（避免使用反射）
+        private static readonly Dictionary<Type, Func<Page>> _pageFactories = new()
+        {
+            { typeof(Pages.Home.HomePage), () => new Pages.Home.HomePage() },
+            { typeof(Pages.New.NewPage), () => new Pages.New.NewPage() },
+            { typeof(Pages.AI.AIPage), () => new Pages.AI.AIPage() },
+            { typeof(Pages.Settings.SettingsPage), () => new Pages.Settings.SettingsPage() },
+            { typeof(Pages.Lab.LabPage), () => new Pages.Lab.LabPage() },
+            { typeof(Pages.WebApp.Browser.WebBrowserPage), () => new Pages.WebApp.Browser.WebBrowserPage() },
+            { typeof(Pages.WebApp.WebAppPage), () => new Pages.WebApp.WebAppPage() }
+        };
 
         public PageCacheManager(int maxCacheSize = 20)
         {
@@ -26,16 +39,13 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         }
 
         /// <summary>
-        /// 获取或创建页面实例
+        /// 获取或创建页面实例（AOT 兼容版本）
         /// </summary>
         /// <param name="pageType">页面类型</param>
         /// <param name="parameter">导航参数</param>
         /// <param name="cacheKey">缓存键（如果为 null 则不缓存）</param>
         /// <returns>页面实例</returns>
-        public Page GetOrCreatePage(
-            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type pageType,
-            object? parameter,
-            string? cacheKey)
+        public Page GetOrCreatePage(Type pageType, object? parameter, string? cacheKey)
         {
             // 如果没有缓存键，直接创建新实例（不需要锁）
             if (string.IsNullOrEmpty(cacheKey))
@@ -275,21 +285,42 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             }
         }
 
-        private Page CreatePageInstance(
-            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type pageType)
+        /// <summary>
+        /// 创建页面实例（AOT 兼容：使用工厂模式而非反射）
+        /// </summary>
+        private Page CreatePageInstance(Type pageType)
         {
             if (!typeof(Page).IsAssignableFrom(pageType))
             {
                 throw new ArgumentException($"Type {pageType.Name} is not a Page", nameof(pageType));
             }
 
-            var instance = Activator.CreateInstance(pageType);
-            if (instance is not Page page)
+            // AOT 兼容：使用预注册的工厂函数创建实例
+            if (_pageFactories.TryGetValue(pageType, out var factory))
             {
-                throw new InvalidOperationException($"Failed to create instance of {pageType.Name}");
+                var page = factory();
+                System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 使用工厂创建页面: {pageType.Name}");
+                return page;
             }
 
-            return page;
+            // 降级方案：如果类型未注册，抛出异常（而非使用反射）
+            throw new InvalidOperationException(
+                $"页面类型 {pageType.Name} 未在 PageCacheManager 中注册。" +
+                $"请在 _pageFactories 字典中添加该类型的工厂函数以支持 Native AOT 编译。");
+        }
+        
+        /// <summary>
+        /// 注册自定义页面工厂（用于扩展支持新页面类型）
+        /// </summary>
+        public static void RegisterPageFactory(Type pageType, Func<Page> factory)
+        {
+            if (!typeof(Page).IsAssignableFrom(pageType))
+            {
+                throw new ArgumentException($"Type {pageType.Name} is not a Page", nameof(pageType));
+            }
+            
+            _pageFactories[pageType] = factory;
+            System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 注册页面工厂: {pageType.Name}");
         }
     }
 }

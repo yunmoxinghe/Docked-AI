@@ -176,11 +176,19 @@ namespace Docked_AI.Features.AppEntry.SingleInstance
             
             try
             {
-                _listenerTask?.Wait(TimeSpan.FromSeconds(1));
+                // 使用 Task.Wait 的安全版本，避免死锁
+                if (_listenerTask != null && !_listenerTask.Wait(TimeSpan.FromSeconds(1)))
+                {
+                    System.Diagnostics.Debug.WriteLine("[SingleInstancePipe] WARNING: Listener task did not complete in time");
+                }
             }
-            catch (AggregateException)
+            catch (AggregateException ex)
             {
-                // 忽略取消异常
+                // 忽略取消异常，但记录其他异常
+                if (ex.InnerException is not OperationCanceledException)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SingleInstancePipe] StopListening error: {ex.InnerException?.Message}");
+                }
             }
         }
 
