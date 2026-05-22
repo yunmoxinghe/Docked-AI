@@ -657,4 +657,76 @@ https://developer.microsoft.com/microsoft-edge/webview2/</value>
   <data name="WebView2_NotInstalled_CloseButton" xml:space="preserve">
     <value>OK</value>
   </data>
+  <!-- Tray Menu - Text Elements -->
+  <data name="TrayMenu_OpenWindowText.Text" xml:space="preserve">
+    <value>Open Window</value>
+  </data>
+  <data name="TrayMenu_CloseWindowText.Text" xml:space="preserve">
+    <value>Close Window</value>
+  </data>
+  <data name="TrayMenu_RestartText.Text" xml:space="preserve">
+    <value>Restart App</value>
+  </data>
+  <data name="TrayMenu_RateAppText.Text" xml:space="preserve">
+    <value>Rate App</value>
+  </data>
+  <data name="TrayMenu_ExitText.Text" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <!-- Settings Page - Memory Mode -->
+  <data name="SettingsPage_MemoryModeNormal.Content" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="SettingsPage_MemoryModeLow.Content" xml:space="preserve">
+    <value>Low Memory</value>
+  </data>
+  <!-- New Page - Buttons -->
+  <data name="NewPage_SelectFolder.Content" xml:space="preserve">
+    <value>Select Folder</value>
+  </data>
+  <data name="NewPage_ImportAll.Content" xml:space="preserve">
+    <value>Import All</value>
+  </data>
+  <data name="NewPage_ImportProgress.Text" xml:space="preserve">
+    <value>Importing favorites...
+
+Tip: For complete icons, please close Edge browser first</value>
+  </data>
+  <!-- Lab Page - PlaceholderText -->
+  <data name="LabPage_CenterTitlePlaceholder.PlaceholderText" xml:space="preserve">
+    <value>Enter title text</value>
+  </data>
+  <!-- Lab Page - C# Code Status Text -->
+  <data name="LabPage_RightButtonCleared" xml:space="preserve">
+    <value>Right button cleared</value>
+  </data>
+  <data name="LabPage_RightButtonSet" xml:space="preserve">
+    <value>Right button set (click button to clear)</value>
+  </data>
+  <data name="LabPage_RightContentCleared" xml:space="preserve">
+    <value>Right content cleared</value>
+  </data>
+  <data name="LabPage_DefaultTitle" xml:space="preserve">
+    <value>Lab 📦</value>
+  </data>
+  <!-- Settings Page - C# Code Hotkey Recording Text -->
+  <data name="SettingsPage_HotkeyRecording" xml:space="preserve">
+    <value>Press hotkey...</value>
+  </data>
+  <data name="SettingsPage_HotkeyNeedModifier" xml:space="preserve">
+    <value>At least one modifier key required</value>
+  </data>
+  <!-- WebView2 Initialization Error - C# Code -->
+  <data name="WebView2_InitFailed_Title" xml:space="preserve">
+    <value>WebView Initialization Failed</value>
+  </data>
+  <data name="WebView2_InitFailed_Content" xml:space="preserve">
+    <value>Unable to initialize WebView control.
+
+Error Type: {0}
+Error Message: {1}</value>
+  </data>
+  <data name="WebView2_InitFailed_CloseButton" xml:space="preserve">
+    <value>OK</value>
+  </data>
 </root>

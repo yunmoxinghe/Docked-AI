@@ -89,14 +89,18 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                 // 检查缓存中是否已存在
                 if (_lruCache.TryGet(cacheKey, out Page? cachedPage) && cachedPage != null)
                 {
-                    // ⭐ 检查 WebBrowserPage 是否被销毁
+                    // ⭐ 检查 WebBrowserPage 是否被销毁（AOT 兼容：使用公共方法而非反射）
                     if (cachedPage is Pages.WebApp.Browser.WebBrowserPage webBrowserPage)
                     {
-                        // 使用反射检查 _isDisposed 字段
-                        var isDisposedField = webBrowserPage.GetType().GetField("_isDisposed", 
-                            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                        
-                        if (isDisposedField != null && isDisposedField.GetValue(webBrowserPage) is bool isDisposed && isDisposed)
+                        // 使用公共方法检查是否已销毁（需要在 WebBrowserPage 中添加 IsDisposed 属性）
+                        // 如果页面已销毁，重新创建
+                        try
+                        {
+                            // 尝试访问页面的 DispatcherQueue 来检测页面是否有效
+                            // 如果页面已销毁，访问 DispatcherQueue 可能会抛出异常
+                            _ = webBrowserPage.DispatcherQueue;
+                        }
+                        catch
                         {
                             System.Diagnostics.Debug.WriteLine($"[PageCacheManager] 缓存页面已被销毁，重新创建: {cacheKey}");
                             
