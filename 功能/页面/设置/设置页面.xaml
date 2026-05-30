@@ -527,7 +527,6 @@
                                             <TextBlock Text="{x:Bind GetFeedbackLinkText()}" TextWrapping="Wrap"/>
                                         </StackPanel>
                                     </HyperlinkButton>
-                                    <HyperlinkButton x:Uid="SettingsPage_LicenseLink" Click="OnViewLicenseClick"/>
                                 </StackPanel>
                             </controls:SettingsCard>
                         </controls:SettingsExpander.Items>

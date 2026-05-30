@@ -228,17 +228,6 @@ namespace Docked_AI.Features.Pages.Settings
             }
         }
 
-        private async void OnViewLicenseClick(object sender, RoutedEventArgs args)
-        {
-            var uri = new Uri("https://github.com/yunmoxinghe/Docked-AI/blob/main/LICENSE");
-            var dialog = CreateExternalOpenDialog(uri);
-            var result = await InAppDialogService.ShowAsync(dialog, this);
-            if (result == ContentDialogResult.Primary)
-            {
-                await Launcher.LaunchUriAsync(uri);
-            }
-        }
-
         private void LoadExperimentalSettings()
         {
             // 加载返回按钮设置
