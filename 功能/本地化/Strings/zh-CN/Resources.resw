@@ -504,14 +504,14 @@
   </data>
   <!-- 设置页面 - 实验室入口 -->
   <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
-    <value>实验室 📦</value>
+    <value>实验室</value>
   </data>
   <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
     <value>探索实验性功能</value>
   </data>
   <!-- 实验室页面 -->
   <data name="LabPage_Title.Text" xml:space="preserve">
-    <value>实验室 📦</value>
+    <value>实验室</value>
   </data>
   <data name="LabPage_Subtitle.Text" xml:space="preserve">
     <value>以下功能处于实验阶段，可能不稳定或随时变更。</value>
@@ -707,7 +707,7 @@ https://developer.microsoft.com/microsoft-edge/webview2/</value>
     <value>已清除右侧内容</value>
   </data>
   <data name="LabPage_DefaultTitle" xml:space="preserve">
-    <value>实验室 📦</value>
+    <value>实验室</value>
   </data>
   <!-- 设置页面 - C# 代码中使用的快捷键录制文本 -->
   <data name="SettingsPage_HotkeyRecording" xml:space="preserve">

@@ -44,7 +44,7 @@
                     Spacing="4">
                     <StackPanel.ChildrenTransitions>
                         <EntranceThemeTransition FromVerticalOffset="50" />
-                        <RepositionThemeTransition IsStaggeringEnabled="True" />
+                        <RepositionThemeTransition IsStaggeringEnabled="False" />
                     </StackPanel.ChildrenTransitions>
                     <!-- 当状态为 DisabledByUser 时显示提示信息 -->
                     <InfoBar
@@ -415,6 +415,12 @@
                             </controls:SettingsCard>
                         </controls:SettingsExpander.Items>
                     </controls:SettingsExpander>
+
+                    <!-- 高级设置 -->
+                    <TextBlock 
+                        x:Uid="SettingsPage_AdvancedSection"
+                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                        Margin="1,16,0,4"/>
 
                     <!-- 实验室入口 -->
                     <controls:SettingsCard

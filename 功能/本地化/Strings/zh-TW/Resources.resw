@@ -449,14 +449,14 @@
   </data>
   <!-- 設定頁面 - 實驗室入口 -->
   <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
-    <value>實驗室 📦</value>
+    <value>實驗室</value>
   </data>
   <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
     <value>探索實驗性功能</value>
   </data>
   <!-- 實驗室頁面 -->
   <data name="LabPage_Title.Text" xml:space="preserve">
-    <value>實驗室 📦</value>
+    <value>實驗室</value>
   </data>
   <data name="LabPage_Subtitle.Text" xml:space="preserve">
     <value>以下功能處於實驗階段，可能不穩定或隨時變更。</value>

@@ -449,14 +449,14 @@
   </data>
   <!-- 設定ページ - ラボ入口 -->
   <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
-    <value>ラボ 📦</value>
+    <value>ラボ</value>
   </data>
   <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
     <value>実験的な機能を探索する</value>
   </data>
   <!-- ラボページ -->
   <data name="LabPage_Title.Text" xml:space="preserve">
-    <value>ラボ 📦</value>
+    <value>ラボ</value>
   </data>
   <data name="LabPage_Subtitle.Text" xml:space="preserve">
     <value>以下の機能は実験段階にあり、不安定または変更される可能性があります。</value>

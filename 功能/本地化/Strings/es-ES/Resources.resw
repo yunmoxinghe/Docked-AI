@@ -449,14 +449,14 @@
   </data>
   <!-- Página de configuración - Entrada al laboratorio -->
   <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
-    <value>Laboratorio 📦</value>
+    <value>Laboratorio</value>
   </data>
   <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
     <value>Explorar funciones experimentales</value>
   </data>
   <!-- Página del laboratorio -->
   <data name="LabPage_Title.Text" xml:space="preserve">
-    <value>Laboratorio 📦</value>
+    <value>Laboratorio</value>
   </data>
   <data name="LabPage_Subtitle.Text" xml:space="preserve">
     <value>Estas funciones están en fase experimental y pueden ser inestables o cambiar en cualquier momento.</value>

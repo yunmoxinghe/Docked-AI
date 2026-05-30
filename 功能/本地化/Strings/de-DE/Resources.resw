@@ -449,14 +449,14 @@
   </data>
   <!-- Einstellungsseite - Labor-Eintrag -->
   <data name="SettingsPage_LabHeader.Header" xml:space="preserve">
-    <value>Labor 📦</value>
+    <value>Labor</value>
   </data>
   <data name="SettingsPage_LabHeader.Description" xml:space="preserve">
     <value>Experimentelle Funktionen erkunden</value>
   </data>
   <!-- Laborseite -->
   <data name="LabPage_Title.Text" xml:space="preserve">
-    <value>Labor 📦</value>
+    <value>Labor</value>
   </data>
   <data name="LabPage_Subtitle.Text" xml:space="preserve">
     <value>Diese Funktionen befinden sich in der experimentellen Phase und können instabil sein oder sich ändern.</value>
