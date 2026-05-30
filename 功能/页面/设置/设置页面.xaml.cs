@@ -253,16 +253,6 @@ namespace Docked_AI.Features.Pages.Settings
                 LeftDockNavigationToggle.IsEnabled = ExperimentalSettings.DockSide == WindowDockSide.Left;
                 LeftDockNavigationToggle.Toggled += OnLeftDockNavigationToggled;
             }
-
-            // 加载实验特性开关
-            AILabToggle.Toggled -= OnAILabToggled;
-            WinUIContextMenuToggle.Toggled -= OnWinUIContextMenuToggled;
-
-            AILabToggle.IsOn = ExperimentalSettings.EnableAILab;
-            WinUIContextMenuToggle.IsOn = ExperimentalSettings.EnableWinUIContextMenu;
-
-            AILabToggle.Toggled += OnAILabToggled;
-            WinUIContextMenuToggle.Toggled += OnWinUIContextMenuToggled;
         }
 
         private void OnBackButtonToggled(object sender, RoutedEventArgs e)
@@ -278,36 +268,6 @@ namespace Docked_AI.Features.Pages.Settings
         {
             // 点击卡片时切换 ToggleSwitch 状态
             BackButtonToggle.IsOn = !BackButtonToggle.IsOn;
-        }
-
-        private void OnAILabToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.EnableAILab = toggle.IsOn;
-                RaiseAILabSettingsChanged();
-            }
-        }
-
-        private void OnAILabCardClick(object sender, RoutedEventArgs e)
-        {
-            // 点击卡片时切换 ToggleSwitch 状态
-            AILabToggle.IsOn = !AILabToggle.IsOn;
-        }
-
-        private void OnWinUIContextMenuToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.EnableWinUIContextMenu = toggle.IsOn;
-                RaiseWinUIContextMenuSettingsChanged();
-            }
-        }
-
-        private void OnWinUIContextMenuCardClick(object sender, RoutedEventArgs e)
-        {
-            // 点击卡片时切换 ToggleSwitch 状态
-            WinUIContextMenuToggle.IsOn = !WinUIContextMenuToggle.IsOn;
         }
 
         private void OnLabCardClick(object sender, RoutedEventArgs e)

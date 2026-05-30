@@ -37,11 +37,10 @@ namespace Docked_AI.Features.Pages.Lab
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            TopBarMenuButtonToggle.Toggled -= OnTopBarMenuButtonToggled;
+            // 初始化顶部应用栏菜单按钮设置
             TopBarMenuButtonToggle.IsOn = ExperimentalSettings.EnableTopBarMenuButton;
-            TopBarMenuButtonToggle.Toggled += OnTopBarMenuButtonToggled;
 
-            // 初始化顶部应用栏测试控件状态
+            // 初始化顶部应用栏可见性测试控件状态
             TopBarVisibilityToggle.IsOn = TopAppBarService.IsVisible;
             TopBarVisibilityToggle.Toggled += OnTopBarVisibilityToggled;
 
@@ -49,9 +48,13 @@ namespace Docked_AI.Features.Pages.Lab
             TopAppBarService.SetMenuButtonVisible(ExperimentalSettings.EnableTopBarMenuButton);
 
             // 初始化托盘评价按钮设置
-            HideTrayRateButtonToggle.Toggled -= OnHideTrayRateButtonToggled;
             HideTrayRateButtonToggle.IsOn = ExperimentalSettings.HideTrayRateButton;
-            HideTrayRateButtonToggle.Toggled += OnHideTrayRateButtonToggled;
+
+            // 初始化 AI 实验室设置
+            AILabToggle.IsOn = ExperimentalSettings.EnableAILab;
+
+            // 初始化 WinUI 右键菜单设置
+            WinUIContextMenuToggle.IsOn = ExperimentalSettings.EnableWinUIContextMenu;
 
             UpdateMargin();
         }
@@ -146,6 +149,36 @@ namespace Docked_AI.Features.Pages.Lab
         {
             // 点击卡片时切换 ToggleSwitch 状态
             HideTrayRateButtonToggle.IsOn = !HideTrayRateButtonToggle.IsOn;
+        }
+
+        private void OnAILabToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggle)
+            {
+                ExperimentalSettings.EnableAILab = toggle.IsOn;
+                SettingsPage.RaiseAILabSettingsChanged();
+            }
+        }
+
+        private void OnAILabCardClick(object sender, RoutedEventArgs e)
+        {
+            // 点击卡片时切换 ToggleSwitch 状态
+            AILabToggle.IsOn = !AILabToggle.IsOn;
+        }
+
+        private void OnWinUIContextMenuToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggle)
+            {
+                ExperimentalSettings.EnableWinUIContextMenu = toggle.IsOn;
+                SettingsPage.RaiseWinUIContextMenuSettingsChanged();
+            }
+        }
+
+        private void OnWinUIContextMenuCardClick(object sender, RoutedEventArgs e)
+        {
+            // 点击卡片时切换 ToggleSwitch 状态
+            WinUIContextMenuToggle.IsOn = !WinUIContextMenuToggle.IsOn;
         }
 
         // Event to notify when hide tray rate button settings change
