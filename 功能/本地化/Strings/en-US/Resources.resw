@@ -465,6 +465,12 @@
   <data name="SettingsPage_FrameAnimationHeader.Description" xml:space="preserve">
     <value>Choose animation effect for page navigation</value>
   </data>
+  <data name="SettingsPage_SubPageAnimationHeader.Header" xml:space="preserve">
+    <value>Sub-Page Transition Animation</value>
+  </data>
+  <data name="SettingsPage_SubPageAnimationHeader.Description" xml:space="preserve">
+    <value>Choose animation for navigating from main pages to sub-pages (default: slide from right)</value>
+  </data>
   <data name="SettingsPage_AnimationNone.Content" xml:space="preserve">
     <value>No Animation</value>
   </data>

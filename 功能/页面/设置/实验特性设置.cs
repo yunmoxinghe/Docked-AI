@@ -12,6 +12,7 @@ namespace Docked_AI.Features.Pages.Settings
         private const string EnableWinUIContextMenuKey = "ExperimentalFeature_EnableWinUIContextMenu";
         private const string MaxWebViewCountKey = "WebSettings_MaxWebViewCount";
         private const string FrameNavigationAnimationKey = "NavigationSettings_FrameAnimation";
+        private const string SubPageNavigationAnimationKey = "NavigationSettings_SubPageAnimation";
         private const string EnableAILabKey = "ExperimentalFeature_EnableAILab";
         private const string EnableBackButtonKey = "NavigationSettings_EnableBackButton";
         private const string EnableTopBarBackButtonKey = "TopBarSettings_EnableBackButton";
@@ -99,6 +100,29 @@ namespace Docked_AI.Features.Pages.Settings
             set
             {
                 _localSettings.Values[FrameNavigationAnimationKey] = (int)value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置子页面导航动画类型（如从设置到实验室）
+        /// 默认使用从右侧滑入动画
+        /// </summary>
+        public static FrameAnimationType SubPageNavigationAnimation
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(SubPageNavigationAnimationKey, out object? value))
+                {
+                    if (value is int intValue && EnumValidationExtensions.IsValidFrameAnimationType(intValue))
+                    {
+                        return (FrameAnimationType)intValue;
+                    }
+                }
+                return FrameAnimationType.SlideFromRight; // 默认使用 SlideFromRight
+            }
+            set
+            {
+                _localSettings.Values[SubPageNavigationAnimationKey] = (int)value;
             }
         }
 

@@ -193,6 +193,30 @@
                         </ComboBox>
                     </controls:SettingsCard>
 
+                    <!-- 子页面导航动画设置 -->
+                    <controls:SettingsCard 
+                        x:Uid="SettingsPage_SubPageAnimationHeader"
+                        IsClickEnabled="True"
+                        IsActionIconVisible="False"
+                        Click="OnSubPageAnimationCardClick">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE8C3;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ComboBox 
+                            x:Name="SubPageAnimationComboBox"
+                            HorizontalAlignment="Left"
+                            SelectionChanged="OnSubPageAnimationChanged">
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationNone" Tag="0"/>
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationEntrance" Tag="1"/>
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationSlideRight" Tag="2"/>
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationSlideLeft" Tag="3"/>
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationSlideBottom" Tag="4"/>
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationDrillIn" Tag="5"/>
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationFadeInOut" Tag="6"/>
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationScale" Tag="7"/>
+                        </ComboBox>
+                    </controls:SettingsCard>
+
                     <!-- 全局快捷键设置 -->
                     <controls:SettingsExpander x:Name="HotkeyExpander"
                                           x:Uid="SettingsPage_HotkeyHeader"

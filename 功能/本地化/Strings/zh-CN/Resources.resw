@@ -465,6 +465,12 @@
   <data name="SettingsPage_FrameAnimationHeader.Description" xml:space="preserve">
     <value>选择页面导航时的动画效果</value>
   </data>
+  <data name="SettingsPage_SubPageAnimationHeader.Header" xml:space="preserve">
+    <value>子页面切换动画</value>
+  </data>
+  <data name="SettingsPage_SubPageAnimationHeader.Description" xml:space="preserve">
+    <value>选择从设置页等主页面导航到子页面时的动画效果（默认从右侧滑入）</value>
+  </data>
   <data name="SettingsPage_AnimationNone.Content" xml:space="preserve">
     <value>无动画</value>
   </data>

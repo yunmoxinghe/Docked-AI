@@ -139,6 +139,9 @@ namespace Docked_AI.Features.Pages.Settings
             
             // 初始化 Frame 动画设置
             LoadFrameAnimationSettings();
+            
+            // 初始化子页面动画设置
+            LoadSubPageAnimationSettings();
         }
 
         protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
@@ -272,8 +275,8 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void OnLabCardClick(object sender, RoutedEventArgs e)
         {
-            // 使用用户设置的动画类型
-            var animationType = ExperimentalSettings.FrameNavigationAnimation;
+            // 使用子页面动画设置（默认从右侧滑入）
+            var animationType = ExperimentalSettings.SubPageNavigationAnimation;
             var transitionInfo = GetNavigationTransitionInfo(animationType);
             Frame.Navigate(typeof(LabPage), null, transitionInfo);
         }
@@ -627,6 +630,38 @@ namespace Docked_AI.Features.Pages.Settings
 
         // Event to notify when frame animation settings change
         public static event EventHandler? FrameAnimationSettingsChanged;
+
+        private void LoadSubPageAnimationSettings()
+        {
+            // 暂时取消事件订阅，避免在初始化时触发
+            SubPageAnimationComboBox.SelectionChanged -= OnSubPageAnimationChanged;
+            
+            var currentAnimation = ExperimentalSettings.SubPageNavigationAnimation;
+            SubPageAnimationComboBox.SelectedIndex = (int)currentAnimation;
+            
+            // 重新订阅事件
+            SubPageAnimationComboBox.SelectionChanged += OnSubPageAnimationChanged;
+        }
+
+        private void OnSubPageAnimationCardClick(object sender, RoutedEventArgs e)
+        {
+            // 点击卡片时打开 ComboBox 的下拉菜单
+            SubPageAnimationComboBox.IsDropDownOpen = true;
+        }
+
+        private void OnSubPageAnimationChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem item)
+            {
+                if (int.TryParse(item.Tag?.ToString(), out int animationType))
+                {
+                    var newAnimation = (FrameAnimationType)animationType;
+                    ExperimentalSettings.SubPageNavigationAnimation = newAnimation;
+                    
+                    System.Diagnostics.Debug.WriteLine($"[SettingsPage] Sub-page animation changed to: {newAnimation}");
+                }
+            }
+        }
 
         private void LoadTrayCloseWindowBehaviorSettings()
         {
