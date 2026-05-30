@@ -200,7 +200,7 @@
                         IsActionIconVisible="False"
                         Click="OnSubPageAnimationCardClick">
                         <controls:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE8C3;" />
+                            <FontIcon Glyph="&#xE724;" />
                         </controls:SettingsCard.HeaderIcon>
                         <ComboBox 
                             x:Name="SubPageAnimationComboBox"
