@@ -153,16 +153,21 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             bool result;
             if (transitionInfo != null)
             {
+                // 使用自定义过渡信息
                 result = _frame.Navigate(pageType, parameter, transitionInfo);
             }
             else
             {
+                // 使用默认过渡
                 result = _frame.Navigate(pageType, parameter);
             }
 
             if (result)
             {
                 System.Diagnostics.Debug.WriteLine($"[NavigationService] Frame.Navigate 成功");
+                _currentPageType = pageType;
+                _currentPageParameter = parameter;
+                _currentPage = _frame.Content as Page;
             }
             else
             {

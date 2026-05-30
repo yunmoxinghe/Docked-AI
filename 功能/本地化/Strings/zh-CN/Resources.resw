@@ -483,6 +483,15 @@
   <data name="SettingsPage_AnimationDrill.Content" xml:space="preserve">
     <value>钻取动画</value>
   </data>
+  <data name="SettingsPage_AnimationDrillIn.Content" xml:space="preserve">
+    <value>钻入动画（深入层级）</value>
+  </data>
+  <data name="SettingsPage_AnimationFadeInOut.Content" xml:space="preserve">
+    <value>淡入淡出</value>
+  </data>
+  <data name="SettingsPage_AnimationScale.Content" xml:space="preserve">
+    <value>缩放动画</value>
+  </data>
   <!-- 设置页面 - 实验特性 -->
   <data name="SettingsPage_ExperimentalHeader.Header" xml:space="preserve">
     <value>实验特性</value>

@@ -11,6 +11,7 @@ using Docked_AI.Features.Localization;
 using Docked_AI.Features.UnifiedCalls.TopAppBar;
 using Docked_AI.Features.MainWindowContent.ContentArea;
 using Docked_AI.Features.UnifiedCalls.ContentArea;
+using Docked_AI.Features.Pages.Settings;
 using SymbolIcon = Microsoft.UI.Xaml.Controls.SymbolIcon;
 using Symbol = Microsoft.UI.Xaml.Controls.Symbol;
 using Visibility = Microsoft.UI.Xaml.Visibility;
@@ -159,7 +160,38 @@ namespace Docked_AI.Features.Pages.Home
         private void OnCardClick(WebAppShortcut shortcut)
         {
             // ✅ 使用 ContentAreaService 导航，支持页面缓存和单实例
-            ContentAreaService.Navigate(typeof(WebBrowserPage), shortcut, new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo());
+            // 使用用户设置的动画类型
+            var animationType = ExperimentalSettings.FrameNavigationAnimation;
+            var transitionInfo = GetNavigationTransitionInfo(animationType);
+            ContentAreaService.Navigate(typeof(WebBrowserPage), shortcut, transitionInfo);
+        }
+
+        /// <summary>
+        /// 根据动画类型获取对应的 NavigationTransitionInfo
+        /// </summary>
+        private Microsoft.UI.Xaml.Media.Animation.NavigationTransitionInfo GetNavigationTransitionInfo(FrameAnimationType animationType)
+        {
+            return animationType switch
+            {
+                FrameAnimationType.None => new Microsoft.UI.Xaml.Media.Animation.SuppressNavigationTransitionInfo(),
+                FrameAnimationType.EntranceTransition => new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo(),
+                FrameAnimationType.SlideFromRight => new Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo 
+                { 
+                    Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromRight 
+                },
+                FrameAnimationType.SlideFromLeft => new Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo 
+                { 
+                    Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromLeft 
+                },
+                FrameAnimationType.SlideFromBottom => new Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo 
+                { 
+                    Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromBottom 
+                },
+                FrameAnimationType.DrillIn => new Microsoft.UI.Xaml.Media.Animation.DrillInNavigationTransitionInfo(),
+                FrameAnimationType.FadeInOut => new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo(),
+                FrameAnimationType.ScaleAnimation => new Microsoft.UI.Xaml.Media.Animation.DrillInNavigationTransitionInfo(),
+                _ => new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo()
+            };
         }
     }
 }

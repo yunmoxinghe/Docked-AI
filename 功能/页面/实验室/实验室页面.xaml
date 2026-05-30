@@ -8,12 +8,6 @@
     mc:Ignorable="d"
     UseLayoutRounding="True">
 
-    <Page.Transitions>
-        <TransitionCollection>
-            <NavigationThemeTransition />
-        </TransitionCollection>
-    </Page.Transitions>
-
     <Grid x:Name="RootGrid" Padding="0" UseLayoutRounding="True">
         <ScrollViewer
             x:Name="PageScrollViewer"

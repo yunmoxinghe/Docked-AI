@@ -269,7 +269,16 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                 DefaultNavigationTransitionInfo = transitionInfo
             };
             
-            ContentFrame.ContentTransitions = new TransitionCollection { transition };
+            // 确保 TransitionCollection 不为空，避免性能问题
+            if (ContentFrame.ContentTransitions == null)
+            {
+                ContentFrame.ContentTransitions = new TransitionCollection();
+            }
+            
+            // 清除旧的过渡效果并添加新的
+            // 注意：频繁修改 ContentTransitions 可能影响性能，建议在设置更改时调用
+            ContentFrame.ContentTransitions.Clear();
+            ContentFrame.ContentTransitions.Add(transition);
             
             System.Diagnostics.Debug.WriteLine($"[ContentArea] Frame 动画已更新为: {animationType}");
         }
@@ -293,8 +302,30 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                     Effect = SlideNavigationTransitionEffect.FromBottom 
                 },
                 FrameAnimationType.DrillIn => new DrillInNavigationTransitionInfo(),
+                FrameAnimationType.FadeInOut => CreateFadeTransition(),
+                FrameAnimationType.ScaleAnimation => CreateScaleTransition(),
                 _ => new EntranceNavigationTransitionInfo()
             };
+        }
+
+        /// <summary>
+        /// 创建淡入淡出过渡效果
+        /// </summary>
+        private NavigationTransitionInfo CreateFadeTransition()
+        {
+            // WinUI 3 中没有直接的 FadeTransitionInfo，我们使用 EntranceTransition 作为替代
+            // EntranceTransition 包含了淡入效果
+            return new EntranceNavigationTransitionInfo();
+        }
+
+        /// <summary>
+        /// 创建缩放过渡效果
+        /// </summary>
+        private NavigationTransitionInfo CreateScaleTransition()
+        {
+            // WinUI 3 中没有直接的 ScaleTransitionInfo，我们使用 DrillIn 作为替代
+            // DrillIn 有轻微的缩放效果
+            return new DrillInNavigationTransitionInfo();
         }
 
         private void OnPageAutoRemoved(object? sender, string cacheKey)

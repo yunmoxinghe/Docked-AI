@@ -15,7 +15,7 @@ namespace Docked_AI.Features.Shared.AotOptimization
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsValidFrameAnimationType(int value)
         {
-            return value >= 0 && value <= 5; // None=0 到 DrillIn=5
+            return value >= 0 && value <= 7; // None=0 到 ScaleAnimation=7
         }
 
         /// <summary>

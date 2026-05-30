@@ -556,29 +556,39 @@ namespace Docked_AI.Features.Pages.Settings
         None = 0,
 
         /// <summary>
-        /// 入场动画（默认）
+        /// 入场动画（默认）- 向上滑动+淡入效果，适用于导航堆栈顶部
         /// </summary>
         EntranceTransition = 1,
 
         /// <summary>
-        /// 从右侧滑入
+        /// 从右侧滑入 - 适用于同级页面水平导航
         /// </summary>
         SlideFromRight = 2,
 
         /// <summary>
-        /// 从左侧滑入
+        /// 从左侧滑入 - 适用于同级页面水平导航
         /// </summary>
         SlideFromLeft = 3,
 
         /// <summary>
-        /// 从底部滑入
+        /// 从底部滑入 - 适用于模态或深层导航
         /// </summary>
         SlideFromBottom = 4,
 
         /// <summary>
-        /// 钻取动画（向前导航）
+        /// 钻取动画（向前导航）- 表示深入应用层级
         /// </summary>
-        DrillIn = 5
+        DrillIn = 5,
+
+        /// <summary>
+        /// 淡入淡出动画 - 平滑过渡效果
+        /// </summary>
+        FadeInOut = 6,
+
+        /// <summary>
+        /// 缩放动画 - 现代感的缩放过渡
+        /// </summary>
+        ScaleAnimation = 7
     }
 
     /// <summary>

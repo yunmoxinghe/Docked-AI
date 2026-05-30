@@ -10,12 +10,6 @@
     mc:Ignorable="d"
     UseLayoutRounding="True">
 
-    <Page.Transitions>
-        <TransitionCollection>
-            <NavigationThemeTransition />
-        </TransitionCollection>
-    </Page.Transitions>
-
     <Grid
         x:Name="RootGrid"
         Padding="0"
@@ -193,7 +187,9 @@
                             <ComboBoxItem x:Uid="SettingsPage_AnimationSlideRight" Tag="2"/>
                             <ComboBoxItem x:Uid="SettingsPage_AnimationSlideLeft" Tag="3"/>
                             <ComboBoxItem x:Uid="SettingsPage_AnimationSlideBottom" Tag="4"/>
-                            <ComboBoxItem x:Uid="SettingsPage_AnimationDrill" Tag="5"/>
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationDrillIn" Tag="5"/>
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationFadeInOut" Tag="6"/>
+                            <ComboBoxItem x:Uid="SettingsPage_AnimationScale" Tag="7"/>
                         </ComboBox>
                     </controls:SettingsCard>
 

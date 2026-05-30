@@ -483,6 +483,15 @@
   <data name="SettingsPage_AnimationDrill.Content" xml:space="preserve">
     <value>Drill Animation</value>
   </data>
+  <data name="SettingsPage_AnimationDrillIn.Content" xml:space="preserve">
+    <value>Drill In (Deep Navigation)</value>
+  </data>
+  <data name="SettingsPage_AnimationFadeInOut.Content" xml:space="preserve">
+    <value>Fade In/Out</value>
+  </data>
+  <data name="SettingsPage_AnimationScale.Content" xml:space="preserve">
+    <value>Scale Animation</value>
+  </data>
   <!-- Settings Page - Experimental Features -->
   <data name="SettingsPage_ExperimentalHeader.Header" xml:space="preserve">
     <value>Experimental Features</value>

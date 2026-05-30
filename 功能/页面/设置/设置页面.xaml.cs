@@ -272,9 +272,38 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void OnLabCardClick(object sender, RoutedEventArgs e)
         {
-            // 使用 EntranceNavigationTransitionInfo（官方推荐的轻量级动画）
-            // 或使用 SuppressNavigationTransitionInfo 完全禁用动画以获得最快速度
-            Frame.Navigate(typeof(LabPage), null, new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo());
+            // 使用用户设置的动画类型
+            var animationType = ExperimentalSettings.FrameNavigationAnimation;
+            var transitionInfo = GetNavigationTransitionInfo(animationType);
+            Frame.Navigate(typeof(LabPage), null, transitionInfo);
+        }
+
+        /// <summary>
+        /// 根据动画类型获取对应的 NavigationTransitionInfo
+        /// </summary>
+        private Microsoft.UI.Xaml.Media.Animation.NavigationTransitionInfo GetNavigationTransitionInfo(FrameAnimationType animationType)
+        {
+            return animationType switch
+            {
+                FrameAnimationType.None => new Microsoft.UI.Xaml.Media.Animation.SuppressNavigationTransitionInfo(),
+                FrameAnimationType.EntranceTransition => new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo(),
+                FrameAnimationType.SlideFromRight => new Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo 
+                { 
+                    Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromRight 
+                },
+                FrameAnimationType.SlideFromLeft => new Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo 
+                { 
+                    Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromLeft 
+                },
+                FrameAnimationType.SlideFromBottom => new Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo 
+                { 
+                    Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromBottom 
+                },
+                FrameAnimationType.DrillIn => new Microsoft.UI.Xaml.Media.Animation.DrillInNavigationTransitionInfo(),
+                FrameAnimationType.FadeInOut => new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo(),
+                FrameAnimationType.ScaleAnimation => new Microsoft.UI.Xaml.Media.Animation.DrillInNavigationTransitionInfo(),
+                _ => new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo()
+            };
         }
 
         // Event to notify when WinUI context menu settings change
