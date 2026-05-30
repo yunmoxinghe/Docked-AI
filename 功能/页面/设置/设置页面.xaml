@@ -97,7 +97,7 @@
                         </controls:SettingsExpander.HeaderIcon>
                         <ComboBox
                             x:Name="DockSideComboBox"
-                            MinWidth="150"
+                            HorizontalAlignment="Left"
                             SelectionChanged="OnDockSideChanged">
                             <ComboBoxItem x:Uid="SettingsPage_DockSideLeft" Tag="0" Content="左侧"/>
                             <ComboBoxItem x:Uid="SettingsPage_DockSideRight" Tag="1" Content="右侧"/>
@@ -121,7 +121,7 @@
                         </controls:SettingsCard.HeaderIcon>
                         <ComboBox
                             x:Name="LanguageComboBox"
-                            MinWidth="200"
+                            HorizontalAlignment="Left"
                             SelectionChanged="OnLanguageChanged">
                             <ComboBoxItem x:Uid="SettingsPage_LanguageSystem" Tag="" Content="跟随系统"/>
                             <ComboBoxItem x:Uid="Language_SimplifiedChinese" Tag="zh-CN" Content="简体中文"/>
@@ -154,7 +154,7 @@
                         </controls:SettingsCard.HeaderIcon>
                         <ComboBox
                             x:Name="TrayCloseWindowBehaviorComboBox"
-                            MinWidth="200"
+                            HorizontalAlignment="Left"
                             SelectionChanged="OnTrayCloseWindowBehaviorChanged">
                             <ComboBoxItem x:Uid="SettingsPage_TrayCloseDestroyWindow" Tag="0" Content="直接销毁窗口"/>
                             <ComboBoxItem x:Uid="SettingsPage_TrayCloseRestartToTray" Tag="1" Content="重启到仅托盘"/>
@@ -179,16 +179,14 @@
                     <controls:SettingsCard 
                         x:Uid="SettingsPage_FrameAnimationHeader"
                         IsClickEnabled="True"
+                        IsActionIconVisible="False"
                         Click="OnFrameAnimationCardClick">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE945;" />
                         </controls:SettingsCard.HeaderIcon>
-                        <controls:SettingsCard.ActionIcon>
-                            <FontIcon Glyph="" />
-                        </controls:SettingsCard.ActionIcon>
                         <ComboBox 
                             x:Name="FrameAnimationComboBox"
-                            MinWidth="200"
+                            HorizontalAlignment="Left"
                             SelectionChanged="OnFrameAnimationChanged">
                             <ComboBoxItem x:Uid="SettingsPage_AnimationNone" Tag="0"/>
                             <ComboBoxItem x:Uid="SettingsPage_AnimationEntrance" Tag="1"/>
@@ -261,7 +259,7 @@
                             SpinButtonPlacementMode="Inline"
                             SmallChange="1"
                             LargeChange="5"
-                            Width="120"
+                            HorizontalAlignment="Left"
                             ValueChanged="OnMaxWebViewCountChanged"/>
                     </controls:SettingsCard>
 
@@ -304,7 +302,7 @@
                                 Description="选择内存占用策略">
                                 <ComboBox
                                     x:Name="MemoryModeComboBox"
-                                    MinWidth="150"
+                                    HorizontalAlignment="Left"
                                     SelectionChanged="OnMemoryModeChanged">
                                     <ComboBoxItem x:Uid="SettingsPage_MemoryModeNormal" Tag="0" Content="正常"/>
                                     <ComboBoxItem x:Uid="SettingsPage_MemoryModeLow" Tag="1" Content="低内存"/>
@@ -373,7 +371,7 @@
                                     SpinButtonPlacementMode="Inline"
                                     SmallChange="10"
                                     LargeChange="50"
-                                    Width="120"
+                                    HorizontalAlignment="Left"
                                     ValueChanged="OnDiskCacheSizeChanged"/>
                             </controls:SettingsCard>
 
