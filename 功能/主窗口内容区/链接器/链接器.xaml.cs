@@ -160,9 +160,23 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             WebViewManager.DiagnoseState();
             
             ContentHost.RemoveCachedPage(shortcutId);
-            ContentHost.Navigate(typeof(HomePage));
-            NavBar.SelectHomeItem();
-            NavBar.UpdateBackButtonVisibility(false);
+            
+            // 修改为返回到上一个导航记录，而不是强制跳转到主页
+            if (ContentHost.CanGoBack)
+            {
+                System.Diagnostics.Debug.WriteLine($"[Linker] 返回到上一个导航记录");
+                ContentHost.GoBack();
+            }
+            else
+            {
+                // 如果没有历史记录，则导航到主页
+                System.Diagnostics.Debug.WriteLine($"[Linker] 无历史记录，导航到主页");
+                ContentHost.Navigate(typeof(HomePage));
+                NavBar.SelectHomeItem();
+            }
+            
+            // 更新返回按钮可见性
+            NavBar.UpdateBackButtonVisibility(ContentHost.CanGoBack);
             
             // 诊断：关闭后的状态
             WebViewManager.DiagnoseState();
