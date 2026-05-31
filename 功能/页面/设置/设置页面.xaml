@@ -284,155 +284,19 @@
                     </controls:SettingsCard>
 
                     <!-- WebView2 性能优化 -->
-                    <controls:SettingsExpander
-                        x:Name="WebViewPerformanceExpander"
+                    <controls:SettingsCard
                         x:Uid="SettingsPage_WebViewPerformanceHeader"
                         Header="WebView2 性能优化"
-                        Description="配置 WebView2 的内存和性能设置"
-                        IsExpanded="False">
-                        <controls:SettingsExpander.HeaderIcon>
+                        Description="配置 WebView2 的内存、性能和 GPU 加速设置"
+                        IsClickEnabled="True"
+                        Click="OnWebViewPerformanceCardClick">
+                        <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE9D9;"/>
-                        </controls:SettingsExpander.HeaderIcon>
-                        
-                        <controls:SettingsExpander.Items>
-                            <!-- 快速启动模式 -->
-                            <controls:SettingsCard
-                                x:Uid="SettingsPage_FastStartupModeHeader"
-                                Header="快速启动模式"
-                                Description="优化首次网页打开速度（需重启 WebView）">
-                                <ToggleSwitch
-                                    x:Name="FastStartupModeToggle"
-                                    Toggled="OnFastStartupModeToggled"/>
-                            </controls:SettingsCard>
-
-                            <!-- 单进程模式 -->
-                            <controls:SettingsCard
-                                x:Uid="SettingsPage_SingleProcessModeHeader"
-                                Header="单进程模式"
-                                Description="减少辅助进程，降低内存占用（需重启 WebView，可能影响稳定性）">
-                                <ToggleSwitch
-                                    x:Name="SingleProcessModeToggle"
-                                    Toggled="OnSingleProcessModeToggled"/>
-                            </controls:SettingsCard>
-
-                            <!-- 内存模式 -->
-                            <controls:SettingsCard
-                                x:Uid="SettingsPage_MemoryModeHeader"
-                                Header="内存模式"
-                                Description="选择内存占用策略">
-                                <ComboBox
-                                    x:Name="MemoryModeComboBox"
-                                    HorizontalAlignment="Left"
-                                    SelectionChanged="OnMemoryModeChanged">
-                                    <ComboBoxItem x:Uid="SettingsPage_MemoryModeNormal" Tag="0" Content="正常"/>
-                                    <ComboBoxItem x:Uid="SettingsPage_MemoryModeLow" Tag="1" Content="低内存"/>
-                                </ComboBox>
-                            </controls:SettingsCard>
-
-                            <!-- 自动清理缓存 -->
-                            <controls:SettingsCard
-                                x:Uid="SettingsPage_AutoClearCacheHeader"
-                                Header="自动清理缓存"
-                                Description="定期清理浏览数据和缓存">
-                                <ToggleSwitch
-                                    x:Name="AutoClearCacheToggle"
-                                    Toggled="OnAutoClearCacheToggled"/>
-                            </controls:SettingsCard>
-
-                            <!-- 暂停不活跃的 WebView -->
-                            <controls:SettingsCard
-                                x:Uid="SettingsPage_SuspendInactiveHeader"
-                                Header="暂停不活跃标签页"
-                                Description="自动暂停后台标签页以节省资源">
-                                <ToggleSwitch
-                                    x:Name="SuspendInactiveToggle"
-                                    Toggled="OnSuspendInactiveToggled"/>
-                            </controls:SettingsCard>
-
-                            <!-- 禁用后台网络 -->
-                            <controls:SettingsCard
-                                x:Uid="SettingsPage_DisableBackgroundNetworkHeader"
-                                Header="禁用后台网络"
-                                Description="禁用后台网络请求（需重启 WebView）">
-                                <ToggleSwitch
-                                    x:Name="DisableBackgroundNetworkToggle"
-                                    Toggled="OnDisableBackgroundNetworkToggled"/>
-                            </controls:SettingsCard>
-
-                            <!-- 禁用扩展 -->
-                            <controls:SettingsCard
-                                x:Uid="SettingsPage_DisableExtensionsHeader"
-                                Header="禁用浏览器扩展"
-                                Description="禁用浏览器扩展（需重启 WebView）">
-                                <ToggleSwitch
-                                    x:Name="DisableExtensionsToggle"
-                                    Toggled="OnDisableExtensionsToggled"/>
-                            </controls:SettingsCard>
-
-                            <!-- 禁用插件 -->
-                            <controls:SettingsCard
-                                x:Uid="SettingsPage_DisablePluginsHeader"
-                                Header="禁用浏览器插件"
-                                Description="禁用浏览器插件（需重启 WebView）">
-                                <ToggleSwitch
-                                    x:Name="DisablePluginsToggle"
-                                    Toggled="OnDisablePluginsToggled"/>
-                            </controls:SettingsCard>
-
-                            <!-- 磁盘缓存大小 -->
-                            <controls:SettingsCard
-                                x:Uid="SettingsPage_DiskCacheSizeHeader"
-                                Header="磁盘缓存大小"
-                                Description="限制磁盘缓存大小（MB，需重启 WebView）">
-                                <NumberBox
-                                    x:Name="DiskCacheSizeBox"
-                                    Minimum="10"
-                                    Maximum="500"
-                                    SpinButtonPlacementMode="Inline"
-                                    SmallChange="10"
-                                    LargeChange="50"
-                                    HorizontalAlignment="Left"
-                                    ValueChanged="OnDiskCacheSizeChanged"/>
-                            </controls:SettingsCard>
-
-                            <!-- GPU 加速优化 -->
-                            <controls:SettingsCard
-                                x:Uid="SettingsPage_EnableHardwareAccelerationHeader"
-                                Header="启用硬件加速"
-                                Description="使用 GPU 加速渲染（需重启 WebView）">
-                                <ToggleSwitch
-                                    x:Name="EnableHardwareAccelerationToggle"
-                                    Toggled="OnEnableHardwareAccelerationToggled"/>
-                            </controls:SettingsCard>
-
-                            <controls:SettingsCard
-                                x:Uid="SettingsPage_EnableHardwareOverlaysHeader"
-                                Header="启用硬件叠加层"
-                                Description="使用硬件叠加层优化视频播放（需重启 WebView）">
-                                <ToggleSwitch
-                                    x:Name="EnableHardwareOverlaysToggle"
-                                    Toggled="OnEnableHardwareOverlaysToggled"/>
-                            </controls:SettingsCard>
-
-                            <controls:SettingsCard
-                                x:Uid="SettingsPage_EnableHardwareVideoDecoderHeader"
-                                Header="启用硬件视频解码"
-                                Description="使用 GPU 解码视频（需重启 WebView）">
-                                <ToggleSwitch
-                                    x:Name="EnableHardwareVideoDecoderToggle"
-                                    Toggled="OnEnableHardwareVideoDecoderToggled"/>
-                            </controls:SettingsCard>
-
-                            <controls:SettingsCard
-                                x:Uid="SettingsPage_DisableSoftwareRasterizerHeader"
-                                Header="禁用软件光栅化"
-                                Description="强制使用 GPU 渲染（需重启 WebView）">
-                                <ToggleSwitch
-                                    x:Name="DisableSoftwareRasterizerToggle"
-                                    Toggled="OnDisableSoftwareRasterizerToggled"/>
-                            </controls:SettingsCard>
-                        </controls:SettingsExpander.Items>
-                    </controls:SettingsExpander>
+                        </controls:SettingsCard.HeaderIcon>
+                        <controls:SettingsCard.ActionIcon>
+                            <FontIcon Glyph="&#xE76C;"/>
+                        </controls:SettingsCard.ActionIcon>
+                    </controls:SettingsCard>
 
                     <!-- 高级设置 -->
                     <TextBlock 

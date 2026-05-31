@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -743,5 +743,106 @@ Error Message: {1}</value>
   </data>
   <data name="WebView2_InitFailed_CloseButton" xml:space="preserve">
     <value>OK</value>
+  </data>
+  <!-- WebView Performance Settings Page -->
+  <data name="WebViewPerformancePage_Title.Text" xml:space="preserve">
+    <value>WebView2 Performance Optimization</value>
+  </data>
+  <data name="WebViewPerformancePage_Subtitle.Text" xml:space="preserve">
+    <value>Configure WebView2 memory, performance, and GPU acceleration settings to optimize app performance and resource usage.</value>
+  </data>
+  <data name="WebViewPerformancePage_BasicSection.Text" xml:space="preserve">
+    <value>Basic Performance Optimization</value>
+  </data>
+  <data name="WebViewPerformancePage_BrowserSection.Text" xml:space="preserve">
+    <value>Browser Features</value>
+  </data>
+  <data name="WebViewPerformancePage_GPUSection.Text" xml:space="preserve">
+    <value>GPU Acceleration Optimization</value>
+  </data>
+  <!-- WebView Performance Settings Card -->
+  <data name="SettingsPage_FastStartupModeHeader.Header" xml:space="preserve">
+    <value>Fast Startup Mode</value>
+  </data>
+  <data name="SettingsPage_FastStartupModeHeader.Description" xml:space="preserve">
+    <value>Optimize first page load speed (requires WebView restart)</value>
+  </data>
+  <data name="SettingsPage_SingleProcessModeHeader.Header" xml:space="preserve">
+    <value>Single Process Mode</value>
+  </data>
+  <data name="SettingsPage_SingleProcessModeHeader.Description" xml:space="preserve">
+    <value>Reduce helper processes and lower memory usage (requires WebView restart, may affect stability)</value>
+  </data>
+  <data name="SettingsPage_MemoryModeHeader.Header" xml:space="preserve">
+    <value>Memory Mode</value>
+  </data>
+  <data name="SettingsPage_MemoryModeHeader.Description" xml:space="preserve">
+    <value>Select memory usage strategy</value>
+  </data>
+  <data name="SettingsPage_MemoryModeNormal.Content" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="SettingsPage_MemoryModeLow.Content" xml:space="preserve">
+    <value>Low Memory</value>
+  </data>
+  <data name="SettingsPage_AutoClearCacheHeader.Header" xml:space="preserve">
+    <value>Auto Clear Cache</value>
+  </data>
+  <data name="SettingsPage_AutoClearCacheHeader.Description" xml:space="preserve">
+    <value>Periodically clear browsing data and cache</value>
+  </data>
+  <data name="SettingsPage_SuspendInactiveHeader.Header" xml:space="preserve">
+    <value>Suspend Inactive Tabs</value>
+  </data>
+  <data name="SettingsPage_SuspendInactiveHeader.Description" xml:space="preserve">
+    <value>Automatically suspend background tabs to save resources</value>
+  </data>
+  <data name="SettingsPage_DisableBackgroundNetworkHeader.Header" xml:space="preserve">
+    <value>Disable Background Network</value>
+  </data>
+  <data name="SettingsPage_DisableBackgroundNetworkHeader.Description" xml:space="preserve">
+    <value>Disable background network requests (requires WebView restart)</value>
+  </data>
+  <data name="SettingsPage_DisableExtensionsHeader.Header" xml:space="preserve">
+    <value>Disable Browser Extensions</value>
+  </data>
+  <data name="SettingsPage_DisableExtensionsHeader.Description" xml:space="preserve">
+    <value>Disable browser extensions (requires WebView restart)</value>
+  </data>
+  <data name="SettingsPage_DisablePluginsHeader.Header" xml:space="preserve">
+    <value>Disable Browser Plugins</value>
+  </data>
+  <data name="SettingsPage_DisablePluginsHeader.Description" xml:space="preserve">
+    <value>Disable browser plugins (requires WebView restart)</value>
+  </data>
+  <data name="SettingsPage_DiskCacheSizeHeader.Header" xml:space="preserve">
+    <value>Disk Cache Size</value>
+  </data>
+  <data name="SettingsPage_DiskCacheSizeHeader.Description" xml:space="preserve">
+    <value>Limit disk cache size in MB (requires WebView restart)</value>
+  </data>
+  <data name="SettingsPage_EnableHardwareAccelerationHeader.Header" xml:space="preserve">
+    <value>Enable Hardware Acceleration</value>
+  </data>
+  <data name="SettingsPage_EnableHardwareAccelerationHeader.Description" xml:space="preserve">
+    <value>Use GPU for rendering acceleration (requires WebView restart)</value>
+  </data>
+  <data name="SettingsPage_EnableHardwareOverlaysHeader.Header" xml:space="preserve">
+    <value>Enable Hardware Overlays</value>
+  </data>
+  <data name="SettingsPage_EnableHardwareOverlaysHeader.Description" xml:space="preserve">
+    <value>Use hardware overlays to optimize video playback (requires WebView restart)</value>
+  </data>
+  <data name="SettingsPage_EnableHardwareVideoDecoderHeader.Header" xml:space="preserve">
+    <value>Enable Hardware Video Decoder</value>
+  </data>
+  <data name="SettingsPage_EnableHardwareVideoDecoderHeader.Description" xml:space="preserve">
+    <value>Use GPU for video decoding (requires WebView restart)</value>
+  </data>
+  <data name="SettingsPage_DisableSoftwareRasterizerHeader.Header" xml:space="preserve">
+    <value>Disable Software Rasterizer</value>
+  </data>
+  <data name="SettingsPage_DisableSoftwareRasterizerHeader.Description" xml:space="preserve">
+    <value>Force GPU rendering (requires WebView restart)</value>
   </data>
 </root>

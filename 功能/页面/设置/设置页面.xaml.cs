@@ -275,10 +275,16 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void OnLabCardClick(object sender, RoutedEventArgs e)
         {
-            // 使用子页面动画设置（默认从右侧滑入）
             var animationType = ExperimentalSettings.SubPageNavigationAnimation;
             var transitionInfo = GetNavigationTransitionInfo(animationType);
             Frame.Navigate(typeof(LabPage), null, transitionInfo);
+        }
+
+        private void OnWebViewPerformanceCardClick(object sender, RoutedEventArgs e)
+        {
+            var animationType = ExperimentalSettings.SubPageNavigationAnimation;
+            var transitionInfo = GetNavigationTransitionInfo(animationType);
+            Frame.Navigate(typeof(WebViewPerformancePage), null, transitionInfo);
         }
 
         /// <summary>
@@ -368,210 +374,16 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void LoadWebSettings()
         {
-            // 暂时取消事件订阅，避免在初始化时触发
             MaxWebViewCountBox.ValueChanged -= OnMaxWebViewCountChanged;
-            
             MaxWebViewCountBox.Value = ExperimentalSettings.MaxWebViewCount;
-            
-            // 重新订阅事件
             MaxWebViewCountBox.ValueChanged += OnMaxWebViewCountChanged;
-            
-            // 加载性能优化设置
-            LoadWebViewPerformanceSettings();
         }
 
-        private void LoadWebViewPerformanceSettings()
+        public static void RaiseWebViewPerformanceSettingsChanged()
         {
-            // 快速启动模式
-            FastStartupModeToggle.Toggled -= OnFastStartupModeToggled;
-            FastStartupModeToggle.IsOn = ExperimentalSettings.FastStartupMode;
-            FastStartupModeToggle.Toggled += OnFastStartupModeToggled;
-
-            // 单进程模式
-            SingleProcessModeToggle.Toggled -= OnSingleProcessModeToggled;
-            SingleProcessModeToggle.IsOn = ExperimentalSettings.SingleProcessMode;
-            SingleProcessModeToggle.Toggled += OnSingleProcessModeToggled;
-
-            // 内存模式
-            MemoryModeComboBox.SelectionChanged -= OnMemoryModeChanged;
-            MemoryModeComboBox.SelectedIndex = (int)ExperimentalSettings.MemoryMode;
-            MemoryModeComboBox.SelectionChanged += OnMemoryModeChanged;
-
-            // 自动清理缓存
-            AutoClearCacheToggle.Toggled -= OnAutoClearCacheToggled;
-            AutoClearCacheToggle.IsOn = ExperimentalSettings.AutoClearCache;
-            AutoClearCacheToggle.Toggled += OnAutoClearCacheToggled;
-
-            // 暂停不活跃的 WebView
-            SuspendInactiveToggle.Toggled -= OnSuspendInactiveToggled;
-            SuspendInactiveToggle.IsOn = ExperimentalSettings.SuspendInactiveWebView;
-            SuspendInactiveToggle.Toggled += OnSuspendInactiveToggled;
-
-            // 禁用后台网络
-            DisableBackgroundNetworkToggle.Toggled -= OnDisableBackgroundNetworkToggled;
-            DisableBackgroundNetworkToggle.IsOn = ExperimentalSettings.DisableBackgroundNetwork;
-            DisableBackgroundNetworkToggle.Toggled += OnDisableBackgroundNetworkToggled;
-
-            // 禁用扩展
-            DisableExtensionsToggle.Toggled -= OnDisableExtensionsToggled;
-            DisableExtensionsToggle.IsOn = ExperimentalSettings.DisableExtensions;
-            DisableExtensionsToggle.Toggled += OnDisableExtensionsToggled;
-
-            // 禁用插件
-            DisablePluginsToggle.Toggled -= OnDisablePluginsToggled;
-            DisablePluginsToggle.IsOn = ExperimentalSettings.DisablePlugins;
-            DisablePluginsToggle.Toggled += OnDisablePluginsToggled;
-
-            // 磁盘缓存大小
-            DiskCacheSizeBox.ValueChanged -= OnDiskCacheSizeChanged;
-            DiskCacheSizeBox.Value = ExperimentalSettings.DiskCacheSize;
-            DiskCacheSizeBox.ValueChanged += OnDiskCacheSizeChanged;
-
-            // GPU 优化设置
-            EnableHardwareAccelerationToggle.Toggled -= OnEnableHardwareAccelerationToggled;
-            EnableHardwareAccelerationToggle.IsOn = ExperimentalSettings.EnableHardwareAcceleration;
-            EnableHardwareAccelerationToggle.Toggled += OnEnableHardwareAccelerationToggled;
-
-            EnableHardwareOverlaysToggle.Toggled -= OnEnableHardwareOverlaysToggled;
-            EnableHardwareOverlaysToggle.IsOn = ExperimentalSettings.EnableHardwareOverlays;
-            EnableHardwareOverlaysToggle.Toggled += OnEnableHardwareOverlaysToggled;
-
-            EnableHardwareVideoDecoderToggle.Toggled -= OnEnableHardwareVideoDecoderToggled;
-            EnableHardwareVideoDecoderToggle.IsOn = ExperimentalSettings.EnableHardwareVideoDecoder;
-            EnableHardwareVideoDecoderToggle.Toggled += OnEnableHardwareVideoDecoderToggled;
-
-            DisableSoftwareRasterizerToggle.Toggled -= OnDisableSoftwareRasterizerToggled;
-            DisableSoftwareRasterizerToggle.IsOn = ExperimentalSettings.DisableSoftwareRasterizer;
-            DisableSoftwareRasterizerToggle.Toggled += OnDisableSoftwareRasterizerToggled;
+            WebViewPerformanceSettingsChanged?.Invoke(null, EventArgs.Empty);
         }
 
-        private void OnMemoryModeChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem item)
-            {
-                if (int.TryParse(item.Tag?.ToString(), out int modeValue))
-                {
-                    ExperimentalSettings.MemoryMode = (WebViewMemoryMode)modeValue;
-                    RaiseWebViewPerformanceSettingsChanged();
-                }
-            }
-        }
-
-        private void OnFastStartupModeToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.FastStartupMode = toggle.IsOn;
-                RaiseWebViewPerformanceSettingsChanged();
-            }
-        }
-
-        private void OnSingleProcessModeToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.SingleProcessMode = toggle.IsOn;
-                RaiseWebViewPerformanceSettingsChanged();
-            }
-        }
-
-        private void OnAutoClearCacheToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.AutoClearCache = toggle.IsOn;
-                RaiseWebViewPerformanceSettingsChanged();
-            }
-        }
-
-        private void OnSuspendInactiveToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.SuspendInactiveWebView = toggle.IsOn;
-                RaiseWebViewPerformanceSettingsChanged();
-            }
-        }
-
-        private void OnDisableBackgroundNetworkToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.DisableBackgroundNetwork = toggle.IsOn;
-                RaiseWebViewPerformanceSettingsChanged();
-            }
-        }
-
-        private void OnDisableExtensionsToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.DisableExtensions = toggle.IsOn;
-                RaiseWebViewPerformanceSettingsChanged();
-            }
-        }
-
-        private void OnDisablePluginsToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.DisablePlugins = toggle.IsOn;
-                RaiseWebViewPerformanceSettingsChanged();
-            }
-        }
-
-        private void OnDiskCacheSizeChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
-        {
-            if (!double.IsNaN(args.NewValue))
-            {
-                int newValue = (int)args.NewValue;
-                ExperimentalSettings.DiskCacheSize = newValue;
-                RaiseWebViewPerformanceSettingsChanged();
-            }
-        }
-
-        private void OnEnableHardwareAccelerationToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.EnableHardwareAcceleration = toggle.IsOn;
-                RaiseWebViewPerformanceSettingsChanged();
-            }
-        }
-
-        private void OnEnableHardwareOverlaysToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.EnableHardwareOverlays = toggle.IsOn;
-                RaiseWebViewPerformanceSettingsChanged();
-            }
-        }
-
-        private void OnEnableHardwareVideoDecoderToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.EnableHardwareVideoDecoder = toggle.IsOn;
-                RaiseWebViewPerformanceSettingsChanged();
-            }
-        }
-
-        private void OnDisableSoftwareRasterizerToggled(object sender, RoutedEventArgs e)
-        {
-            if (sender is ToggleSwitch toggle)
-            {
-                ExperimentalSettings.DisableSoftwareRasterizer = toggle.IsOn;
-                RaiseWebViewPerformanceSettingsChanged();
-            }
-        }
-
-        private void RaiseWebViewPerformanceSettingsChanged()
-        {
-            WebViewPerformanceSettingsChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        // Event to notify when WebView performance settings change
         public static event EventHandler? WebViewPerformanceSettingsChanged;
 
         private void OnMaxWebViewCountChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
