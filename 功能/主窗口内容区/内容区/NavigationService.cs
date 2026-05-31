@@ -17,6 +17,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         private Page? _currentPage;
         private Type? _currentPageType;
         private object? _currentPageParameter;
+        private bool _isFrameContentSetDirectly;
 
         /// <summary>
         /// 当前显示的页面类型
@@ -127,6 +128,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             _currentPage = cachedPage;
             _currentPageType = pageType;
             _currentPageParameter = parameter;
+            _isFrameContentSetDirectly = true;
 
             System.Diagnostics.Debug.WriteLine($"[NavigationService] 已设置缓存页面到 Frame.Content，BackStack 深度: {_frame.BackStackDepth}");
 
@@ -150,6 +152,11 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         {
             System.Diagnostics.Debug.WriteLine($"[NavigationService] 首次导航，使用 Frame.Navigate: {pageType.Name}");
 
+            bool wasFrameContentSetDirectly = _isFrameContentSetDirectly;
+            int previousBackStackDepth = _frame.BackStackDepth;
+            Type? previousPageType = _currentPageType;
+            object? previousPageParameter = _currentPageParameter;
+
             bool result;
             if (transitionInfo != null)
             {
@@ -164,10 +171,17 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
 
             if (result)
             {
+                RepairBackStackEntryAfterDirectContentNavigation(
+                    wasFrameContentSetDirectly,
+                    previousBackStackDepth,
+                    previousPageType,
+                    previousPageParameter);
+
                 System.Diagnostics.Debug.WriteLine($"[NavigationService] Frame.Navigate 成功");
                 _currentPageType = pageType;
                 _currentPageParameter = parameter;
                 _currentPage = _frame.Content as Page;
+                _isFrameContentSetDirectly = false;
             }
             else
             {
@@ -230,6 +244,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                 _currentPage = cachedPage;
                 _currentPageType = pageType;
                 _currentPageParameter = parameter;
+                _isFrameContentSetDirectly = true;
 
                 System.Diagnostics.Debug.WriteLine($"[NavigationService] 已设置缓存页面到 Frame.Content，BackStack 深度: {_frame.BackStackDepth}");
 
@@ -253,6 +268,26 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             }
         }
 
+        private void RepairBackStackEntryAfterDirectContentNavigation(
+            bool wasFrameContentSetDirectly,
+            int previousBackStackDepth,
+            Type? previousPageType,
+            object? previousPageParameter)
+        {
+            if (!wasFrameContentSetDirectly ||
+                previousPageType == null ||
+                _frame.BackStackDepth <= previousBackStackDepth ||
+                _frame.BackStack.Count == 0)
+            {
+                return;
+            }
+
+            int newEntryIndex = _frame.BackStack.Count - 1;
+            _frame.BackStack[newEntryIndex] = new PageStackEntry(previousPageType, previousPageParameter, null);
+            System.Diagnostics.Debug.WriteLine(
+                $"[NavigationService] 已修正直接设置缓存页后的 BackStack 条目: {previousPageType.Name}");
+        }
+
         /// <summary>
         /// Frame 导航完成事件处理
         /// </summary>
@@ -274,6 +309,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                 _currentPage = page;
                 _currentPageType = e.SourcePageType;
                 _currentPageParameter = e.Parameter;
+                _isFrameContentSetDirectly = false;
             }
 
             // 触发导航事件
