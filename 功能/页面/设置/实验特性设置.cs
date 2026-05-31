@@ -21,6 +21,7 @@ namespace Docked_AI.Features.Pages.Settings
         private const string PlaceNavigationBarOnLeftWhenDockedLeftKey = "WindowSettings_PlaceNavigationBarOnLeftWhenDockedLeft";
         private const string TrayCloseWindowBehaviorKey = "TraySettings_CloseWindowBehavior";
         private const string HideTrayRateButtonKey = "TraySettings_HideTrayRateButton";
+        private const string HideWebViewCloseButtonKey = "WebSettings_HideCloseButton";
         
         // WebView2 性能优化设置
         private const string WebViewMemoryModeKey = "WebSettings_MemoryMode";
@@ -281,6 +282,25 @@ namespace Docked_AI.Features.Pages.Settings
             set
             {
                 _localSettings.Values[HideTrayRateButtonKey] = value;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置是否隐藏网页浏览器的关闭按钮
+        /// </summary>
+        public static bool HideWebViewCloseButton
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(HideWebViewCloseButtonKey, out object? value))
+                {
+                    return value is bool boolValue && boolValue;
+                }
+                return false; // 默认显示关闭按钮
+            }
+            set
+            {
+                _localSettings.Values[HideWebViewCloseButtonKey] = value;
             }
         }
 

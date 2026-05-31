@@ -377,6 +377,10 @@ namespace Docked_AI.Features.Pages.Settings
             MaxWebViewCountBox.ValueChanged -= OnMaxWebViewCountChanged;
             MaxWebViewCountBox.Value = ExperimentalSettings.MaxWebViewCount;
             MaxWebViewCountBox.ValueChanged += OnMaxWebViewCountChanged;
+
+            HideWebViewCloseButtonToggle.Toggled -= OnHideWebViewCloseButtonToggled;
+            HideWebViewCloseButtonToggle.IsOn = ExperimentalSettings.HideWebViewCloseButton;
+            HideWebViewCloseButtonToggle.Toggled += OnHideWebViewCloseButtonToggled;
         }
 
         public static void RaiseWebViewPerformanceSettingsChanged()
@@ -402,6 +406,20 @@ namespace Docked_AI.Features.Pages.Settings
         {
             // 点击卡片时聚焦到 NumberBox
             MaxWebViewCountBox.Focus(FocusState.Programmatic);
+        }
+
+        private void OnHideWebViewCloseButtonToggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggleSwitch)
+            {
+                ExperimentalSettings.HideWebViewCloseButton = toggleSwitch.IsOn;
+            }
+        }
+
+        private void OnHideWebViewCloseButtonCardClick(object sender, RoutedEventArgs e)
+        {
+            // 点击卡片时切换开关状态
+            HideWebViewCloseButtonToggle.IsOn = !HideWebViewCloseButtonToggle.IsOn;
         }
 
         // Event to notify when max webview count settings change

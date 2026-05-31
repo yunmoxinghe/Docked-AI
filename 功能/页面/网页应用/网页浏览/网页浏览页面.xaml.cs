@@ -180,7 +180,13 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             
             // 在页面加载后设置顶部栏
             TopAppBarService.SetCenterContent(_topBarContent);
-            _unpinButton = TopAppBarService.SetRightIconButton("\uE733", CloseButton_Click, "关闭");
+            
+            // 根据设置决定是否显示关闭按钮
+            if (!ExperimentalSettings.HideWebViewCloseButton)
+            {
+                _unpinButton = TopAppBarService.SetRightIconButton("\uE733", CloseButton_Click, "关闭");
+            }
+            
             TopAppBarService.SetForeground(_topBarForegroundBrush);
             TopAppBarService.IsVisible = true;
             

@@ -283,6 +283,21 @@
                             ValueChanged="OnMaxWebViewCountChanged"/>
                     </controls:SettingsCard>
 
+                    <controls:SettingsCard 
+                        x:Uid="SettingsPage_HideWebViewCloseButtonHeader"
+                        Header="隐藏网页关闭按钮"
+                        Description="隐藏网页浏览器顶部的关闭按钮"
+                        IsClickEnabled="True"
+                        IsActionIconVisible="False"
+                        Click="OnHideWebViewCloseButtonCardClick">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE711;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <ToggleSwitch
+                            x:Name="HideWebViewCloseButtonToggle"
+                            Toggled="OnHideWebViewCloseButtonToggled"/>
+                    </controls:SettingsCard>
+
                     <!-- WebView2 性能优化 -->
                     <controls:SettingsCard
                         x:Uid="SettingsPage_WebViewPerformanceHeader"
