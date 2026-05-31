@@ -124,7 +124,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             Page cachedPage = _cacheManager.GetOrCreatePage(pageType, parameter, cacheKey);
 
             // 直接设置内容（跳过 Frame 导航）
-            _frame.Content = cachedPage;
+            SetFrameContentToCachedPage(cachedPage, suppressContentTransition: false);
             _currentPage = cachedPage;
             _currentPageType = pageType;
             _currentPageParameter = parameter;
@@ -239,8 +239,8 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                     return true;
                 }
 
-                // 直接设置内容
-                _frame.Content = cachedPage;
+                // 直接设置内容。返回到缓存页时不走 Frame.GoBack，需避免触发前进方向的内容动画。
+                SetFrameContentToCachedPage(cachedPage, suppressContentTransition: true);
                 _currentPage = cachedPage;
                 _currentPageType = pageType;
                 _currentPageParameter = parameter;
@@ -266,6 +266,24 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                 _frame.GoBack();
                 return true;
             }
+        }
+
+        private void SetFrameContentToCachedPage(Page cachedPage, bool suppressContentTransition)
+        {
+            if (!suppressContentTransition)
+            {
+                _frame.Content = cachedPage;
+                return;
+            }
+
+            TransitionCollection? originalTransitions = _frame.ContentTransitions;
+            _frame.ContentTransitions = null;
+            _frame.Content = cachedPage;
+
+            _frame.DispatcherQueue.TryEnqueue(() =>
+            {
+                _frame.ContentTransitions = originalTransitions;
+            });
         }
 
         private void RepairBackStackEntryAfterDirectContentNavigation(
