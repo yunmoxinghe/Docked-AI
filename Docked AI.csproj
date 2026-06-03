@@ -93,6 +93,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.0.1" />
+    <PackageReference Include="WinUIEx" Version="2.9.1" />
     <!-- 已移除 DevWinUI NuGet，改用本地源码 -->
     <!-- 移除 NHotkey.WinUI NuGet，改用本地源码 -->
   </ItemGroup>

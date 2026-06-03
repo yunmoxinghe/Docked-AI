@@ -793,7 +793,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
             // 2. 在屏幕外改样式、切换背景（用户看不到任何闪烁）
             _pinnedModeController.ApplyPinnedWindowStyle();
-            _backdropService.EnsureMicaBackdrop(_window);
+            _backdropService.EnsureTransparentBackdrop(_window);
 
             // 3. 查询 AppBar 位置，得到滑入终点坐标（不移动窗口，不触发系统推开）
             _layoutService.Refresh(_state, _hwnd);
@@ -824,21 +824,46 @@ namespace Docked_AI.Features.MainWindow.Visibility
             // 1. 滑出：从固定位置滑到屏幕右侧不可见区域
             await _pinnedModeController.SlideOutAsync();
 
-            // 2. 在屏幕外注销 AppBar、还原样式、切换背景（用户看不到任何闪烁）
+            // 2. 窗口已在屏幕外，现在安全地取消注册 AppBar（释放屏幕安全区）
             _pinnedModeController.RemoveAppBar();
+            
+            // 3. 在屏幕外切换样式（窗口仍可见但在屏幕外，用户看不到样式切换过程）
             _pinnedModeController.RestoreStandardWindowStyle();
             _titleBarService.ConfigureStandardWindow(_window);
             _backdropService.EnsureAcrylicBackdrop(_window);
-            SetTopMost(false);
+            
+            // 4. 刷新布局信息，准备滑入动画的起始位置
+            _layoutService.Refresh(_state, _hwnd);
+            
+            // 根据停靠位置设置动画起始位置（屏幕外）
+            var dockSide = ExperimentalSettings.DockSide;
+            if (dockSide == WindowDockSide.Left)
+            {
+                _state.CurrentX = -_state.WindowWidth; // 左侧屏幕外
+            }
+            else
+            {
+                _state.CurrentX = _state.ScreenWidth; // 右侧屏幕外
+            }
+            
+            // 5. 使用 Win32 SetWindowPos 确保窗口位置并取消置顶，不触发显示
+            if (_hwnd != IntPtr.Zero)
+            {
+                _ = VisibilityWin32Api.SetWindowPos(
+                    _hwnd,
+                    VisibilityWin32Api.HWND_NOTOPMOST, // 取消置顶
+                    (int)_state.CurrentX, 
+                    (int)_state.TargetY, 
+                    _state.WindowWidth, 
+                    _state.WindowHeight,
+                    VisibilityWin32Api.SWP_NOACTIVATE | VisibilityWin32Api.SWP_NOOWNERZORDER); // 不使用 SWP_SHOWWINDOW
+            }
 
-            // 3. 准备标准停靠位置，CurrentX 设为屏幕外，TargetX 为目标位置
-            MoveWindowToStandardDock(prepareForShow: true);
-
-            // 4. 滑入：从屏幕外滑入到标准停靠位置
+            // 6. 滑入：从屏幕外滑入到标准停靠位置
             _animationController.StartShow();
             await System.Threading.Tasks.Task.Delay(SlideAnimationDelay);
 
-            // 5. 激活并聚焦
+            // 7. 激活并聚焦
             ActivateAndFocusWindow();
         }
 

@@ -92,6 +92,33 @@ namespace Docked_AI.Features.MainWindow.Appearance
         private bool _isEnergySaverActive;
 
         /// <summary>
+        /// 确保透明背景效果（固定模式专用）
+        /// </summary>
+        public void EnsureTransparentBackdrop(Window window)
+        {
+            try
+            {
+                _currentWindow = window;
+                _isPinnedMode = true;
+                RegisterEnergySaverListener();
+
+                // 使用 WinUIEx 的 TransparentTintBackdrop 实现完全透明
+                var transparentBackdrop = new WinUIEx.TransparentTintBackdrop(
+                    Windows.UI.Color.FromArgb(0, 0, 0, 0));
+                window.SystemBackdrop = transparentBackdrop;
+
+                EnsureTransparentBackground(window);
+                
+                System.Diagnostics.Debug.WriteLine("[BackdropService] Transparent backdrop applied for pinned mode");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to set transparent backdrop: {ex.Message}");
+                SetFallbackBackground(window);
+            }
+        }
+
+        /// <summary>
         /// 确保 Mica 背景效果
         /// 
         /// 【调用时机】
