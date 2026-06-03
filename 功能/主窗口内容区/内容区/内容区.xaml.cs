@@ -23,6 +23,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         private float _currentCornerRadius = DefaultCornerRadius;
         private CompositionRoundedRectangleGeometry? _clipGeometry;
         private CompositionRoundedRectangleGeometry? _gridClipGeometry;
+        private CompositionRoundedRectangleGeometry? _backdropClipGeometry;
         private readonly PageCacheManager _pageCacheManager;
         private readonly NavigationService _navigationService;
 
@@ -361,6 +362,9 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         {
             // 为 ContentGrid 应用圆角裁切
             ApplyGridClip();
+            
+            // 为 BackdropContainer 应用圆角裁切
+            ApplyBackdropClip();
         }
 
         private void ApplyGridClip()
@@ -373,9 +377,32 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             _gridClipGeometry.Offset = Vector2.Zero;
             _gridClipGeometry.Size = new Vector2((float)ContentGrid.ActualWidth, (float)ContentGrid.ActualHeight);
             
-            visual.Clip = compositor.CreateGeometricClip(_gridClipGeometry);
+            var clip = compositor.CreateGeometricClip(_gridClipGeometry);
+            visual.Clip = clip;
             
-            System.Diagnostics.Debug.WriteLine($"[ContentArea] Applied grid clip: Size={_gridClipGeometry.Size}, CornerRadius={_gridClipGeometry.CornerRadius}");
+            // 启用抗锯齿（通过设置 visual 的合成模式）
+            visual.IsPixelSnappingEnabled = false; // 禁用像素对齐以获得更平滑的边缘
+            
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] Applied grid clip with anti-aliasing: Size={_gridClipGeometry.Size}, CornerRadius={_gridClipGeometry.CornerRadius}");
+        }
+
+        private void ApplyBackdropClip()
+        {
+            var visual = ElementCompositionPreview.GetElementVisual(BackdropContainer);
+            var compositor = visual.Compositor;
+            
+            _backdropClipGeometry = compositor.CreateRoundedRectangleGeometry();
+            _backdropClipGeometry.CornerRadius = new Vector2(_currentCornerRadius, _currentCornerRadius);
+            _backdropClipGeometry.Offset = Vector2.Zero;
+            _backdropClipGeometry.Size = new Vector2((float)BackdropContainer.ActualWidth, (float)BackdropContainer.ActualHeight);
+            
+            var clip = compositor.CreateGeometricClip(_backdropClipGeometry);
+            visual.Clip = clip;
+            
+            // 启用抗锯齿
+            visual.IsPixelSnappingEnabled = false;
+            
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] Applied backdrop clip with anti-aliasing: Size={_backdropClipGeometry.Size}, CornerRadius={_backdropClipGeometry.CornerRadius}");
         }
 
         public void SetCornerRadius(bool isPinned)
@@ -383,17 +410,47 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             _currentCornerRadius = isPinned ? PinnedCornerRadius : DefaultCornerRadius;
             ContentBorder.CornerRadius = new CornerRadius(_currentCornerRadius);
             
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] SetCornerRadius: isPinned={isPinned}, radius={_currentCornerRadius}");
+            
+            // 确保 Grid 的裁切几何体已创建
+            if (_gridClipGeometry == null && ContentGrid.ActualWidth > 0 && ContentGrid.ActualHeight > 0)
+            {
+                System.Diagnostics.Debug.WriteLine("[ContentArea] Grid clip geometry not created yet, creating now");
+                ApplyGridClip();
+            }
+            
+            // 确保 Backdrop 的裁切几何体已创建
+            if (_backdropClipGeometry == null && BackdropContainer.ActualWidth > 0 && BackdropContainer.ActualHeight > 0)
+            {
+                System.Diagnostics.Debug.WriteLine("[ContentArea] Backdrop clip geometry not created yet, creating now");
+                ApplyBackdropClip();
+            }
+            
             // 更新 Frame 的裁切
             if (_clipGeometry != null)
             {
                 _clipGeometry.CornerRadius = new Vector2(_currentCornerRadius, _currentCornerRadius);
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] Updated Frame clip corner radius: {_clipGeometry.CornerRadius}");
             }
             
             // 更新 Grid 的裁切
             if (_gridClipGeometry != null)
             {
                 _gridClipGeometry.CornerRadius = new Vector2(_currentCornerRadius, _currentCornerRadius);
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] Updated Grid clip corner radius: {_gridClipGeometry.CornerRadius}");
             }
+            
+            // 更新 Backdrop 的裁切
+            if (_backdropClipGeometry != null)
+            {
+                _backdropClipGeometry.CornerRadius = new Vector2(_currentCornerRadius, _currentCornerRadius);
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] Updated Backdrop clip corner radius: {_backdropClipGeometry.CornerRadius}");
+            }
+            
+            // 同时更新 SystemBackdropElement 的 XAML CornerRadius 属性
+            MicaBaseBackdropLayer.CornerRadius = new CornerRadius(_currentCornerRadius);
+            MicaAltBackdropLayer.CornerRadius = new CornerRadius(_currentCornerRadius);
+            AcrylicBackdropLayer.CornerRadius = new CornerRadius(_currentCornerRadius);
         }
 
         public void Navigate(
@@ -544,6 +601,12 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             {
                 _gridClipGeometry.Size = new Vector2((float)e.NewSize.Width, (float)e.NewSize.Height);
             }
+            
+            // 更新 Backdrop 的裁切大小（假设与 ContentGrid 同尺寸）
+            if (_backdropClipGeometry != null)
+            {
+                _backdropClipGeometry.Size = new Vector2((float)e.NewSize.Width, (float)e.NewSize.Height);
+            }
 
             // 更新 Frame 的裁切
             var visual = ElementCompositionPreview.GetElementVisual(ContentFrame);
@@ -554,6 +617,9 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                 _clipGeometry.CornerRadius = new Vector2(_currentCornerRadius, _currentCornerRadius);
                 _clipGeometry.Offset = Vector2.Zero;
                 visual.Clip = compositor.CreateGeometricClip(_clipGeometry);
+                
+                // 启用抗锯齿
+                visual.IsPixelSnappingEnabled = false;
             }
 
             _clipGeometry.Size = new Vector2((float)e.NewSize.Width, (float)e.NewSize.Height);
