@@ -16,7 +16,7 @@
         Padding="0"
         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
         BorderThickness="1">
-        <Grid>
+        <Grid CornerRadius="4">
             <!-- 第零层：背景（根据设置动态切换） -->
             <Grid x:Name="BackdropContainer">
                 <!-- 默认纯色背景 -->
