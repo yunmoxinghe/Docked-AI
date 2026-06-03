@@ -53,6 +53,7 @@ namespace Docked_AI.Features.Pages.Settings
             LoadExperimentalSettings();
             LoadWebSettings();
             LoadTrayCloseWindowBehaviorSettings();
+            LoadContentAreaBackdropSettings();
             
             // Initialize startup settings asynchronously
             _ = InitializeStartupSettingsAsync();
@@ -524,6 +525,44 @@ namespace Docked_AI.Features.Pages.Settings
                 }
             }
         }
+
+        private void LoadContentAreaBackdropSettings()
+        {
+            // 暂时取消事件订阅，避免在初始化时触发
+            ContentAreaBackdropComboBox.SelectionChanged -= OnContentAreaBackdropChanged;
+            
+            var currentBackdrop = ExperimentalSettings.ContentAreaBackdrop;
+            ContentAreaBackdropComboBox.SelectedIndex = (int)currentBackdrop;
+            
+            // 重新订阅事件
+            ContentAreaBackdropComboBox.SelectionChanged += OnContentAreaBackdropChanged;
+        }
+
+        private void OnContentAreaBackdropCardClick(object sender, RoutedEventArgs e)
+        {
+            // 点击卡片时打开 ComboBox 的下拉菜单
+            ContentAreaBackdropComboBox.IsDropDownOpen = true;
+        }
+
+        private void OnContentAreaBackdropChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem item)
+            {
+                if (int.TryParse(item.Tag?.ToString(), out int backdropValue))
+                {
+                    var newBackdrop = (ContentAreaBackdropType)backdropValue;
+                    ExperimentalSettings.ContentAreaBackdrop = newBackdrop;
+                    
+                    System.Diagnostics.Debug.WriteLine($"[SettingsPage] Content area backdrop changed to: {newBackdrop}");
+                    
+                    // 通知应用更新背景材质
+                    ContentAreaBackdropSettingsChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
+        }
+
+        // Event to notify when content area backdrop settings change
+        public static event EventHandler? ContentAreaBackdropSettingsChanged;
 
         private void OnLanguageCardClick(object sender, RoutedEventArgs e)
         {

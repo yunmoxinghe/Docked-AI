@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
     xmlns:animations="using:Microsoft.UI.Xaml.Media.Animation"
+    xmlns:media="using:Microsoft.UI.Xaml.Media"
     xmlns:topAppBar="using:Docked_AI.Features.UnifiedCalls.TopAppBar"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -13,11 +14,47 @@
         x:Name="ContentBorder"
         CornerRadius="4"
         Padding="0"
-        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
         BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
         BorderThickness="1">
-        <Grid x:Name="ContentGrid"
-              PointerPressed="ContentGrid_PointerPressed">
+        <Grid>
+            <!-- 第零层：背景（根据设置动态切换） -->
+            <Grid x:Name="BackdropContainer">
+                <!-- 默认纯色背景 -->
+                <Border x:Name="SolidColorBackdrop" 
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        Visibility="Visible"/>
+                
+                <!-- 云母 Base 背景 -->
+                <controls:SystemBackdropElement x:Name="MicaBaseBackdropLayer" 
+                                                 CornerRadius="4"
+                                                 Visibility="Collapsed">
+                    <controls:SystemBackdropElement.SystemBackdrop>
+                        <media:MicaBackdrop Kind="Base"/>
+                    </controls:SystemBackdropElement.SystemBackdrop>
+                </controls:SystemBackdropElement>
+                
+                <!-- 云母 Alt 背景 -->
+                <controls:SystemBackdropElement x:Name="MicaAltBackdropLayer" 
+                                                 CornerRadius="4"
+                                                 Visibility="Collapsed">
+                    <controls:SystemBackdropElement.SystemBackdrop>
+                        <media:MicaBackdrop Kind="BaseAlt"/>
+                    </controls:SystemBackdropElement.SystemBackdrop>
+                </controls:SystemBackdropElement>
+                
+                <!-- 亚克力背景 -->
+                <controls:SystemBackdropElement x:Name="AcrylicBackdropLayer" 
+                                                 CornerRadius="4"
+                                                 Visibility="Collapsed">
+                    <controls:SystemBackdropElement.SystemBackdrop>
+                        <media:DesktopAcrylicBackdrop/>
+                    </controls:SystemBackdropElement.SystemBackdrop>
+                </controls:SystemBackdropElement>
+            </Grid>
+            
+            <!-- 内容层 -->
+            <Grid x:Name="ContentGrid"
+                  PointerPressed="ContentGrid_PointerPressed">
             <!-- 第一层：页面内容 Frame -->
             <controls:Frame
                 x:Name="ContentFrame"
@@ -47,6 +84,7 @@
                 x:Name="TopAppBarHost"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Top" />
+            </Grid>
         </Grid>
     </Border>
 </UserControl>

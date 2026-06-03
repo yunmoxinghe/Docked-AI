@@ -158,6 +158,10 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             
             // 订阅设置变化事件
             Pages.Settings.SettingsPage.FrameAnimationSettingsChanged += OnFrameAnimationSettingsChanged;
+            Pages.Settings.SettingsPage.ContentAreaBackdropSettingsChanged += OnContentAreaBackdropSettingsChanged;
+            
+            // 初始化背景材质
+            Loaded += (s, e) => ApplyBackdropSettings();
         }
 
         #region 顶栏按钮控制
@@ -553,6 +557,44 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             }
 
             _clipGeometry.Size = new Vector2((float)e.NewSize.Width, (float)e.NewSize.Height);
+        }
+
+        private void OnContentAreaBackdropSettingsChanged(object? sender, EventArgs e)
+        {
+            ApplyBackdropSettings();
+        }
+
+        private void ApplyBackdropSettings()
+        {
+            var backdropType = ExperimentalSettings.ContentAreaBackdrop;
+            
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] Applying backdrop: {backdropType}");
+            
+            // 隐藏所有背景层
+            SolidColorBackdrop.Visibility = Visibility.Collapsed;
+            MicaBaseBackdropLayer.Visibility = Visibility.Collapsed;
+            MicaAltBackdropLayer.Visibility = Visibility.Collapsed;
+            AcrylicBackdropLayer.Visibility = Visibility.Collapsed;
+            
+            // 根据设置显示对应的背景层
+            switch (backdropType)
+            {
+                case ContentAreaBackdropType.SolidColor:
+                    SolidColorBackdrop.Visibility = Visibility.Visible;
+                    break;
+                    
+                case ContentAreaBackdropType.MicaBase:
+                    MicaBaseBackdropLayer.Visibility = Visibility.Visible;
+                    break;
+                    
+                case ContentAreaBackdropType.MicaAlt:
+                    MicaAltBackdropLayer.Visibility = Visibility.Visible;
+                    break;
+                    
+                case ContentAreaBackdropType.DesktopAcrylic:
+                    AcrylicBackdropLayer.Visibility = Visibility.Visible;
+                    break;
+            }
         }
     }
 }

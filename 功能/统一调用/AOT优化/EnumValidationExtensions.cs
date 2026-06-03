@@ -44,6 +44,15 @@ namespace Docked_AI.Features.Shared.AotOptimization
         {
             return value >= 0 && value <= 1; // Normal=0, Low=1
         }
+
+        /// <summary>
+        /// 验证 ContentAreaBackdropType 枚举值是否有效
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsValidContentAreaBackdropType(int value)
+        {
+            return value >= 0 && value <= 3; // SolidColor=0 到 DesktopAcrylic=3
+        }
     }
 
     /// <summary>

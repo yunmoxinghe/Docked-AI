@@ -23,6 +23,9 @@ namespace Docked_AI.Features.Pages.Settings
         private const string HideTrayRateButtonKey = "TraySettings_HideTrayRateButton";
         private const string HideWebViewCloseButtonKey = "WebSettings_HideCloseButton";
         
+        // 外观设置
+        private const string ContentAreaBackdropTypeKey = "AppearanceSettings_ContentAreaBackdropType";
+        
         // WebView2 性能优化设置
         private const string WebViewMemoryModeKey = "WebSettings_MemoryMode";
         private const string WebViewAutoClearCacheKey = "WebSettings_AutoClearCache";
@@ -305,6 +308,28 @@ namespace Docked_AI.Features.Pages.Settings
         }
 
         /// <summary>
+        /// 获取或设置内容区背景材质类型
+        /// </summary>
+        public static ContentAreaBackdropType ContentAreaBackdrop
+        {
+            get
+            {
+                if (_localSettings.Values.TryGetValue(ContentAreaBackdropTypeKey, out object? value))
+                {
+                    if (value is int intValue && EnumValidationExtensions.IsValidContentAreaBackdropType(intValue))
+                    {
+                        return (ContentAreaBackdropType)intValue;
+                    }
+                }
+                return ContentAreaBackdropType.SolidColor; // 默认纯色背景
+            }
+            set
+            {
+                _localSettings.Values[ContentAreaBackdropTypeKey] = (int)value;
+            }
+        }
+
+        /// <summary>
         /// 获取或设置 WebView2 内存模式
         /// </summary>
         public static WebViewMemoryMode MemoryMode
@@ -555,6 +580,32 @@ namespace Docked_AI.Features.Pages.Settings
                 _localSettings.Values[WebViewDisableSoftwareRasterizerKey] = value;
             }
         }
+    }
+
+    /// <summary>
+    /// 内容区背景材质类型
+    /// </summary>
+    public enum ContentAreaBackdropType
+    {
+        /// <summary>
+        /// 纯色背景（默认）
+        /// </summary>
+        SolidColor = 0,
+
+        /// <summary>
+        /// 云母材质（Mica Base）- 融合桌面壁纸
+        /// </summary>
+        MicaBase = 1,
+
+        /// <summary>
+        /// 云母替代材质（Mica Alt）- 更深的层次感
+        /// </summary>
+        MicaAlt = 2,
+
+        /// <summary>
+        /// 桌面亚克力（Desktop Acrylic）- 半透明磨砂玻璃
+        /// </summary>
+        DesktopAcrylic = 3
     }
 
     /// <summary>
