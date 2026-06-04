@@ -377,7 +377,7 @@ namespace Docked_AI.Features.MainWindow.Status
                 string[] systemUIClasses = new[]
                 {
                     "Windows.UI.Core.CoreWindow",     // Windows 10/11 开始菜单、通知中心
-                    "ApplicationFrameWindow",         // UWP 应用容器（可能是系统应用）
+                    // "ApplicationFrameWindow",      // ⭐ 不能过滤！所有 UWP 应用都用这个类名，包括第三方应用
                     "Shell_TrayWnd",                  // 任务栏
                     "Shell_SecondaryTrayWnd",         // 多显示器任务栏
                     "NotifyIconOverflowWindow",       // 托盘溢出窗口
