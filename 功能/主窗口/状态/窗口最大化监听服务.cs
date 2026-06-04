@@ -176,9 +176,13 @@ namespace Docked_AI.Features.MainWindow.Status
         // 常量定义
         private const uint EVENT_SYSTEM_FOREGROUND = 0x0003;
         private const uint EVENT_OBJECT_LOCATIONCHANGE = 0x800B; // 窗口位置/大小/状态变化事件
+        private const uint EVENT_OBJECT_DESTROY = 0x8001; // 窗口销毁事件
+        private const uint EVENT_OBJECT_SHOW = 0x8002; // 窗口显示事件
+        private const uint EVENT_OBJECT_HIDE = 0x8003; // 窗口隐藏事件
         private const uint WINEVENT_OUTOFCONTEXT = 0x0000;
         private const uint WINEVENT_SKIPOWNPROCESS = 0x0002;
         private const uint SW_SHOWMAXIMIZED = 3;
+        private const int OBJID_WINDOW = 0; // 顶级窗口对象
 
         // 事件：其他应用最大化状态变化
         public event EventHandler<bool>? OtherAppMaximizedChanged;
@@ -186,10 +190,11 @@ namespace Docked_AI.Features.MainWindow.Status
         private IntPtr _hookHandle;
         private WinEventDelegate? _hookDelegate; // 必须持有强引用，否则会被 GC 回收
         private bool _isRunning;
-        private bool _isMaximized; // 当前是否有最大化窗口（累积状态）
-        private readonly System.Collections.Generic.HashSet<IntPtr> _maximizedWindows = new(); // ⭐ 记录所有最大化的窗口
+        private bool _isMaximized; // 当前是否有最大化窗口
         private readonly DispatcherQueue _dispatcherQueue;
         private readonly int _currentProcessId;
+        private System.Threading.Timer? _debounceTimer; // 防抖定时器
+        private readonly object _debounceLock = new object();
 
         /// <summary>
         /// 获取当前是否有任何应用处于最大化状态
@@ -218,17 +223,15 @@ namespace Docked_AI.Features.MainWindow.Status
                 // 创建委托并持有强引用（防止 GC 回收）
                 _hookDelegate = new WinEventDelegate(WinEventCallback);
 
-                // 注册 WinEvent Hook：监听窗口位置/大小/状态变化
-                // 使用 EVENT_OBJECT_LOCATIONCHANGE 可以持续监听所有窗口的状态变化
-                // 不依赖焦点切换，后台也能监听
+                // 注册 WinEvent Hook：监听多个事件
                 _hookHandle = SetWinEventHook(
-                    EVENT_OBJECT_LOCATIONCHANGE,  // 事件类型：窗口位置/大小/状态变化
-                    EVENT_OBJECT_LOCATIONCHANGE,
-                    IntPtr.Zero,                  // 不需要 DLL 模块
+                    EVENT_OBJECT_SHOW,          // 最小事件
+                    EVENT_OBJECT_LOCATIONCHANGE, // 最大事件（包含 SHOW, HIDE, DESTROY, LOCATIONCHANGE）
+                    IntPtr.Zero,
                     _hookDelegate,
-                    0,                            // 监听所有进程
-                    0,                            // 监听所有线程
-                    WINEVENT_OUTOFCONTEXT         // 不跳过自己的进程（需要排除自己的窗口）
+                    0,
+                    0,
+                    WINEVENT_OUTOFCONTEXT
                 );
 
                 if (_hookHandle == IntPtr.Zero)
@@ -238,10 +241,10 @@ namespace Docked_AI.Features.MainWindow.Status
                 }
 
                 _isRunning = true;
-                System.Diagnostics.Debug.WriteLine("[WindowMaximizedMonitor] Started successfully with EVENT_OBJECT_LOCATIONCHANGE");
+                System.Diagnostics.Debug.WriteLine("[WindowMaximizedMonitor] Started successfully");
 
-                // ⭐ 启动后立即同步扫描所有窗口（不使用延迟）
-                CheckCurrentForegroundWindow();
+                // 启动后立即扫描一次
+                RecalculateMaximizedState();
             }
             catch (Exception ex)
             {
@@ -261,6 +264,10 @@ namespace Docked_AI.Features.MainWindow.Status
 
             try
             {
+                // 停止防抖定时器
+                _debounceTimer?.Dispose();
+                _debounceTimer = null;
+                
                 if (_hookHandle != IntPtr.Zero)
                 {
                     UnhookWinEvent(_hookHandle);
@@ -269,12 +276,6 @@ namespace Docked_AI.Features.MainWindow.Status
 
                 _isRunning = false;
                 _hookDelegate = null;
-                
-                // 清理最大化窗口集合
-                lock (_maximizedWindows)
-                {
-                    _maximizedWindows.Clear();
-                }
                 
                 System.Diagnostics.Debug.WriteLine("[WindowMaximizedMonitor] Stopped");
             }
@@ -285,7 +286,7 @@ namespace Docked_AI.Features.MainWindow.Status
         }
 
         /// <summary>
-        /// WinEvent 回调函数
+        /// WinEvent 回调函数 - 触发防抖重新扫描
         /// 注意：此函数在非 UI 线程执行
         /// </summary>
         private void WinEventCallback(
@@ -299,106 +300,55 @@ namespace Docked_AI.Features.MainWindow.Status
         {
             try
             {
-                // 只处理窗口对象（排除子控件、光标等）
-                // idObject == 0 表示窗口对象本身
-                if (idObject != 0 || idChild != 0)
+                // ⭐ 只处理顶级窗口对象
+                if (idObject != OBJID_WINDOW)
                 {
                     return;
                 }
 
                 // 检查窗口是否有效
-                if (hwnd == IntPtr.Zero || !IsWindow(hwnd))
+                if (hwnd == IntPtr.Zero)
                 {
                     return;
                 }
 
                 // 排除当前应用的窗口
                 GetWindowThreadProcessId(hwnd, out uint processId);
-                
                 if (processId == _currentProcessId)
                 {
                     return;
                 }
 
-                // ⭐ 过滤系统 UI 窗口（开始菜单、通知中心、输入法等）
+                // 过滤系统 UI 窗口
                 if (IsSystemUIWindow(hwnd))
                 {
                     return;
                 }
 
-                // 获取窗口状态
-                WINDOWPLACEMENT placement = new()
-                {
-                    length = (uint)Marshal.SizeOf<WINDOWPLACEMENT>()
-                };
-
-                if (!GetWindowPlacement(hwnd, ref placement))
-                {
-                    return;
-                }
-
-                // 判断是否最大化
-                bool isMaximized = placement.showCmd == SW_SHOWMAXIMIZED;
-
-                // ⭐ 新逻辑：累积所有最大化窗口
-                bool stateChanged = false;
-                
-                lock (_maximizedWindows)
-                {
-                    if (isMaximized)
-                    {
-                        // 窗口最大化：添加到集合
-                        if (_maximizedWindows.Add(hwnd))
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] Window maximized: 0x{hwnd:X}, total: {_maximizedWindows.Count}");
-                        }
-                        
-                        // 只要有一个窗口最大化，状态就是最大化
-                        if (!_isMaximized)
-                        {
-                            _isMaximized = true;
-                            stateChanged = true;
-                            System.Diagnostics.Debug.WriteLine("[WindowMaximizedMonitor] State changed: now MAXIMIZED");
-                        }
-                    }
-                    else
-                    {
-                        // 窗口还原：从集合中移除
-                        if (_maximizedWindows.Remove(hwnd))
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] Window restored: 0x{hwnd:X}, remaining: {_maximizedWindows.Count}");
-                        }
-                        
-                        // 只有当没有任何最大化窗口时，状态才变为未最大化
-                        if (_isMaximized && _maximizedWindows.Count == 0)
-                        {
-                            _isMaximized = false;
-                            stateChanged = true;
-                            System.Diagnostics.Debug.WriteLine("[WindowMaximizedMonitor] State changed: now NOT MAXIMIZED");
-                        }
-                    }
-                }
-
-                // 状态发生变化时触发事件
-                if (stateChanged)
-                {
-                    // 在 UI 线程上触发事件
-                    _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
-                    {
-                        try
-                        {
-                            OtherAppMaximizedChanged?.Invoke(this, isMaximized);
-                        }
-                        catch (Exception ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] Event handler exception: {ex.Message}");
-                        }
-                    });
-                }
+                // ⭐ 触发防抖：100ms 后重新扫描
+                TriggerDebounceRecalculate();
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] Callback exception: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 触发防抖重新计算（100ms 防抖）
+        /// </summary>
+        private void TriggerDebounceRecalculate()
+        {
+            lock (_debounceLock)
+            {
+                // 重置定时器：如果100ms内又有新事件，重新计时
+                _debounceTimer?.Dispose();
+                _debounceTimer = new System.Threading.Timer(
+                    _ => RecalculateMaximizedState(),
+                    null,
+                    100, // 100ms 后执行
+                    System.Threading.Timeout.Infinite // 只执行一次
+                );
             }
         }
 
@@ -467,10 +417,14 @@ namespace Docked_AI.Features.MainWindow.Status
                 }
 
                 // 3. 检查窗口扩展样式，过滤工具窗口和无激活窗口
+                // ⭐ 但不过滤可见的顶级窗口（即使有 TOOLWINDOW 样式）
                 long exStyle = GetWindowLongPtr(hwnd, GWL_EXSTYLE);
-                if ((exStyle & WS_EX_TOOLWINDOW) != 0 || (exStyle & WS_EX_NOACTIVATE) != 0)
+                
+                // ⭐ 只过滤 NOACTIVATE 窗口，不过滤 TOOLWINDOW
+                // 因为某些应用（如 Chrome）的主窗口也可能有 TOOLWINDOW 样式
+                if ((exStyle & WS_EX_NOACTIVATE) != 0)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] Filtered tool/no-activate window: {classNameStr}");
+                    System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] Filtered no-activate window: {classNameStr}");
                     return true;
                 }
 
@@ -488,21 +442,16 @@ namespace Docked_AI.Features.MainWindow.Status
         }
 
         /// <summary>
-        /// 检测当前所有窗口的最大化状态（启动时初始化）
-        /// 扫描所有可见窗口，找出所有最大化的窗口
+        /// 重新计算最大化状态（通过枚举所有窗口）
+        /// ⭐ 不维护 HashSet，每次重新扫描 - 避免脏数据
         /// </summary>
-        private void CheckCurrentForegroundWindow()
+        private void RecalculateMaximizedState()
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("[WindowMaximizedMonitor] Scanning all windows for maximized state...");
-                
-                lock (_maximizedWindows)
-                {
-                    _maximizedWindows.Clear();
-                }
+                bool hasMaximized = false;
 
-                // ⭐ 枚举所有窗口，找出最大化的窗口
+                // 枚举所有窗口
                 EnumWindows((hwnd, lParam) =>
                 {
                     try
@@ -510,20 +459,20 @@ namespace Docked_AI.Features.MainWindow.Status
                         // 检查窗口是否有效且可见
                         if (hwnd == IntPtr.Zero || !IsWindow(hwnd) || !IsWindowVisible(hwnd))
                         {
-                            return true; // 继续枚举
+                            return true;
                         }
 
                         // 排除当前应用的窗口
                         GetWindowThreadProcessId(hwnd, out uint processId);
                         if (processId == _currentProcessId)
                         {
-                            return true; // 继续枚举
+                            return true;
                         }
 
                         // 过滤系统 UI 窗口
                         if (IsSystemUIWindow(hwnd))
                         {
-                            return true; // 继续枚举
+                            return true;
                         }
 
                         // 获取窗口状态
@@ -534,48 +483,36 @@ namespace Docked_AI.Features.MainWindow.Status
 
                         if (!GetWindowPlacement(hwnd, ref placement))
                         {
-                            return true; // 继续枚举
+                            return true;
                         }
 
                         // 判断是否最大化
                         if (placement.showCmd == SW_SHOWMAXIMIZED)
                         {
-                            lock (_maximizedWindows)
-                            {
-                                _maximizedWindows.Add(hwnd);
-                                System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] Found maximized window: 0x{hwnd:X}");
-                            }
+                            hasMaximized = true;
+                            return false; // 找到一个就够了，停止枚举
                         }
                     }
-                    catch (Exception ex)
+                    catch
                     {
-                        System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] Error checking window: {ex.Message}");
+                        // 忽略单个窗口的错误
                     }
 
                     return true; // 继续枚举
                 }, IntPtr.Zero);
 
-                // 根据扫描结果设置状态
-                bool hasMaximized = false;
-                lock (_maximizedWindows)
+                // 检查状态是否变化
+                if (_isMaximized != hasMaximized)
                 {
-                    hasMaximized = _maximizedWindows.Count > 0;
                     _isMaximized = hasMaximized;
-                }
+                    System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] State changed: {(hasMaximized ? "MAXIMIZED" : "NOT MAXIMIZED")}");
 
-                System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] Initial scan complete: found {_maximizedWindows.Count} maximized windows, state: {_isMaximized}");
-
-                // 如果发现有最大化窗口，触发事件
-                if (hasMaximized)
-                {
-                    System.Diagnostics.Debug.WriteLine("[WindowMaximizedMonitor] Triggering initial maximized event");
-                    
+                    // 在 UI 线程触发事件
                     _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
                     {
                         try
                         {
-                            System.Diagnostics.Debug.WriteLine("[WindowMaximizedMonitor] Invoking initial event handler");
-                            OtherAppMaximizedChanged?.Invoke(this, true);
+                            OtherAppMaximizedChanged?.Invoke(this, hasMaximized);
                         }
                         catch (Exception ex)
                         {
@@ -586,7 +523,7 @@ namespace Docked_AI.Features.MainWindow.Status
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] CheckCurrentForegroundWindow failed: {ex.Message}\n{ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] RecalculateMaximizedState failed: {ex.Message}");
             }
         }
 
@@ -600,7 +537,7 @@ namespace Docked_AI.Features.MainWindow.Status
                 return;
             }
 
-            CheckCurrentForegroundWindow();
+            RecalculateMaximizedState();
         }
     }
 }
