@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.System.Power;
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
 using Windows.UI;
@@ -98,6 +99,9 @@ namespace Docked_AI.Features.MainWindow.Appearance
         
         // 渐变亚克力层（固定模式专用）
         private Grid? _gradientAcrylicLayer;
+        
+        // 存储所有亚克力条带，用于动态调整透明度
+        private List<SystemBackdropElement>? _acrylicSegments;
 
         /// <summary>
         /// 确保透明背景效果（固定模式专用）
@@ -514,6 +518,9 @@ namespace Docked_AI.Features.MainWindow.Appearance
                     IsHitTestVisible = false // 不阻挡鼠标事件
                 };
 
+                // 初始化亚克力条带列表
+                _acrylicSegments = new List<SystemBackdropElement>();
+
                 // 使用大量分段（100个）实现平滑横向渐变
                 int segmentCount = 100;
                 
@@ -552,6 +559,9 @@ namespace Docked_AI.Features.MainWindow.Appearance
                     // 放在对应的列
                     Grid.SetColumn(acrylicSegment, i);
                     _gradientAcrylicLayer.Children.Add(acrylicSegment);
+                    
+                    // ⭐ 保存到列表中，用于后续调整透明度
+                    _acrylicSegments.Add(acrylicSegment);
                 }
 
                 // 添加到根元素
@@ -563,6 +573,64 @@ namespace Docked_AI.Features.MainWindow.Appearance
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[BackdropService] Failed to show gradient acrylic layer: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 当其他应用最大化时，将所有亚克力条带设置为完全不透明
+        /// </summary>
+        public void SetGradientFullyOpaque()
+        {
+            try
+            {
+                if (_acrylicSegments == null) return;
+
+                foreach (var segment in _acrylicSegments)
+                {
+                    segment.Opacity = 1.0; // 全部设为不透明
+                }
+
+                System.Diagnostics.Debug.WriteLine("[BackdropService] Gradient set to fully opaque (other app maximized)");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BackdropService] Failed to set gradient fully opaque: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 当其他应用取消最大化时，恢复渐变效果
+        /// </summary>
+        public void RestoreGradientOpacity(bool isNavigationBarOnLeft)
+        {
+            try
+            {
+                if (_acrylicSegments == null) return;
+
+                int segmentCount = _acrylicSegments.Count;
+                
+                for (int i = 0; i < segmentCount; i++)
+                {
+                    double t = (double)i / (segmentCount - 1);
+                    double opacity;
+                    
+                    if (isNavigationBarOnLeft)
+                    {
+                        opacity = 1.0 - EaseInOutQuad(t);
+                    }
+                    else
+                    {
+                        opacity = EaseInOutQuad(t);
+                    }
+
+                    _acrylicSegments[i].Opacity = opacity;
+                }
+
+                System.Diagnostics.Debug.WriteLine("[BackdropService] Gradient opacity restored");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BackdropService] Failed to restore gradient opacity: {ex.Message}");
             }
         }
 

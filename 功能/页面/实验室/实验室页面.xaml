@@ -67,6 +67,28 @@
                             Toggled="OnAILabToggled"/>
                     </controls:SettingsCard>
 
+                    <!-- 窗口最大化监听器状态 -->
+                    <controls:SettingsCard 
+                        Header="窗口最大化监听器"
+                        Description="实时显示其他应用的最大化状态"
+                        IsClickEnabled="False"
+                        IsActionIconVisible="False">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE7C4;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon 
+                                x:Name="MaximizedStateIcon"
+                                Glyph="&#xE73F;"
+                                FontSize="16"/>
+                            <TextBlock 
+                                x:Name="MaximizedStateText"
+                                Text="检测中..."
+                                VerticalAlignment="Center"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                        </StackPanel>
+                    </controls:SettingsCard>
+
                     <!-- WinUI 右键菜单 -->
                     <controls:SettingsCard 
                         x:Uid="SettingsPage_WinUIContextMenuHeader"

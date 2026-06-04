@@ -151,6 +151,12 @@ namespace Docked_AI
             AppWindow.Changed += OnAppWindowChanged;
             Closed += OnWindowClosed;
             Activated += OnWindowActivated;
+            
+            // 订阅实验室页面的刷新请求事件
+            Docked_AI.Features.Pages.Lab.LabPage.RefreshMonitorStateRequested += OnRefreshMonitorStateRequested;
+            
+            // ⭐ 订阅窗口最大化状态变化事件，转发到实验室页面
+            Docked_AI.Features.Pages.Lab.LabPage.WindowMaximizedStateChanged += OnLabPageWindowMaximizedStateChanged;
 
             // 初始化 UI 状态（图标、圆角、边距）
             RefreshViewModelDrivenState();
@@ -548,6 +554,27 @@ namespace Docked_AI
         private static extern IntPtr GetForegroundWindow();
 
         /// <summary>
+        /// 处理实验室页面的刷新监听器状态请求
+        /// 调用 WindowController 手动触发监听器状态刷新
+        /// </summary>
+        private void OnRefreshMonitorStateRequested(object? sender, EventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("[MainWindow] OnRefreshMonitorStateRequested triggered");
+            _windowController.RequestRefreshMonitorState();
+        }
+
+        /// <summary>
+        /// 处理实验室页面的窗口最大化状态变化通知
+        /// 当其他应用窗口的最大化状态改变时触发
+        /// </summary>
+        private void OnLabPageWindowMaximizedStateChanged(object? sender, bool isMaximized)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] OnLabPageWindowMaximizedStateChanged: isMaximized={isMaximized}");
+            // 这里可以根据需要添加额外的处理逻辑
+            // 目前事件主要用于实验室页面自身的 UI 更新
+        }
+
+        /// <summary>
         /// 窗口关闭事件处理器 - 清理资源和取消事件订阅
         /// 
         /// 【重要性】
@@ -557,6 +584,8 @@ namespace Docked_AI
         /// - Closed
         /// - Activated
         /// - Linker 事件
+        /// - LabPage.RefreshMonitorStateRequested
+        /// - LabPage.WindowMaximizedStateChanged
         /// 
         /// 【重构风险】
         /// 如果添加新的事件订阅，必须在此处取消订阅
@@ -567,6 +596,8 @@ namespace Docked_AI
             AppWindow.Changed -= OnAppWindowChanged;
             Closed -= OnWindowClosed;
             Activated -= OnWindowActivated;
+            Docked_AI.Features.Pages.Lab.LabPage.RefreshMonitorStateRequested -= OnRefreshMonitorStateRequested;
+            Docked_AI.Features.Pages.Lab.LabPage.WindowMaximizedStateChanged -= OnLabPageWindowMaximizedStateChanged;
             UnsubscribeFromLinkerEvents();
         }
     }

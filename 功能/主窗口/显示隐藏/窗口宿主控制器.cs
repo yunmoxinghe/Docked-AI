@@ -2,6 +2,7 @@ using Docked_AI.Features.MainWindow.State;
 using Docked_AI.Features.MainWindow.Appearance;
 using Docked_AI.Features.MainWindow.Placement;
 using Docked_AI.Features.MainWindow.Entry;
+using Docked_AI.Features.MainWindow.Status;
 using Docked_AI.Features.Pages.Settings;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Windowing;
@@ -138,6 +139,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
         private readonly WindowLayoutState _state;
         private readonly TitleBarService _titleBarService;
         private readonly BackdropService _backdropService;
+        private readonly WindowMaximizedMonitorService _maximizedMonitor;
         private readonly SlideAnimationController _animationController;
         private readonly WindowStateManager _stateManager;
         private readonly PinnedModeController _pinnedModeController;
@@ -193,6 +195,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _state = _layoutService.CreateInitialState();
             _titleBarService = new TitleBarService();
             _backdropService = new BackdropService();
+            _maximizedMonitor = new WindowMaximizedMonitorService(_window.DispatcherQueue);
             _animationController = new SlideAnimationController(_window, _state);
             _appBarMessageId = VisibilityWin32Api.RegisterWindowMessage("DockedAI_AppBarMessage");
             _windowProcDelegate = WindowProc;
@@ -207,6 +210,9 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
             // 创建固定模式控制器（句柄在 InitializeWindow 中获取后同步）
             _pinnedModeController = new PinnedModeController(_window, _state, _appBarMessageId);
+
+            // 订阅其他应用最大化状态变化事件
+            _maximizedMonitor.OtherAppMaximizedChanged += OnOtherAppMaximizedChanged;
 
             InitializeWindow();
         }
@@ -283,7 +289,10 @@ namespace Docked_AI.Features.MainWindow.Visibility
                 _window.Activate();
                 System.Diagnostics.Debug.WriteLine("[WindowHostController] Window activated with built-in animation");
                 
-                // 6. 窗口激活后立即显示启动屏幕
+                // 注意：不在启动时启动监听服务，只在进入固定模式时启动
+                // 这样可以节省资源，只在需要时才监听其他应用的最大化状态
+                
+                // 7. 窗口激活后立即显示启动屏幕
                 if (_window is global::Docked_AI.MainWindow mainWindow)
                 {
                     System.Diagnostics.Debug.WriteLine("[WindowHostController] Showing splash screen immediately after activation");
@@ -791,13 +800,33 @@ namespace Docked_AI.Features.MainWindow.Visibility
             // 1. 滑出：窗口从当前位置滑到屏幕右侧不可见区域（逐帧动画，await 等完成）
             await _pinnedModeController.SlideOutAsync();
 
-            // 2. 在屏幕外改样式、切换背景（用户看不到任何闪烁）
+            // 2. 在屏幕外改样式（用户看不到任何闪烁）
             _pinnedModeController.ApplyPinnedWindowStyle();
             
-            // 获取导航栏位置：左侧停靠 + 开启了左侧导航栏选项
+            // ⭐ 2.1 启动监听服务并立即同步扫描所有窗口
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] Starting maximized monitor and scanning windows");
+            _maximizedMonitor.Start();
+            
+            // 2.2 立即读取扫描结果（Start 方法会同步扫描）
+            bool hasMaximizedWindow = _maximizedMonitor.IsCurrentlyMaximized;
+            System.Diagnostics.Debug.WriteLine($"[WindowHostController] Initial maximized state: {hasMaximizedWindow}");
+            
+            // 2.3 获取导航栏位置：左侧停靠 + 开启了左侧导航栏选项
             bool isNavOnLeft = ExperimentalSettings.DockSide == WindowDockSide.Left && 
                                ExperimentalSettings.PlaceNavigationBarOnLeftWhenDockedLeft;
+            
+            // 2.4 根据当前状态设置背景
             _backdropService.EnsureTransparentBackdrop(_window, isNavOnLeft);
+            
+            if (hasMaximizedWindow)
+            {
+                System.Diagnostics.Debug.WriteLine("[WindowHostController] Has maximized window, setting fully opaque");
+                _backdropService.SetGradientFullyOpaque();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[WindowHostController] No maximized window, keeping gradient");
+            }
 
             // 3. 查询 AppBar 位置，得到滑入终点坐标（不移动窗口，不触发系统推开）
             _layoutService.Refresh(_state, _hwnd);
@@ -825,6 +854,10 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         private async System.Threading.Tasks.Task RestoreFromPinnedModeAsync()
         {
+            // ⭐ 退出固定模式前，停止监听服务
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] Exiting pinned mode, stopping maximized monitor");
+            _maximizedMonitor.Stop();
+            
             // 1. 滑出：从固定位置滑到屏幕右侧不可见区域
             await _pinnedModeController.SlideOutAsync();
 
@@ -888,10 +921,74 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _window.Closed -= OnWindowClosed;
             _window.AppWindow.Changed -= OnAppWindowChanged;
             _stateManager.StateChanged -= OnWindowStateChanged;
+            _maximizedMonitor.OtherAppMaximizedChanged -= OnOtherAppMaximizedChanged;
             _viewModel.UnsubscribeFromStateManager(_stateManager);
             _stateManager.Dispose();
             _backdropService.Dispose();
+            _maximizedMonitor.Dispose();
             _pinnedModeController.RemoveAppBar();
+        }
+
+        /// <summary>
+        /// 其他应用最大化状态变化处理
+        /// 当其他应用最大化时，增加亚克力背景的不透明度
+        /// 当其他应用取消最大化时，恢复渐变效果
+        /// </summary>
+        private void OnOtherAppMaximizedChanged(object? sender, bool isMaximized)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[WindowHostController] OnOtherAppMaximizedChanged called: isMaximized={isMaximized}");
+                
+                // 通知实验室页面更新状态显示
+                Docked_AI.Features.Pages.Lab.LabPage.RaiseWindowMaximizedStateChanged(isMaximized);
+                
+                var currentState = _stateManager.CurrentState;
+                System.Diagnostics.Debug.WriteLine($"[WindowHostController] Current window state: {currentState}");
+                
+                // 只在固定模式下响应其他应用最大化事件
+                if (currentState != WindowState.Pinned)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WindowHostController] Other app maximized={isMaximized}, but not in pinned mode (current state: {currentState})");
+                    return;
+                }
+
+                System.Diagnostics.Debug.WriteLine($"[WindowHostController] Other app maximized={isMaximized}, adjusting backdrop");
+
+                // 获取导航栏位置配置
+                bool isNavOnLeft = ExperimentalSettings.DockSide == WindowDockSide.Left && 
+                                   ExperimentalSettings.PlaceNavigationBarOnLeftWhenDockedLeft;
+                
+                System.Diagnostics.Debug.WriteLine($"[WindowHostController] Navigation bar on left: {isNavOnLeft}");
+
+                if (isMaximized)
+                {
+                    System.Diagnostics.Debug.WriteLine("[WindowHostController] Calling SetGradientFullyOpaque");
+                    // 其他应用最大化时，将渐变亚克力设置为完全不透明
+                    _backdropService.SetGradientFullyOpaque();
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[WindowHostController] Calling RestoreGradientOpacity");
+                    // 其他应用取消最大化时，恢复渐变效果
+                    _backdropService.RestoreGradientOpacity(isNavOnLeft);
+                }
+                
+                System.Diagnostics.Debug.WriteLine("[WindowHostController] Backdrop adjustment completed");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[WindowHostController] Error handling other app maximized event: {ex.Message}\n{ex.StackTrace}");
+            }
+        }
+
+        /// <summary>
+        /// 请求刷新监听器当前状态（供实验室页面初始化时调用）
+        /// </summary>
+        public void RequestRefreshMonitorState()
+        {
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] RequestRefreshMonitorState called");
+            _maximizedMonitor.RefreshCurrentState();
         }
 
         private IntPtr WindowProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)

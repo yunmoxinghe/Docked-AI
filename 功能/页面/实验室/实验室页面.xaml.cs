@@ -3,6 +3,8 @@ using Docked_AI.Features.UnifiedCalls.TopAppBar;
 using Docked_AI.Features.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI;
 
 namespace Docked_AI.Features.Pages.Lab
 {
@@ -20,7 +22,11 @@ namespace Docked_AI.Features.Pages.Lab
         {
             InitializeComponent();
             Loaded += OnLoaded;
+            Unloaded += OnUnloaded;
             SizeChanged += OnSizeChanged;
+            
+            // 订阅窗口最大化状态变化事件
+            WindowMaximizedStateChanged += OnWindowMaximizedStateChanged;
         }
 
         protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
@@ -56,7 +62,41 @@ namespace Docked_AI.Features.Pages.Lab
             // 初始化 WinUI 右键菜单设置
             WinUIContextMenuToggle.IsOn = ExperimentalSettings.EnableWinUIContextMenu;
 
+            // 请求刷新监听器状态
+            RequestRefreshMonitorState();
+
             UpdateMargin();
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            // 取消订阅事件
+            WindowMaximizedStateChanged -= OnWindowMaximizedStateChanged;
+        }
+
+        /// <summary>
+        /// 窗口最大化状态变化处理
+        /// </summary>
+        private void OnWindowMaximizedStateChanged(object? sender, bool isMaximized)
+        {
+            // 确保在 UI 线程上更新
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                if (isMaximized)
+                {
+                    MaximizedStateIcon.Glyph = "\uE740"; // 最大化图标
+                    MaximizedStateIcon.Foreground = new SolidColorBrush(Colors.Orange);
+                    MaximizedStateText.Text = "已最大化";
+                }
+                else
+                {
+                    MaximizedStateIcon.Glyph = "\uE73F"; // 还原图标
+                    MaximizedStateIcon.Foreground = new SolidColorBrush(Colors.Green);
+                    MaximizedStateText.Text = "未最大化";
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"[LabPage] UI updated: isMaximized={isMaximized}");
+            });
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
@@ -184,5 +224,21 @@ namespace Docked_AI.Features.Pages.Lab
         // Event to notify when hide tray rate button settings change
         public static event System.EventHandler? HideTrayRateButtonSettingsChanged;
         internal static void RaiseHideTrayRateButtonSettingsChanged() => HideTrayRateButtonSettingsChanged?.Invoke(null, System.EventArgs.Empty);
+
+        // Event to notify when window maximized state changes
+        public static event System.EventHandler<bool>? WindowMaximizedStateChanged;
+        internal static void RaiseWindowMaximizedStateChanged(bool isMaximized)
+        {
+            System.Diagnostics.Debug.WriteLine($"[LabPage] RaiseWindowMaximizedStateChanged: isMaximized={isMaximized}");
+            WindowMaximizedStateChanged?.Invoke(null, isMaximized);
+        }
+
+        // Event to request refresh of monitor state
+        public static event System.EventHandler? RefreshMonitorStateRequested;
+        internal static void RequestRefreshMonitorState()
+        {
+            System.Diagnostics.Debug.WriteLine("[LabPage] RequestRefreshMonitorState called");
+            RefreshMonitorStateRequested?.Invoke(null, System.EventArgs.Empty);
+        }
     }
 }
