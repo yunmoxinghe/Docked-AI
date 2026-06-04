@@ -793,7 +793,11 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
             // 2. 在屏幕外改样式、切换背景（用户看不到任何闪烁）
             _pinnedModeController.ApplyPinnedWindowStyle();
-            _backdropService.EnsureTransparentBackdrop(_window);
+            
+            // 获取导航栏位置：左侧停靠 + 开启了左侧导航栏选项
+            bool isNavOnLeft = ExperimentalSettings.DockSide == WindowDockSide.Left && 
+                               ExperimentalSettings.PlaceNavigationBarOnLeftWhenDockedLeft;
+            _backdropService.EnsureTransparentBackdrop(_window, isNavOnLeft);
 
             // 3. 查询 AppBar 位置，得到滑入终点坐标（不移动窗口，不触发系统推开）
             _layoutService.Refresh(_state, _hwnd);

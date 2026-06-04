@@ -1,9 +1,14 @@
 using Microsoft.UI;
+using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Hosting;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Windows.System.Power;
 using System;
+using System.Numerics;
+using System.Threading.Tasks;
+using Windows.UI;
 
 namespace Docked_AI.Features.MainWindow.Appearance
 {
@@ -90,11 +95,16 @@ namespace Docked_AI.Features.MainWindow.Appearance
         private bool _isPinnedMode;
         private bool _isEnergySaverListenerRegistered;
         private bool _isEnergySaverActive;
+        
+        // 渐变亚克力层（固定模式专用）
+        private Grid? _gradientAcrylicLayer;
 
         /// <summary>
         /// 确保透明背景效果（固定模式专用）
         /// </summary>
-        public void EnsureTransparentBackdrop(Window window)
+        /// <param name="window">窗口对象</param>
+        /// <param name="isNavigationBarOnLeft">导航栏是否在左侧（可选，默认 false 表示在右侧）</param>
+        public void EnsureTransparentBackdrop(Window window, bool isNavigationBarOnLeft = false)
         {
             try
             {
@@ -109,7 +119,10 @@ namespace Docked_AI.Features.MainWindow.Appearance
 
                 EnsureTransparentBackground(window);
                 
-                System.Diagnostics.Debug.WriteLine("[BackdropService] Transparent backdrop applied for pinned mode");
+                // 显示渐变亚克力层，根据导航栏位置自动调整方向
+                ShowGradientAcrylicLayer(window, isNavigationBarOnLeft);
+                
+                System.Diagnostics.Debug.WriteLine($"[BackdropService] Transparent backdrop applied for pinned mode, nav on left: {isNavigationBarOnLeft}");
             }
             catch (Exception ex)
             {
@@ -169,6 +182,9 @@ namespace Docked_AI.Features.MainWindow.Appearance
                 _currentWindow = window;
                 _isPinnedMode = false;
                 RegisterEnergySaverListener();
+
+                // 隐藏渐变亚克力层（标准模式不需要）
+                HideGradientAcrylicLayer();
 
                 // 省电模式下使用 Mica 代替 Acrylic（更节能）
                 if (_isEnergySaverActive)
@@ -464,6 +480,215 @@ namespace Docked_AI.Features.MainWindow.Appearance
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[BackdropService] Error disposing: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 显示渐变亚克力层（固定模式专用）
+        /// 根据导航栏位置自动调整渐变方向
+        /// - 导航栏在右侧：左边透明，右边亚克力
+        /// - 导航栏在左侧：右边透明，左边亚克力
+        /// 方案：使用大量 SystemBackdropElement 分段（100+）实现平滑横向渐变
+        /// </summary>
+        /// <param name="window">窗口对象</param>
+        /// <param name="isNavigationBarOnLeft">导航栏是否在左侧</param>
+        private void ShowGradientAcrylicLayer(Window window, bool isNavigationBarOnLeft)
+        {
+            try
+            {
+                // 如果已经存在，先移除
+                HideGradientAcrylicLayer();
+
+                // 获取 RootGrid（主窗口的根元素）
+                if (window.Content is not Grid rootGrid)
+                {
+                    System.Diagnostics.Debug.WriteLine("[BackdropService] Failed to get RootGrid");
+                    return;
+                }
+
+                // 创建主容器
+                _gradientAcrylicLayer = new Grid
+                {
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    VerticalAlignment = VerticalAlignment.Stretch,
+                    IsHitTestVisible = false // 不阻挡鼠标事件
+                };
+
+                // 使用大量分段（100个）实现平滑横向渐变
+                int segmentCount = 100;
+                
+                // 定义列（横向分段）
+                for (int i = 0; i < segmentCount; i++)
+                {
+                    _gradientAcrylicLayer.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                }
+
+                // 创建多个亚克力条带，每个不同 Opacity
+                for (int i = 0; i < segmentCount; i++)
+                {
+                    double t = (double)i / (segmentCount - 1);
+                    double opacity;
+                    
+                    if (isNavigationBarOnLeft)
+                    {
+                        // 导航栏在左侧：从左到右，不透明到透明
+                        opacity = 1.0 - EaseInOutQuad(t); // 左侧不透明，右侧透明
+                    }
+                    else
+                    {
+                        // 导航栏在右侧：从左到右，透明到不透明
+                        opacity = EaseInOutQuad(t); // 左侧透明，右侧不透明
+                    }
+
+                    // 创建一个亚克力元素
+                    var acrylicSegment = new SystemBackdropElement
+                    {
+                        HorizontalAlignment = HorizontalAlignment.Stretch,
+                        VerticalAlignment = VerticalAlignment.Stretch,
+                        Opacity = opacity
+                    };
+                    acrylicSegment.SystemBackdrop = new DesktopAcrylicBackdrop();
+
+                    // 放在对应的列
+                    Grid.SetColumn(acrylicSegment, i);
+                    _gradientAcrylicLayer.Children.Add(acrylicSegment);
+                }
+
+                // 添加到根元素
+                rootGrid.Children.Insert(0, _gradientAcrylicLayer);
+
+                string direction = isNavigationBarOnLeft ? "left-to-right (nav on left)" : "right-to-left (nav on right)";
+                System.Diagnostics.Debug.WriteLine($"[BackdropService] Horizontal gradient acrylic layer shown with {segmentCount} segments, direction: {direction}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BackdropService] Failed to show gradient acrylic layer: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 计算平滑的透明度值
+        /// 支持多种缓动曲线
+        /// </summary>
+        private double CalculateSmoothOpacity(double t)
+        {
+            // 可选方案 1: EaseInOutQuad（你原来使用的）
+            // return EaseInOutQuad(t);
+
+            // 可选方案 2: Smoothstep（更平滑）
+            // return t * t * (3.0 - 2.0 * t);
+
+            // 可选方案 3: Smootherstep（最平滑）
+            return t * t * t * (t * (t * 6 - 15) + 10);
+
+            // 可选方案 4: 三次贝塞尔
+            // return CubicBezier(t, 0.0, 0.42, 0.58, 1.0);
+
+            // 可选方案 5: 指数缓动（慢开始，快结束）
+            // return t == 0.0 ? 0.0 : Math.Pow(2, 10 * (t - 1));
+        }
+
+        /// <summary>
+        /// 缓动函数：EaseInOutQuad，让渐变更平滑自然
+        /// </summary>
+        private double EaseInOutQuad(double t)
+        {
+            return t < 0.5 ? 2 * t * t : 1 - Math.Pow(-2 * t + 2, 2) / 2;
+        }
+
+        /// <summary>
+        /// 旧的渐变遮罩方法（已弃用）
+        /// </summary>
+        private void ApplySmoothGradientMask(Grid targetGrid)
+        {
+            // 已弃用
+        }
+
+        /// <summary>
+        /// 使用 Composition API 应用真正的透明度渐变
+        /// 使用多个 SpriteVisual 分段，每个设置不同的 Opacity
+        /// </summary>
+        private void ApplyCompositionOpacityGradient(UIElement element)
+        {
+            try
+            {
+                // 获取元素的 Visual
+                var elementVisual = ElementCompositionPreview.GetElementVisual(element);
+                var compositor = elementVisual.Compositor;
+
+                // 创建容器 Visual
+                var containerVisual = compositor.CreateContainerVisual();
+
+                // 分段数量（越多越平滑）
+                int segmentCount = 30;
+
+                // 创建多个分段，每个分段不同 Opacity
+                for (int i = 0; i < segmentCount; i++)
+                {
+                    // 计算 Opacity（从 0.0 到 1.0）
+                    float opacity = (float)i / (segmentCount - 1);
+
+                    // 创建一个 SpriteVisual 代表一个分段
+                    var segmentVisual = compositor.CreateSpriteVisual();
+                    
+                    // 使用透明色画刷（亚克力效果从 SystemBackdrop 显示）
+                    segmentVisual.Brush = compositor.CreateColorBrush(Microsoft.UI.Colors.Transparent);
+                    
+                    // 设置位置和大小（垂直分段）
+                    segmentVisual.Offset = new Vector3(0, i * (1.0f / segmentCount), 0);
+                    segmentVisual.RelativeSizeAdjustment = new Vector2(1.0f, 1.0f / segmentCount); // 宽度100%，高度为总高度的1/N
+                    segmentVisual.Opacity = opacity;
+
+                    containerVisual.Children.InsertAtTop(segmentVisual);
+                }
+
+                // 容器填充整个元素
+                containerVisual.RelativeSizeAdjustment = Vector2.One;
+
+                // 将容器 Visual 设置为元素的子 Visual
+                ElementCompositionPreview.SetElementChildVisual(element, containerVisual);
+
+                System.Diagnostics.Debug.WriteLine($"[BackdropService] Composition opacity gradient applied using {segmentCount} segments");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BackdropService] Failed to apply composition opacity gradient: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 旧的透明度渐变方法（已弃用）
+        /// </summary>
+        private void ApplyOpacityGradient(Grid targetGrid)
+        {
+            // 已弃用
+        }
+
+        /// <summary>
+        /// 使用 Composition API 应用渐变遮罩（已弃用）
+        /// </summary>
+        private void ApplyCompositionGradientMask(Grid targetGrid)
+        {
+            // 已弃用：改用 ApplyOpacityGradient
+        }
+
+        /// <summary>
+        /// 隐藏渐变亚克力层（恢复标准模式时调用）
+        /// </summary>
+        private void HideGradientAcrylicLayer()
+        {
+            try
+            {
+                if (_gradientAcrylicLayer != null && _currentWindow?.Content is Grid rootGrid)
+                {
+                    rootGrid.Children.Remove(_gradientAcrylicLayer);
+                    _gradientAcrylicLayer = null;
+                    System.Diagnostics.Debug.WriteLine("[BackdropService] Gradient acrylic layer hidden");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[BackdropService] Failed to hide gradient acrylic layer: {ex.Message}");
             }
         }
     }
