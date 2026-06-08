@@ -40,7 +40,7 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
         }
 
         /// <summary>
-        /// 打开数据库连接（添加超时保护，避免 MSIX 打包环境下卡死）
+        /// 打开数据库连接（同步方法，但已禁用 favicon 加载避免卡死）
         /// </summary>
         private void OpenConnection()
         {
@@ -60,16 +60,7 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                 }.ToString();
 
                 _connection = new SqliteConnection(connectionString);
-                
-                // ⭐ MSIX 打包环境优化：使用 Task.Run + Timeout 避免无限卡死
-                var openTask = Task.Run(() => _connection.Open());
-                var completed = openTask.Wait(TimeSpan.FromSeconds(3));
-                if (!completed)
-                {
-                    _connection?.Dispose();
-                    _connection = null;
-                    throw new TimeoutException("打开 Edge Favicons 数据库超时（3秒），可能 Edge 正在运行或文件被锁定");
-                }
+                _connection.Open();
                 
                 using var command = _connection.CreateCommand();
                 // 设置更长的繁忙超时（5 秒），并启用只读和内存临时存储
@@ -82,19 +73,12 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                 
                 System.Diagnostics.Debug.WriteLine("[EdgeFaviconReader] Database connection opened successfully");
             }
-            catch (TimeoutException ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] Database connection timeout: {ex.Message}");
-                _connection?.Dispose();
-                _connection = null;
-                throw;
-            }
             catch (SqliteException ex) when (ex.SqliteErrorCode == 5) // SQLITE_BUSY
             {
                 System.Diagnostics.Debug.WriteLine("[EdgeFaviconReader] Database is locked by Edge browser, skipping favicon loading");
                 _connection?.Dispose();
                 _connection = null;
-                throw; // 重新抛出，让调用者知道连接失败
+                throw;
             }
             catch (Exception ex)
             {

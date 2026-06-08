@@ -173,11 +173,12 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                 var existingUrls = new HashSet<string>(existingShortcuts.Select(s => s.Url), StringComparer.OrdinalIgnoreCase);
                 var allShortcuts = existingShortcuts.ToList();
 
-                // 读取 Favicons（在后台线程执行，避免阻塞 UI）
-                System.Diagnostics.Debug.WriteLine("[EdgeBookmarkSync] Loading favicons from Edge database...");
+                // 读取 Favicons（暂时禁用以避免卡死问题）
+                System.Diagnostics.Debug.WriteLine("[EdgeBookmarkSync] Skipping favicon loading to avoid blocking");
                 Dictionary<string, byte[]> favicons = new Dictionary<string, byte[]>();
-                bool faviconLoadFailed = false;
+                bool faviconLoadFailed = true; // 标记为失败，跳过所有 favicon 加载
                 
+                /* 暂时禁用 favicon 加载以避免卡死
                 if (!EdgeFaviconReader.IsFaviconsDbAvailable())
                 {
                     System.Diagnostics.Debug.WriteLine("[EdgeBookmarkSync] Favicons database not available");
@@ -255,6 +256,7 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                         }
                     }
                 }
+                */
 
                 // 添加新的书签
                 int addedCount = 0;
