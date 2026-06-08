@@ -132,8 +132,6 @@
                     <!-- 内容区背景材质 -->
                     <controls:SettingsCard
                         x:Uid="SettingsPage_ContentAreaBackdropHeader"
-                        Header="内容区背景材质"
-                        Description="选择内容区域的背景效果"
                         IsClickEnabled="True"
                         IsActionIconVisible="False"
                         Click="OnContentAreaBackdropCardClick">
@@ -144,10 +142,10 @@
                             x:Name="ContentAreaBackdropComboBox"
                             HorizontalAlignment="Left"
                             SelectionChanged="OnContentAreaBackdropChanged">
-                            <ComboBoxItem x:Uid="SettingsPage_BackdropSolidColor" Tag="0" Content="纯色背景"/>
-                            <ComboBoxItem x:Uid="SettingsPage_BackdropMicaBase" Tag="1" Content="云母材质"/>
-                            <ComboBoxItem x:Uid="SettingsPage_BackdropMicaAlt" Tag="2" Content="云母 Alt"/>
-                            <ComboBoxItem x:Uid="SettingsPage_BackdropAcrylic" Tag="3" Content="亚克力"/>
+                            <ComboBoxItem x:Uid="SettingsPage_BackdropSolidColor" Tag="0"/>
+                            <ComboBoxItem x:Uid="SettingsPage_BackdropMicaBase" Tag="1"/>
+                            <ComboBoxItem x:Uid="SettingsPage_BackdropMicaAlt" Tag="2"/>
+                            <ComboBoxItem x:Uid="SettingsPage_BackdropAcrylic" Tag="3"/>
                         </ComboBox>
                     </controls:SettingsCard>
 

@@ -1,18 +1,16 @@
 {
   "enabled": true,
-  "name": "阻止 dotnet build",
-  "description": "拦截 dotnet build 命令，提醒使用项目推荐的构建方式（dotnet run 或 winapp）。使用正则表达式精确匹配 dotnet build 相关命令。",
-  "version": "2",
+  "name": "命令黑名单拦截",
+  "description": "硬拦截 dotnet build 命令，强制使用项目规范的构建方式",
+  "version": "6",
   "when": {
     "type": "preToolUse",
-    "toolTypes": [
-      ".*dotnet.*build.*"
-    ]
+    "toolTypes": ["shell"]
   },
   "then": {
     "type": "askAgent",
-    "prompt": "检测到 dotnet build 命令。根据项目规范，应该使用以下命令：\n- 仅启动：dotnet run\n- 调试输出模式：dotnet run -c Debug /p:Platform=x64 --debug-output\n\n请确认是否要继续执行 dotnet build，还是改用推荐的命令？如果用户明确要求使用 dotnet build，可以继续；否则建议使用项目推荐的构建方式。"
+    "prompt": "【命令黑名单 - 精准拦截】\n\n⚠️ 在执行任何 shell 命令之前，你必须先读取完整的命令参数。\n\n**第一步：提取命令字符串**\n从即将执行的工具调用参数中，提取 command 字段的完整内容。\n\n**第二步：精准匹配黑名单**\n检查命令是否完全匹配以下模式（使用正则表达式）：\n- 正则 1: `dotnet\\s+build` → 拦截\n- 正则 2: `dotnet\\s+msbuild` → 拦截  \n- 正则 3: `msbuild` → 拦截\n\n**第三步：拦截处理**\n如果匹配黑名单：\n1. ❌ 立即停止，不执行该命令\n2. 📢 回复：\"检测到禁止命令：`[命令内容]`\"\n3. 💡 提供替代方案：\n   - `dotnet run`（日常开发）\n   - `dotnet run -c Debug /p:Platform=x64 --debug-output`（调试）\n   - `winapp run`（推荐工具）\n4. 询问是否改用推荐命令\n\n**第四步：非黑名单命令**\n如果不匹配黑名单，直接执行，不要输出任何提示。\n\n**例外规则：**\n- 如果哥哥说\"忽略黑名单\"、\"强制执行\"或类似明确覆盖指令 → 可以执行\n- 如果只是查看/读取日志、文档 → 不拦截\n\n⚡ 关键：这是系统级拦截，不是建议，必须严格执行！"
   },
   "workspaceFolderName": "Docked-AI",
-  "shortName": "block-dotnet-build"
+  "shortName": "command-blacklist"
 }
