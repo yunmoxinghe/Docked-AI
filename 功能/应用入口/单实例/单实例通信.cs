@@ -10,8 +10,9 @@ namespace Docked_AI.Features.AppEntry.SingleInstance
     /// </summary>
     public class SingleInstanceCommunication : IDisposable
     {
-        private const string ShowWindowEventName = "DockedAI_ShowWindow_Event";
-        private const string CancelEventName = "DockedAI_Cancel_Event";
+        // ⭐ MSIX 沙箱兼容：添加 Local\ 前缀，避免跨会话冲突
+        private const string ShowWindowEventName = @"Local\DockedAI_ShowWindow_Event";
+        private const string CancelEventName = @"Local\DockedAI_Cancel_Event";
         
         private EventWaitHandle? _showWindowEvent;
         private EventWaitHandle? _cancelEvent;
@@ -142,8 +143,7 @@ namespace Docked_AI.Features.AppEntry.SingleInstance
                 {
                     System.Diagnostics.Debug.WriteLine($"[SingleInstanceCommunication] Listener error: {ex.Message}");
                     // 短暂延迟后继续，避免错误循环
-                    // 使用 SpinWait 代替 Thread.Sleep，更适合短时间等待
-                    Thread.SpinWait(1000000); // 约 100ms
+                    Thread.Sleep(100);
                 }
             }
 

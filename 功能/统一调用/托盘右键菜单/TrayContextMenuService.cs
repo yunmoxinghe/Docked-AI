@@ -37,6 +37,12 @@ public static class TrayContextMenuService
     /// <returns>鼠标模式托盘菜单对象</returns>
     public static MenuFlyout CreateMouseTrayMenu(Action onOpenWindow, Action onCloseWindow, Action onExit)
     {
+        // ⚠️ Release 模式下，中文路径的 XAML 资源加载会崩溃
+        // 直接使用 fallback 方案（动态创建菜单）
+        System.Diagnostics.Debug.WriteLine("[TrayMenu] Using fallback (dynamic creation) to avoid XAML loading crash");
+        return CreateMouseTrayMenuFallback(onOpenWindow, onCloseWindow, onExit);
+        
+        /* 原来的 XAML 加载代码 - 在 Release 模式下会崩溃
         // 🖱️ 从 XAML 加载鼠标模式菜单
         var resources = new ResourceDictionary
         {
@@ -70,6 +76,7 @@ public static class TrayContextMenuService
         
         System.Diagnostics.Debug.WriteLine("[TrayMenu] ✅ Loaded Mouse menu from XAML (compact padding)");
         return flyout;
+        */
     }
 
     /// <summary>
@@ -81,6 +88,12 @@ public static class TrayContextMenuService
     /// <returns>触摸模式托盘菜单对象</returns>
     public static MenuFlyout CreateTouchTrayMenu(Action onOpenWindow, Action onCloseWindow, Action onExit)
     {
+        // ⚠️ Release 模式下，中文路径的 XAML 资源加载会崩溃
+        // 直接使用 fallback 方案（动态创建菜单）
+        System.Diagnostics.Debug.WriteLine("[TrayMenu] Using fallback (dynamic creation) to avoid XAML loading crash");
+        return CreateTouchTrayMenuFallback(onOpenWindow, onCloseWindow, onExit);
+        
+        /* 原来的 XAML 加载代码 - 在 Release 模式下会崩溃
         // 🖐️ 从 XAML 加载触摸模式菜单
         var resources = new ResourceDictionary
         {
@@ -114,6 +127,7 @@ public static class TrayContextMenuService
         
         System.Diagnostics.Debug.WriteLine("[TrayMenu] ✅ Loaded Touch menu from XAML (spacious padding)");
         return flyout;
+        */
     }
 
     /// <summary>

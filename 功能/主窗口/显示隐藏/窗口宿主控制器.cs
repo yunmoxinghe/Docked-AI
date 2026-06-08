@@ -804,8 +804,8 @@ namespace Docked_AI.Features.MainWindow.Visibility
             _pinnedModeController.ApplyPinnedWindowStyle();
             
             // ⭐ 2.1 启动监听服务并立即同步扫描所有窗口
-            System.Diagnostics.Debug.WriteLine("[WindowHostController] Starting maximized monitor and scanning windows");
-            _maximizedMonitor.Start();
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] ⚠️ TEMPORARILY DISABLED maximized monitor for debugging");
+            // _maximizedMonitor.Start(); // ⚠️ 临时禁用以排查死锁问题
             
             // 2.2 立即读取扫描结果（Start 方法会同步扫描）
             bool hasMaximizedWindow = _maximizedMonitor.IsCurrentlyMaximized;

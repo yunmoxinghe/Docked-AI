@@ -29,8 +29,9 @@ namespace Docked_AI.Features.Tray
         private Thread? _menuThread;
         private DispatcherQueue? _dispatcherQueue;
         private Window? _menuHostWindow;
-        private bool _disposed;
+        private volatile bool _disposed; // ✅ 添加 volatile 确保跨线程可见性
         private ManualResetEventSlim _threadStarted = new ManualResetEventSlim(false);
+        private ManualResetEventSlim _shutdownEvent = new ManualResetEventSlim(false); // ✅ 关闭信号事件
         private TaskCompletionSource<bool>? _menuClosedTcs;
 
         /// <summary>
@@ -106,13 +107,9 @@ namespace Docked_AI.Features.Tray
                 SynchronizationContext.SetSynchronizationContext(frame);
                 
                 // 保持线程运行
-                // 使用 ManualResetEventSlim 代替 Thread.Sleep 循环，更高效
-                var shutdownEvent = new ManualResetEventSlim(false);
-                while (!_disposed)
-                {
-                    shutdownEvent.Wait(100); // 等待 100ms 或直到信号
-                }
-                shutdownEvent.Dispose();
+                // ✅ 使用事件等待代替轮询，避免 Release 模式下的优化问题
+                System.Diagnostics.Debug.WriteLine("[MenuThread] Waiting for shutdown signal...");
+                _shutdownEvent.Wait(); // 阻塞直到收到关闭信号
 
                 System.Diagnostics.Debug.WriteLine("[MenuThread] Message loop exited");
             }
@@ -220,6 +217,9 @@ namespace Docked_AI.Features.Tray
 
             System.Diagnostics.Debug.WriteLine("[IndependentUIThreadMenuHost] Disposing...");
 
+            // ✅ 先发送关闭信号，让菜单线程自然退出
+            _shutdownEvent.Set();
+
             // 关闭菜单窗口
             if (_menuHostWindow != null && _dispatcherQueue != null)
             {
@@ -236,6 +236,7 @@ namespace Docked_AI.Features.Tray
             }
 
             _threadStarted.Dispose();
+            _shutdownEvent.Dispose();
             System.Diagnostics.Debug.WriteLine("[IndependentUIThreadMenuHost] Disposed");
         }
 

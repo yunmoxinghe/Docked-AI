@@ -141,28 +141,47 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
 
         public ContentArea()
         {
+            System.Diagnostics.Debug.WriteLine("[ContentArea] 构造函数开始");
+            
             InitializeComponent();
+            System.Diagnostics.Debug.WriteLine("[ContentArea] InitializeComponent 完成");
+            
             _pageCacheManager = new PageCacheManager(maxCacheSize: 20);
             _pageCacheManager.PageAutoRemoved += OnPageAutoRemoved;
+            System.Diagnostics.Debug.WriteLine("[ContentArea] PageCacheManager 初始化完成");
+            
             _navigationService = new NavigationService(ContentFrame, _pageCacheManager);
             _navigationService.Navigated += OnNavigationServiceNavigated;
             _navigationService.CachedPageNavigated += OnNavigationServiceCachedPageNavigated;
+            System.Diagnostics.Debug.WriteLine("[ContentArea] NavigationService 初始化完成");
+            
             ContentGrid.Loaded += ContentGrid_Loaded;
             TopAppBarHost.BackButtonClicked += TopAppBarHost_BackButtonClicked;
             TopAppBarHost.MenuButtonClicked += TopAppBarHost_MenuButtonClicked;
+            System.Diagnostics.Debug.WriteLine("[ContentArea] 事件订阅完成");
             
             // 订阅 WebViewManager 的淘汰事件
             Pages.WebApp.Browser.WebViewManager.WebViewEvicted += OnWebViewEvicted;
+            System.Diagnostics.Debug.WriteLine("[ContentArea] WebViewManager 事件订阅完成");
             
             // 初始化 Frame 动画
             UpdateFrameAnimation();
+            System.Diagnostics.Debug.WriteLine("[ContentArea] Frame 动画初始化完成");
             
             // 订阅设置变化事件
             Pages.Settings.SettingsPage.FrameAnimationSettingsChanged += OnFrameAnimationSettingsChanged;
             Pages.Settings.SettingsPage.ContentAreaBackdropSettingsChanged += OnContentAreaBackdropSettingsChanged;
+            System.Diagnostics.Debug.WriteLine("[ContentArea] 设置事件订阅完成");
             
             // 初始化背景材质
-            Loaded += (s, e) => ApplyBackdropSettings();
+            Loaded += (s, e) => 
+            {
+                System.Diagnostics.Debug.WriteLine("[ContentArea] Loaded 事件触发，开始应用背景设置");
+                ApplyBackdropSettings();
+                System.Diagnostics.Debug.WriteLine("[ContentArea] 背景设置应用完成");
+            };
+            
+            System.Diagnostics.Debug.WriteLine("[ContentArea] 构造函数完成");
         }
 
         #region 顶栏按钮控制

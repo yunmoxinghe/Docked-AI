@@ -38,25 +38,51 @@ namespace Docked_AI.Features.Pages.Settings
         private readonly 智能标题 _智能标题 = new();
         public SettingsPage()
         {
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] 构造函数开始");
+            
             // Initialize ViewModel
             var startupManager = new StartupTaskManager();
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] StartupTaskManager 创建完成");
+            
             ViewModel = new StartupSettingsViewModel(startupManager);
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] StartupSettingsViewModel 创建完成");
 
             // Initialize hotkey settings
             _hotkeySettings = new HotkeySettings();
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] HotkeySettings 创建完成");
 
             InitializeComponent();
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] InitializeComponent 完成");
+            
             Loaded += OnLoaded;
             SizeChanged += OnSizeChanged;
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] 事件订阅完成");
             
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] 开始 LoadHotkeySettings");
             LoadHotkeySettings();
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] LoadHotkeySettings 完成");
+            
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] 开始 LoadExperimentalSettings");
             LoadExperimentalSettings();
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] LoadExperimentalSettings 完成");
+            
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] 开始 LoadWebSettings");
             LoadWebSettings();
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] LoadWebSettings 完成");
+            
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] 开始 LoadTrayCloseWindowBehaviorSettings");
             LoadTrayCloseWindowBehaviorSettings();
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] LoadTrayCloseWindowBehaviorSettings 完成");
+            
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] 开始 LoadContentAreaBackdropSettings");
             LoadContentAreaBackdropSettings();
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] LoadContentAreaBackdropSettings 完成");
             
             // Initialize startup settings asynchronously
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] 开始 InitializeStartupSettingsAsync");
             _ = InitializeStartupSettingsAsync();
+            
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] 构造函数完成");
         }
 
         private string GetGitHubLinkText()
@@ -132,17 +158,32 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] OnLoaded 开始");
+            
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] 开始 UpdateVisualStateAndDiagnostic");
             UpdateVisualStateAndDiagnostic();
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] UpdateVisualStateAndDiagnostic 完成");
+            
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] 开始 LoadVersionInfo");
             LoadVersionInfo();
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] LoadVersionInfo 完成");
             
             // 在页面加载完成后初始化语言设置
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] 开始 LoadLanguageSettings");
             LoadLanguageSettings();
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] LoadLanguageSettings 完成");
             
             // 初始化 Frame 动画设置
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] 开始 LoadFrameAnimationSettings");
             LoadFrameAnimationSettings();
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] LoadFrameAnimationSettings 完成");
             
             // 初始化子页面动画设置
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] 开始 LoadSubPageAnimationSettings");
             LoadSubPageAnimationSettings();
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] LoadSubPageAnimationSettings 完成");
+            
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] OnLoaded 完成");
         }
 
         protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)

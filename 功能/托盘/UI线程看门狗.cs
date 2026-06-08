@@ -62,13 +62,13 @@ namespace Docked_AI.Features.Tray
         {
             if (_watchdogTask != null)
             {
-                Debug.WriteLine("[UIThreadWatchdog] Already started");
+                System.Diagnostics.Debug.WriteLine("[UIThreadWatchdog] Already started");
                 return;
             }
 
             _cts = new CancellationTokenSource();
             _watchdogTask = Task.Run(() => WatchdogLoop(_cts.Token));
-            Debug.WriteLine("[UIThreadWatchdog] Started");
+            System.Diagnostics.Debug.WriteLine("[UIThreadWatchdog] Started");
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace Docked_AI.Features.Tray
                 return;
             }
 
-            Debug.WriteLine("[UIThreadWatchdog] Stopping...");
+            System.Diagnostics.Debug.WriteLine("[UIThreadWatchdog] Stopping...");
             _cts.Cancel();
             
             // 使用 GetAwaiter().GetResult() 代替 Wait()，更安全
@@ -93,18 +93,18 @@ namespace Docked_AI.Features.Tray
                 
                 if (completedTask == timeoutTask)
                 {
-                    Debug.WriteLine("[UIThreadWatchdog] WARNING: Watchdog task did not complete in time");
+                    System.Diagnostics.Debug.WriteLine("[UIThreadWatchdog] WARNING: Watchdog task did not complete in time");
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[UIThreadWatchdog] Stop error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[UIThreadWatchdog] Stop error: {ex.Message}");
             }
             
             _cts.Dispose();
             _cts = null;
             _watchdogTask = null;
-            Debug.WriteLine("[UIThreadWatchdog] Stopped");
+            System.Diagnostics.Debug.WriteLine("[UIThreadWatchdog] Stopped");
         }
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace Docked_AI.Features.Tray
         /// </summary>
         private async Task WatchdogLoop(CancellationToken cancellationToken)
         {
-            Debug.WriteLine("[UIThreadWatchdog] Watchdog loop started");
+            System.Diagnostics.Debug.WriteLine("[UIThreadWatchdog] Watchdog loop started");
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -123,23 +123,22 @@ namespace Docked_AI.Features.Tray
 
                     // 发送心跳检测任务到 UI 线程
                     bool heartbeatReceived = false;
-                    var heartbeatTask = Task.Run(() =>
+                    DateTime heartbeatSendTime = DateTime.UtcNow;
+                    
+                    var enqueued = _dispatcherQueue.TryEnqueue(() =>
                     {
-                        var enqueued = _dispatcherQueue.TryEnqueue(() =>
+                        // UI 线程响应心跳
+                        lock (_heartbeatLock)
                         {
-                            // UI 线程响应心跳
-                            lock (_heartbeatLock)
-                            {
-                                _lastHeartbeat = DateTime.UtcNow;
-                                heartbeatReceived = true;
-                            }
-                        });
-
-                        if (!enqueued)
-                        {
-                            Debug.WriteLine("[UIThreadWatchdog] Failed to enqueue heartbeat task");
+                            _lastHeartbeat = DateTime.UtcNow;
+                            heartbeatReceived = true;
                         }
                     });
+
+                    if (!enqueued)
+                    {
+                        System.Diagnostics.Debug.WriteLine("[UIThreadWatchdog] Failed to enqueue heartbeat task");
+                    }
 
                     // 等待心跳响应（带超时）
                     await Task.Delay(_timeout, cancellationToken);
@@ -152,12 +151,12 @@ namespace Docked_AI.Features.Tray
                         if (timeSinceLastHeartbeat > _timeout)
                         {
                             // UI 线程卡死
-                            Debug.WriteLine($"[UIThreadWatchdog] ⚠️ UI thread frozen! Time since last heartbeat: {timeSinceLastHeartbeat.TotalSeconds:F1}s");
+                            System.Diagnostics.Debug.WriteLine($"[UIThreadWatchdog] ⚠️ UI thread frozen! Time since last heartbeat: {timeSinceLastHeartbeat.TotalSeconds:F1}s");
                             OnUIThreadFrozen(timeSinceLastHeartbeat);
                         }
                         else if (!heartbeatReceived)
                         {
-                            Debug.WriteLine($"[UIThreadWatchdog] ⚠️ Heartbeat not received yet, but within timeout ({timeSinceLastHeartbeat.TotalSeconds:F1}s)");
+                            System.Diagnostics.Debug.WriteLine($"[UIThreadWatchdog] ⚠️ Heartbeat not received yet, but within timeout ({timeSinceLastHeartbeat.TotalSeconds:F1}s)");
                         }
                     }
                 }
@@ -168,11 +167,11 @@ namespace Docked_AI.Features.Tray
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"[UIThreadWatchdog] Error in watchdog loop: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[UIThreadWatchdog] Error in watchdog loop: {ex.Message}");
                 }
             }
 
-            Debug.WriteLine("[UIThreadWatchdog] Watchdog loop exited");
+            System.Diagnostics.Debug.WriteLine("[UIThreadWatchdog] Watchdog loop exited");
         }
 
         /// <summary>
@@ -195,7 +194,7 @@ namespace Docked_AI.Features.Tray
         /// </summary>
         private void HandleFrozenUIThreadDefault(TimeSpan frozenDuration)
         {
-            Debug.WriteLine($"[UIThreadWatchdog] Handling frozen UI thread (duration: {frozenDuration.TotalSeconds:F1}s)");
+            System.Diagnostics.Debug.WriteLine($"[UIThreadWatchdog] Handling frozen UI thread (duration: {frozenDuration.TotalSeconds:F1}s)");
 
             // 显示 Windows 通知（不依赖 UI 线程）
             ShowWindowsNotification(
@@ -247,7 +246,7 @@ $toast = New-Object Windows.UI.Notifications.ToastNotification $xml
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[UIThreadWatchdog] Failed to show notification: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[UIThreadWatchdog] Failed to show notification: {ex.Message}");
             }
         }
 
@@ -258,7 +257,7 @@ $toast = New-Object Windows.UI.Notifications.ToastNotification $xml
         {
             try
             {
-                Debug.WriteLine("[UIThreadWatchdog] Restarting application...");
+                System.Diagnostics.Debug.WriteLine("[UIThreadWatchdog] Restarting application...");
                 
                 // 启动新实例
                 var currentProcess = Process.GetCurrentProcess();
@@ -269,7 +268,7 @@ $toast = New-Object Windows.UI.Notifications.ToastNotification $xml
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[UIThreadWatchdog] Failed to restart application: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[UIThreadWatchdog] Failed to restart application: {ex.Message}");
             }
         }
 

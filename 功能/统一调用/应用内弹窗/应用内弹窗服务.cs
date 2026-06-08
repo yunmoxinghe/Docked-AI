@@ -18,7 +18,7 @@ public static class InAppDialogService
         var xamlRoot = ResolveXamlRoot(owner);
         if (xamlRoot is null)
         {
-            Debug.WriteLine("[InAppDialogService] XamlRoot is unavailable, cannot show dialog.");
+            System.Diagnostics.Debug.WriteLine("[InAppDialogService] XamlRoot is unavailable, cannot show dialog.");
             return null;
         }
 

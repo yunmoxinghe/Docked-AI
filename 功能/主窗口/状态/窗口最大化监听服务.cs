@@ -444,87 +444,92 @@ namespace Docked_AI.Features.MainWindow.Status
         /// <summary>
         /// 重新计算最大化状态（通过枚举所有窗口）
         /// ⭐ 不维护 HashSet，每次重新扫描 - 避免脏数据
+        /// ⭐ 在后台线程执行，避免阻塞 UI 线程
         /// </summary>
         private void RecalculateMaximizedState()
         {
-            try
+            // ✅ 在后台线程执行，避免阻塞调用者
+            _ = Task.Run(() =>
             {
-                bool hasMaximized = false;
-
-                // 枚举所有窗口
-                EnumWindows((hwnd, lParam) =>
+                try
                 {
-                    try
-                    {
-                        // 检查窗口是否有效且可见
-                        if (hwnd == IntPtr.Zero || !IsWindow(hwnd) || !IsWindowVisible(hwnd))
-                        {
-                            return true;
-                        }
+                    bool hasMaximized = false;
 
-                        // 排除当前应用的窗口
-                        GetWindowThreadProcessId(hwnd, out uint processId);
-                        if (processId == _currentProcessId)
-                        {
-                            return true;
-                        }
-
-                        // 过滤系统 UI 窗口
-                        if (IsSystemUIWindow(hwnd))
-                        {
-                            return true;
-                        }
-
-                        // 获取窗口状态
-                        WINDOWPLACEMENT placement = new()
-                        {
-                            length = (uint)Marshal.SizeOf<WINDOWPLACEMENT>()
-                        };
-
-                        if (!GetWindowPlacement(hwnd, ref placement))
-                        {
-                            return true;
-                        }
-
-                        // 判断是否最大化
-                        if (placement.showCmd == SW_SHOWMAXIMIZED)
-                        {
-                            hasMaximized = true;
-                            return false; // 找到一个就够了，停止枚举
-                        }
-                    }
-                    catch
-                    {
-                        // 忽略单个窗口的错误
-                    }
-
-                    return true; // 继续枚举
-                }, IntPtr.Zero);
-
-                // 检查状态是否变化
-                if (_isMaximized != hasMaximized)
-                {
-                    _isMaximized = hasMaximized;
-                    System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] State changed: {(hasMaximized ? "MAXIMIZED" : "NOT MAXIMIZED")}");
-
-                    // 在 UI 线程触发事件
-                    _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Normal, () =>
+                    // 枚举所有窗口
+                    EnumWindows((hwnd, lParam) =>
                     {
                         try
                         {
-                            OtherAppMaximizedChanged?.Invoke(this, hasMaximized);
+                            // 检查窗口是否有效且可见
+                            if (hwnd == IntPtr.Zero || !IsWindow(hwnd) || !IsWindowVisible(hwnd))
+                            {
+                                return true;
+                            }
+
+                            // 排除当前应用的窗口
+                            GetWindowThreadProcessId(hwnd, out uint processId);
+                            if (processId == _currentProcessId)
+                            {
+                                return true;
+                            }
+
+                            // 过滤系统 UI 窗口
+                            if (IsSystemUIWindow(hwnd))
+                            {
+                                return true;
+                            }
+
+                            // 获取窗口状态
+                            WINDOWPLACEMENT placement = new()
+                            {
+                                length = (uint)Marshal.SizeOf<WINDOWPLACEMENT>()
+                            };
+
+                            if (!GetWindowPlacement(hwnd, ref placement))
+                            {
+                                return true;
+                            }
+
+                            // 判断是否最大化
+                            if (placement.showCmd == SW_SHOWMAXIMIZED)
+                            {
+                                hasMaximized = true;
+                                return false; // 找到一个就够了，停止枚举
+                            }
                         }
-                        catch (Exception ex)
+                        catch
                         {
-                            System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] Event handler exception: {ex.Message}");
+                            // 忽略单个窗口的错误
                         }
-                    });
+
+                        return true; // 继续枚举
+                    }, IntPtr.Zero);
+
+                    // 检查状态是否变化
+                    if (_isMaximized != hasMaximized)
+                    {
+                        _isMaximized = hasMaximized;
+                        System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] State changed: {(hasMaximized ? "MAXIMIZED" : "NOT MAXIMIZED")}");
+
+                        // ✅ 使用 Low 优先级，不阻塞 UI 线程的关键操作
+                        _dispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
+                        {
+                            try
+                            {
+                                OtherAppMaximizedChanged?.Invoke(this, hasMaximized);
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] Event handler exception: {ex.Message}");
+                            }
+                        });
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] RecalculateMaximizedState failed: {ex.Message}");
-            }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WindowMaximizedMonitor] RecalculateMaximizedState failed: {ex.Message}");
+                }
+            });
         }
 
         /// <summary>

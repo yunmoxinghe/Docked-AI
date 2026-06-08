@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 
 namespace Docked_AI.Features.Pages.WebApp.EdgeSync
@@ -39,7 +40,7 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
         }
 
         /// <summary>
-        /// 打开数据库连接
+        /// 打开数据库连接（添加超时保护，避免 MSIX 打包环境下卡死）
         /// </summary>
         private void OpenConnection()
         {
@@ -60,13 +61,33 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
 
                 _connection = new SqliteConnection(connectionString);
                 
-                // 设置繁忙超时为 1 秒，避免长时间阻塞
-                _connection.Open();
+                // ⭐ MSIX 打包环境优化：使用 Task.Run + Timeout 避免无限卡死
+                var openTask = Task.Run(() => _connection.Open());
+                var completed = openTask.Wait(TimeSpan.FromSeconds(3));
+                if (!completed)
+                {
+                    _connection?.Dispose();
+                    _connection = null;
+                    throw new TimeoutException("打开 Edge Favicons 数据库超时（3秒），可能 Edge 正在运行或文件被锁定");
+                }
+                
                 using var command = _connection.CreateCommand();
-                command.CommandText = "PRAGMA busy_timeout = 1000";
+                // 设置更长的繁忙超时（5 秒），并启用只读和内存临时存储
+                command.CommandText = @"
+                    PRAGMA busy_timeout = 5000;
+                    PRAGMA query_only = ON;
+                    PRAGMA temp_store = MEMORY;
+                ";
                 command.ExecuteNonQuery();
                 
                 System.Diagnostics.Debug.WriteLine("[EdgeFaviconReader] Database connection opened successfully");
+            }
+            catch (TimeoutException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] Database connection timeout: {ex.Message}");
+                _connection?.Dispose();
+                _connection = null;
+                throw;
             }
             catch (SqliteException ex) when (ex.SqliteErrorCode == 5) // SQLITE_BUSY
             {

@@ -238,6 +238,11 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                                 return result;
                             });
                         }
+                        catch (TimeoutException ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Database connection timeout: {ex.Message}");
+                            faviconLoadFailed = true;
+                        }
                         catch (SqliteException ex) when (ex.SqliteErrorCode == 5)
                         {
                             System.Diagnostics.Debug.WriteLine("[EdgeBookmarkSync] Database is busy (Edge is running), skipping all favicon loading");

@@ -53,7 +53,8 @@ namespace Docked_AI
             
             // ⭐ 方案一：使用 Mutex 提前检测单实例，避免不必要的初始化
             // 这是最早的检测点，在 InitializeComponent() 之前执行
-            _singleInstanceMutex = new Mutex(true, "DockedAI_SingleInstance_Mutex", out _isMainInstance);
+            // ⭐ MSIX 沙箱兼容：添加 Local\ 前缀
+            _singleInstanceMutex = new Mutex(true, @"Local\DockedAI_SingleInstance_Mutex", out _isMainInstance);
             
             if (!_isMainInstance)
             {
@@ -66,14 +67,12 @@ namespace Docked_AI
                     _singleInstanceMutex?.Dispose();
                     _singleInstanceMutex = null;
                     
-                    // 使用 Mutex.WaitOne 代替 Thread.Sleep 循环
-                    // 这是构造函数中的同步代码，无法使用 async/await
-                    // 但 Mutex.WaitOne 是阻塞式等待，比 Thread.Sleep 更高效
+                    // ⭐ 优化：使用 Thread.Sleep 代替 SpinWait，避免 CPU 占用过高
                     for (int i = 0; i < 30; i++)
                     {
                         try
                         {
-                            _singleInstanceMutex = new Mutex(true, "DockedAI_SingleInstance_Mutex", out _isMainInstance);
+                            _singleInstanceMutex = new Mutex(true, @"Local\DockedAI_SingleInstance_Mutex", out _isMainInstance);
                             if (_isMainInstance)
                             {
                                 System.Diagnostics.Debug.WriteLine($"[App] Old instance exited after {(i + 1) * 100}ms, proceeding as main instance");
@@ -82,10 +81,13 @@ namespace Docked_AI
                             _singleInstanceMutex?.Dispose();
                             _singleInstanceMutex = null;
                             
-                            // 使用 SpinWait 代替 Thread.Sleep，更适合短时间等待
-                            Thread.SpinWait(1000000); // 约 100ms
+                            // 使用 Thread.Sleep，避免阻塞 UI 线程（此时 UI 尚未初始化）
+                            Thread.Sleep(100);
                         }
-                        catch { }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"[App] Mutex acquisition attempt {i+1} failed: {ex.Message}");
+                        }
                     }
                     
                     // 如果还是拿不到 Mutex，强制成为主实例
