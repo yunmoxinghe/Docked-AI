@@ -18,10 +18,9 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
-    <!-- ⭐ 关键修复：Windows App SDK 也要自包含 -->
-    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
-    <!-- 方案 A：自包含但不裁剪（避免 COM 互操作问题） -->
-    <SelfContained>true</SelfContained>
+    <!-- ⭐ 框架依赖模式：体积最小，依赖系统安装 .NET Runtime -->
+    <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+    <SelfContained>false</SelfContained>
     <PublishAot>false</PublishAot>
     <PublishTrimmed>false</PublishTrimmed>
     <!-- ⭐⭐⭐ 核心修复：使用 Workstation GC 避免 WinUI 3 的 COM 互操作死锁 -->
