@@ -430,6 +430,11 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
 
             if (tagText == "windowstate")
             {
+                // ⭐ 立即清除选中状态，防止指示器残留
+                _suppressSelectionChanged = true;
+                TopNavView.SelectedItem = null;
+                _suppressSelectionChanged = false;
+                
                 WindowStateToggleRequested?.Invoke(this, EventArgs.Empty);
                 return;
             }
@@ -445,6 +450,11 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             // 处理停靠切换
             if (tagText == "dock")
             {
+                // ⭐ 立即清除选中状态，防止指示器残留
+                _suppressSelectionChanged = true;
+                NavView.SelectedItem = _lastSelectedNavigationItem;
+                _suppressSelectionChanged = false;
+                
                 DockToggleRequested?.Invoke(this, EventArgs.Empty);
                 return;
             }
@@ -452,6 +462,11 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             // 处理返回按钮
             if (tagText == "back")
             {
+                // ⭐ 立即清除选中状态，防止指示器残留
+                _suppressSelectionChanged = true;
+                NavView.SelectedItem = _lastSelectedNavigationItem;
+                _suppressSelectionChanged = false;
+                
                 BackRequested?.Invoke(this, EventArgs.Empty);
                 return;
             }
