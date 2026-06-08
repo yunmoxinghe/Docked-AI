@@ -118,14 +118,8 @@
                             HorizontalAlignment="Left"
                             SelectionChanged="OnLanguageChanged">
                             <ComboBoxItem x:Uid="SettingsPage_LanguageSystem" Tag="" Content="跟随系统"/>
-                            <ComboBoxItem x:Uid="Language_SimplifiedChinese" Tag="zh-CN" Content="简体中文"/>
-                            <ComboBoxItem x:Uid="Language_TraditionalChinese" Tag="zh-TW" Content="繁體中文"/>
-                            <ComboBoxItem x:Uid="Language_English" Tag="en-US" Content="English"/>
-                            <ComboBoxItem x:Uid="Language_Japanese" Tag="ja-JP" Content="日本語"/>
-                            <ComboBoxItem x:Uid="Language_Korean" Tag="ko-KR" Content="한국어"/>
-                            <ComboBoxItem x:Uid="Language_French" Tag="fr-FR" Content="Français"/>
-                            <ComboBoxItem x:Uid="Language_German" Tag="de-DE" Content="Deutsch"/>
-                            <ComboBoxItem x:Uid="Language_Spanish" Tag="es-ES" Content="Español"/>
+                            <ComboBoxItem x:Uid="Language_SimplifiedChinese" Tag="zh" Content="简体中文"/>
+                            <ComboBoxItem x:Uid="Language_English" Tag="en" Content="English"/>
                         </ComboBox>
                     </controls:SettingsCard>
 
