@@ -1,33 +1,37 @@
 using System;
-using Windows.ApplicationModel.Resources;
-using Windows.Globalization;
 
 namespace Docked_AI.Features.Localization
 {
     /// <summary>
     /// 本地化辅助类，用于获取本地化字符串资源
+    /// 使用 Windows App SDK 的 ResourceLoader API
     /// </summary>
-public static class LocalizationHelper
+    public static class LocalizationHelper
     {
-        private const string ResourceMapName = "Resources";
-        private static ResourceLoader? _resourceLoader;
-        private static string? _lastLanguage;
+        // ⭐ 使用 Windows App SDK 的 ResourceLoader（而不是 UWP 的）
+        private static Microsoft.Windows.ApplicationModel.Resources.ResourceLoader? _resourceLoader;
+        private static readonly object _lock = new object();
 
+        /// <summary>
+        /// 获取本地化字符串
+        /// </summary>
+        /// <param name="key">资源键名</param>
+        /// <returns>本地化字符串，如果未找到则返回键名本身</returns>
         public static string GetString(string key)
         {
             try
             {
-                // 检查语言是否已更改，如果更改则重新创建 ResourceLoader
-                var currentLanguage = ApplicationLanguages.PrimaryLanguageOverride;
-                if (string.IsNullOrEmpty(currentLanguage))
+                // ⭐ 延迟初始化 ResourceLoader（线程安全）
+                if (_resourceLoader == null)
                 {
-                    currentLanguage = ApplicationLanguages.Languages[0];
-                }
-
-                if (_resourceLoader == null || _lastLanguage != currentLanguage)
-                {
-                    _resourceLoader = new ResourceLoader("Resources");
-                    _lastLanguage = currentLanguage;
+                    lock (_lock)
+                    {
+                        if (_resourceLoader == null)
+                        {
+                            // 使用默认资源文件路径（功能/本地化/Strings/Resources.resw）
+                            _resourceLoader = new Microsoft.Windows.ApplicationModel.Resources.ResourceLoader();
+                        }
+                    }
                 }
 
                 var result = _resourceLoader.GetString(key);
@@ -49,12 +53,14 @@ public static class LocalizationHelper
         }
 
         /// <summary>
-        /// 重置资源加载器，用于语言切换后强制重新加载
+        /// 重置资源加载器（当需要强制重新加载时使用）
         /// </summary>
         public static void Reset()
         {
-            _resourceLoader = null;
-            _lastLanguage = null;
+            lock (_lock)
+            {
+                _resourceLoader = null;
+            }
         }
     }
 }

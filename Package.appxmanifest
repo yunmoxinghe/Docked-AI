@@ -27,8 +27,11 @@
   </Dependencies>
 
   <Resources>
-    <Resource Language="x-generate"/>
+    <Resource Language="zh-CN"/>
+    <Resource Language="zh-TW"/>
+    <Resource Language="en-US"/>
   </Resources>
+
 
   <Applications>
     <Application Id="App"
