@@ -271,8 +271,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         private IconElement BuildShortcutIcon(WebAppShortcut shortcut)
         {
             string cacheDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "Docked AI",
+                Windows.Storage.ApplicationData.Current.LocalFolder.Path,
                 "web-icons");
             Directory.CreateDirectory(cacheDir);
             string extension = DetectImageExtension(shortcut.IconBytes ?? Array.Empty<byte>());

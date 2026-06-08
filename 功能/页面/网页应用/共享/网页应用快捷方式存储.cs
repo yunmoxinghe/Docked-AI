@@ -23,7 +23,7 @@ namespace Docked_AI.Features.Pages.WebApp.Shared
         };
 
         private static string StorageDirectory =>
-            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Docked AI");
+            Windows.Storage.ApplicationData.Current.LocalFolder.Path;
 
         private static string StorageFilePath => Path.Combine(StorageDirectory, "web-shortcuts.json");
 

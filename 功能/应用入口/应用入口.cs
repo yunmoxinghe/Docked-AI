@@ -386,8 +386,7 @@ namespace Docked_AI
                 System.Diagnostics.Debug.WriteLine(text);
 
                 var logDir = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "Docked AI",
+                    Windows.Storage.ApplicationData.Current.LocalFolder.Path,
                     "logs");
                 Directory.CreateDirectory(logDir);
                 File.AppendAllText(Path.Combine(logDir, "startup.log"), text + Environment.NewLine);

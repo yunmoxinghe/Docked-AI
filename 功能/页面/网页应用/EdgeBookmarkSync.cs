@@ -174,13 +174,14 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                 var allShortcuts = existingShortcuts.ToList();
 
                 // 读取 Favicons（在后台线程执行，避免阻塞 UI）
-                System.Diagnostics.Debug.WriteLine("[EdgeBookmarkSync] Loading favicons from Edge database...");
+                System.Diagnostics.Debug.WriteLine("[EdgeBookmarkSync] Checking favicon availability...");
                 Dictionary<string, byte[]> favicons = new Dictionary<string, byte[]>();
                 bool faviconLoadFailed = false;
                 
                 if (!EdgeFaviconReader.IsFaviconsDbAvailable())
                 {
                     System.Diagnostics.Debug.WriteLine("[EdgeBookmarkSync] Favicons database not available");
+                    faviconLoadFailed = true;
                 }
                 else
                 {
@@ -188,50 +189,92 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                     
                     if (newBookmarks.Count > 0)
                     {
-                        // 在后台线程执行 favicon 加载，避免阻塞 UI
+                        System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Testing database lock status...");
+                        
+                        // ⭐ 先快速测试数据库是否可访问（Edge 是否在运行）
+                        bool databaseLocked = false;
                         try
                         {
-                            // ⭐ 修复：直接在后台线程执行，不使用 Task.Wait
-                            favicons = await Task.Run(() =>
+                            using (var testReader = new EdgeFaviconReader())
                             {
-                                var result = new Dictionary<string, byte[]>();
-                                
-                                try
-                                {
-                                    using var faviconReader = new EdgeFaviconReader();
-                                    
-                                    System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Loading favicons for {newBookmarks.Count} bookmarks...");
-                                    
-                                    foreach (var bookmark in newBookmarks)
-                                    {
-                                        try
-                                        {
-                                            var iconData = faviconReader.GetFaviconByDomain(bookmark.Url);
-                                            if (iconData != null && iconData.Length > 0)
-                                            {
-                                                result[bookmark.Url] = iconData;
-                                            }
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Failed to load favicon for {bookmark.Url}: {ex.Message}");
-                                        }
-                                    }
-                                    
-                                    System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Loaded {result.Count} favicons");
-                                }
-                                catch (Exception ex)
-                                {
-                                    System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Failed to initialize favicon reader: {ex.Message}");
-                                }
-                                
-                                return result;
-                            });
+                                // 如果能创建 reader，说明数据库可访问
+                                System.Diagnostics.Debug.WriteLine("[EdgeBookmarkSync] Database is accessible, will load favicons");
+                            }
+                        }
+                        catch (Microsoft.Data.Sqlite.SqliteException ex) when (ex.SqliteErrorCode == 5) // SQLITE_BUSY
+                        {
+                            System.Diagnostics.Debug.WriteLine("[EdgeBookmarkSync] Database is locked (Edge is running), skipping all favicon loading");
+                            databaseLocked = true;
+                            faviconLoadFailed = true;
                         }
                         catch (Exception ex)
                         {
-                            System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Failed to load favicons: {ex.Message}");
+                            System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Database test failed: {ex.Message}, skipping favicon loading");
+                            databaseLocked = true;
                             faviconLoadFailed = true;
+                        }
+                        
+                        // 只有数据库可访问时才加载 favicon
+                        if (!databaseLocked)
+                        {
+                            try
+                            {
+                                // 在后台线程执行 favicon 加载
+                                favicons = await Task.Run(() =>
+                                {
+                                    var result = new Dictionary<string, byte[]>();
+                                    EdgeFaviconReader? faviconReader = null;
+                                    
+                                    try
+                                    {
+                                        faviconReader = new EdgeFaviconReader();
+                                        
+                                        System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Loading favicons for {newBookmarks.Count} bookmarks...");
+                                        
+                                        int successCount = 0;
+                                        int failCount = 0;
+                                        
+                                        foreach (var bookmark in newBookmarks)
+                                        {
+                                            try
+                                            {
+                                                var iconData = faviconReader.GetFaviconByDomain(bookmark.Url);
+                                                if (iconData != null && iconData.Length > 0)
+                                                {
+                                                    result[bookmark.Url] = iconData;
+                                                    successCount++;
+                                                }
+                                                else
+                                                {
+                                                    failCount++;
+                                                }
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Failed to load favicon for {bookmark.Url}: {ex.Message}");
+                                                failCount++;
+                                            }
+                                        }
+                                        
+                                        System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Favicon loading completed: {successCount} succeeded, {failCount} failed");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Failed during favicon loading: {ex.Message}");
+                                    }
+                                    finally
+                                    {
+                                        faviconReader?.Dispose();
+                                    }
+                                    
+                                    return result;
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Failed to load favicons: {ex.Message}");
+                                faviconLoadFailed = true;
+                            }
                         }
                     }
                 }
