@@ -220,47 +220,11 @@ namespace Docked_AI.Features.Pages.New
                     return;
                 }
 
-                // 显示进度对话框
-                var progressRing = new ProgressRing
-                {
-                    IsActive = true,
-                    Width = 40,
-                    Height = 40
-                };
-
-                var progressText = new TextBlock
-                {
-                    Text = LocalizationHelper.GetString("NewPage_ImportProgress"),
-                    TextAlignment = TextAlignment.Center,
-                    Margin = new Thickness(0, 16, 0, 0),
-                    TextWrapping = TextWrapping.Wrap,
-                    MaxWidth = 300
-                };
-
-                var progressContent = new StackPanel
-                {
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    Children = { progressRing, progressText }
-                };
-
-                var progressDialog = new UnifiedInAppDialog();
-                progressDialog.Configure(
-                    "导入中",
-                    progressContent,
-                    null,
-                    null);
-
-                // 异步显示对话框并执行导入
-                var dialogTask = InAppDialogService.ShowAsync(progressDialog, this);
-
                 // 设置要同步的文件夹路径
                 EdgeBookmarkSyncService.SyncFolderPath = folderPath ?? "";
 
-                // 执行导入
+                // 执行导入（不显示进度对话框，直接导入）
                 var result = await EdgeBookmarkSyncService.SyncFromEdgeAsync();
-
-                // 关闭进度对话框
-                progressDialog.Hide();
 
                 // 显示结果
                 if (result.Success)
