@@ -1,12 +1,12 @@
 {
   "enabled": true,
   "name": "阻止 dotnet build",
-  "description": "拦截 dotnet build 命令，提醒使用项目推荐的构建方式（dotnet run 或 winapp）",
-  "version": "1",
+  "description": "拦截 dotnet build 命令，提醒使用项目推荐的构建方式（dotnet run 或 winapp）。使用正则表达式精确匹配 dotnet build 相关命令。",
+  "version": "2",
   "when": {
     "type": "preToolUse",
     "toolTypes": [
-      "shell"
+      ".*dotnet.*build.*"
     ]
   },
   "then": {
