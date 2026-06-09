@@ -8,15 +8,29 @@
     xmlns:topAppBar="using:Docked_AI.Features.UnifiedCalls.TopAppBar"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    UseLayoutRounding="True">
 
-    <Border
-        x:Name="ContentBorder"
-        CornerRadius="4"
-        Padding="0"
-        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-        BorderThickness="1">
-        <Grid CornerRadius="4">
+    <Grid UseLayoutRounding="True">
+        <!-- Z轴下层：系统背景元素 - 亚克力 -->
+        <controls:SystemBackdropElement x:Name="ContentBorderBackdrop"
+                                         CornerRadius="{Binding ElementName=ContentBorder, Path=CornerRadius}"
+                                         Margin="0"
+                                         UseLayoutRounding="True">
+            <controls:SystemBackdropElement.SystemBackdrop>
+                <media:DesktopAcrylicBackdrop/>
+            </controls:SystemBackdropElement.SystemBackdrop>
+        </controls:SystemBackdropElement>
+        
+        <!-- Z轴上层：内容区边框 -->
+        <Border
+            x:Name="ContentBorder"
+            CornerRadius="{ThemeResource ControlCornerRadius}"
+            Padding="0"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            UseLayoutRounding="True">
+        <Grid UseLayoutRounding="True">
             <!-- 第零层：背景（根据设置动态切换） -->
             <Grid x:Name="BackdropContainer">
                 <!-- 默认纯色背景 -->
@@ -26,7 +40,7 @@
                 
                 <!-- 云母 Base 背景 -->
                 <controls:SystemBackdropElement x:Name="MicaBaseBackdropLayer" 
-                                                 CornerRadius="4"
+                                                 CornerRadius="{Binding ElementName=ContentBorder, Path=CornerRadius}"
                                                  Visibility="Collapsed">
                     <controls:SystemBackdropElement.SystemBackdrop>
                         <media:MicaBackdrop Kind="Base"/>
@@ -35,7 +49,7 @@
                 
                 <!-- 云母 Alt 背景 -->
                 <controls:SystemBackdropElement x:Name="MicaAltBackdropLayer" 
-                                                 CornerRadius="4"
+                                                 CornerRadius="{Binding ElementName=ContentBorder, Path=CornerRadius}"
                                                  Visibility="Collapsed">
                     <controls:SystemBackdropElement.SystemBackdrop>
                         <media:MicaBackdrop Kind="BaseAlt"/>
@@ -44,7 +58,7 @@
                 
                 <!-- 亚克力背景 -->
                 <controls:SystemBackdropElement x:Name="AcrylicBackdropLayer" 
-                                                 CornerRadius="4"
+                                                 CornerRadius="{Binding ElementName=ContentBorder, Path=CornerRadius}"
                                                  Visibility="Collapsed">
                     <controls:SystemBackdropElement.SystemBackdrop>
                         <media:DesktopAcrylicBackdrop/>
@@ -87,4 +101,5 @@
             </Grid>
         </Grid>
     </Border>
+    </Grid>
 </UserControl>

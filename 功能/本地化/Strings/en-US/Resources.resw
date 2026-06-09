@@ -845,23 +845,4 @@ Error Message: {1}</value>
   <data name="SettingsPage_DisableSoftwareRasterizerHeader.Description" xml:space="preserve">
     <value>Force GPU rendering (requires WebView restart)</value>
   </data>
-  <!-- Settings Page - Content Area Backdrop -->
-  <data name="SettingsPage_ContentAreaBackdropHeader.Header" xml:space="preserve">
-    <value>Content Area Backdrop</value>
-  </data>
-  <data name="SettingsPage_ContentAreaBackdropHeader.Description" xml:space="preserve">
-    <value>Choose background effect for content area</value>
-  </data>
-  <data name="SettingsPage_BackdropSolidColor.Content" xml:space="preserve">
-    <value>Solid Color</value>
-  </data>
-  <data name="SettingsPage_BackdropMicaBase.Content" xml:space="preserve">
-    <value>Mica (Base)</value>
-  </data>
-  <data name="SettingsPage_BackdropMicaAlt.Content" xml:space="preserve">
-    <value>Mica (Alt)</value>
-  </data>
-  <data name="SettingsPage_BackdropAcrylic.Content" xml:space="preserve">
-    <value>Acrylic</value>
-  </data>
 </root>
