@@ -88,8 +88,8 @@ namespace Docked_AI.Features.Pages.Settings
             catch (Exception hkEx)
             {
                 System.Diagnostics.Debug.WriteLine($"[SettingsPage] ERROR initializing hotkey settings: {hkEx}");
-                // BEST PRACTICE: Create default instance instead of null
-                _hotkeySettings = HotkeySettings.CreateDefault();
+                // Create default instance - constructor already provides safe defaults
+                _hotkeySettings = new HotkeySettings();
             }
         }
         
