@@ -36,25 +36,21 @@
                 <StackPanel
                     x:Name="CardsPanel"
                     Spacing="4">
-                    <StackPanel.ChildrenTransitions>
-                        <EntranceThemeTransition FromVerticalOffset="50" />
-                        <RepositionThemeTransition IsStaggeringEnabled="False" />
-                    </StackPanel.ChildrenTransitions>
                     <!-- 当状态为 DisabledByUser 时显示提示信息 -->
                     <InfoBar
                         x:Uid="SettingsPage_UserDisabledInfo"
                         Severity="Informational"
-                        IsOpen="{x:Bind ViewModel.ShowUserDisabledInfo, Mode=OneWay}"
+                        IsOpen="{x:Bind ViewModel.ShowUserDisabledInfo, Mode=OneWay, FallbackValue=False}"
                         IsClosable="False"
-                        Visibility="{x:Bind ViewModel.ShowUserDisabledInfo, Mode=OneWay}"/>
+                        Visibility="{x:Bind ViewModel.ShowUserDisabledInfo, Mode=OneWay, FallbackValue=Collapsed}"/>
 
                     <!-- 当状态为 DisabledByPolicy 时显示警告 -->
                     <InfoBar
                         x:Uid="SettingsPage_PolicyWarning"
                         Severity="Warning"
-                        IsOpen="{x:Bind ViewModel.ShowPolicyWarning, Mode=OneWay}"
+                        IsOpen="{x:Bind ViewModel.ShowPolicyWarning, Mode=OneWay, FallbackValue=False}"
                         IsClosable="False"
-                        Visibility="{x:Bind ViewModel.ShowPolicyWarning, Mode=OneWay}"/>
+                        Visibility="{x:Bind ViewModel.ShowPolicyWarning, Mode=OneWay, FallbackValue=Collapsed}"/>
 
                     <!-- 常规设置 -->
                     <TextBlock 
@@ -74,8 +70,8 @@
                             <FontIcon Glyph="&#xE8A7;"/>
                         </controls:SettingsCard.ActionIcon>
                         <ToggleSwitch 
-                            IsOn="{x:Bind ViewModel.IsStartupEnabled, Mode=OneWay}"
-                            IsEnabled="{x:Bind ViewModel.CanToggle, Mode=OneWay}"
+                            IsOn="{x:Bind ViewModel.IsStartupEnabled, Mode=OneWay, FallbackValue=False}"
+                            IsEnabled="{x:Bind ViewModel.CanToggle, Mode=OneWay, FallbackValue=False}"
                             Toggled="OnToggleSwitched"/>
                     </controls:SettingsCard>
 
@@ -118,8 +114,14 @@
                             HorizontalAlignment="Left"
                             SelectionChanged="OnLanguageChanged">
                             <ComboBoxItem x:Uid="SettingsPage_LanguageSystem" Tag="" Content="跟随系统"/>
-                            <ComboBoxItem x:Uid="Language_SimplifiedChinese" Tag="zh-Hans" Content="简体中文"/>
+                            <ComboBoxItem x:Uid="Language_SimplifiedChinese" Tag="zh-CN" Content="简体中文"/>
+                            <ComboBoxItem x:Uid="Language_TraditionalChinese" Tag="zh-TW" Content="繁體中文"/>
                             <ComboBoxItem x:Uid="Language_English" Tag="en-US" Content="English"/>
+                            <ComboBoxItem x:Uid="Language_Japanese" Tag="ja-JP" Content="日本語"/>
+                            <ComboBoxItem x:Uid="Language_Korean" Tag="ko-KR" Content="한국어"/>
+                            <ComboBoxItem x:Uid="Language_French" Tag="fr-FR" Content="Français"/>
+                            <ComboBoxItem x:Uid="Language_German" Tag="de-DE" Content="Deutsch"/>
+                            <ComboBoxItem x:Uid="Language_Spanish" Tag="es-ES" Content="Español"/>
                         </ComboBox>
                     </controls:SettingsCard>
 
