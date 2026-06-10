@@ -31,6 +31,7 @@ namespace Docked_AI.Features.Pages.Settings
         private double _lastAppliedMargin = -1;
         private double _lastMeasuredWidth = -1;
         private bool _hasPlayedEntranceAnimation = false; // 标记是否已播放入场动画
+        private bool _shouldPlayEntranceAnimation = false; // 标记是否应该播放动画（在 OnNavigatedTo 中设置）
 
         // ViewModel for startup settings
         public StartupSettingsViewModel ViewModel { get; private set; } = null!;
@@ -367,9 +368,11 @@ namespace Docked_AI.Features.Pages.Settings
             {
                 System.Diagnostics.Debug.WriteLine($"[SettingsPage] OnLoaded started at {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
                 
-                // 🎯 CRITICAL: 立即隐藏卡片以防止闪烁
-                // 必须在任何其他操作之前执行
-                if (CardsPanel != null && !_hasPlayedEntranceAnimation)
+                // BEST PRACTICE: 根据 Microsoft 官方建议，在 Loaded 事件中进行元素操作和状态改变
+                // 来源: https://learn.microsoft.com/en-us/uwp/api/windows.ui.xaml.controls.page.onnavigatedto
+                
+                // 🎯 如果需要播放入场动画，先隐藏卡片
+                if (_shouldPlayEntranceAnimation && CardsPanel != null)
                 {
                     foreach (var child in CardsPanel.Children)
                     {
@@ -378,7 +381,15 @@ namespace Docked_AI.Features.Pages.Settings
                             child.Opacity = 0;
                         }
                     }
-                    System.Diagnostics.Debug.WriteLine("[SettingsPage] Cards hidden to prevent flicker");
+                    System.Diagnostics.Debug.WriteLine("[SettingsPage] Cards hidden for entrance animation");
+                    
+                    // 延迟执行动画，确保 UI 元素已完全加载
+                    DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
+                    {
+                        StartStaggeredEntranceAnimation();
+                    });
+                    
+                    _shouldPlayEntranceAnimation = false;
                 }
                 
                 // IMPORTANT: Load settings AFTER UI is fully loaded to prevent null reference crashes
@@ -432,15 +443,17 @@ namespace Docked_AI.Features.Pages.Settings
             base.OnNavigatedTo(e);
             _智能标题.Setup(SettingsScrollViewer, PageTitleBlock);
             
-            // 🎯 只在首次导航时播放手动交错动画
+            System.Diagnostics.Debug.WriteLine($"[SettingsPage] OnNavigatedTo - NavigationMode: {e.NavigationMode}");
+            
+            // BEST PRACTICE: 不要在 OnNavigatedTo 中操作 UI 元素
+            // 根据 Microsoft 官方文档建议，元素操作应该在 Loaded 事件中进行
+            // 来源: https://learn.microsoft.com/en-us/uwp/api/windows.ui.xaml.controls.page.onnavigatedto
+            
+            // 🎯 只在首次导航时标记需要播放动画
             if (e.NavigationMode == Microsoft.UI.Xaml.Navigation.NavigationMode.New && 
                 !_hasPlayedEntranceAnimation)
             {
-                // 延迟执行动画，确保 UI 元素已完全加载
-                DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Low, () =>
-                {
-                    StartStaggeredEntranceAnimation();
-                });
+                _shouldPlayEntranceAnimation = true;
             }
         }
 
