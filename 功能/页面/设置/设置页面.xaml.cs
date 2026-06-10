@@ -367,6 +367,20 @@ namespace Docked_AI.Features.Pages.Settings
             {
                 System.Diagnostics.Debug.WriteLine($"[SettingsPage] OnLoaded started at {DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}");
                 
+                // 🎯 CRITICAL: 立即隐藏卡片以防止闪烁
+                // 必须在任何其他操作之前执行
+                if (CardsPanel != null && !_hasPlayedEntranceAnimation)
+                {
+                    foreach (var child in CardsPanel.Children)
+                    {
+                        if (child != null)
+                        {
+                            child.Opacity = 0;
+                        }
+                    }
+                    System.Diagnostics.Debug.WriteLine("[SettingsPage] Cards hidden to prevent flicker");
+                }
+                
                 // IMPORTANT: Load settings AFTER UI is fully loaded to prevent null reference crashes
                 SafeLoadSettings();
                 System.Diagnostics.Debug.WriteLine("[SettingsPage] Settings loaded");
