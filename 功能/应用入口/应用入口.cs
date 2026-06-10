@@ -282,7 +282,7 @@ namespace Docked_AI
             _singleInstanceCommunication?.Dispose();
         }
 
-        private void ExitApplication()
+        private async void ExitApplication()
         {
             try
             {
@@ -304,8 +304,13 @@ namespace Docked_AI
                 _trayIconManager?.Dispose();
                 _trayIconManager = null;
                 
-                _singleInstanceCommunication?.Dispose();
-                _singleInstanceCommunication = null;
+                // 异步停止单实例通信
+                if (_singleInstanceCommunication != null)
+                {
+                    await _singleInstanceCommunication.StopListeningAsync();
+                    _singleInstanceCommunication.Dispose();
+                    _singleInstanceCommunication = null;
+                }
                 
                 // 释放 Mutex
                 _singleInstanceMutex?.ReleaseMutex();

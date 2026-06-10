@@ -168,19 +168,18 @@ namespace Docked_AI.Features.AppEntry.SingleInstance
         }
 
         /// <summary>
-        /// 停止监听
+        /// 停止监听（异步版本，推荐使用）
         /// </summary>
-        public void StopListening()
+        public async Task StopListeningAsync()
         {
             _cancellationTokenSource?.Cancel();
             
             try
             {
-                // 使用 GetAwaiter().GetResult() 代替 Wait()，更安全
                 if (_listenerTask != null)
                 {
                     var timeoutTask = Task.Delay(TimeSpan.FromSeconds(1));
-                    var completedTask = Task.WhenAny(_listenerTask, timeoutTask).GetAwaiter().GetResult();
+                    var completedTask = await Task.WhenAny(_listenerTask, timeoutTask);
                     
                     if (completedTask == timeoutTask)
                     {
@@ -196,6 +195,14 @@ namespace Docked_AI.Features.AppEntry.SingleInstance
                     System.Diagnostics.Debug.WriteLine($"[SingleInstancePipe] StopListening error: {ex.Message}");
                 }
             }
+        }
+
+        /// <summary>
+        /// 停止监听（同步版本，仅用于 Dispose）
+        /// </summary>
+        public void StopListening()
+        {
+            _cancellationTokenSource?.Cancel(); // 仅发送取消信号，不等待完成
         }
 
         /// <summary>

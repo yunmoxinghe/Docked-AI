@@ -724,6 +724,12 @@ https://developer.microsoft.com/microsoft-edge/webview2/</value>
   <data name="LabPage_DefaultTitle" xml:space="preserve">
     <value>实验室</value>
   </data>
+  <data name="LabPage_WindowMaximized" xml:space="preserve">
+    <value>已最大化</value>
+  </data>
+  <data name="LabPage_WindowNotMaximized" xml:space="preserve">
+    <value>未最大化</value>
+  </data>
   <!-- 设置页面 - C# 代码中使用的快捷键录制文本 -->
   <data name="SettingsPage_HotkeyRecording" xml:space="preserve">
     <value>按下快捷键...</value>

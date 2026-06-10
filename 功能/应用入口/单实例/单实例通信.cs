@@ -151,9 +151,9 @@ namespace Docked_AI.Features.AppEntry.SingleInstance
         }
 
         /// <summary>
-        /// 停止监听
+        /// 停止监听（异步版本，推荐使用）
         /// </summary>
-        public void StopListening()
+        public async System.Threading.Tasks.Task StopListeningAsync()
         {
             if (!_isListening)
             {
@@ -165,8 +165,30 @@ namespace Docked_AI.Features.AppEntry.SingleInstance
             // 发送取消信号，立即唤醒监听线程
             _cancelEvent?.Set();
             
-            // 等待线程退出（最多 1 秒）
-            _listenerThread?.Join(TimeSpan.FromSeconds(1));
+            // 异步等待线程退出（最多 1 秒）
+            if (_listenerThread != null)
+            {
+                await System.Threading.Tasks.Task.Run(() => 
+                {
+                    _listenerThread.Join(TimeSpan.FromSeconds(1));
+                });
+            }
+        }
+
+        /// <summary>
+        /// 停止监听（同步版本，仅用于 Dispose）
+        /// </summary>
+        public void StopListening()
+        {
+            if (!_isListening)
+            {
+                return;
+            }
+
+            _isListening = false;
+            
+            // 仅发送取消信号，不等待完成
+            _cancelEvent?.Set();
         }
 
         /// <summary>

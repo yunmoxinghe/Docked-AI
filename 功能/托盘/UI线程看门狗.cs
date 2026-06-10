@@ -72,9 +72,9 @@ namespace Docked_AI.Features.Tray
         }
 
         /// <summary>
-        /// 停止看门狗
+        /// 停止看门狗（异步版本，推荐使用）
         /// </summary>
-        public void Stop()
+        public async Task StopAsync()
         {
             if (_cts == null || _watchdogTask == null)
             {
@@ -84,12 +84,11 @@ namespace Docked_AI.Features.Tray
             System.Diagnostics.Debug.WriteLine("[UIThreadWatchdog] Stopping...");
             _cts.Cancel();
             
-            // 使用 GetAwaiter().GetResult() 代替 Wait()，更安全
             try
             {
-                // 创建一个超时任务
+                // 异步等待任务完成或超时
                 var timeoutTask = Task.Delay(TimeSpan.FromSeconds(1));
-                var completedTask = Task.WhenAny(_watchdogTask, timeoutTask).GetAwaiter().GetResult();
+                var completedTask = await Task.WhenAny(_watchdogTask, timeoutTask);
                 
                 if (completedTask == timeoutTask)
                 {
@@ -105,6 +104,20 @@ namespace Docked_AI.Features.Tray
             _cts = null;
             _watchdogTask = null;
             System.Diagnostics.Debug.WriteLine("[UIThreadWatchdog] Stopped");
+        }
+
+        /// <summary>
+        /// 停止看门狗（同步版本，仅用于 Dispose）
+        /// </summary>
+        public void Stop()
+        {
+            if (_cts == null || _watchdogTask == null)
+            {
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine("[UIThreadWatchdog] Stopping (sync)...");
+            _cts.Cancel(); // 仅发送取消信号，不等待完成
         }
 
         /// <summary>

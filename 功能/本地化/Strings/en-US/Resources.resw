@@ -724,6 +724,12 @@ Tip: For complete icons, please close Edge browser first</value>
   <data name="LabPage_DefaultTitle" xml:space="preserve">
     <value>Lab</value>
   </data>
+  <data name="LabPage_WindowMaximized" xml:space="preserve">
+    <value>Maximized</value>
+  </data>
+  <data name="LabPage_WindowNotMaximized" xml:space="preserve">
+    <value>Not Maximized</value>
+  </data>
   <!-- Settings Page - C# Code Hotkey Recording Text -->
   <data name="SettingsPage_HotkeyRecording" xml:space="preserve">
     <value>Press hotkey...</value>

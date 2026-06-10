@@ -86,13 +86,13 @@ namespace Docked_AI.Features.Pages.Lab
                 {
                     MaximizedStateIcon.Glyph = "\uE740"; // 最大化图标
                     MaximizedStateIcon.Foreground = new SolidColorBrush(Colors.Orange);
-                    MaximizedStateText.Text = "已最大化";
+                    MaximizedStateText.Text = LocalizationHelper.GetString("LabPage_WindowMaximized");
                 }
                 else
                 {
                     MaximizedStateIcon.Glyph = "\uE73F"; // 还原图标
                     MaximizedStateIcon.Foreground = new SolidColorBrush(Colors.Green);
-                    MaximizedStateText.Text = "未最大化";
+                    MaximizedStateText.Text = LocalizationHelper.GetString("LabPage_WindowNotMaximized");
                 }
                 
                 System.Diagnostics.Debug.WriteLine($"[LabPage] UI updated: isMaximized={isMaximized}");
