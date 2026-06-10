@@ -202,6 +202,25 @@ namespace Docked_AI.Features.Pages.New
                     return;
                 }
 
+                // 检查 Edge 是否正在运行
+                if (IsEdgeRunning())
+                {
+                    var warningDialog = CreateMessageDialog(
+                        "需要关闭 Edge 浏览器",
+                        "检测到 Microsoft Edge 浏览器正在运行。\n\n" +
+                        "为了成功导入收藏夹图标，请先关闭 Edge 浏览器，然后再继续导入操作。\n\n" +
+                        "如果继续，仍然可以导入收藏夹，但可能无法获取完整的图标。",
+                        primaryButtonText: "仍然继续",
+                        closeButtonText: "取消",
+                        defaultButton: ContentDialogButton.Close);
+                    
+                    var warningResult = await InAppDialogService.ShowAsync(warningDialog, this);
+                    if (warningResult != ContentDialogResult.Primary)
+                    {
+                        return;
+                    }
+                }
+
                 // 显示确认对话框
                 var confirmMessage = string.IsNullOrEmpty(folderPath)
                     ? "即将导入 Edge 浏览器的所有收藏夹到侧边栏。\n已存在的网址不会重复添加。\n\n是否继续？"
@@ -301,6 +320,33 @@ namespace Docked_AI.Features.Pages.New
                 closeButtonText,
                 defaultButton: defaultButton);
             return dialog;
+        }
+
+        /// <summary>
+        /// 检查 Edge 浏览器是否正在运行
+        /// </summary>
+        private static bool IsEdgeRunning()
+        {
+            try
+            {
+                var edgeProcesses = System.Diagnostics.Process.GetProcessesByName("msedge");
+                bool isRunning = edgeProcesses.Length > 0;
+                
+                // 释放进程资源
+                foreach (var process in edgeProcesses)
+                {
+                    process.Dispose();
+                }
+                
+                System.Diagnostics.Debug.WriteLine($"[NewPage] Edge running: {isRunning} ({edgeProcesses.Length} processes)");
+                return isRunning;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[NewPage] Failed to check Edge process: {ex.Message}");
+                // 如果无法检测，假设没有运行
+                return false;
+            }
         }
     }
 }
