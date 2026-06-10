@@ -726,12 +726,8 @@ namespace Docked_AI.Features.MainWindow.Visibility
                         new StateTransition(WindowState.Windowed, WindowState.Hidden, DateTime.Now, "Hide after restore")
                     ),
 
-                    // 组合副作用：Pinned -> Hidden（先取消固定再隐藏）
-                    (WindowState.Pinned, WindowState.Hidden) => ExecuteCompositeAsync(
-                        transitionId,
-                        new StateTransition(WindowState.Pinned, WindowState.Windowed, DateTime.Now, "Unpin before hide"),
-                        new StateTransition(WindowState.Windowed, WindowState.Hidden, DateTime.Now, "Hide after unpin")
-                    ),
+                    // 组合副作用：Pinned -> Hidden（直接从固定模式隐藏，不经过 Windowed）
+                    (WindowState.Pinned, WindowState.Hidden) => HideFromPinnedModeAsync(),
 
                     _ => System.Threading.Tasks.Task.CompletedTask
                 };
@@ -791,6 +787,57 @@ namespace Docked_AI.Features.MainWindow.Visibility
         {
             StartShowAnimation();
             await System.Threading.Tasks.Task.Delay(SlideAnimationDelay);
+        }
+
+        /// <summary>
+        /// 从固定模式直接隐藏（跳过 Windowed 中间状态，避免多余的弹出动画）
+        /// 
+        /// 【调用时机】
+        /// Pinned -> Hidden 状态转换时调用
+        /// 
+        /// 【关键优化】
+        /// 不执行滑入动画，直接从固定位置滑出并隐藏
+        /// 避免了原有组合转换中的"滑出→滑入→滑出"导致的视觉闪烁
+        /// 
+        /// 【执行步骤】
+        /// 1. 停止最大化监听服务
+        /// 2. 滑出到屏幕外（360ms 动画）
+        /// 3. 在屏幕外注销 AppBar
+        /// 4. 在屏幕外还原标准窗口样式（用户看不见）
+        /// 5. 直接隐藏窗口，不执行滑入动画
+        /// </summary>
+        private async System.Threading.Tasks.Task HideFromPinnedModeAsync()
+        {
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] HideFromPinnedModeAsync: Starting direct hide from pinned mode");
+            
+            // 1. 停止最大化监听服务
+            _maximizedMonitor.Stop();
+            
+            // 2. 滑出到屏幕外（360ms 动画）
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] HideFromPinnedModeAsync: Sliding out to off-screen");
+            await _pinnedModeController.SlideOutAsync();
+            
+            // 3. 在屏幕外注销 AppBar（释放屏幕安全区）
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] HideFromPinnedModeAsync: Removing AppBar");
+            _pinnedModeController.RemoveAppBar();
+            
+            // 4. 在屏幕外还原标准窗口样式（用户看不到样式切换）
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] HideFromPinnedModeAsync: Restoring standard window style");
+            _pinnedModeController.RestoreStandardWindowStyle();
+            _titleBarService.ConfigureStandardWindow(_window);
+            _backdropService.EnsureAcrylicBackdrop(_window);
+            
+            // 5. 取消置顶
+            SetTopMost(false);
+            
+            // 6. 直接隐藏窗口，不执行滑入动画
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] HideFromPinnedModeAsync: Hiding window directly");
+            if (_hwnd != IntPtr.Zero)
+            {
+                VisibilityWin32Api.ShowWindow(_hwnd, VisibilityWin32Api.SW_HIDE);
+            }
+            
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] HideFromPinnedModeAsync: Completed");
         }
 
         private async System.Threading.Tasks.Task ApplyPinnedModeAsync()
