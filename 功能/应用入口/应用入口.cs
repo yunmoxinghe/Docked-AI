@@ -12,6 +12,7 @@ using Docked_AI.Features.AppEntry.AutoLaunch;
 using Docked_AI.Features.AppEntry.ShareLaunch;
 using Docked_AI.Features.AppEntry.SingleInstance;
 using Docked_AI.Features.MainWindow.Entry;
+using Docked_AI.Features.UnifiedCalls.Logging;
 using Windows.Graphics;
 using Windows.ApplicationModel.Activation;
 
@@ -180,6 +181,9 @@ namespace Docked_AI
                 
                 System.Diagnostics.Debug.WriteLine("[App] Creating keep-alive window");
                 EnsureKeepAliveWindow();
+
+                // 清理旧日志（保留最近 7 天）
+                LogService.CleanupOldLogs(7);
 
                 System.Diagnostics.Debug.WriteLine("[App] OnLaunched completed successfully");
                 
@@ -366,40 +370,27 @@ namespace Docked_AI
 
         private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
         {
-            LogException("App.UnhandledException", e.Exception);
+            LogService.Error("App", "未处理的 XAML 异常", e.Exception);
         }
 
         private void CurrentDomain_UnhandledException(object? sender, System.UnhandledExceptionEventArgs e)
         {
             if (e.ExceptionObject is Exception ex)
             {
-                LogException("AppDomain.UnhandledException", ex);
+                LogService.Error("AppDomain", "未处理的应用程序域异常", ex);
             }
         }
 
         private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
         {
-            LogException("TaskScheduler.UnobservedTaskException", e.Exception);
+            LogService.Error("TaskScheduler", "未观察到的任务异常", e.Exception);
             e.SetObserved();
         }
 
         private static void LogException(string source, Exception ex)
         {
-            try
-            {
-                var text = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {source}\n{ex}\n";
-                System.Diagnostics.Debug.WriteLine(text);
-
-                var logDir = Path.Combine(
-                    Windows.Storage.ApplicationData.Current.LocalFolder.Path,
-                    "logs");
-                Directory.CreateDirectory(logDir);
-                File.AppendAllText(Path.Combine(logDir, "startup.log"), text + Environment.NewLine);
-            }
-            catch
-            {
-                // Suppress logging failures to avoid recursive startup crashes.
-            }
+            // 使用统一的日志服务
+            LogService.Error("App", source, ex);
         }
     }
 }
