@@ -640,14 +640,14 @@ namespace Docked_AI.Features.MainWindow.Appearance
         /// </summary>
         private double CalculateSmoothOpacity(double t)
         {
-            // 可选方案 1: EaseInOutQuad（你原来使用的）
-            // return EaseInOutQuad(t);
+            // 可选方案 1: EaseInOutQuad（默认使用）
+            return EaseInOutQuad(t);
 
             // 可选方案 2: Smoothstep（更平滑）
             // return t * t * (3.0 - 2.0 * t);
 
             // 可选方案 3: Smootherstep（最平滑）
-            return t * t * t * (t * (t * 6 - 15) + 10);
+            // return t * t * t * (t * (t * 6 - 15) + 10);
 
             // 可选方案 4: 三次贝塞尔
             // return CubicBezier(t, 0.0, 0.42, 0.58, 1.0);
