@@ -89,6 +89,8 @@
     </PackageReference>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.1.3" />
     <PackageReference Include="WinUIEx" Version="2.9.1" />
+    <!-- ⭐ Microsoft.UI.Reactor - 声明式 UI 框架（公开预览版） -->
+    <PackageReference Include="Microsoft.UI.Reactor" Version="0.1.0-preview.4" />
     <!-- 已移除 DevWinUI NuGet，改用本地源码 -->
     <!-- 移除 NHotkey.WinUI NuGet，改用本地源码 -->
   </ItemGroup>
