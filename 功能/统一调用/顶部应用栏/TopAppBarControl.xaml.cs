@@ -1,3 +1,4 @@
+using Microsoft.UI;
 using Microsoft.UI.Composition;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -31,6 +32,87 @@ public sealed partial class TopAppBarControl : UserControl
     public TopAppBarControl()
     {
         InitializeComponent();
+        
+        // 监听主题变化，自动刷新资源引用
+        ActualThemeChanged += OnThemeChanged;
+    }
+
+    private void OnThemeChanged(FrameworkElement sender, object args)
+    {
+        System.Diagnostics.Debug.WriteLine("[TopAppBarControl] 系统主题已切换，刷新资源");
+        
+        // 强制刷新所有 ThemeResource 绑定的资源
+        RefreshThemeResources();
+    }
+
+    private void RefreshThemeResources()
+    {
+        System.Diagnostics.Debug.WriteLine("[TopAppBarControl] RefreshThemeResources 开始");
+        
+        // 刷新默认背景和前景色（使用最新主题资源）
+        var defaultBackground = GetDefaultBackgroundBrush();
+        var defaultForeground = GetDefaultForegroundBrush();
+        
+        System.Diagnostics.Debug.WriteLine($"[TopAppBarControl] 新背景画刷类型: {defaultBackground?.GetType().Name}");
+        System.Diagnostics.Debug.WriteLine($"[TopAppBarControl] 新前景画刷类型: {defaultForeground?.GetType().Name}");
+        
+        // ✅ 强制更新背景层的 ThemeResource 引用（直接设置，不检查旧值）
+        BackgroundLayer.Background = defaultBackground;
+        
+        // 更新按钮前景色
+        BackButton.Foreground = defaultForeground;
+        MenuButton.Foreground = defaultForeground;
+        MoreButton.Foreground = defaultForeground;
+        
+        // 刷新按钮的悬停/按下状态颜色
+        RefreshButtonResources(BackButton);
+        RefreshButtonResources(MenuButton);
+        RefreshButtonResources(MoreButton);
+        
+        // 刷新左右面板中的控件
+        RefreshPanelTheme(LeftPanel, defaultForeground);
+        RefreshPanelTheme(RightPanel, defaultForeground);
+        
+        System.Diagnostics.Debug.WriteLine("[TopAppBarControl] RefreshThemeResources 完成");
+    }
+
+    private void RefreshButtonResources(Button button)
+    {
+        if (button == null) return;
+        
+        // 更新按钮的 ThemeResource 覆盖
+        button.Resources["ButtonBackgroundPointerOver"] = GetResourceOrDefault("SubtleFillColorSecondary");
+        button.Resources["ButtonBackgroundPressed"] = GetResourceOrDefault("SubtleFillColorTertiary");
+    }
+
+    private void RefreshPanelTheme(Panel panel, Brush foreground)
+    {
+        foreach (var child in panel.Children)
+        {
+            if (child is Control control)
+            {
+                control.Foreground = foreground;
+            }
+            
+            if (child is Button button)
+            {
+                RefreshButtonResources(button);
+                
+                if (button.Content is FontIcon icon)
+                {
+                    icon.Foreground = foreground;
+                }
+            }
+        }
+    }
+
+    private object GetResourceOrDefault(string resourceKey)
+    {
+        if (Application.Current.Resources.TryGetValue(resourceKey, out object? resource))
+        {
+            return resource;
+        }
+        return new SolidColorBrush(Colors.Transparent);
     }
 
     public void SetBackground(Brush? brush)

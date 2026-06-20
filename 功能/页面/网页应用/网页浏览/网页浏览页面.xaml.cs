@@ -111,6 +111,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             Loaded += WebBrowserPage_Loaded;
             Unloaded += WebBrowserPage_Unloaded;
             
+            // ✅ 监听系统主题变化
+            ActualThemeChanged += OnSystemThemeChanged;
+            
             Pages.Settings.SettingsPage.WinUIContextMenuSettingsChanged += OnWinUIContextMenuSettingsChanged;
             Pages.Settings.SettingsPage.WebViewPerformanceSettingsChanged += OnWebViewPerformanceSettingsChanged;
         }
@@ -332,6 +335,14 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void InitializeForegroundColors()
         {
+            UpdateForegroundColorsFromTheme();
+        }
+
+        /// <summary>
+        /// 从当前主题资源更新前景色（支持主题切换）
+        /// </summary>
+        private void UpdateForegroundColorsFromTheme()
+        {
             if (Application.Current.Resources.TryGetValue("TextFillColorPrimaryBrush", out object? resource) 
                 && resource is SolidColorBrush themeBrush)
             {
@@ -379,6 +390,101 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
             
             _bottomBarHoverForegroundBrush.Color = AdjustColorBrightness(_bottomBarForegroundBrush.Color, 0.15);
+        }
+
+        /// <summary>
+        /// 系统主题切换时的回调
+        /// </summary>
+        private void OnSystemThemeChanged(FrameworkElement sender, object args)
+        {
+            System.Diagnostics.Debug.WriteLine("═══════════════════════════════════════════════════════");
+            System.Diagnostics.Debug.WriteLine("[WebBrowserPage] ✅✅✅ ActualThemeChanged 事件触发！");
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 当前 ActualTheme: {ActualTheme}");
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 状态: CoreWebView2={(WebView?.CoreWebView2 != null ? "✓" : "✗")}, IsReady={_isWebViewReady}");
+            System.Diagnostics.Debug.WriteLine("═══════════════════════════════════════════════════════");
+            
+            // 重新从主题资源获取颜色
+            UpdateForegroundColorsFromTheme();
+            
+            // ✅ 立即更新 TopAppBar 的前景色（包括关闭按钮等）
+            TopAppBarService.SetForeground(_topBarForegroundBrush);
+            System.Diagnostics.Debug.WriteLine("[WebBrowserPage] TopAppBar 前景色已更新");
+            
+            // ✅ 核心修复：系统主题切换后，WebView2 内部的网页会自动响应（CSS prefers-color-scheme），
+            // 但不会触发 NavigationCompleted 事件，所以我们需要手动触发完整的取色逻辑
+            
+            if (WebView?.CoreWebView2 != null && _isWebViewReady)
+            {
+                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] WebView 已就绪，强制重新提取网页主题色");
+                
+                // ✅ 重置取色状态，让取色逻辑重新执行
+                _hasReceivedFirstTint = false;
+                _hasAppliedThemeColor = false;
+                
+                // ✅ 延迟执行，等待 WebView2 内部的主题切换完成
+                DispatcherQueue.TryEnqueue(async () =>
+                {
+                    System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 等待 500ms 让 WebView2 完成主题切换...");
+                    
+                    // 等待网页重新渲染（prefers-color-scheme CSS 生效）
+                    await Task.Delay(500);
+                    
+                    System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 开始执行主题切换后的取色");
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 取色前背景色: Top={_topBarBackgroundBrush.Color}, Bottom={_bottomBarBackgroundBrush.Color}");
+                    
+                    // ✅ 步骤1：尝试 meta theme-color
+                    await TryApplyThemeColorAsync();
+                    
+                    // ✅ 步骤2：如果没有 theme-color，使用脚本采样
+                    if (!_hasAppliedThemeColor)
+                    {
+                        System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 没有 theme-color，触发脚本采样取色");
+                        await Task.Delay(100);
+                        await TriggerTintSamplingAsync();
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 取色完成后背景色: Top={_topBarBackgroundBrush.Color}, Bottom={_bottomBarBackgroundBrush.Color}");
+                });
+            }
+            else
+            {
+                // WebView 还没准备好，只更新前景色
+                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] ⚠️ WebView 未就绪，仅更新前景色");
+            }
+        }
+
+        /// <summary>
+        /// 应用系统主题的默认颜色（当没有网页主题色时使用）
+        /// </summary>
+        private void ApplySystemThemeColors()
+        {
+            // 从系统资源获取强调色或卡片背景色
+            if (Application.Current.Resources.TryGetValue("CardBackgroundFillColorDefaultBrush", out object? bgResource) 
+                && bgResource is SolidColorBrush bgBrush)
+            {
+                _topBarBackgroundBrush.Color = bgBrush.Color;
+                _bottomBarBackgroundBrush.Color = bgBrush.Color;
+                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 应用系统卡片背景色");
+            }
+            else if (Application.Current.Resources.TryGetValue("SystemAccentColor", out object? accentResource) 
+                && accentResource is Windows.UI.Color accentColor)
+            {
+                _topBarBackgroundBrush.Color = accentColor;
+                _bottomBarBackgroundBrush.Color = accentColor;
+                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 应用系统强调色");
+            }
+            else
+            {
+                // 回退：根据当前主题选择浅灰或深灰
+                var theme = Application.Current.RequestedTheme;
+                var defaultBgColor = theme == ApplicationTheme.Dark 
+                    ? Windows.UI.Color.FromArgb(255, 32, 32, 32)   // 深色主题：深灰
+                    : Windows.UI.Color.FromArgb(255, 243, 243, 243); // 浅色主题：浅灰
+                
+                _topBarBackgroundBrush.Color = defaultBgColor;
+                _bottomBarBackgroundBrush.Color = defaultBgColor;
+                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 应用回退背景色 (主题: {theme})");
+            }
         }
 
         // ⚠️ 旧方法已废弃：SetButtonStateColors, ApplyBottomBarResponsiveLayout, UpdateButtonResources

@@ -24,6 +24,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser.Managers
 
         private bool _hasReceivedFirstTint;
         private bool _hasAppliedThemeColor;
+        
+        private FrameworkElement? _themeListenerElement; // 用于监听主题变化
 
         public SolidColorBrush TopBarBackgroundBrush => _topBarBackgroundBrush;
         public SolidColorBrush BottomBarBackgroundBrush => _bottomBarBackgroundBrush;
@@ -36,7 +38,24 @@ namespace Docked_AI.Features.Pages.WebApp.Browser.Managers
         /// <summary>
         /// 初始化前景色为主题默认文本颜色
         /// </summary>
-        public void InitializeForegroundColors()
+        /// <param name="listenerElement">用于监听主题变化的 UI 元素（可选）</param>
+        public void InitializeForegroundColors(FrameworkElement? listenerElement = null)
+        {
+            UpdateForegroundColorsFromTheme();
+            
+            // 订阅主题变化事件
+            if (listenerElement != null)
+            {
+                _themeListenerElement = listenerElement;
+                _themeListenerElement.ActualThemeChanged += OnThemeChanged;
+                System.Diagnostics.Debug.WriteLine("[BarThemeManager] 已订阅系统主题变化事件");
+            }
+        }
+
+        /// <summary>
+        /// 从当前主题资源更新前景色
+        /// </summary>
+        private void UpdateForegroundColorsFromTheme()
         {
             // 从主题资源获取默认文本颜色
             if (Application.Current.Resources.TryGetValue("TextFillColorPrimaryBrush", out object? resource) 
@@ -78,6 +97,35 @@ namespace Docked_AI.Features.Pages.WebApp.Browser.Managers
             
             // 初始化悬停状态颜色
             _bottomBarHoverForegroundBrush.Color = ColorService.AdjustColorBrightness(_bottomBarForegroundBrush.Color, 0.15);
+        }
+
+        /// <summary>
+        /// 系统主题切换时的回调
+        /// </summary>
+        private void OnThemeChanged(FrameworkElement sender, object args)
+        {
+            System.Diagnostics.Debug.WriteLine("[BarThemeManager] 检测到系统主题切换，重新加载主题资源");
+            
+            // 重新从主题资源获取颜色
+            UpdateForegroundColorsFromTheme();
+            
+            // 如果当前没有应用网页主题色，也需要更新系统强调色
+            if (!_hasAppliedThemeColor)
+            {
+                ApplySystemAccentColor();
+            }
+        }
+
+        /// <summary>
+        /// 释放资源（取消订阅主题变化事件）
+        /// </summary>
+        public void Dispose()
+        {
+            if (_themeListenerElement != null)
+            {
+                _themeListenerElement.ActualThemeChanged -= OnThemeChanged;
+                _themeListenerElement = null;
+            }
         }
 
         /// <summary>
