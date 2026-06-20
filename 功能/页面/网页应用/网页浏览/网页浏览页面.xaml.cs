@@ -33,6 +33,16 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private const double ColorChannelMax = 255.0;
         private const int ColorTransitionDurationMs = 300; // 颜色过渡动画时长
         
+        // 响应式布局间距比例（视觉平衡最佳实践）
+        private const double ContainerPaddingMultiplier = 1.0; // 容器边距 = 按钮间距（所有间距一致）
+        
+        // 按钮状态叠加层强度（Material Design 最佳实践）
+        private const double ButtonHoverOverlayStrength = 0.08;   // Hover 叠加 8%
+        private const double ButtonPressedOverlayStrength = 0.12; // Pressed 叠加 12%
+        private const double ButtonDisabledOpacity = 0.38;        // Disabled 透明度 38%
+        private const double ButtonHoverBackgroundOpacity = 0.08; // Hover 背景叠加 8%
+        private const double ButtonPressedBackgroundOpacity = 0.12; // Pressed 背景叠加 12%
+        
         // 加载进度条相关
         private const int IndeterminateAnimationCycleMs = 500; // 不确定模式动画周期时长（估算）
         
@@ -52,8 +62,10 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private string? _contextMenuLinkUrl;
         private bool _needsWebViewRecreation; // ⭐ 标记是否需要重新创建 WebView
 
-        private readonly SolidColorBrush _topBarBackgroundBrush = new(Windows.UI.Color.FromArgb(1, 0, 0, 0));
-        private readonly SolidColorBrush _bottomBarBackgroundBrush = new(Windows.UI.Color.FromArgb(1, 0, 0, 0));
+        // ✅ 修复：初始背景色完全透明，避免黑色闪现
+        // 首次采样后会立即设置为正确的颜色
+        private readonly SolidColorBrush _topBarBackgroundBrush = new(Colors.Transparent);
+        private readonly SolidColorBrush _bottomBarBackgroundBrush = new(Colors.Transparent);
         private readonly SolidColorBrush _topBarForegroundBrush = new();
         private readonly SolidColorBrush _bottomBarForegroundBrush = new();
         private readonly SolidColorBrush _topBarSecondaryForegroundBrush = new();
@@ -63,6 +75,10 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private bool _hasReceivedFirstTint;
         private bool _hasAppliedThemeColor;
         private string? _instanceId;
+        
+        // Reactor 底部按钮栏
+        private Microsoft.UI.Reactor.Hosting.ReactorHostControl? _reactorHostControl;
+        private Components.BottomButtonBar? _bottomButtonBarComponent;
         
         // 顶部栏UI元素
         private StackPanel? _topBarContent;
@@ -85,23 +101,12 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
             InitializeForegroundColors();
             InitializeTopBar();
+            InitializeBottomBarReactor(); // ✅ 初始化 Reactor 底部按钮栏
 
             TopBarTintHost.Background = _topBarBackgroundBrush;
             BottomBarHost.Background = _bottomBarBackgroundBrush;
 
-            BackButton.Foreground = _bottomBarForegroundBrush;
-            ForwardButton.Foreground = _bottomBarForegroundBrush;
-            RefreshButton.Foreground = _bottomBarForegroundBrush;
-            CopyUrlButton.Foreground = _bottomBarForegroundBrush;
-            OpenExternalButton.Foreground = _bottomBarForegroundBrush;
-
-            SetButtonStateColors(BackButton);
-            SetButtonStateColors(ForwardButton);
-            SetButtonStateColors(RefreshButton);
-            SetButtonStateColors(CopyUrlButton);
-            SetButtonStateColors(OpenExternalButton);
-
-            BottomBarHost.SizeChanged += (s, e) => ApplyBottomBarResponsiveLayout();
+            BottomBarHost.SizeChanged += (s, e) => UpdateBottomBarLayout();
 
             Loaded += WebBrowserPage_Loaded;
             Unloaded += WebBrowserPage_Unloaded;
@@ -241,6 +246,90 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
         }
 
+        private void InitializeBottomBarReactor()
+        {
+            // 创建 ReactorHostControl（WinUI ContentControl）
+            _reactorHostControl = new Microsoft.UI.Reactor.Hosting.ReactorHostControl
+            {
+                HorizontalAlignment = HorizontalAlignment.Stretch,  // 拉伸填充
+                VerticalAlignment = VerticalAlignment.Stretch       // 拉伸填充
+            };
+
+            // 创建 Reactor 组件实例
+            _bottomButtonBarComponent = new Components.BottomButtonBar
+            {
+                ButtonWidth = 48.0,  // 初始按钮宽度（会根据窗口自适应）
+                CanGoBack = false,
+                CanGoForward = false,
+                OnBackClick = () => BackButton_Click(null!, null!),
+                OnForwardClick = () => ForwardButton_Click(null!, null!),
+                OnRefreshClick = () => RefreshButton_Click(null!, null!),
+                OnCopyUrlClick = () => CopyUrlButton_Click(null!, null!),
+                OnOpenExternalClick = () => OpenExternalButton_Click(null!, null!)
+            };
+
+            // 挂载组件到 ReactorHostControl
+            _reactorHostControl.Mount(_bottomButtonBarComponent);
+
+            // 将 ReactorHostControl 添加到容器
+            BottomButtonsContainer.Children.Add(_reactorHostControl);
+        }
+
+        private void UpdateBottomBarLayout()
+        {
+            if (BottomBarHost.ActualWidth <= 0 || _bottomButtonBarComponent == null)
+            {
+                return;
+            }
+
+            const int buttonCount = 5;
+            const double minButtonWidth = 40.0;
+            const double maxButtonWidth = 68.0;
+            const double fixedHorizontalSpacing = 4.0;  // 固定左右和按钮间距
+
+            double availableWidth = BottomBarHost.ActualWidth;
+            
+            // 计算可用于按钮的宽度（减去固定间距）
+            // 总间距 = 左边距 + (按钮数-1)*按钮间距 + 右边距 = fixedHorizontalSpacing * (buttonCount + 1)
+            double totalSpacing = fixedHorizontalSpacing * (buttonCount + 1);
+            double widthForButtons = availableWidth - totalSpacing;
+            double buttonWidth = widthForButtons / buttonCount;
+            
+            // 限制按钮宽度在最小和最大值之间
+            buttonWidth = Math.Max(minButtonWidth, Math.Min(maxButtonWidth, buttonWidth));
+
+            // 更新按钮宽度（间距已经在组件内部固定）
+            _bottomButtonBarComponent.ButtonWidth = buttonWidth;
+            
+            // 触发重新渲染
+            _reactorHostControl?.Mount(_bottomButtonBarComponent);
+
+            System.Diagnostics.Debug.WriteLine($"[UpdateBottomBarLayout] buttonWidth={buttonWidth:F2} (间距固定4px)");
+        }
+
+        /// <summary>
+        /// 更新底部导航按钮的启用/禁用状态
+        /// </summary>
+        private void UpdateNavigationButtonStates()
+        {
+            if (_bottomButtonBarComponent == null || _reactorHostControl == null)
+            {
+                return;
+            }
+
+            bool canGoBack = WebView?.CanGoBack ?? false;
+            bool canGoForward = WebView?.CanGoForward ?? false;
+
+            // 更新组件 Props
+            _bottomButtonBarComponent.CanGoBack = canGoBack;
+            _bottomButtonBarComponent.CanGoForward = canGoForward;
+
+            // 触发重新渲染
+            _reactorHostControl.Mount(_bottomButtonBarComponent);
+
+            System.Diagnostics.Debug.WriteLine($"[UpdateNavigationButtonStates] CanGoBack={canGoBack}, CanGoForward={canGoForward}");
+        }
+
         private void InitializeForegroundColors()
         {
             if (Application.Current.Resources.TryGetValue("TextFillColorPrimaryBrush", out object? resource) 
@@ -292,13 +381,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             _bottomBarHoverForegroundBrush.Color = AdjustColorBrightness(_bottomBarForegroundBrush.Color, 0.15);
         }
 
-        private void SetButtonStateColors(AppBarButton button)
-        {
-            // 设置按钮的悬停、按下和禁用状态颜色
-            button.Resources["AppBarButtonForegroundPointerOver"] = _bottomBarHoverForegroundBrush;
-            button.Resources["AppBarButtonForegroundPressed"] = _bottomBarForegroundBrush;
-            button.Resources["AppBarButtonForegroundDisabled"] = _bottomBarDisabledForegroundBrush;
-        }
+        // ⚠️ 旧方法已废弃：SetButtonStateColors, ApplyBottomBarResponsiveLayout, UpdateButtonResources
+        // 现在使用 Reactor 组件管理按钮
 
         private void OnWinUIContextMenuSettingsChanged(object? sender, EventArgs e)
         {
@@ -364,102 +448,8 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
         }
 
-        private void ApplyBottomBarResponsiveLayout()
-        {
-            if (BottomBarHost.ActualWidth <= 0)
-            {
-                return;
-            }
-
-            // 获取所有按钮
-            var buttons = new[]
-            {
-                BackButton,
-                ForwardButton,
-                RefreshButton,
-                CopyUrlButton,
-                OpenExternalButton
-            };
-
-            const int buttonCount = 5;
-            const double minButtonWidth = 40.0;
-            const double maxButtonWidth = 68.0;
-            const double minSpacing = 2.0;
-            const double maxSpacing = 16.0;
-
-            double availableWidth = BottomBarHost.ActualWidth;
-
-            // 计算最优按钮宽度和间距
-            // 公式: availableWidth = (sidePadding * 2) + (buttonWidth * buttonCount) + (spacing * (buttonCount - 1))
-            // 其中 sidePadding = spacing，保持一致
-
-            double buttonWidth;
-            double spacing;
-
-            // 尝试使用最大按钮宽度
-            double maxTotalButtonWidth = maxButtonWidth * buttonCount;
-            // 两侧边距 + 按钮间距 = spacing * (buttonCount + 1)
-            double remainingWidth = availableWidth - maxTotalButtonWidth;
-            double calculatedSpacing = remainingWidth / (buttonCount + 1);
-
-            if (calculatedSpacing >= minSpacing)
-            {
-                // 空间充足
-                buttonWidth = maxButtonWidth;
-                spacing = Math.Min(maxSpacing, calculatedSpacing);
-            }
-            else
-            {
-                // 空间不足，需要缩小按钮
-                // 使用最小间距重新计算
-                double totalSpacing = minSpacing * (buttonCount + 1);
-                double widthForButtons = availableWidth - totalSpacing;
-                buttonWidth = widthForButtons / buttonCount;
-
-                if (buttonWidth >= minButtonWidth)
-                {
-                    // 按钮宽度在合理范围内
-                    spacing = minSpacing;
-                }
-                else
-                {
-                    // 极端情况：使用最小按钮宽度
-                    buttonWidth = minButtonWidth;
-                    double totalButtonWidth = buttonWidth * buttonCount;
-                    spacing = Math.Max(0, (availableWidth - totalButtonWidth) / (buttonCount + 1));
-                }
-            }
-
-            // 应用计算结果
-            foreach (var button in buttons)
-            {
-                button.Width = buttonWidth;
-                button.MinWidth = minButtonWidth;
-            }
-
-            // 设置间距（通过 Margin 实现）
-            for (int i = 0; i < buttons.Length; i++)
-            {
-                if (i == 0)
-                {
-                    // 第一个按钮：右侧有间距
-                    buttons[i].Margin = new Thickness(0, 0, spacing, 0);
-                }
-                else if (i == buttons.Length - 1)
-                {
-                    // 最后一个按钮：无间距
-                    buttons[i].Margin = new Thickness(0);
-                }
-                else
-                {
-                    // 中间按钮：右侧有间距
-                    buttons[i].Margin = new Thickness(0, 0, spacing, 0);
-                }
-            }
-
-            // 设置 StackPanel 的 Padding，两侧边距等于按钮间距
-            BottomButtonsPanel.Padding = new Thickness(spacing, 0, spacing, 0);
-        }
+        // ⚠️ 旧方法已删除：ApplyBottomBarResponsiveLayout
+        // 现在使用 UpdateBottomBarLayout (Reactor)
 
         protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
         {
@@ -589,6 +579,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 {
                     WebView.CoreWebView2.Resume();
                     System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 已恢复");
+                    
+                    // ✅ 修复：WebView 恢复后重新注入取色脚本
+                    _ = ReInjectTintScriptAsync();
                 }
                 catch (Exception ex)
                 {
@@ -626,6 +619,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             else
             {
                 System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 状态正常，当前 URL: {WebView.Source}");
+                
+                // ✅ 修复：页面恢复时重新取色
+                _ = RefreshPageTintAsync();
             }
         }
 
@@ -1056,7 +1052,11 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
     const top = rgbaToCss(topColor);
     const bottom = rgbaToCss(bottomColor);
     
-    if (top === state.lastTop && bottom === state.lastBottom) return;
+    // ✅ 修复：首次采样时即使是 null 也要发送（告诉宿主页面是透明的）
+    // 之后的采样才需要去重
+    const isFirstSample = (state.lastTop === null && state.lastBottom === null);
+    if (!isFirstSample && top === state.lastTop && bottom === state.lastBottom) return;
+    
     state.lastTop = top;
     state.lastBottom = bottom;
     post(top, bottom);
@@ -1087,10 +1087,20 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
   // 其他事件立即触发
   window.addEventListener('resize', schedule);
   document.addEventListener('readystatechange', schedule);
-  document.addEventListener('DOMContentLoaded', schedule);
-  window.addEventListener('load', schedule);
   
-  schedule();
+  // ✅ 修复：不在脚本加载时自动触发，完全由 C# 控制首次采样时机
+  // 只监听 DOMContentLoaded 和 load 事件，但不立即执行
+  // document.addEventListener('DOMContentLoaded', schedule);
+  // window.addEventListener('load', schedule);
+  
+  // 注释掉自动触发，避免过早采样导致黑屏闪现
+  // if (document.readyState === 'complete') {
+  //   schedule();
+  // } else {
+  //   window.addEventListener('load', () => {
+  //     setTimeout(schedule, 100);
+  //   }, { once: true });
+  // }
 })();";
 
             await WebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(script);
@@ -1098,8 +1108,10 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private void CoreWebView2_NavigationStarting(object? sender, CoreWebView2NavigationStartingEventArgs e)
         {
-            _hasReceivedFirstTint = false;
-            _hasAppliedThemeColor = false;
+            // ✅ 修复：不在导航开始时重置取色状态
+            // 改为在导航完成后再重置，避免脚本注入前状态被清空
+            // _hasReceivedFirstTint = false;
+            // _hasAppliedThemeColor = false;
             
             // 显示加载条
             DispatcherQueue.TryEnqueue(() =>
@@ -1114,18 +1126,38 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
 
         private async void CoreWebView2_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
         {
-            UpdateNavigationButtons();
+            UpdateNavigationButtonStates();
+            
+            // ✅ 修复：在导航完成时重置取色状态
+            // 确保新页面能重新取色
+            _hasReceivedFirstTint = false;
+            _hasAppliedThemeColor = false;
+            System.Diagnostics.Debug.WriteLine("[CoreWebView2_NavigationCompleted] 取色状态已重置");
             
             // 平滑隐藏加载条：先停止动画，等待当前周期完成，再隐藏
             await HideLoadingProgressBarSmoothlyAsync();
             
+            // ✅ 修复：等待页面渲染完成后再取色
+            // 延迟 300ms 确保 DOM 完全加载和渲染（原来 200ms 不够）
+            await Task.Delay(300);
+            
             // 分层取色策略：优先使用 theme-color
             await TryApplyThemeColorAsync();
+            
+            // ✅ 修复：如果没有 theme-color，主动触发一次采样取色
+            if (!_hasAppliedThemeColor)
+            {
+                System.Diagnostics.Debug.WriteLine("[CoreWebView2_NavigationCompleted] 没有 theme-color，触发采样取色");
+                
+                // 再等待 100ms，确保脚本的 load 事件已触发
+                await Task.Delay(100);
+                await TriggerTintSamplingAsync();
+            }
         }
 
         private void CoreWebView2_HistoryChanged(object? sender, object e)
         {
-            UpdateNavigationButtons();
+            UpdateNavigationButtonStates();
         }
 
         private async Task HideLoadingProgressBarSmoothlyAsync()
@@ -1483,21 +1515,27 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
             else
             {
-                // 底部栏
+                // ✅ 底部栏按钮颜色 - 使用 Material Design 最佳实践
                 double luminance = CalculateLuminance(sampledColor);
-                double adjustFactor = luminance < LuminanceThreshold ? 0.2 : -0.2;
-                var hoverColor = AdjustColorBrightness(contrastColor, adjustFactor);
+                bool isDarkBackground = luminance < LuminanceThreshold;
+                
+                // Hover: 在前景色上叠加 8% 的白色/黑色（Material Design 规范）
+                var hoverColor = CreateStateOverlayColor(
+                    contrastColor, 
+                    isDarkBackground ? ButtonHoverOverlayStrength : -ButtonHoverOverlayStrength
+                );
                 AnimateColorChange(_bottomBarHoverForegroundBrush, hoverColor);
                 
+                // Disabled: 38% 透明度（WCAG 豁免，禁用组件无对比度要求）
                 var disabledColor = Windows.UI.Color.FromArgb(
-                    (byte)(contrastColor.A * 0.6),
+                    (byte)(contrastColor.A * ButtonDisabledOpacity),
                     contrastColor.R,
                     contrastColor.G,
                     contrastColor.B
                 );
                 AnimateColorChange(_bottomBarDisabledForegroundBrush, disabledColor);
                 
-                UpdateButtonResources();
+                // ⚠️ Reactor 组件会自动使用更新后的 Brush，无需手动更新资源
             }
         }
 
@@ -1509,40 +1547,37 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         }
 
         /// <summary>
-        /// 强制更新所有按钮的Resources和Foreground
+        /// 创建状态叠加层颜色（Material Design 最佳实践）
         /// </summary>
-        private void UpdateButtonResources()
+        /// <param name="baseColor">基础颜色</param>
+        /// <param name="overlayStrength">叠加强度（正数=变亮，负数=变暗）</param>
+        private static Windows.UI.Color CreateStateOverlayColor(Windows.UI.Color baseColor, double overlayStrength)
         {
-            var buttons = new[] { BackButton, ForwardButton, RefreshButton, CopyUrlButton, OpenExternalButton };
-            var icons = new IconElement[] { BackIcon, ForwardIcon, RefreshIcon, CopyIcon, OpenExternalIcon };
-            
-            for (int i = 0; i < buttons.Length; i++)
+            if (overlayStrength > 0)
             {
-                var button = buttons[i];
-                var icon = icons[i];
-                
-                if (button != null)
-                {
-                    // 更新Resources
-                    button.Resources["AppBarButtonForegroundPointerOver"] = _bottomBarHoverForegroundBrush;
-                    button.Resources["AppBarButtonForegroundPressed"] = _bottomBarForegroundBrush;
-                    button.Resources["AppBarButtonForegroundDisabled"] = _bottomBarDisabledForegroundBrush;
-                    
-                    // 直接更新Foreground以确保立即生效
-                    button.Foreground = _bottomBarForegroundBrush;
-                    
-                    // 同时更新Icon的Foreground
-                    if (icon != null)
-                    {
-                        icon.Foreground = _bottomBarForegroundBrush;
-                    }
-                    
-                    // 强制刷新视觉状态
-                    VisualStateManager.GoToState(button, "Normal", false);
-                }
+                // 叠加白色（变亮）
+                return Windows.UI.Color.FromArgb(
+                    baseColor.A,
+                    (byte)Math.Min(255, baseColor.R + (255 - baseColor.R) * overlayStrength),
+                    (byte)Math.Min(255, baseColor.G + (255 - baseColor.G) * overlayStrength),
+                    (byte)Math.Min(255, baseColor.B + (255 - baseColor.B) * overlayStrength)
+                );
             }
-            System.Diagnostics.Debug.WriteLine($"[UpdateButtonResources] 按钮已更新 - 正常色={_bottomBarForegroundBrush.Color}, 悬停色={_bottomBarHoverForegroundBrush.Color}, 禁用色={_bottomBarDisabledForegroundBrush.Color}");
+            else
+            {
+                // 叠加黑色（变暗）
+                overlayStrength = -overlayStrength;
+                return Windows.UI.Color.FromArgb(
+                    baseColor.A,
+                    (byte)Math.Max(0, baseColor.R * (1 - overlayStrength)),
+                    (byte)Math.Max(0, baseColor.G * (1 - overlayStrength)),
+                    (byte)Math.Max(0, baseColor.B * (1 - overlayStrength))
+                );
+            }
         }
+
+        // ⚠️ 旧方法已删除：UpdateButtonResources
+        // 现在使用 Reactor 组件管理按钮状态
 
         /// <summary>
         /// 计算颜色的相对亮度
@@ -1595,6 +1630,31 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 return; // 颜色相同，无需动画
             }
 
+            // ✅ 修复：首次设置颜色时，先设置目标色，再从透明淡入（避免黑色闪现）
+            if (brush.Color == Colors.Transparent)
+            {
+                // 先直接设置为目标颜色（但保持透明）
+                brush.Color = Windows.UI.Color.FromArgb(0, targetColor.R, targetColor.G, targetColor.B);
+                
+                // 然后用透明度动画淡入
+                var fadeInAnimation = new ColorAnimation
+                {
+                    From = Windows.UI.Color.FromArgb(0, targetColor.R, targetColor.G, targetColor.B),
+                    To = targetColor,
+                    Duration = new Duration(TimeSpan.FromMilliseconds(ColorTransitionDurationMs)),
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
+                };
+
+                var storyboard = new Storyboard();
+                storyboard.Children.Add(fadeInAnimation);
+                Storyboard.SetTarget(fadeInAnimation, brush);
+                Storyboard.SetTargetProperty(fadeInAnimation, "Color");
+                
+                storyboard.Begin();
+                return;
+            }
+
+            // 后续颜色变化：正常的颜色过渡动画
             var animation = new ColorAnimation
             {
                 To = targetColor,
@@ -1602,12 +1662,12 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut }
             };
 
-            var storyboard = new Storyboard();
-            storyboard.Children.Add(animation);
+            var storyboard2 = new Storyboard();
+            storyboard2.Children.Add(animation);
             Storyboard.SetTarget(animation, brush);
             Storyboard.SetTargetProperty(animation, "Color");
             
-            storyboard.Begin();
+            storyboard2.Begin();
         }
 
         private static Windows.UI.Color GetContrastingForeground(Windows.UI.Color background)
@@ -1703,13 +1763,6 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             raw = Math.Max(0, Math.Min(ColorChannelMax, raw));
             value = (byte)Math.Round(raw);
             return true;
-        }
-
-        private void UpdateNavigationButtons()
-        {
-            if (WebView == null) return;
-            BackButton.IsEnabled = WebView.CanGoBack;
-            ForwardButton.IsEnabled = WebView.CanGoForward;
         }
 
         private async Task ShowShortcutIconAsync(byte[]? iconBytes)
@@ -2361,6 +2414,132 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         }
 
         /// <summary>
+        /// 主动触发一次采样取色（用于首次加载页面）
+        /// </summary>
+        private async Task TriggerTintSamplingAsync()
+        {
+            if (WebView?.CoreWebView2 is null)
+            {
+                return;
+            }
+
+            try
+            {
+                // ✅ 方案1：直接在 C# 这边执行完整的采样逻辑（不依赖脚本状态）
+                string script = @"
+(function() {
+    // 完整复制采样逻辑，确保立即执行
+    function cssToRgbaArray(css) {
+        if (!css) return null;
+        const m = css.match(/rgba?\(([^)]+)\)/i);
+        if (!m) return null;
+        const parts = m[1].split(',').map(p => p.trim());
+        if (parts.length < 3) return null;
+        const r = parseFloat(parts[0]);
+        const g = parseFloat(parts[1]);
+        const b = parseFloat(parts[2]);
+        const a = parts.length >= 4 ? parseFloat(parts[3]) : 1;
+        if (![r,g,b,a].every(n => Number.isFinite(n))) return null;
+        return [r, g, b, a];
+    }
+    
+    function effectiveBg(el) {
+        if (!el) return null;
+        let cur = el;
+        const minAlpha = 0.01;
+        const maxDepth = 20;
+        let depth = 0;
+        
+        while (cur && cur !== document && depth < maxDepth) {
+            const style = getComputedStyle(cur);
+            const bg = cssToRgbaArray(style.backgroundColor);
+            
+            if (bg && bg[3] > minAlpha) {
+                return bg;
+            }
+            
+            const bgImage = style.backgroundImage;
+            if (bgImage && bgImage !== 'none') {
+                const gradientMatch = bgImage.match(/rgba?\([^)]+\)/i);
+                if (gradientMatch) {
+                    const gradientColor = cssToRgbaArray(gradientMatch[0]);
+                    if (gradientColor && gradientColor[3] > minAlpha) {
+                        return gradientColor;
+                    }
+                }
+            }
+            
+            cur = cur.parentElement;
+            depth++;
+        }
+        
+        if (document.body) {
+            const bodyBg = cssToRgbaArray(getComputedStyle(document.body).backgroundColor);
+            if (bodyBg && bodyBg[3] > minAlpha) return bodyBg;
+        }
+        
+        if (document.documentElement) {
+            const htmlBg = cssToRgbaArray(getComputedStyle(document.documentElement).backgroundColor);
+            if (htmlBg && htmlBg[3] > minAlpha) return htmlBg;
+        }
+        
+        return null;
+    }
+    
+    function sampleAtY(y) {
+        const minX = 1;
+        const x = Math.max(minX, Math.floor(window.innerWidth / 2));
+        const el = document.elementFromPoint(x, y);
+        return effectiveBg(el);
+    }
+    
+    function rgbaToCss(rgba) {
+        if (!rgba) return null;
+        const a = Math.max(0, Math.min(1, rgba[3]));
+        return 'rgba(' + Math.round(rgba[0]) + ',' + Math.round(rgba[1]) + ',' + Math.round(rgba[2]) + ',' + a + ')';
+    }
+    
+    // 立即采样
+    const topColor = sampleAtY(1);
+    const bottomColor = sampleAtY(Math.max(1, window.innerHeight - 2));
+    const top = rgbaToCss(topColor);
+    const bottom = rgbaToCss(bottomColor);
+    
+    // 发送消息
+    const msg = { 
+        type: 'docked_ai_tint', 
+        top: top, 
+        bottom: bottom, 
+        title: (document.title || ''),
+        isTransparent: !top || !bottom
+    };
+    
+    try {
+        window.chrome?.webview?.postMessage(JSON.stringify(msg));
+        return 'sent: top=' + top + ', bottom=' + bottom;
+    } catch (error) {
+        return 'error: ' + error.message;
+    }
+})();";
+
+                string result = await WebView.CoreWebView2.ExecuteScriptAsync(script);
+                System.Diagnostics.Debug.WriteLine($"[TriggerTintSamplingAsync] 立即采样结果: {result}");
+                
+                // ✅ 方案2（备选）：如果脚本已经准备好，也调用一次
+                await Task.Delay(50);
+                await WebView.CoreWebView2.ExecuteScriptAsync(@"
+                    if (window.__dockedAiTint && typeof window.__dockedAiTint.updateNow === 'function') {
+                        window.__dockedAiTint.updateNow();
+                    }
+                ");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TriggerTintSamplingAsync] 触发失败: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// 分层策略终极方案：截图采样（仅在页面完全透明时使用）
         /// </summary>
         private async Task TryScreenshotSamplingAsync()
@@ -2471,6 +2650,73 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 (byte)(sumG / count),
                 (byte)(sumB / count)
             );
+        }
+
+        /// <summary>
+        /// ✅ Bug修复：WebView恢复后重新注入取色脚本
+        /// </summary>
+        private async Task ReInjectTintScriptAsync()
+        {
+            if (WebView?.CoreWebView2 == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[ReInjectTintScriptAsync] WebView 未初始化");
+                return;
+            }
+
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[ReInjectTintScriptAsync] 开始重新注入取色脚本");
+                
+                // 延迟一小段时间确保 WebView 完全恢复
+                await Task.Delay(100);
+                
+                // 重新注入取色脚本
+                await WebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(Services.WebViewTintScript.GetTintScript());
+                
+                System.Diagnostics.Debug.WriteLine("[ReInjectTintScriptAsync] 取色脚本重新注入成功");
+                
+                // 重新触发一次取色
+                await RefreshPageTintAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ReInjectTintScriptAsync] 重新注入脚本失败: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// ✅ Bug修复：页面恢复时刷新取色
+        /// </summary>
+        private async Task RefreshPageTintAsync()
+        {
+            if (WebView?.CoreWebView2 == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[RefreshPageTintAsync] WebView 未初始化");
+                return;
+            }
+
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("[RefreshPageTintAsync] 开始刷新页面取色");
+                
+                // 重置取色状态以允许重新取色
+                _hasReceivedFirstTint = false;
+                _hasAppliedThemeColor = false;
+                
+                // 延迟确保页面已完全加载
+                await Task.Delay(200);
+                
+                // 重新执行取色策略
+                await TryApplyThemeColorAsync();
+                
+                System.Diagnostics.Debug.WriteLine("[RefreshPageTintAsync] 页面取色刷新完成");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[RefreshPageTintAsync] 刷新取色失败: {ex.Message}");
+                // 失败时使用系统强调色作为后备
+                ApplySystemAccentColor();
+            }
         }
 
         /// <summary>

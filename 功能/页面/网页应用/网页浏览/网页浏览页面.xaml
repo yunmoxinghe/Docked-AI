@@ -82,58 +82,16 @@
         <Border
             x:Name="BottomBarHost"
             Grid.Row="2"
+            Height="Auto"
+            MinHeight="40"
             CornerRadius="0,0,4,4"
             Background="Transparent"
             BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
             BorderThickness="0">
-            <Grid HorizontalAlignment="Center">
-                <StackPanel 
-                    x:Name="BottomButtonsPanel"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center">
-                    <controls:AppBarButton
-                        x:Name="BackButton"
-                        Click="BackButton_Click"
-                        LabelPosition="Collapsed">
-                        <controls:AppBarButton.Icon>
-                            <SymbolIcon Symbol="Back" x:Name="BackIcon" />
-                        </controls:AppBarButton.Icon>
-                    </controls:AppBarButton>
-                    <controls:AppBarButton
-                        x:Name="ForwardButton"
-                        Click="ForwardButton_Click"
-                        LabelPosition="Collapsed">
-                        <controls:AppBarButton.Icon>
-                            <SymbolIcon Symbol="Forward" x:Name="ForwardIcon" />
-                        </controls:AppBarButton.Icon>
-                    </controls:AppBarButton>
-                    <controls:AppBarButton
-                        x:Name="RefreshButton"
-                        Click="RefreshButton_Click"
-                        LabelPosition="Collapsed">
-                        <controls:AppBarButton.Icon>
-                            <SymbolIcon Symbol="Refresh" x:Name="RefreshIcon" />
-                        </controls:AppBarButton.Icon>
-                    </controls:AppBarButton>
-                    <controls:AppBarButton
-                        x:Name="CopyUrlButton"
-                        Click="CopyUrlButton_Click"
-                        LabelPosition="Collapsed">
-                        <controls:AppBarButton.Icon>
-                            <SymbolIcon Symbol="Copy" x:Name="CopyIcon" />
-                        </controls:AppBarButton.Icon>
-                    </controls:AppBarButton>
-                    <controls:AppBarButton
-                        x:Name="OpenExternalButton"
-                        Click="OpenExternalButton_Click"
-                        LabelPosition="Collapsed">
-                        <controls:AppBarButton.Icon>
-                            <SymbolIcon Symbol="World" x:Name="OpenExternalIcon" />
-                        </controls:AppBarButton.Icon>
-                    </controls:AppBarButton>
-                </StackPanel>
-            </Grid>
+            <!-- Reactor 组件挂载点：使用 Grid 作为容器 -->
+            <Grid x:Name="BottomButtonsContainer" 
+                  HorizontalAlignment="Stretch" 
+                  VerticalAlignment="Stretch" />
         </Border>
     </Grid>
 </Page>
