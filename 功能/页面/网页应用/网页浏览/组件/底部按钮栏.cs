@@ -44,7 +44,7 @@ public class BottomButtonBar : Component
     }
 
     /// <summary>
-    /// 创建带图标的按钮（使用 TextBlock 显示图标字符）
+    /// 创建带图标的按钮（使用 Fluent 图标字体）
     /// </summary>
     private Element CreateIconButton(string glyph, bool isEnabled, Action? onClick)
     {
@@ -61,7 +61,7 @@ public class BottomButtonBar : Component
 
         return Button(
             content: TextBlock(glyph)
-                .FontFamily(new Microsoft.UI.Xaml.Media.FontFamily("Segoe MDL2 Assets"))
+                .FontFamily(new Microsoft.UI.Xaml.Media.FontFamily("Segoe Fluent Icons"))  // ✅ 使用 Fluent 图标字体
                 .FontSize(16),
             onClick: () => onClick?.Invoke()
         )
