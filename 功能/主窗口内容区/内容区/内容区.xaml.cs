@@ -561,9 +561,8 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                 return;
             }
 
-            // 获取当前页面的参数（通过反射或缓存键）
-            string? currentCacheKey = null;
-            WebAppShortcut? currentShortcut = null;
+            // 获取当前页面的 shortcutId
+            string? currentShortcutId = null;
             
             // 从缓存管理器中找到当前页面的缓存键
             foreach (var cacheKey in _pageCacheManager.GetCachedPageKeys())
@@ -571,39 +570,65 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
                 var cachedPage = _pageCacheManager.GetCachedPage(cacheKey);
                 if (ReferenceEquals(cachedPage, currentWebBrowserPage))
                 {
-                    currentCacheKey = cacheKey;
-                    
                     // 从缓存键提取 shortcutId
                     if (cacheKey.StartsWith("WebBrowser_"))
                     {
-                        string shortcutId = cacheKey.Substring("WebBrowser_".Length);
-                        
-                        // 从存储中加载 shortcut
-                        var shortcuts = await WebAppShortcutStore.LoadAsync();
-                        currentShortcut = shortcuts.FirstOrDefault(s => s.Id == shortcutId);
+                        currentShortcutId = cacheKey.Substring("WebBrowser_".Length);
                     }
                     break;
                 }
             }
 
-            if (currentShortcut == null || currentCacheKey == null)
+            if (currentShortcutId == null)
             {
-                System.Diagnostics.Debug.WriteLine("[ContentArea] 无法找到当前标签的信息");
+                System.Diagnostics.Debug.WriteLine("[ContentArea] 无法找到当前标签的 shortcutId");
                 return;
             }
 
-            System.Diagnostics.Debug.WriteLine($"[ContentArea] 准备重启标签: {currentShortcut.Name} ({currentShortcut.Id})");
+            // 调用新方法重启指定标签
+            await RestartTabAsync(currentShortcutId);
+        }
 
-            // Step 1: 移除旧的缓存页面（会自动调用 DisposeWebView 和 Unlink）
-            _pageCacheManager.RemovePage(currentCacheKey);
-            System.Diagnostics.Debug.WriteLine("[ContentArea] 已清理旧实例");
+        /// <summary>
+        /// 重启指定的标签页（销毁并重建 WebView）
+        /// ⭐ 新增方法：支持重启非当前显示的标签页
+        /// </summary>
+        public async System.Threading.Tasks.Task RestartTabAsync(string shortcutId)
+        {
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] RestartTabAsync 被调用: {shortcutId}");
             
-            // 给一点时间让旧实例完全释放
-            await System.Threading.Tasks.Task.Delay(100);
+            string cacheKey = $"WebBrowser_{shortcutId}";
+
+            // 从存储中加载 shortcut
+            var shortcuts = await WebAppShortcutStore.LoadAsync();
+            var shortcut = shortcuts.FirstOrDefault(s => s.Id == shortcutId);
+
+            if (shortcut == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ContentArea] 无法找到 shortcut: {shortcutId}");
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[ContentArea] 准备重启标签: {shortcut.Name} ({shortcut.Id})");
+
+            // ⭐ 修复 Bug: 先清理旧实例，再导航创建新实例
+            // Step 1: 移除旧的缓存页面（会自动调用 DisposeWebView 和 Unlink）
+            bool wasRemoved = _pageCacheManager.RemovePage(cacheKey);
+            if (wasRemoved)
+            {
+                System.Diagnostics.Debug.WriteLine("[ContentArea] 已清理旧实例");
+                
+                // 给一点时间让旧实例完全释放
+                await System.Threading.Tasks.Task.Delay(100);
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("[ContentArea] 旧实例不存在，直接创建新实例");
+            }
 
             // Step 2: 重新导航到同一个页面（会创建新实例）
             System.Diagnostics.Debug.WriteLine("[ContentArea] 创建新实例");
-            Navigate(typeof(WebBrowserPage), currentShortcut);
+            Navigate(typeof(WebBrowserPage), shortcut);
             
             System.Diagnostics.Debug.WriteLine("[ContentArea] 标签重启完成");
         }

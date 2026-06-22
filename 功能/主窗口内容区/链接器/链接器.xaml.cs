@@ -77,6 +77,14 @@ namespace Docked_AI.Features.MainWindowContent.Linker
 
             System.Diagnostics.Debug.WriteLine("[Linker] Loading content...");
             
+            // ⭐ 修复 Bug: 解除 SelectionChanged 抑制，允许导航触发
+            // 这样可以避免构造函数初始化时的过早导航
+            if (NavBar != null)
+            {
+                // 使用反射或公共方法解除抑制（需要在 NavigationBar 中添加公共方法）
+                NavBar.EnableNavigation();
+            }
+            
             // 导航到首页
             ContentHost.Navigate(typeof(HomePage));
             _isContentLoaded = true;
@@ -191,7 +199,8 @@ namespace Docked_AI.Features.MainWindowContent.Linker
         private async void OnWebAppRestartRequested(object? sender, string shortcutId)
         {
             System.Diagnostics.Debug.WriteLine($"[Linker] 收到重启请求: {shortcutId}");
-            await ContentHost.RestartCurrentTabAsync();
+            // ⭐ 修复 Bug: 传递 shortcutId，重启指定的标签而不是当前标签
+            await ContentHost.RestartTabAsync(shortcutId);
         }
 
         private void ContentHost_Navigated(object? sender, NavigationEventArgs e)

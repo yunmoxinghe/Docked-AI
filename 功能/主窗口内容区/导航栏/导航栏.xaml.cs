@@ -68,6 +68,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             _suppressSelectionChanged = true;
             NavView.SelectedItem = CreateNavigationItem;
             TopNavView.SelectedItem = null;
+            _lastSelectedNavigationItem = CreateNavigationItem; // ⭐ 修复：同步更新选中记录
             _suppressSelectionChanged = false;
         }
 
@@ -76,7 +77,18 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             _suppressSelectionChanged = true;
             NavView.SelectedItem = HomeNavigationItem;
             TopNavView.SelectedItem = null;
+            _lastSelectedNavigationItem = HomeNavigationItem; // ⭐ 修复：同步更新选中记录
             _suppressSelectionChanged = false;
+        }
+
+        /// <summary>
+        /// 启用导航（解除 SelectionChanged 抑制）
+        /// 在 LoadContent() 调用后启用，允许用户导航触发
+        /// </summary>
+        public void EnableNavigation()
+        {
+            _suppressSelectionChanged = false;
+            System.Diagnostics.Debug.WriteLine("[NavigationBar] 导航已启用");
         }
 
         public void SelectWebAppItem(string shortcutId)
@@ -86,6 +98,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                 _suppressSelectionChanged = true;
                 NavView.SelectedItem = navItem;
                 TopNavView.SelectedItem = null;
+                _lastSelectedNavigationItem = navItem; // ⭐ 修复：同步更新选中记录
                 _suppressSelectionChanged = false;
             }
         }
@@ -112,6 +125,11 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             UpdateAINavigationItemVisibility();
             // 初始化返回按钮（默认隐藏）
             BackNavigationItem.Visibility = Visibility.Collapsed;
+            
+            // ⭐ 修复 Bug: 初始化时抑制 SelectionChanged 事件，避免过早触发导航
+            // HomeNavigationItem 的 IsSelected="True" 会在 XAML 初始化时触发 SelectionChanged
+            // 我们需要等到 LoadContent() 调用后才真正导航到首页
+            _suppressSelectionChanged = true;
         }
 
         private void NavigationBar_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -444,38 +462,32 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                 return;
             }
 
-            // 处理停靠切换
+            // ⭐ 修复 Bug 1: 只在 ItemInvoked 中处理不需要改变选中状态的按钮
+            // 普通导航项由 SelectionChanged 统一处理，避免重复导航
+
+            // 处理停靠切换（不改变选中状态）
             if (tagText == "dock")
             {
-                // ⭐ 固定按钮不应该改变当前页面的选中状态
-                // 触发固定事件即可，不需要恢复选中项
                 DockToggleRequested?.Invoke(this, EventArgs.Empty);
+                // ⭐ 修复 Bug 3: 恢复上次选中的导航项
+                _suppressSelectionChanged = true;
+                NavView.SelectedItem = _lastSelectedNavigationItem;
+                _suppressSelectionChanged = false;
                 return;
             }
 
-            // 处理返回按钮
+            // 处理返回按钮（不改变选中状态）
             if (tagText == "back")
             {
-                // ⭐ 返回按钮不应该改变当前页面的选中状态
-                // 触发返回事件即可，选中状态由实际导航结果决定
                 BackRequested?.Invoke(this, EventArgs.Empty);
+                // ⭐ 修复 Bug 2: 恢复上次选中的导航项
+                _suppressSelectionChanged = true;
+                NavView.SelectedItem = _lastSelectedNavigationItem;
+                _suppressSelectionChanged = false;
                 return;
             }
 
-            // 处理设置页面
-            if (tagText == "settings")
-            {
-                string navigationKey = "settings";
-                
-                if (_navigationDebouncer.ShouldDebounce(navigationKey))
-                {
-                    return;
-                }
-                
-                NavigationRequested?.Invoke(this, new NavigationRequest(typeof(SettingsPage), null));
-                return;
-            }
-
+            // ⭐ 修复 Bug 4: 处理 WebApp 快捷方式的重启逻辑（检测双击）
             if (tagText.StartsWith("webapp:"))
             {
                 string shortcutId = tagText["webapp:".Length..];
@@ -496,40 +508,21 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                         
                         System.Diagnostics.Debug.WriteLine($"[NavigationBar] 点击已选中的标签，触发重启: {shortcut.Name}");
                         WebAppRestartRequested?.Invoke(this, shortcutId);
+                        return; // ⭐ 不设置选中项，让 SelectionChanged 被抑制
                     }
                     else
                     {
-                        // 切换到其他标签，设置选中状态并让 SelectionChanged 处理导航
+                        // ⭐ 切换到其他标签，设置选中状态并让 SelectionChanged 处理导航
                         NavView.SelectedItem = args.InvokedItemContainer;
+                        return; // ⭐ 让 SelectionChanged 处理导航
                     }
                 }
                 return;
             }
 
-            if (!int.TryParse(tagText, out int sectionIndex))
-            {
-                return;
-            }
-
+            // ⭐ 其他导航项（首页、AI、新建、设置）：只设置选中项，让 SelectionChanged 处理导航
+            // 这样可以避免 ItemInvoked 和 SelectionChanged 重复触发导航
             NavView.SelectedItem = args.InvokedItemContainer;
-
-            Type pageType = sectionIndex switch
-            {
-                0 => typeof(HomePage),
-                1 => typeof(NewPage),
-                2 => typeof(AIPage),
-                _ => typeof(HomePage)
-            };
-
-            // 防抖检查
-            string navKey = $"invoke:{sectionIndex}";
-            
-            if (_navigationDebouncer.ShouldDebounce(navKey))
-            {
-                return;
-            }
-
-            NavigationRequested?.Invoke(this, new NavigationRequest(pageType, null));
         }
 
         private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -552,12 +545,28 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                 _suppressSelectionChanged = false;
             }
 
+            // ⭐ 修复 Bug 1: 在 SelectionChanged 中统一处理导航，避免与 ItemInvoked 重复
+            
+            // 处理设置页面导航
             if (tagText == "settings")
             {
+                string navigationKey = "settings";
+                
+                if (_navigationDebouncer.ShouldDebounce(navigationKey))
+                {
+                    // 防抖触发，恢复之前的选中状态
+                    _suppressSelectionChanged = true;
+                    NavView.SelectedItem = _lastSelectedNavigationItem;
+                    _suppressSelectionChanged = false;
+                    return;
+                }
+                
                 _lastSelectedNavigationItem = args.SelectedItemContainer;
+                NavigationRequested?.Invoke(this, new NavigationRequest(typeof(SettingsPage), null));
                 return;
             }
 
+            // 处理 WebApp 快捷方式导航（切换标签）
             if (tagText.StartsWith("webapp:"))
             {
                 string shortcutId = tagText["webapp:".Length..];
@@ -577,18 +586,41 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                     
                     _lastSelectedNavigationItem = args.SelectedItemContainer;
                     
-                    // 只在切换标签时触发导航（ItemInvoked 已经处理了重启逻辑）
+                    // 触发导航（只在切换标签时，重启由 ItemInvoked 处理）
                     NavigationRequested?.Invoke(this, new NavigationRequest(typeof(WebBrowserPage), shortcut));
                 }
                 return;
             }
 
-            if (!int.TryParse(tagText, out int sectionIndex))
+            // 处理普通页面导航（首页、AI、新建）
+            if (int.TryParse(tagText, out int sectionIndex))
             {
+                Type pageType = sectionIndex switch
+                {
+                    0 => typeof(HomePage),
+                    1 => typeof(NewPage),
+                    2 => typeof(AIPage),
+                    _ => typeof(HomePage)
+                };
+
+                // 防抖检查
+                string navKey = $"section:{sectionIndex}";
+                
+                if (_navigationDebouncer.ShouldDebounce(navKey))
+                {
+                    // 防抖触发，恢复之前的选中状态
+                    _suppressSelectionChanged = true;
+                    NavView.SelectedItem = _lastSelectedNavigationItem;
+                    _suppressSelectionChanged = false;
+                    return;
+                }
+
+                _lastSelectedNavigationItem = args.SelectedItemContainer;
+                NavigationRequested?.Invoke(this, new NavigationRequest(pageType, null));
                 return;
             }
 
-            // 普通页面导航由 ItemInvoked 处理，SelectionChanged 只更新选中记录
+            // 其他情况：只更新选中记录，不触发导航
             _lastSelectedNavigationItem = args.SelectedItemContainer;
         }
 
