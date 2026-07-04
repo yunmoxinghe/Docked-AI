@@ -4,6 +4,7 @@ using Docked_AI.Features.MainWindow.Placement;
 using Docked_AI.Features.MainWindow.Entry;
 using Docked_AI.Features.MainWindow.Status;
 using Docked_AI.Features.Pages.Settings;
+using Docked_AI.Features.UnifiedCalls.AsyncSafety;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Windowing;
 using System;
@@ -694,9 +695,33 @@ namespace Docked_AI.Features.MainWindow.Visibility
         }
 
         /// <summary>
-        /// 状态变化事件处理器，使用命令模式协调所有状态转换
+        /// 状态变化事件处理器入口，使用命令模式协调所有状态转换
         /// </summary>
-        private async void OnWindowStateChanged(object? sender, StateChangedEventArgs args)
+        private void OnWindowStateChanged(object? sender, StateChangedEventArgs args)
+        {
+            // 使用 AsyncSafety helper 安全包装异步逻辑
+            AsyncSafety.Run(
+                () => OnWindowStateChangedAsync(sender, args),
+                "WindowHostController",
+                "OnWindowStateChanged"
+            );
+        }
+
+        /// <summary>
+        /// 状态变化异步处理逻辑，执行实际的窗口操作和副作用
+        /// 
+        /// 【职责】
+        /// 1. 根据状态转换执行相应的窗口操作（动画、样式、布局）
+        /// 2. 等待副作用完成或超时
+        /// 3. 成功时提交状态，失败时回滚状态
+        /// 4. 捕获所有异常并记录日志
+        /// 
+        /// 【调用时机】
+        /// 当 StateManager 触发 StateChanged 事件时被调用
+        /// CreatePlan 已经在调用方（如 ToggleWindow）中被调用
+        /// 这里只需要执行副作用，不需要再次调用 CreatePlan
+        /// </summary>
+        private async System.Threading.Tasks.Task OnWindowStateChangedAsync(object? sender, StateChangedEventArgs args)
         {
             // 注意：此方法在 StateChanged 事件触发时被调用
             // CreatePlan 已经在调用方（如 ToggleWindow）中被调用

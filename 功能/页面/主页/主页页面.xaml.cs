@@ -9,6 +9,7 @@ using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.Pages.WebApp.Browser;
 using Docked_AI.Features.Localization;
 using Docked_AI.Features.UnifiedCalls.TopAppBar;
+using Docked_AI.Features.UnifiedCalls.AsyncSafety;
 using Docked_AI.Features.MainWindowContent.ContentArea;
 using Docked_AI.Features.UnifiedCalls.ContentArea;
 using Docked_AI.Features.Pages.Settings;
@@ -91,20 +92,28 @@ namespace Docked_AI.Features.Pages.Home
             _lastMeasuredWidth = width;
         }
 
+        /// <summary>
+        /// ⭐ 任务 6.4：快捷方式创建事件（使用 AsyncSafety 包装 DispatcherQueue.TryEnqueue）
+        /// </summary>
         private void OnShortcutCreated(object? sender, WebAppShortcut shortcut)
         {
-            DispatcherQueue.TryEnqueue(async () =>
-            {
-                await LoadWebAppsAsync();
-            });
+            AsyncSafety.TryEnqueue(
+                DispatcherQueue,
+                async () => await LoadWebAppsAsync(),
+                "HomePage",
+                "ShortcutCreated");
         }
 
+        /// <summary>
+        /// ⭐ 任务 6.4：快捷方式刷新请求事件（使用 AsyncSafety 包装 DispatcherQueue.TryEnqueue）
+        /// </summary>
         private void OnShortcutsRefreshRequested(object? sender, EventArgs e)
         {
-            DispatcherQueue.TryEnqueue(async () =>
-            {
-                await LoadWebAppsAsync();
-            });
+            AsyncSafety.TryEnqueue(
+                DispatcherQueue,
+                async () => await LoadWebAppsAsync(),
+                "HomePage",
+                "ShortcutsRefresh");
         }
 
         private async Task LoadWebAppsAsync()

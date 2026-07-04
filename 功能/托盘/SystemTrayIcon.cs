@@ -15,6 +15,9 @@ namespace Docked_AI.Features.Tray
         private const uint WM_APP = 0x8000;
         private const uint TRAY_CALLBACK = WM_APP + 100;
         private const uint WM_CONTEXTMENU = 0x007B;  // 🛠️ 添加 WM_CONTEXTMENU
+        
+        // 🔧 Subclass ID 常量，避免魔法数字
+        private const nuint SUBCLASS_ID = 102;
 
         private readonly Window _hiddenWindow;
         private readonly uint _iconId;
@@ -45,10 +48,11 @@ namespace Docked_AI.Features.Tray
             // 🔧 设置窗口完全透明（alpha = 0）
             SetLayeredWindowAttributes(_hWnd, 0, 0, LWA_ALPHA);
 
-            _gcHandle = GCHandle.Alloc(this, GCHandleType.Weak);
+            // 🔧 使用强引用确保 native callback 存活期间托管对象不被 GC 回收
+            _gcHandle = GCHandle.Alloc(this, GCHandleType.Normal);
             _subclassDelegate = WndProc;
             var fnPtr = Marshal.GetFunctionPointerForDelegate(_subclassDelegate);
-            SetWindowSubclass(_hWnd, fnPtr, 102, (nuint)GCHandle.ToIntPtr(_gcHandle));
+            SetWindowSubclass(_hWnd, fnPtr, SUBCLASS_ID, (nuint)GCHandle.ToIntPtr(_gcHandle));
 
             SetWindowPos(_hWnd, IntPtr.Zero, 0, 0, 0, 0, SWP_NOZORDER);
             LoadIcon(iconPath);
@@ -83,13 +87,75 @@ namespace Docked_AI.Features.Tray
         {
             if (_disposed) return;
             _disposed = true;
+
+            // 🔧 按正确顺序清理资源，每个步骤都有 try-catch 保护
+            
+            // 1️⃣ 从托盘删除图标
+            try
+            {
+                if (_isVisible)
+                {
+                    RemoveFromTray();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Error removing tray icon: {ex.Message}");
+            }
+
+            // 2️⃣ 移除 window subclass
+            try
+            {
+                if (_hWnd != IntPtr.Zero && _subclassDelegate != null)
+                {
+                    var fnPtr = Marshal.GetFunctionPointerForDelegate(_subclassDelegate);
+                    RemoveWindowSubclass(_hWnd, fnPtr, SUBCLASS_ID);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Error removing window subclass: {ex.Message}");
+            }
+
+            // 3️⃣ 关闭隐藏窗口
             if (disposing)
             {
-                _hiddenWindow.Close();
+                try
+                {
+                    _hiddenWindow?.Close();
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Error closing hidden window: {ex.Message}");
+                }
             }
-            RemoveFromTray();
-            if (_hIcon != IntPtr.Zero)
-                DestroyIcon(_hIcon);
+
+            // 4️⃣ 销毁 icon
+            try
+            {
+                if (_hIcon != IntPtr.Zero)
+                {
+                    DestroyIcon(_hIcon);
+                    _hIcon = IntPtr.Zero;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Error destroying icon: {ex.Message}");
+            }
+
+            // 5️⃣ 释放 GCHandle
+            try
+            {
+                if (_gcHandle.IsAllocated)
+                {
+                    _gcHandle.Free();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Error freeing GCHandle: {ex.Message}");
+            }
         }
 
         public uint TrayIconId => _iconId;
@@ -184,37 +250,54 @@ namespace Docked_AI.Features.Tray
 
         private IntPtr WndProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam, nuint uIdSubclass, nuint dwRefData)
         {
-            if (uMsg == WM_GETMINMAXINFO)
+            // 🔧 P1: 检查对象是否已释放，避免 native callback 访问已释放对象
+            if (_disposed)
             {
-                var mmi = Marshal.PtrToStructure<MINMAXINFO>(lParam);
-                mmi.ptMinTrackSize = new POINT(0, 0);
-                Marshal.StructureToPtr(mmi, lParam, false);
-                return IntPtr.Zero;
+                System.Diagnostics.Debug.WriteLine("[SystemTrayIcon] WndProc called after dispose, returning default handling");
+                return DefSubclassProc(hWnd, uMsg, wParam, lParam);
             }
 
-            if (uMsg == TRAY_CALLBACK)
+            try
             {
-                var msg = (uint)(lParam.ToInt32() & 0xffff);
-                var args = new SystemTrayIconEventArgs();
-
-                // 🔍 检测输入设备类型
-                args.InputDevice = DetectInputDeviceType();
-
-                switch (msg)
+                if (uMsg == WM_GETMINMAXINFO)
                 {
-                    case WM_LBUTTONUP:  // 🛠️ 改为 UP，在释放时触发
-                        LeftClick?.Invoke(this, args);
-                        break;
-                    case WM_CONTEXTMENU:  // 🛠️ 使用 WM_CONTEXTMENU 而不是 WM_RBUTTONDOWN
-                        RightClick?.Invoke(this, args);
-                        break;
+                    var mmi = Marshal.PtrToStructure<MINMAXINFO>(lParam);
+                    mmi.ptMinTrackSize = new POINT(0, 0);
+                    Marshal.StructureToPtr(mmi, lParam, false);
+                    return IntPtr.Zero;
                 }
 
-                if (args.Flyout != null)
-                    ShowFlyout(args.Flyout);
-            }
+                if (uMsg == TRAY_CALLBACK)
+                {
+                    var msg = (uint)(lParam.ToInt32() & 0xffff);
+                    var args = new SystemTrayIconEventArgs();
 
-            return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+                    // 🔍 检测输入设备类型
+                    args.InputDevice = DetectInputDeviceType();
+
+                    switch (msg)
+                    {
+                        case WM_LBUTTONUP:  // 🛠️ 改为 UP，在释放时触发
+                            LeftClick?.Invoke(this, args);
+                            break;
+                        case WM_CONTEXTMENU:  // 🛠️ 使用 WM_CONTEXTMENU 而不是 WM_RBUTTONDOWN
+                            RightClick?.Invoke(this, args);
+                            break;
+                    }
+
+                    if (args.Flyout != null)
+                        ShowFlyout(args.Flyout);
+                }
+
+                return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+            }
+            catch (Exception ex)
+            {
+                // 🔧 P2: 记录异常但不重新抛出，避免从 native callback 抛出导致崩溃
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Exception in WndProc: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Stack trace: {ex.StackTrace}");
+                return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+            }
         }
 
         /// <summary>
@@ -506,6 +589,9 @@ namespace Docked_AI.Features.Tray
 
         [DllImport("comctl32.dll")]
         private static extern bool SetWindowSubclass(IntPtr hWnd, IntPtr pfnSubclass, nuint uIdSubclass, nuint dwRefData);
+
+        [DllImport("comctl32.dll")]
+        private static extern bool RemoveWindowSubclass(IntPtr hWnd, IntPtr pfnSubclass, nuint uIdSubclass);
 
         [DllImport("comctl32.dll")]
         private static extern IntPtr DefSubclassProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);

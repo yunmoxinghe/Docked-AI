@@ -2,6 +2,7 @@ using Docked_AI.Features.MainWindow.State;
 using Docked_AI.Features.MainWindow.Visibility;
 using Docked_AI.Features.MainWindowContent.Linker;
 using Docked_AI.Features.Tray;
+using Docked_AI.Features.UnifiedCalls.AsyncSafety;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media.Animation;
@@ -461,15 +462,74 @@ namespace Docked_AI
         /// 4. 淡出完成后设置亚克力背景并将 RootGrid 改为透明
         /// 5. 隐藏启动屏幕遮罩
         /// </summary>
-        public async void ShowSplash()
+        /// <summary>
+        /// 显示启动屏幕（入口方法）
+        /// 
+        /// 【重构说明】
+        /// 1. 保留 async void 签名以符合事件处理器要求
+        /// 2. 使用 AsyncSafety.Run() 包装异步逻辑
+        /// 3. 实际逻辑移到 ShowSplashAsync() 方法
+        /// 
+        /// 【职责】
+        /// 1. 播放启动屏幕淡入动画（纯色 → 启动屏幕图片）
+        /// 2. 显示启动屏幕一段时间
+        /// 3. 播放淡出动画
+        /// 4. 淡出完成后设置亚克力背景
+        /// 5. 隐藏启动屏幕遮罩
+        /// </summary>
+        public void ShowSplash()
+        {
+            AsyncSafety.Run(ShowSplashAsync, "MainWindow", "ShowSplash");
+        }
+
+        /// <summary>
+        /// 显示启动屏幕的实际异步逻辑
+        /// 
+        /// 【执行流程】
+        /// 1. 检查窗口状态（确保未关闭且 Content 可用）
+        /// 2. 设置 ColorOverlay 初始不透明度
+        /// 3. 播放淡入动画（纯色 → 启动屏幕图片）
+        /// 4. 等待显示时间
+        /// 5. 播放淡出动画
+        /// 6. 设置亚克力背景
+        /// 7. 加载内容并标记初始化完成
+        /// 8. 检查焦点并决定是否隐藏窗口
+        /// 
+        /// 【安全性】
+        /// - 在访问 UI 元素前检查 Content 是否为 null
+        /// - 捕获 SystemBackdrop 设置异常
+        /// - 异常由 AsyncSafety.Run() 统一记录
+        /// </summary>
+        private async Task ShowSplashAsync()
         {
             System.Diagnostics.Debug.WriteLine("[MainWindow] ShowSplash started");
             
+            // ⭐ 安全检查：确保窗口未关闭且 Content 可用
+            if (this.Content == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] ShowSplash aborted: Content is null (window may be closed)");
+                return;
+            }
+            
             // 确保 ColorOverlay 初始状态为完全不透明（纯色遮罩）
+            // ⭐ 再次检查 Content（防止竞态条件）
+            if (this.Content == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] ShowSplash aborted: Content became null during initialization");
+                return;
+            }
+            
             ColorOverlay.Opacity = 1;
             
             // 等待一帧，确保 UI 渲染完成
             await Task.Delay(16); // ~1 frame at 60fps
+            
+            // ⭐ 检查窗口状态
+            if (this.Content == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] ShowSplash aborted: Content became null after initial delay");
+                return;
+            }
             
             // 立即播放淡入动画（纯色 -> 启动屏幕）
             var fadeInStoryboard = (Storyboard)SplashOverlay.Resources["SplashFadeIn"];
@@ -479,6 +539,13 @@ namespace Docked_AI
             // 等待淡入完成 + 显示时间
             await Task.Delay(900); // 400ms 淡入 + 500ms 显示
 
+            // ⭐ 检查窗口状态
+            if (this.Content == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] ShowSplash aborted: Content became null during display");
+                return;
+            }
+            
             // 使用 TaskCompletionSource 等待淡出动画完全完成
             var tcs = new TaskCompletionSource<bool>();
             
@@ -495,6 +562,13 @@ namespace Docked_AI
             await tcs.Task;
             System.Diagnostics.Debug.WriteLine("[MainWindow] Fade-out animation completed");
             
+            // ⭐ 检查窗口状态
+            if (this.Content == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] ShowSplash aborted: Content became null after fade-out");
+                return;
+            }
+            
             // 淡出完成后设置亚克力背景（使用 WinUI SystemBackdrop API）
             try
             {
@@ -504,6 +578,13 @@ namespace Docked_AI
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to set acrylic backdrop: {ex.Message}");
+            }
+            
+            // ⭐ 检查窗口状态
+            if (this.Content == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] ShowSplash aborted: Content became null after backdrop setup");
+                return;
             }
             
             // 将 RootGrid 背景改为透明，让亚克力效果透过来
@@ -523,6 +604,13 @@ namespace Docked_AI
 
             // ⭐ 延迟检测焦点，如果失去焦点则自动隐藏（除非处于固定模式）
             await Task.Delay(100);
+            
+            // ⭐ 最后检查窗口状态
+            if (this.Content == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[MainWindow] ShowSplash aborted: Content became null during focus check");
+                return;
+            }
             
             // 检查窗口是否仍然有焦点
             var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(this);

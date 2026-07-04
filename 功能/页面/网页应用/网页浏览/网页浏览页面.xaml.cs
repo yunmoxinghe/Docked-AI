@@ -3,6 +3,7 @@ using Docked_AI.Features.Pages.Settings;
 using Docked_AI.Features.MainWindowContent.ContentArea;
 using Docked_AI.Features.UnifiedCalls.InAppDialog;
 using Docked_AI.Features.UnifiedCalls.TopAppBar;
+using Docked_AI.Features.UnifiedCalls.AsyncSafety;
 using Docked_AI.Features.Localization;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
@@ -61,6 +62,10 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private string? _contextMenuSelectedText;
         private string? _contextMenuLinkUrl;
         private bool _needsWebViewRecreation; // ⭐ 标记是否需要重新创建 WebView
+        private CoreWebView2Environment? _webViewEnvironment; // ⭐ 保存 WebView2 environment 引用（用于订阅 BrowserProcessExited）
+        private int _unresponsiveCount; // ⭐ 任务 3.4：记录 RenderProcessUnresponsive 连续次数
+        private const int MaxUnresponsiveCountBeforeReload = 3; // ⭐ 连续无响应多少次后触发 Reload
+        private bool _isRecoveringWebView; // ⭐ 任务 3.5：防重入 guard，多个进程事件同时触发时只执行一次恢复
 
         // ✅ 修复：初始背景色完全透明，避免黑色闪现
         // 首次采样后会立即设置为正确的颜色
@@ -421,30 +426,34 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 _hasReceivedFirstTint = false;
                 _hasAppliedThemeColor = false;
                 
-                // ✅ 延迟执行，等待 WebView2 内部的主题切换完成
-                DispatcherQueue.TryEnqueue(async () =>
-                {
-                    System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 等待 500ms 让 WebView2 完成主题切换...");
-                    
-                    // 等待网页重新渲染（prefers-color-scheme CSS 生效）
-                    await Task.Delay(500);
-                    
-                    System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 开始执行主题切换后的取色");
-                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 取色前背景色: Top={_topBarBackgroundBrush.Color}, Bottom={_bottomBarBackgroundBrush.Color}");
-                    
-                    // ✅ 步骤1：尝试 meta theme-color
-                    await TryApplyThemeColorAsync();
-                    
-                    // ✅ 步骤2：如果没有 theme-color，使用脚本采样
-                    if (!_hasAppliedThemeColor)
+                // ⭐ 任务 6.4：使用 AsyncSafety 包装 DispatcherQueue.TryEnqueue 中的 async lambda
+                AsyncSafety.TryEnqueue(
+                    DispatcherQueue,
+                    async () =>
                     {
-                        System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 没有 theme-color，触发脚本采样取色");
-                        await Task.Delay(100);
-                        await TriggerTintSamplingAsync();
-                    }
-                    
-                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 取色完成后背景色: Top={_topBarBackgroundBrush.Color}, Bottom={_bottomBarBackgroundBrush.Color}");
-                });
+                        System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 等待 500ms 让 WebView2 完成主题切换...");
+                        
+                        // 等待网页重新渲染（prefers-color-scheme CSS 生效）
+                        await Task.Delay(500);
+                        
+                        System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 开始执行主题切换后的取色");
+                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 取色前背景色: Top={_topBarBackgroundBrush.Color}, Bottom={_bottomBarBackgroundBrush.Color}");
+                        
+                        // ✅ 步骤1：尝试 meta theme-color
+                        await TryApplyThemeColorAsync();
+                        
+                        // ✅ 步骤2：如果没有 theme-color，使用脚本采样
+                        if (!_hasAppliedThemeColor)
+                        {
+                            System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 没有 theme-color，触发脚本采样取色");
+                            await Task.Delay(100);
+                            await TriggerTintSamplingAsync();
+                        }
+                        
+                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 取色完成后背景色: Top={_topBarBackgroundBrush.Color}, Bottom={_bottomBarBackgroundBrush.Color}");
+                    },
+                    "WebBrowserPage",
+                    "ThemeChanged");
             }
             else
             {
@@ -652,8 +661,17 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             if (_needsWebViewRecreation)
             {
                 System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 需要重新创建 WebView");
-                RecreateWebView();
-                _needsWebViewRecreation = false;
+                
+                // ⭐ 任务 3.5：检查是否正在恢复中
+                if (!_isRecoveringWebView)
+                {
+                    RecreateWebView();
+                    _needsWebViewRecreation = false;
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[WebBrowserPage] ⚠️ 正在恢复中，跳过 RecreateWebView");
+                }
             }
             
             // ⭐ 重新链接到 LRU（页面恢复时必须重新加入 LRU 管理）
@@ -762,7 +780,21 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             // Unlink 由 DisposeWebView 负责（当页面真正被销毁时）
         }
 
+        /// <summary>
+        /// ⭐ 任务 6.3：WebBrowserPage_Loaded 事件入口（委托到异步实现）
+        /// </summary>
         private async void WebBrowserPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            AsyncSafety.Run(
+                async () => await WebBrowserPageLoadedAsync(sender, e),
+                "WebBrowserPage",
+                "Loaded");
+        }
+
+        /// <summary>
+        /// ⭐ 任务 6.3：WebBrowserPage_Loaded 异步实现
+        /// </summary>
+        private async Task WebBrowserPageLoadedAsync(object sender, RoutedEventArgs e)
         {
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] Loaded 事件触发");
             
@@ -834,6 +866,17 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 WebView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
                 WebView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
                 
+                // ⭐ 任务 3.2：订阅 ProcessFailed 事件（防止重复订阅）
+                WebView.CoreWebView2.ProcessFailed -= CoreWebView2_ProcessFailed;
+                WebView.CoreWebView2.ProcessFailed += CoreWebView2_ProcessFailed;
+                
+                // ⭐ 任务 3.2：订阅 BrowserProcessExited 事件（如果 environment 已存在）
+                if (_webViewEnvironment != null)
+                {
+                    _webViewEnvironment.BrowserProcessExited -= CoreWebView2Environment_BrowserProcessExited;
+                    _webViewEnvironment.BrowserProcessExited += CoreWebView2Environment_BrowserProcessExited;
+                }
+                
                 // 根据设置配置右键菜单
                 UpdateContextMenuConfiguration(useWinUIContextMenu);
                 
@@ -885,6 +928,13 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     userDataFolder: null,
                     options: options);
                 
+                // ⭐ 保存 environment 引用（用于后续订阅 BrowserProcessExited）
+                _webViewEnvironment = environment;
+                
+                // ⭐ 任务 3.2：订阅 BrowserProcessExited 事件（防止重复订阅）
+                _webViewEnvironment.BrowserProcessExited -= CoreWebView2Environment_BrowserProcessExited;
+                _webViewEnvironment.BrowserProcessExited += CoreWebView2Environment_BrowserProcessExited;
+                
                 System.Diagnostics.Debug.WriteLine($"[EnsureWebViewInitializedAsync] 初始化 CoreWebView2...");
                 await WebView.EnsureCoreWebView2Async(environment);
                 
@@ -918,6 +968,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     WebView.CoreWebView2.HistoryChanged += CoreWebView2_HistoryChanged;
                     WebView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
                     WebView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
+                    
+                    // ⭐ 任务 3.2：订阅 ProcessFailed 事件
+                    WebView.CoreWebView2.ProcessFailed += CoreWebView2_ProcessFailed;
                     
                     // 根据设置配置右键菜单
                     UpdateContextMenuConfiguration(useWinUIContextMenu);
@@ -1230,9 +1283,26 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             });
         }
 
+        /// <summary>
+        /// ⭐ 任务 6.3：CoreWebView2_NavigationCompleted 事件入口（委托到异步实现）
+        /// </summary>
         private async void CoreWebView2_NavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
         {
+            AsyncSafety.Run(
+                async () => await CoreWebView2NavigationCompletedAsync(sender, e),
+                "WebBrowserPage",
+                "NavigationCompleted");
+        }
+
+        /// <summary>
+        /// ⭐ 任务 6.3：CoreWebView2_NavigationCompleted 异步实现
+        /// </summary>
+        private async Task CoreWebView2NavigationCompletedAsync(object? sender, CoreWebView2NavigationCompletedEventArgs e)
+        {
             UpdateNavigationButtonStates();
+            
+            // ⭐ 任务 3.4：导航成功后重置无响应计数器
+            _unresponsiveCount = 0;
             
             // ✅ 修复：在导航完成时重置取色状态
             // 确保新页面能重新取色
@@ -1264,6 +1334,281 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private void CoreWebView2_HistoryChanged(object? sender, object e)
         {
             UpdateNavigationButtonStates();
+        }
+        
+        /// <summary>
+        /// WebView2 浏览器进程退出事件处理器（占位，任务 3.2-3.4 将实现完整功能）
+        /// </summary>
+        private void CoreWebView2Environment_BrowserProcessExited(object? sender, CoreWebView2BrowserProcessExitedEventArgs e)
+        {
+            // TODO: 任务 3.3 将实现完整的日志记录逻辑
+            // TODO: 任务 3.4 将实现恢复策略
+            System.Diagnostics.Debug.WriteLine($"[CoreWebView2Environment_BrowserProcessExited] 浏览器进程退出 (占位方法)");
+        }
+        
+        /// <summary>
+        /// ⭐ 任务 3.3：WebView2 进程失败事件处理器（已完成）
+        /// 记录 ProcessFailedKind、Reason、当前 URL、Shortcut ID、是否正在恢复等诊断信息
+        /// 捕获 handler 内部异常，避免二次崩溃
+        /// </summary>
+        private void CoreWebView2_ProcessFailed(object? sender, CoreWebView2ProcessFailedEventArgs e)
+        {
+            try
+            {
+                // ✅ 记录 ProcessFailedKind
+                var processFailedKind = e.ProcessFailedKind;
+                
+                // ✅ 记录 Reason
+                var reason = e.Reason;
+                
+                // ✅ 记录当前 URL
+                string? currentUrl = null;
+                try
+                {
+                    currentUrl = WebView?.CoreWebView2?.Source ?? _pendingNavigationUri?.ToString() ?? "未知";
+                }
+                catch
+                {
+                    currentUrl = "无法获取";
+                }
+                
+                // ✅ 记录 Shortcut ID
+                var shortcutId = _currentShortcut?.Id ?? "null";
+                var shortcutName = _currentShortcut?.Name ?? "未知";
+                
+                // ✅ 记录是否正在恢复（通过检查相关标志）
+                var isRecovering = _needsWebViewRecreation ? "是" : "否";
+                
+                // 记录进程描述信息（如果可用）
+                var processDescription = !string.IsNullOrEmpty(e.ProcessDescription) 
+                    ? e.ProcessDescription 
+                    : "无描述";
+                
+                // 记录 ExitCode（如果可用）
+                int? exitCode = null;
+                try
+                {
+                    exitCode = e.ExitCode;
+                }
+                catch
+                {
+                    // ExitCode 可能不可用（某些失败类型）
+                }
+                
+                // ✅ 构建详细的日志消息（包含所有需求字段）
+                var logMessage = $"WebView2 进程失败\n" +
+                                $"  ProcessFailedKind: {processFailedKind}\n" +
+                                $"  Reason: {reason}\n" +
+                                $"  ProcessDescription: {processDescription}\n" +
+                                $"  ExitCode: {(exitCode.HasValue ? exitCode.Value.ToString() : "N/A")}\n" +
+                                $"  当前 URL: {currentUrl}\n" +
+                                $"  Shortcut ID: {shortcutId}\n" +
+                                $"  Shortcut 名称: {shortcutName}\n" +
+                                $"  是否正在恢复: {isRecovering}\n" +
+                                $"  IsDisposed: {_isDisposed}\n" +
+                                $"  IsWebViewReady: {_isWebViewReady}\n" +
+                                $"  实例 ID: {_instanceId}";
+                
+                // ✅ 输出到调试控制台
+                System.Diagnostics.Debug.WriteLine($"[CoreWebView2_ProcessFailed] {logMessage}");
+                
+                // ✅ 使用 LogService 记录到文件（需求：2.3.2）
+                Features.UnifiedCalls.Logging.LogService.Error(
+                    "WebView2.ProcessFailed",
+                    logMessage);
+                
+                // ⭐ 任务 3.4：实现恢复策略（需求：2.3.3、3.2.1、3.2.2、3.2.3）
+                DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Normal, () =>
+                {
+                    try
+                    {
+                        // ⭐ 任务 3.5：防重入检查 - 如果正在恢复中，直接返回（需求：2.3.3）
+                        if (_isRecoveringWebView)
+                        {
+                            System.Diagnostics.Debug.WriteLine("[CoreWebView2_ProcessFailed] ⚠️ 正在恢复中，忽略本次事件以防止重入");
+                            Features.UnifiedCalls.Logging.LogService.Warning(
+                                "WebView2.ProcessFailed",
+                                $"防重入保护：忽略 {processFailedKind} 事件（恢复正在进行中）");
+                            return;
+                        }
+                        
+                        switch (processFailedKind)
+                        {
+                            case CoreWebView2ProcessFailedKind.RenderProcessExited:
+                                // ⭐ 渲染进程退出：优先调用 Reload（需求：3.2.1）
+                                System.Diagnostics.Debug.WriteLine("[CoreWebView2_ProcessFailed] 检测到 RenderProcessExited，尝试 Reload");
+                                
+                                // ⭐ 任务 3.5：设置恢复标志
+                                _isRecoveringWebView = true;
+                                
+                                if (WebView?.CoreWebView2 != null)
+                                {
+                                    try
+                                    {
+                                        WebView.CoreWebView2.Reload();
+                                        System.Diagnostics.Debug.WriteLine("[CoreWebView2_ProcessFailed] ✅ Reload 已调用");
+                                        
+                                        // 重置无响应计数器（Reload 后重置）
+                                        _unresponsiveCount = 0;
+                                    }
+                                    catch (Exception reloadEx)
+                                    {
+                                        System.Diagnostics.Debug.WriteLine($"[CoreWebView2_ProcessFailed] ❌ Reload 失败: {reloadEx.Message}");
+                                        Features.UnifiedCalls.Logging.LogService.Error(
+                                            "WebView2.ProcessFailed.Reload",
+                                            "渲染进程退出后尝试 Reload 失败",
+                                            reloadEx);
+                                    }
+                                    finally
+                                    {
+                                        // ⭐ 任务 3.5：恢复结束后重置 guard
+                                        _isRecoveringWebView = false;
+                                        System.Diagnostics.Debug.WriteLine("[CoreWebView2_ProcessFailed] ✅ 恢复标志已重置（RenderProcessExited）");
+                                    }
+                                }
+                                else
+                                {
+                                    // WebView 不可用，重置标志
+                                    _isRecoveringWebView = false;
+                                }
+                                break;
+                            
+                            case CoreWebView2ProcessFailedKind.BrowserProcessExited:
+                                // ⭐ 主浏览器进程退出：标记需要重建，关闭旧 WebView（需求：3.2.2）
+                                System.Diagnostics.Debug.WriteLine("[CoreWebView2_ProcessFailed] 检测到 BrowserProcessExited，标记需要重建 WebView");
+                                
+                                // ⭐ 任务 3.5：设置恢复标志
+                                _isRecoveringWebView = true;
+                                
+                                _needsWebViewRecreation = true;
+                                
+                                // 关闭旧 WebView（清理资源）
+                                try
+                                {
+                                    if (WebView?.CoreWebView2 != null)
+                                    {
+                                        WebView.CoreWebView2.ProcessFailed -= CoreWebView2_ProcessFailed;
+                                        WebView.Close();
+                                        System.Diagnostics.Debug.WriteLine("[CoreWebView2_ProcessFailed] ✅ 旧 WebView 已关闭");
+                                    }
+                                    
+                                    // 重新创建 WebView
+                                    RecreateWebView();
+                                    _needsWebViewRecreation = false;
+                                    
+                                    System.Diagnostics.Debug.WriteLine("[CoreWebView2_ProcessFailed] ✅ WebView 已重建");
+                                }
+                                catch (Exception recreateEx)
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"[CoreWebView2_ProcessFailed] ❌ 重建 WebView 失败: {recreateEx.Message}");
+                                    Features.UnifiedCalls.Logging.LogService.Error(
+                                        "WebView2.ProcessFailed.Recreate",
+                                        "主浏览器进程退出后尝试重建 WebView 失败",
+                                        recreateEx);
+                                }
+                                finally
+                                {
+                                    // ⭐ 任务 3.5：恢复结束后重置 guard
+                                    _isRecoveringWebView = false;
+                                    System.Diagnostics.Debug.WriteLine("[CoreWebView2_ProcessFailed] ✅ 恢复标志已重置（BrowserProcessExited）");
+                                }
+                                break;
+                            
+                            case CoreWebView2ProcessFailedKind.RenderProcessUnresponsive:
+                                // ⭐ 渲染进程无响应：记录次数，连续多次后 reload（需求：3.2.3）
+                                _unresponsiveCount++;
+                                System.Diagnostics.Debug.WriteLine($"[CoreWebView2_ProcessFailed] 检测到 RenderProcessUnresponsive，计数: {_unresponsiveCount}/{MaxUnresponsiveCountBeforeReload}");
+                                
+                                if (_unresponsiveCount >= MaxUnresponsiveCountBeforeReload)
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"[CoreWebView2_ProcessFailed] 连续无响应达到 {MaxUnresponsiveCountBeforeReload} 次，触发 Reload");
+                                    
+                                    // ⭐ 任务 3.5：设置恢复标志
+                                    _isRecoveringWebView = true;
+                                    
+                                    if (WebView?.CoreWebView2 != null)
+                                    {
+                                        try
+                                        {
+                                            WebView.CoreWebView2.Reload();
+                                            System.Diagnostics.Debug.WriteLine("[CoreWebView2_ProcessFailed] ✅ Reload 已调用（无响应恢复）");
+                                            
+                                            // 重置计数器
+                                            _unresponsiveCount = 0;
+                                        }
+                                        catch (Exception reloadEx)
+                                        {
+                                            System.Diagnostics.Debug.WriteLine($"[CoreWebView2_ProcessFailed] ❌ Reload 失败（无响应恢复）: {reloadEx.Message}");
+                                            Features.UnifiedCalls.Logging.LogService.Error(
+                                                "WebView2.ProcessFailed.UnresponsiveReload",
+                                                $"连续无响应 {MaxUnresponsiveCountBeforeReload} 次后尝试 Reload 失败",
+                                                reloadEx);
+                                        }
+                                        finally
+                                        {
+                                            // ⭐ 任务 3.5：恢复结束后重置 guard
+                                            _isRecoveringWebView = false;
+                                            System.Diagnostics.Debug.WriteLine("[CoreWebView2_ProcessFailed] ✅ 恢复标志已重置（RenderProcessUnresponsive）");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // WebView 不可用，重置标志
+                                        _isRecoveringWebView = false;
+                                    }
+                                }
+                                break;
+                            
+                            case CoreWebView2ProcessFailedKind.FrameRenderProcessExited:
+                                // Frame 渲染进程退出：仅记录日志，通常不需要恢复
+                                System.Diagnostics.Debug.WriteLine("[CoreWebView2_ProcessFailed] 检测到 FrameRenderProcessExited，仅记录日志");
+                                break;
+                            
+                            case CoreWebView2ProcessFailedKind.UtilityProcessExited:
+                            case CoreWebView2ProcessFailedKind.SandboxHelperProcessExited:
+                            case CoreWebView2ProcessFailedKind.GpuProcessExited:
+                                // 辅助进程退出：通常无需恢复，仅记录诊断信息
+                                System.Diagnostics.Debug.WriteLine($"[CoreWebView2_ProcessFailed] 检测到 {processFailedKind}，仅记录诊断信息");
+                                break;
+                            
+                            default:
+                                // 未知类型：记录日志
+                                System.Diagnostics.Debug.WriteLine($"[CoreWebView2_ProcessFailed] 检测到未知的 ProcessFailedKind: {processFailedKind}");
+                                break;
+                        }
+                    }
+                    catch (Exception recoveryEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[CoreWebView2_ProcessFailed] ⚠️ 恢复策略执行失败: {recoveryEx.Message}");
+                        Features.UnifiedCalls.Logging.LogService.Error(
+                            "WebView2.ProcessFailed.Recovery",
+                            "恢复策略执行过程中发生异常",
+                            recoveryEx);
+                        
+                        // ⭐ 任务 3.5：异常情况下也要重置 guard
+                        _isRecoveringWebView = false;
+                        System.Diagnostics.Debug.WriteLine("[CoreWebView2_ProcessFailed] ✅ 恢复标志已重置（异常恢复）");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                // ✅ 捕获处理器内部异常，避免二次崩溃（需求：2.3.2）
+                System.Diagnostics.Debug.WriteLine($"[CoreWebView2_ProcessFailed] ⚠️ 处理器内部异常: {ex.Message}");
+                
+                // 记录处理器自身的异常
+                try
+                {
+                    Features.UnifiedCalls.Logging.LogService.Error(
+                        "WebView2.ProcessFailed",
+                        "ProcessFailed 处理器内部发生异常（已捕获，避免二次崩溃）",
+                        ex);
+                }
+                catch
+                {
+                    // 如果日志服务本身失败，也不抛出异常
+                }
+            }
         }
 
         private async Task HideLoadingProgressBarSmoothlyAsync()
@@ -1496,7 +1841,21 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             }
         }
 
+        /// <summary>
+        /// ⭐ 任务 6.3：CoreWebView2_WebMessageReceived 事件入口（委托到异步实现）
+        /// </summary>
         private async void CoreWebView2_WebMessageReceived(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+        {
+            AsyncSafety.Run(
+                async () => await CoreWebView2WebMessageReceivedAsync(sender, e),
+                "WebBrowserPage",
+                "WebMessageReceived");
+        }
+
+        /// <summary>
+        /// ⭐ 任务 6.3：CoreWebView2_WebMessageReceived 异步实现
+        /// </summary>
+        private async Task CoreWebView2WebMessageReceivedAsync(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
         {
             string json = e.TryGetWebMessageAsString();
             if (string.IsNullOrWhiteSpace(json))
@@ -2385,6 +2744,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     webView.CoreWebView2.NavigationStarting -= CoreWebView2_NavigationStarting;
                     webView.CoreWebView2.NavigationCompleted -= CoreWebView2_NavigationCompleted;
                     webView.CoreWebView2.ContextMenuRequested -= CoreWebView2_ContextMenuRequested;
+                    
+                    // ⭐ 任务 3.2：取消订阅 ProcessFailed 事件
+                    webView.CoreWebView2.ProcessFailed -= CoreWebView2_ProcessFailed;
 
                     // 停止当前导航
                     webView.CoreWebView2.Stop();
@@ -2393,6 +2755,21 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                 {
                     System.Diagnostics.Debug.WriteLine($"[CleanupAndCloseWebView] 清理事件失败: {ex.Message}");
                 }
+            }
+            
+            // ⭐ 取消订阅 BrowserProcessExited 事件（避免重复订阅）
+            if (_webViewEnvironment != null)
+            {
+                try
+                {
+                    _webViewEnvironment.BrowserProcessExited -= CoreWebView2Environment_BrowserProcessExited;
+                    System.Diagnostics.Debug.WriteLine($"[CleanupAndCloseWebView] 已取消订阅 BrowserProcessExited");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[CleanupAndCloseWebView] 取消订阅 BrowserProcessExited 失败: {ex.Message}");
+                }
+                _webViewEnvironment = null;
             }
 
             if (webView != null)

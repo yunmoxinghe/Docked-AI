@@ -409,6 +409,29 @@ namespace Docked_AI.Features.Tray
                     {
                         System.Diagnostics.Debug.WriteLine("[TrayIconManager] CloseMainWindow: window already invalid, nothing to do");
                     }
+
+                    // 任务 5.4: 主窗口关闭后检查并恢复 keep-alive 窗口
+                    // 确保托盘模式下进程不会因窗口全部关闭而退出
+                    System.Diagnostics.Debug.WriteLine("[TrayIconManager] Checking keep-alive window after main window closed");
+                    try
+                    {
+                        // 获取 App 实例并检查 keep-alive 窗口
+                        var app = Application.Current as Docked_AI.App;
+                        if (app != null)
+                        {
+                            app.CheckAndRecoverKeepAliveWindow();
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("[TrayIconManager] WARNING: Cannot check keep-alive window - App instance not available");
+                        }
+                    }
+                    catch (Exception keepAliveEx)
+                    {
+                        // Keep-alive 检查失败不应该影响主窗口关闭流程
+                        System.Diagnostics.Debug.WriteLine($"[TrayIconManager] ERROR checking keep-alive window: {keepAliveEx.Message}");
+                        System.Diagnostics.Debug.WriteLine($"[TrayIconManager] Stack trace: {keepAliveEx.StackTrace}");
+                    }
                 }
             }
             catch (Exception ex)
