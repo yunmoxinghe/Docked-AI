@@ -69,9 +69,12 @@ public sealed partial class TopAppBarControl : UserControl
         RefreshButtonResources(MenuButton);
         RefreshButtonResources(MoreButton);
         
-        // 刷新左右面板中的控件
-        RefreshPanelTheme(LeftPanel, defaultForeground);
-        RefreshPanelTheme(RightPanel, defaultForeground);
+        // 刷新左右面板中的控件（仅在前景色非空时）
+        if (defaultForeground != null)
+        {
+            RefreshPanelTheme(LeftPanel, defaultForeground);
+            RefreshPanelTheme(RightPanel, defaultForeground);
+        }
         
         System.Diagnostics.Debug.WriteLine("[TopAppBarControl] RefreshThemeResources 完成");
     }

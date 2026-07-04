@@ -105,6 +105,26 @@
                             Toggled="OnWinUIContextMenuToggled"/>
                     </controls:SettingsCard>
 
+                    <!-- WebView 配置备份 -->
+                    <controls:SettingsCard 
+                        Header="WebView 配置备份"
+                        Description="一键备份和恢复所有网页应用的登录状态、缓存、Cookie 等数据，支持快速迁移和数据保护">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE74E;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button 
+                                Content="💾 备份"
+                                Click="OnQuickBackupClick"
+                                ToolTipService.ToolTip="保存当前所有 WebView2 数据到桌面"
+                                Style="{StaticResource AccentButtonStyle}"/>
+                            <Button 
+                                Content="♻️ 恢复"
+                                Click="OnQuickRestoreClick"
+                                ToolTipService.ToolTip="从备份文件恢复配置（需重启）"/>
+                        </StackPanel>
+                    </controls:SettingsCard>
+
                 </StackPanel>
 
                 <Border Height="12" />

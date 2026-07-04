@@ -1,6 +1,12 @@
+using System;
+using System.IO;
+using System.Linq;
 using Docked_AI.Features.Pages.Settings;
 using Docked_AI.Features.UnifiedCalls.TopAppBar;
 using Docked_AI.Features.Localization;
+using Docked_AI.Features.UnifiedCalls.InAppDialog;
+using Docked_AI.功能.WebView备份.Components;
+using Microsoft.UI.Reactor.Hosting;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -8,6 +14,18 @@ using Microsoft.UI;
 
 namespace Docked_AI.Features.Pages.Lab
 {
+    /// <summary>
+    /// 辅助扩展方法
+    /// </summary>
+    internal static class ControlExtensions
+    {
+        public static T Apply<T>(this T control, Action<T> action)
+        {
+            action(control);
+            return control;
+        }
+    }
+
     public sealed partial class LabPage : Page
     {
         private readonly 智能标题 _智能标题 = new();
@@ -219,6 +237,294 @@ namespace Docked_AI.Features.Pages.Lab
         {
             // 点击卡片时切换 ToggleSwitch 状态
             WinUIContextMenuToggle.IsOn = !WinUIContextMenuToggle.IsOn;
+        }
+
+        /// <summary>
+        /// 快速备份
+        /// </summary>
+        private async void OnQuickBackupClick(object sender, RoutedEventArgs e)
+        {
+            // 🔍 自动检测 WebView2 数据路径
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var packageFamily = Windows.ApplicationModel.Package.Current.Id.FamilyName;
+            
+            string[] possiblePaths = { 
+                System.IO.Path.Combine(localAppData, "Packages", packageFamily, "LocalState", "EBWebView"),
+                System.IO.Path.Combine(localAppData, "Packages", packageFamily, "LocalCache", "Local", "EBWebView"),
+                System.IO.Path.Combine(localAppData, "Packages", packageFamily, "LocalCache", "Local", "Microsoft", "Edge", "User Data"),
+                System.IO.Path.Combine(localAppData, "Packages", packageFamily, "LocalCache", "Local", "Microsoft", "WebView2"),
+                System.IO.Path.Combine(localAppData, "Packages", packageFamily, "LocalCache", "Local", "WebView2"),
+            };
+            
+            string? dataPath = null;
+            
+            foreach (var testPath in possiblePaths)
+            {
+                if (System.IO.Directory.Exists(testPath) && System.IO.Directory.GetFileSystemEntries(testPath).Length > 0)
+                {
+                    dataPath = testPath;
+                    System.Diagnostics.Debug.WriteLine($"[WebView备份] 找到数据目录: {dataPath}");
+                    break;
+                }
+            }
+
+            if (dataPath == null || !System.IO.Directory.Exists(dataPath))
+            {
+                var errorDialog = new ContentDialog
+                {
+                    Title = "💡 未找到 WebView2 数据",
+                    Content = new TextBlock
+                    {
+                        Text = "还没有 WebView2 数据可以备份哦！\n\n" +
+                               "📋 快速开始：\n" +
+                               "1️⃣ 打开应用中的任意网页应用（如 ChatGPT、Claude）\n" +
+                               "2️⃣ 登录账号并使用一段时间\n" +
+                               "3️⃣ 返回此处点击「备份」按钮\n\n" +
+                               $"🔍 已搜索路径：\n{string.Join("\n", possiblePaths.Take(3))}\n\n" +
+                               $"💡 提示：如果确实已使用过，可能需要重启应用后再试。",
+                        TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap
+                    },
+                    CloseButtonText = "知道了"
+                };
+                await InAppDialogService.ShowAsync(errorDialog, this);
+                return;
+            }
+
+            // 📁 使用文件夹选择器
+            var picker = new Windows.Storage.Pickers.FolderPicker();
+            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.Desktop;
+            picker.FileTypeFilter.Add("*");
+
+            // 🔧 获取窗口句柄 - 使用 XamlRoot 遍历到 Window
+            IntPtr hwnd = WindowHandleHelper.GetWindowHandleFromPage(this);
+            
+            if (hwnd == IntPtr.Zero)
+            {
+                await InAppDialogService.ShowAsync(new ContentDialog
+                {
+                    Title = "❌ 无法打开文件选择器",
+                    Content = "无法获取窗口句柄，请重启应用后重试。",
+                    CloseButtonText = "确定"
+                }, this);
+                return;
+            }
+            
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+            var folder = await picker.PickSingleFolderAsync();
+            if (folder == null) return;
+
+            var loadingDialog = new ContentDialog
+            {
+                Title = "正在备份...",
+                Content = new ProgressRing { IsActive = true, Width = 48, Height = 48 }
+            };
+
+            var dialogTask = InAppDialogService.ShowAsync(loadingDialog, this);
+
+            try
+            {
+                var backupService = new Docked_AI.功能.WebView备份.Services.WebViewBackupServiceV2(folder.Path);
+                var zipPath = await backupService.BackupUserDataFolderAsync(dataPath, "WebView配置");
+
+                loadingDialog.Hide();
+
+                var fileInfo = new System.IO.FileInfo(zipPath);
+                await InAppDialogService.ShowAsync(new ContentDialog
+                {
+                    Title = "✅ 备份成功",
+                    Content = new StackPanel
+                    {
+                        Spacing = 12,
+                        Children =
+                        {
+                            new TextBlock
+                            {
+                                Text = $"✨ 配置已安全保存！\n\n" +
+                                       $"📂 文件位置：\n{zipPath}\n\n" +
+                                       $"📦 备份大小：{fileInfo.Length / 1024 / 1024:F2} MB\n" +
+                                       $"📅 创建时间：{fileInfo.CreationTime:yyyy-MM-dd HH:mm:ss}",
+                                TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap
+                            },
+                            new Microsoft.UI.Xaml.Controls.Button
+                            {
+                                Content = "📁 打开文件位置",
+                                HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Stretch
+                            }.Apply(btn => btn.Click += (s, e) =>
+                            {
+                                System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{zipPath}\"");
+                            })
+                        }
+                    },
+                    CloseButtonText = "完成"
+                }, this);
+            }
+            catch (System.Exception ex)
+            {
+                loadingDialog.Hide();
+
+                var errorMessage = ex.Message;
+                var helpText = "💡 常见解决方案：\n";
+                
+                if (ex is UnauthorizedAccessException || ex.Message.Contains("being used"))
+                {
+                    helpText += "• 关闭所有网页应用窗口\n" +
+                               "• 等待 3-5 秒后重试\n" +
+                               "• 如仍失败，请重启应用";
+                }
+                else if (ex is IOException)
+                {
+                    helpText += "• 检查磁盘空间是否充足\n" +
+                               "• 确保有写入权限\n" +
+                               "• 尝试选择其他保存位置";
+                }
+                else
+                {
+                    helpText += "• 重启应用后重试\n" +
+                               "• 检查系统权限设置";
+                }
+
+                await InAppDialogService.ShowAsync(new ContentDialog
+                {
+                    Title = "❌ 备份失败",
+                    Content = new TextBlock
+                    {
+                        Text = $"错误详情：{errorMessage}\n\n{helpText}",
+                        TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap
+                    },
+                    CloseButtonText = "确定"
+                }, this);
+            }
+        }
+
+        /// <summary>
+        /// 快速恢复
+        /// </summary>
+        private async void OnQuickRestoreClick(object sender, RoutedEventArgs e)
+        {
+            // 📁 使用文件选择器
+            var picker = new Windows.Storage.Pickers.FileOpenPicker();
+            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.Desktop;
+            picker.FileTypeFilter.Add(".网页状态备份");
+
+            // 🔧 获取窗口句柄 - 使用 XamlRoot 遍历到 Window
+            IntPtr hwnd = WindowHandleHelper.GetWindowHandleFromPage(this);
+            
+            if (hwnd == IntPtr.Zero)
+            {
+                await InAppDialogService.ShowAsync(new ContentDialog
+                {
+                    Title = "❌ 无法打开文件选择器",
+                    Content = "无法获取窗口句柄，请重启应用后重试。",
+                    CloseButtonText = "确定"
+                }, this);
+                return;
+            }
+            
+            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+            var file = await picker.PickSingleFileAsync();
+            if (file == null) return;
+
+            // 确认恢复
+            var result = await InAppDialogService.ShowAsync(new ContentDialog
+            {
+                Title = "⚠️ 确认恢复配置？",
+                Content = new TextBlock
+                {
+                    Text = $"📦 备份文件：{file.Name}\n" +
+                           $"📅 创建时间：{System.IO.File.GetCreationTime(file.Path):yyyy-MM-dd HH:mm:ss}\n\n" +
+                           "⚠️ 重要提示：\n" +
+                           "• 当前所有 WebView2 数据将被覆盖（包括登录状态、缓存等）\n" +
+                           "• 恢复后需要重启应用才能生效\n" +
+                           "• 建议在恢复前先备份当前配置\n\n" +
+                           "确定要继续吗？",
+                    TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap
+                },
+                PrimaryButtonText = "确定恢复",
+                CloseButtonText = "取消",
+                DefaultButton = ContentDialogButton.Close
+            }, this);
+
+            if (result != ContentDialogResult.Primary) return;
+
+            // 🔍 使用智能路径检测
+            var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var packageFamily = Windows.ApplicationModel.Package.Current.Id.FamilyName;
+            
+            string[] possiblePaths = { 
+                System.IO.Path.Combine(localAppData, "Packages", packageFamily, "LocalState", "EBWebView"),
+                System.IO.Path.Combine(localAppData, "Packages", packageFamily, "LocalCache", "Local", "EBWebView"),
+                System.IO.Path.Combine(localAppData, "Packages", packageFamily, "LocalCache", "Local", "Microsoft", "Edge", "User Data"),
+                System.IO.Path.Combine(localAppData, "Packages", packageFamily, "LocalCache", "Local", "Microsoft", "WebView2"),
+            };
+            
+            string? dataPath = null;
+            
+            foreach (var testPath in possiblePaths)
+            {
+                if (System.IO.Directory.Exists(testPath) && System.IO.Directory.GetFileSystemEntries(testPath).Length > 0)
+                {
+                    dataPath = testPath;
+                    break;
+                }
+            }
+            
+            // 如果仍未找到，创建默认目录（LocalState\EBWebView 是实际使用的位置）
+            if (dataPath == null)
+            {
+                dataPath = System.IO.Path.Combine(localAppData, "Packages", packageFamily, "LocalState", "EBWebView");
+                System.Diagnostics.Debug.WriteLine($"[WebView恢复] 使用默认路径: {dataPath}");
+            }
+
+            var loadingDialog = new ContentDialog
+            {
+                Title = "正在恢复...",
+                Content = new ProgressRing { IsActive = true, Width = 48, Height = 48 }
+            };
+
+            var dialogTask = InAppDialogService.ShowAsync(loadingDialog, this);
+
+            try
+            {
+                var backupService = new Docked_AI.功能.WebView备份.Services.WebViewBackupServiceV2();
+                await backupService.RestoreUserDataFolderAsync(file.Path, dataPath);
+
+                loadingDialog.Hide();
+
+                var restartResult = await InAppDialogService.ShowAsync(new ContentDialog
+                {
+                    Title = "✅ 恢复成功",
+                    Content = new TextBlock
+                    {
+                        Text = "🎉 配置已成功恢复！\n\n" +
+                               "⚠️ 重要提示：\n" +
+                               "• 请完全退出应用（而非最小化）\n" +
+                               "• 重新启动应用以使更改生效\n" +
+                               "• 重启后，登录状态和设置将恢复到备份时的状态\n\n" +
+                               "💡 建议现在就重启应用！",
+                        TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap
+                    },
+                    PrimaryButtonText = "立即重启",
+                    CloseButtonText = "稍后手动重启"
+                }, this);
+                
+                if (restartResult == ContentDialogResult.Primary)
+                {
+                    Docked_AI.功能.统一调用.AppRestartService.Restart();
+                }
+            }
+            catch (System.Exception ex)
+            {
+                loadingDialog.Hide();
+
+                await InAppDialogService.ShowAsync(new ContentDialog
+                {
+                    Title = "❌ 恢复失败",
+                    Content = $"{ex.Message}\n\n💡 提示：请关闭所有网页应用页面后重试。",
+                    CloseButtonText = "确定"
+                }, this);
+            }
         }
 
         // Event to notify when hide tray rate button settings change
