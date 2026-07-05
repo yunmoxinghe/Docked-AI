@@ -446,6 +446,18 @@
   <data name="SettingsPage_WeChatSponsorCard.Description" xml:space="preserve">
     <value>Support the developer via WeChat Pay</value>
   </data>
+  <data name="SettingsPage_AdsterraCard.Header" xml:space="preserve">
+    <value>Adsterra Ads</value>
+  </data>
+  <data name="SettingsPage_AdsterraCard.Description" xml:space="preserve">
+    <value>Support the developer, view effective CPM ads (disable proxy to access)</value>
+  </data>
+  <data name="SettingsPage_MonetagCard.Header" xml:space="preserve">
+    <value>Monetag Ads</value>
+  </data>
+  <data name="SettingsPage_MonetagCard.Description" xml:space="preserve">
+    <value>Support the developer, view innovative ad platform (disable proxy to access)</value>
+  </data>
   <data name="SettingsPage_SponsorDialogTitle" xml:space="preserve">
     <value>Sponsor Author</value>
   </data>

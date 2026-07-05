@@ -1661,6 +1661,66 @@ namespace Docked_AI.Features.Pages.Settings
             await OnWeChatSponsorClickAsync().ConfigureAwait(true);
         }
 
+        // Adsterra 智能广告
+        private async void OnAdsterraClick(object sender, RoutedEventArgs e)
+        {
+            await OnAdsterraClickAsync().ConfigureAwait(true);
+        }
+
+        private async System.Threading.Tasks.Task OnAdsterraClickAsync()
+        {
+            try
+            {
+                var uri = new Uri("https://www.effectivecpmnetwork.com/gndm0d745?key=9f276dc0a932d4816b822cec64b22e28");
+                var success = await Windows.System.Launcher.LaunchUriAsync(uri);
+                
+                if (!success)
+                {
+                    System.Diagnostics.Debug.WriteLine("[SettingsPage] Failed to launch Adsterra URL");
+                    await ShowErrorNotificationAsync("打开链接失败", "无法打开 Adsterra 广告页面");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[SettingsPage] Successfully launched Adsterra URL");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Launch Adsterra URL failed: {ex.Message}");
+                await ShowErrorNotificationAsync("打开链接异常", ex.Message);
+            }
+        }
+
+        // Monetag 智能广告
+        private async void OnMonetagClick(object sender, RoutedEventArgs e)
+        {
+            await OnMonetagClickAsync().ConfigureAwait(true);
+        }
+
+        private async System.Threading.Tasks.Task OnMonetagClickAsync()
+        {
+            try
+            {
+                var uri = new Uri("https://omg10.com/4/11242799");
+                var success = await Windows.System.Launcher.LaunchUriAsync(uri);
+                
+                if (!success)
+                {
+                    System.Diagnostics.Debug.WriteLine("[SettingsPage] Failed to launch Monetag URL");
+                    await ShowErrorNotificationAsync("打开链接失败", "无法打开 Monetag 广告页面");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[SettingsPage] Successfully launched Monetag URL");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Launch Monetag URL failed: {ex.Message}");
+                await ShowErrorNotificationAsync("打开链接异常", ex.Message);
+            }
+        }
+
         private async System.Threading.Tasks.Task OnWeChatSponsorClickAsync()
         {
             if (this.XamlRoot == null)

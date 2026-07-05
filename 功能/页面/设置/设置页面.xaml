@@ -366,7 +366,7 @@
                         <controls:SettingsExpander.HeaderIcon>
                             <ImageIcon>
                                 <ImageIcon.Source>
-                                    <SvgImageSource UriSource="ms-appx:///Assets/Alipay.svg"/>
+                                    <SvgImageSource UriSource="ms-appx:///Assets/logos/Alipay.svg"/>
                                 </ImageIcon.Source>
                             </ImageIcon>
                         </controls:SettingsExpander.HeaderIcon>
@@ -397,7 +397,7 @@
                         <controls:SettingsExpander.HeaderIcon>
                             <ImageIcon>
                                 <ImageIcon.Source>
-                                    <SvgImageSource UriSource="ms-appx:///Assets/WeChat.svg"/>
+                                    <SvgImageSource UriSource="ms-appx:///Assets/logos/WeChat.svg"/>
                                 </ImageIcon.Source>
                             </ImageIcon>
                         </controls:SettingsExpander.HeaderIcon>
@@ -418,6 +418,40 @@
                             </controls:SettingsCard>
                         </controls:SettingsExpander.Items>
                     </controls:SettingsExpander>
+
+                    <!-- Adsterra 智能广告 -->
+                    <controls:SettingsCard 
+                        x:Uid="SettingsPage_AdsterraCard"
+                        IsClickEnabled="True"
+                        Click="OnAdsterraClick">
+                        <controls:SettingsCard.HeaderIcon>
+                            <ImageIcon>
+                                <ImageIcon.Source>
+                                    <SvgImageSource UriSource="ms-appx:///Assets/logos/adsterra.svg"/>
+                                </ImageIcon.Source>
+                            </ImageIcon>
+                        </controls:SettingsCard.HeaderIcon>
+                        <controls:SettingsCard.ActionIcon>
+                            <FontIcon Glyph="&#xE8A7;"/>
+                        </controls:SettingsCard.ActionIcon>
+                    </controls:SettingsCard>
+
+                    <!-- Monetag 智能广告 -->
+                    <controls:SettingsCard 
+                        x:Uid="SettingsPage_MonetagCard"
+                        IsClickEnabled="True"
+                        Click="OnMonetagClick">
+                        <controls:SettingsCard.HeaderIcon>
+                            <ImageIcon>
+                                <ImageIcon.Source>
+                                    <SvgImageSource UriSource="ms-appx:///Assets/logos/monetag.svg"/>
+                                </ImageIcon.Source>
+                            </ImageIcon>
+                        </controls:SettingsCard.HeaderIcon>
+                        <controls:SettingsCard.ActionIcon>
+                            <FontIcon Glyph="&#xE8A7;"/>
+                        </controls:SettingsCard.ActionIcon>
+                    </controls:SettingsCard>
 
                     <!-- 评价应用 -->
                     <controls:SettingsCard 
