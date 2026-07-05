@@ -350,6 +350,91 @@
                         </controls:SettingsCard.ActionIcon>
                     </controls:SettingsCard>
 
+                    <!-- 赞助 -->
+                    <TextBlock 
+                        x:Uid="SettingsPage_SponsorSection"
+                        Text="赞助"
+                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                        Margin="1,16,0,4"/>
+                    
+                    <!-- 支付宝赞助 -->
+                    <controls:SettingsExpander 
+                        x:Uid="SettingsPage_SponsorCard"
+                        Header="支付宝赞助"
+                        Description="通过支付宝赞赏支持开发者"
+                        IsExpanded="False">
+                        <controls:SettingsExpander.HeaderIcon>
+                            <ImageIcon>
+                                <ImageIcon.Source>
+                                    <SvgImageSource UriSource="ms-appx:///Assets/Alipay.svg"/>
+                                </ImageIcon.Source>
+                            </ImageIcon>
+                        </controls:SettingsExpander.HeaderIcon>
+                        
+                        <controls:SettingsExpander.Items>
+                            <controls:SettingsCard>
+                                <StackPanel HorizontalAlignment="Center" Padding="0,8,0,8">
+                                    <Image Source="ms-appx:///Assets/赞助/支付宝.jpg" 
+                                           Width="200" 
+                                           Height="200" 
+                                           Stretch="Uniform"
+                                           Margin="0,0,0,8"/>
+                                    <TextBlock Text="扫码支付宝赞助" 
+                                               HorizontalAlignment="Center"
+                                               FontSize="14"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                </StackPanel>
+                            </controls:SettingsCard>
+                        </controls:SettingsExpander.Items>
+                    </controls:SettingsExpander>
+
+                    <!-- 微信赞助 -->
+                    <controls:SettingsExpander 
+                        x:Uid="SettingsPage_WeChatSponsorCard"
+                        Header="微信赞助"
+                        Description="通过微信赞赏支持开发者"
+                        IsExpanded="False">
+                        <controls:SettingsExpander.HeaderIcon>
+                            <ImageIcon>
+                                <ImageIcon.Source>
+                                    <SvgImageSource UriSource="ms-appx:///Assets/WeChat.svg"/>
+                                </ImageIcon.Source>
+                            </ImageIcon>
+                        </controls:SettingsExpander.HeaderIcon>
+                        
+                        <controls:SettingsExpander.Items>
+                            <controls:SettingsCard>
+                                <StackPanel HorizontalAlignment="Center" Padding="0,8,0,8">
+                                    <Image Source="ms-appx:///Assets/赞助/微信.png" 
+                                           Width="200" 
+                                           Height="200" 
+                                           Stretch="Uniform"
+                                           Margin="0,0,0,8"/>
+                                    <TextBlock Text="扫码微信赞赏" 
+                                               HorizontalAlignment="Center"
+                                               FontSize="14"
+                                               Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                </StackPanel>
+                            </controls:SettingsCard>
+                        </controls:SettingsExpander.Items>
+                    </controls:SettingsExpander>
+
+                    <!-- 评价应用 -->
+                    <controls:SettingsCard 
+                        x:Uid="SettingsPage_RateAppCard"
+                        Header="评价应用"
+                        Description="喜欢这个应用吗？给我们评分和评论吧！"
+                        IsClickEnabled="True"
+                        Click="OnRateAppClick">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE90A;" />
+                        </controls:SettingsCard.HeaderIcon>
+                        <controls:SettingsCard.ActionIcon>
+                            <FontIcon Glyph="&#xE8A7;"/>
+                        </controls:SettingsCard.ActionIcon>
+                    </controls:SettingsCard>
+
+
                     <!-- 关于 -->
                     <TextBlock 
                         x:Uid="SettingsPage_AboutSection"
@@ -368,36 +453,6 @@
                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                         
                         <controls:SettingsExpander.Items>
-                            <!-- 评价应用 -->
-                            <controls:SettingsCard 
-                                x:Uid="SettingsPage_RateAppCard"
-                                Header="评价应用"
-                                Description="喜欢这个应用吗？给我们评分和评论吧！"
-                                IsClickEnabled="True"
-                                Click="OnRateAppClick">
-                                <controls:SettingsCard.HeaderIcon>
-                                    <FontIcon Glyph="&#xE90A;" />
-                                </controls:SettingsCard.HeaderIcon>
-                                <controls:SettingsCard.ActionIcon>
-                                    <FontIcon Glyph="&#xE8A7;"/>
-                                </controls:SettingsCard.ActionIcon>
-                            </controls:SettingsCard>
-
-                            <!-- 赞助作者 -->
-                            <controls:SettingsCard 
-                                x:Uid="SettingsPage_SponsorCard"
-                                Header="赞助作者"
-                                Description="如果这个应用对你有帮助，请考虑赞助支持开发"
-                                IsClickEnabled="True"
-                                Click="OnSponsorClick">
-                                <controls:SettingsCard.HeaderIcon>
-                                    <FontIcon Glyph="&#xEB51;" />
-                                </controls:SettingsCard.HeaderIcon>
-                                <controls:SettingsCard.ActionIcon>
-                                    <FontIcon Glyph="&#xE8A7;"/>
-                                </controls:SettingsCard.ActionIcon>
-                            </controls:SettingsCard>
-                            
                             <controls:SettingsCard x:Uid="SettingsPage_LinksHeader"
                                               HorizontalContentAlignment="Left"
                                               ContentAlignment="Left">

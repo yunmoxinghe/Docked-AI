@@ -1649,10 +1649,36 @@ namespace Docked_AI.Features.Pages.Settings
             }
         }
 
-        // 赞助作者
+        // 赞助作者（支付宝）
         private async void OnSponsorClick(object sender, RoutedEventArgs e)
         {
             await OnSponsorClickAsync().ConfigureAwait(true);
+        }
+
+        // 赞助作者（微信）
+        private async void OnWeChatSponsorClick(object sender, RoutedEventArgs e)
+        {
+            await OnWeChatSponsorClickAsync().ConfigureAwait(true);
+        }
+
+        private async System.Threading.Tasks.Task OnWeChatSponsorClickAsync()
+        {
+            if (this.XamlRoot == null)
+            {
+                System.Diagnostics.Debug.WriteLine("[SettingsPage] XamlRoot is null, cannot show WeChat sponsor dialog");
+                return;
+            }
+
+            try
+            {
+                var dialog = CreateWeChatSponsorDialog();
+                await InAppDialogService.ShowAsync(dialog, this);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Show WeChat sponsor dialog failed: {ex.Message}");
+                await ShowErrorNotificationAsync("显示微信赞助对话框失败", ex.Message);
+            }
         }
 
         private async System.Threading.Tasks.Task OnSponsorClickAsync()
@@ -1723,6 +1749,45 @@ namespace Docked_AI.Features.Pages.Settings
             var dialog = new UnifiedInAppDialog();
             dialog.Configure(
                 LocalizationHelper.GetString("SettingsPage_SponsorDialogTitle") ?? "赞助作者",
+                stackPanel,
+                primaryButtonText: null,
+                closeButtonText: LocalizationHelper.GetString("SettingsPage_CloseButton") ?? "关闭",
+                defaultButton: ContentDialogButton.Close);
+            
+            return dialog;
+        }
+
+        private static UnifiedInAppDialog CreateWeChatSponsorDialog()
+        {
+            // 创建微信收款码布局
+            var stackPanel = new StackPanel
+            {
+                Spacing = 24,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
+
+            // 添加说明文字
+            var descriptionText = new TextBlock
+            {
+                Text = "感谢您通过微信赞赏支持开发！",
+                TextWrapping = TextWrapping.Wrap,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 16)
+            };
+            stackPanel.Children.Add(descriptionText);
+
+            // 微信收款码
+            var wechatPanel = CreateQRCodePanel(
+                "ms-appx:///Assets/赞助/微信.png",
+                LocalizationHelper.GetString("SettingsPage_WeChatPay") ?? "微信支付"
+            );
+            stackPanel.Children.Add(wechatPanel);
+
+            // 使用统一弹窗接口
+            var dialog = new UnifiedInAppDialog();
+            dialog.Configure(
+                LocalizationHelper.GetString("SettingsPage_WeChatSponsorCard.Header") ?? "微信赞助",
                 stackPanel,
                 primaryButtonText: null,
                 closeButtonText: LocalizationHelper.GetString("SettingsPage_CloseButton") ?? "关闭",

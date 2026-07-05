@@ -422,6 +422,9 @@
   <data name="SettingsPage_AdvancedSection.Text" xml:space="preserve">
     <value>高级</value>
   </data>
+  <data name="SettingsPage_SponsorSection.Text" xml:space="preserve">
+    <value>赞助</value>
+  </data>
   <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
     <value>关于</value>
   </data>
@@ -432,10 +435,16 @@
     <value>喜欢这个应用吗？给我们评分和评论吧！</value>
   </data>
   <data name="SettingsPage_SponsorCard.Header" xml:space="preserve">
-    <value>赞助作者</value>
+    <value>支付宝赞助</value>
   </data>
   <data name="SettingsPage_SponsorCard.Description" xml:space="preserve">
-    <value>如果这个应用对你有帮助，请考虑赞助支持开发</value>
+    <value>通过支付宝赞赏支持开发者</value>
+  </data>
+  <data name="SettingsPage_WeChatSponsorCard.Header" xml:space="preserve">
+    <value>微信赞助</value>
+  </data>
+  <data name="SettingsPage_WeChatSponsorCard.Description" xml:space="preserve">
+    <value>通过微信赞赏支持开发者</value>
   </data>
   <data name="SettingsPage_SponsorDialogTitle" xml:space="preserve">
     <value>赞助作者</value>

@@ -422,6 +422,9 @@
   <data name="SettingsPage_AdvancedSection.Text" xml:space="preserve">
     <value>Advanced</value>
   </data>
+  <data name="SettingsPage_SponsorSection.Text" xml:space="preserve">
+    <value>Sponsor</value>
+  </data>
   <data name="SettingsPage_AboutSection.Text" xml:space="preserve">
     <value>About</value>
   </data>
@@ -432,10 +435,16 @@
     <value>Love this app? Give us a rating and review!</value>
   </data>
   <data name="SettingsPage_SponsorCard.Header" xml:space="preserve">
-    <value>Sponsor Author</value>
+    <value>Alipay Sponsor</value>
   </data>
   <data name="SettingsPage_SponsorCard.Description" xml:space="preserve">
-    <value>If this app helps you, please consider sponsoring the development</value>
+    <value>Support the developer via Alipay</value>
+  </data>
+  <data name="SettingsPage_WeChatSponsorCard.Header" xml:space="preserve">
+    <value>WeChat Sponsor</value>
+  </data>
+  <data name="SettingsPage_WeChatSponsorCard.Description" xml:space="preserve">
+    <value>Support the developer via WeChat Pay</value>
   </data>
   <data name="SettingsPage_SponsorDialogTitle" xml:space="preserve">
     <value>Sponsor Author</value>
