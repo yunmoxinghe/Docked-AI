@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="12 11.5429 16.5714 14.0571" width="16.5714px" height="14.0571px">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="12 11.5429 16.5714 14.0571" width="100" height="100">
   <g transform="matrix(1.1428571939468384, 0, 0, 1.1428571939468384, 12, 10.857143402099611)">
     <defs>
       <linearGradient x1="33.6723684%" y1="56.8029255%" x2="60.5578947%" y2="40.8413509%" id="AlipayAndAlipayPlusNormal-linearGradient-1">
@@ -25,7 +25,7 @@
         <stop stop-color="#1677FF" stop-opacity="0.67" offset="0.9793"/>
       </linearGradient>
     </defs>
-    <g id="AlipayAndAlipayPlusNormal-页面-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <g id="AlipayAndAlipayPlusNormal-页面-1" stroke="none" stroke-width="100" fill="none" fill-rule="evenodd">
       <g id="AlipayAndAlipayPlusNormal-1" transform="translate(0, 0.6)" fill-rule="nonzero">
         <g id="AlipayAndAlipayPlusNormal-编组" transform="translate(0, 0)">
           <path d="M0.9,9.4 C0.9,11.5 5.3,12.4 7.4,11.1 C7.8,10.8 8.2,10.5 8.5,10.2 C8.4,10.2 8.1,9.9 7.7,9.6 C7.3,9.4 7,9.2 6.8,9.1 C4.3,11.9 0.9,11.2 0.9,9.4 Z" id="AlipayAndAlipayPlusNormal-路径" fill="url(#AlipayAndAlipayPlusNormal-linearGradient-1)"/>
