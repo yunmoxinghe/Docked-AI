@@ -81,6 +81,24 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
             _suppressSelectionChanged = false;
         }
 
+        public void SelectSettingsItem()
+        {
+            _suppressSelectionChanged = true;
+            NavView.SelectedItem = SettingsNavigationItem;
+            TopNavView.SelectedItem = null;
+            _lastSelectedNavigationItem = SettingsNavigationItem; // ⭐ 修复：同步更新选中记录
+            _suppressSelectionChanged = false;
+        }
+
+        public void SelectAIItem()
+        {
+            _suppressSelectionChanged = true;
+            NavView.SelectedItem = AINavigationItem;
+            TopNavView.SelectedItem = null;
+            _lastSelectedNavigationItem = AINavigationItem; // ⭐ 修复：同步更新选中记录
+            _suppressSelectionChanged = false;
+        }
+
         /// <summary>
         /// 启用导航（解除 SelectionChanged 抑制）
         /// 在 LoadContent() 调用后启用，允许用户导航触发

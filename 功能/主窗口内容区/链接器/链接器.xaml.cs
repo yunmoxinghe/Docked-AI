@@ -282,6 +282,18 @@ namespace Docked_AI.Features.MainWindowContent.Linker
             {
                 NavBar.SelectHomeItem();
             }
+            else if (pageType == typeof(SettingsPage))
+            {
+                NavBar.SelectSettingsItem();
+            }
+            else if (pageType == typeof(Pages.AI.AIPage))
+            {
+                NavBar.SelectAIItem();
+            }
+            else if (pageType == typeof(NewPage))
+            {
+                NavBar.SelectNewPageItem();
+            }
         }
 
         /// <summary>
