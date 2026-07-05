@@ -57,6 +57,11 @@
     <Content Include="Assets\Sparkles.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <!-- Logo SVG 文件 -->
+    <Content Include="Assets\logos\*.svg" />
+    <!-- 赞助二维码图片 -->
+    <Content Include="Assets\赞助\*.jpg" />
+    <Content Include="Assets\赞助\*.png" />
   </ItemGroup>
 
   <ItemGroup>

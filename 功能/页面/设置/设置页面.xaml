@@ -364,7 +364,7 @@
                         Description="通过支付宝赞赏支持开发者"
                         IsExpanded="False">
                         <controls:SettingsExpander.HeaderIcon>
-                            <ImageIcon>
+                            <ImageIcon Width="20" Height="20">
                                 <ImageIcon.Source>
                                     <SvgImageSource UriSource="ms-appx:///Assets/logos/Alipay.svg"/>
                                 </ImageIcon.Source>
@@ -395,7 +395,7 @@
                         Description="通过微信赞赏支持开发者"
                         IsExpanded="False">
                         <controls:SettingsExpander.HeaderIcon>
-                            <ImageIcon>
+                            <ImageIcon Width="20" Height="20">
                                 <ImageIcon.Source>
                                     <SvgImageSource UriSource="ms-appx:///Assets/logos/WeChat.svg"/>
                                 </ImageIcon.Source>
@@ -425,7 +425,7 @@
                         IsClickEnabled="True"
                         Click="OnAdsterraClick">
                         <controls:SettingsCard.HeaderIcon>
-                            <ImageIcon>
+                            <ImageIcon Width="20" Height="20">
                                 <ImageIcon.Source>
                                     <SvgImageSource UriSource="ms-appx:///Assets/logos/adsterra.svg"/>
                                 </ImageIcon.Source>
@@ -442,7 +442,7 @@
                         IsClickEnabled="True"
                         Click="OnMonetagClick">
                         <controls:SettingsCard.HeaderIcon>
-                            <ImageIcon>
+                            <ImageIcon Width="20" Height="20">
                                 <ImageIcon.Source>
                                     <SvgImageSource UriSource="ms-appx:///Assets/logos/monetag.svg"/>
                                 </ImageIcon.Source>
