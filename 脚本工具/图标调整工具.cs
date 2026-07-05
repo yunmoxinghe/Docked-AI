@@ -77,33 +77,35 @@ public static class 图标调整工具
         File.WriteAllText(filePath, svgContent);
     }
     
-    /// <summary>
-    /// 命令行入口（用于独立运行）
-    /// </summary>
-    public static void Main(string[] args)
-    {
-        // 获取当前 .cs 文件所在的目录
-        string currentDir = Directory.GetCurrentDirectory();
-        
-        // 构建 Assets/logos 的路径
-        string logosPath = Path.Combine(currentDir, "Assets", "logos");
-        
-        logosPath = Path.GetFullPath(logosPath);
-        
-        Console.WriteLine("SVG 图标批量调整工具");
-        Console.WriteLine("====================");
-        Console.WriteLine($"目标目录: {logosPath}");
-        Console.WriteLine($"目标尺寸: 100×100 像素\n");
-        
-        if (!Directory.Exists(logosPath))
-        {
-            Console.WriteLine($"❌ 错误：目录不存在 - {logosPath}");
-            return;
-        }
-        
-        批量调整SVG尺寸(logosPath, 100, 100);
-        
-        Console.WriteLine("\n按任意键退出...");
-        Console.ReadKey();
-    }
+    // 注释掉 Main 入口点，避免与主应用程序冲突
+    // 如需单独运行此工具，请创建独立的控制台项目
+    // /// <summary>
+    // /// 命令行入口（用于独立运行）
+    // /// </summary>
+    // public static void Main(string[] args)
+    // {
+    //     // 获取当前 .cs 文件所在的目录
+    //     string currentDir = Directory.GetCurrentDirectory();
+    //     
+    //     // 构建 Assets/logos 的路径
+    //     string logosPath = Path.Combine(currentDir, "Assets", "logos");
+    //     
+    //     logosPath = Path.GetFullPath(logosPath);
+    //     
+    //     Console.WriteLine("SVG 图标批量调整工具");
+    //     Console.WriteLine("====================");
+    //     Console.WriteLine($"目标目录: {logosPath}");
+    //     Console.WriteLine($"目标尺寸: 100×100 像素\n");
+    //     
+    //     if (!Directory.Exists(logosPath))
+    //     {
+    //         Console.WriteLine($"❌ 错误：目录不存在 - {logosPath}");
+    //         return;
+    //     }
+    //     
+    //     批量调整SVG尺寸(logosPath, 100, 100);
+    //     
+    //     Console.WriteLine("\n按任意键退出...");
+    //     Console.ReadKey();
+    // }
 }
