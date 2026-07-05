@@ -656,6 +656,36 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
                     System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 恢复待导航 URI: {uri}");
                 }
             }
+            else
+            {
+                // ✅ 优化：切换到已开启的标签时，刷新上下颜色
+                // 确保颜色与当前网页状态一致（处理网页动态改变主题的情况）
+                if (WebView?.CoreWebView2 != null && _isWebViewReady)
+                {
+                    System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 标签切换：刷新网页主题色");
+                    
+                    AsyncSafety.TryEnqueue(
+                        DispatcherQueue,
+                        async () =>
+                        {
+                            // 重置状态标志，允许重新提取颜色
+                            _hasAppliedThemeColor = false;
+                            
+                            // 重新提取主题色
+                            await TryApplyThemeColorAsync();
+                            
+                            // 如果没有 theme-color，触发采样取色
+                            if (!_hasAppliedThemeColor)
+                            {
+                                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 标签切换：没有 theme-color，触发采样取色");
+                                await Task.Delay(50); // 短暂延迟，确保 UI 已切换
+                                await TriggerTintSamplingAsync();
+                            }
+                        },
+                        "WebBrowserPage",
+                        "RefreshThemeColorOnTabSwitch");
+                }
+            }
             
             // ⭐ 如果需要重新创建 WebView，先重新创建
             if (_needsWebViewRecreation)
