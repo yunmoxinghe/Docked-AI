@@ -131,7 +131,7 @@
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
     <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
-    <GenerateTestArtifacts>True</GenerateTestArtifacts>
+    <GenerateTestArtifacts>False</GenerateTestArtifacts>
     <AppxBundle>Always</AppxBundle>
     <AppxBundlePlatforms>x64|arm64</AppxBundlePlatforms>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
@@ -158,6 +158,8 @@
     <!-- 启用 AOT 兼容性警告（开发时发现问题） -->
     <EnableAotAnalyzer>true</EnableAotAnalyzer>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <!-- ⭐ 启用 EventPipe 支持（用于性能分析和诊断） -->
+    <EventSourceSupport>true</EventSourceSupport>
     <!-- 如需测试 AOT，可手动 publish：dotnet publish -c Debug /p:PublishAot=true -->
   </PropertyGroup>
 
@@ -167,16 +169,18 @@
     <PublishAot>true</PublishAot>
     <!-- AOT 编译器选项：优化速度 -->
     <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
-    <!-- 不生成堆栈跟踪数据（减小体积，生产环境） -->
-    <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
-    <!-- 裁剪未使用代码 -->
-    <PublishTrimmed>true</PublishTrimmed>
-    <TrimMode>partial</TrimMode>
+    <!-- ⭐⭐⭐ 启用堆栈跟踪数据（调试 AOT 崩溃问题） -->
+    <IlcGenerateStackTraceData>true</IlcGenerateStackTraceData>
+    <!-- ⭐ 暂时禁用代码裁剪（测试是否裁剪导致崩溃） -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <!-- <TrimMode>partial</TrimMode> -->
     <!-- 保留嵌入式调试符号（可选，用于生产环境崩溃分析） -->
     <DebugType>embedded</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <!-- 优化编译 -->
     <Optimize>true</Optimize>
+    <!-- ⭐ 启用 EventPipe 支持（用于生产环境性能分析） -->
+    <EventSourceSupport>true</EventSourceSupport>
   </PropertyGroup>
 
   <!-- Release 优化（原有配置保留） -->
