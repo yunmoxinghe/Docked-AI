@@ -85,14 +85,14 @@
     <!-- 保留 CommunityToolkit.WinUI.Controls.SettingsControls - 依赖复杂，保持 NuGet 引用 -->
     <!-- 已移除 DevWinUI.Controls - 使用自定义 KeyVisual -->
     <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
     <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.1839" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" Version="0.3.2">
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2270" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" Version="0.4.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.1.3" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
     <PackageReference Include="WinUIEx" Version="2.9.1" />
     <!-- ⭐ Microsoft.UI.Reactor - 声明式 UI 框架（公开预览版） -->
