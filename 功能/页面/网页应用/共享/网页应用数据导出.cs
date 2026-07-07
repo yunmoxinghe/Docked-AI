@@ -62,7 +62,7 @@ namespace Docked_AI.Features.Pages.WebApp.Shared
 
                     await File.WriteAllTextAsync(
                         Path.Combine(tempDir, "export-metadata.json"),
-                        JsonSerializer.Serialize(metadata, new JsonSerializerOptions { WriteIndented = true })
+                        JsonSerializer.Serialize(metadata, WebAppJsonContext.Default.ExportMetadata)
                     );
 
                     // 4. 压缩为 ZIP
@@ -118,7 +118,7 @@ namespace Docked_AI.Features.Pages.WebApp.Shared
                     if (File.Exists(metadataFile))
                     {
                         string metadataJson = await File.ReadAllTextAsync(metadataFile);
-                        var metadata = JsonSerializer.Deserialize<ExportMetadata>(metadataJson);
+                        var metadata = JsonSerializer.Deserialize(metadataJson, WebAppJsonContext.Default.ExportMetadata);
                         System.Diagnostics.Debug.WriteLine($"[WebAppDataExporter] 导入数据：版本 {metadata?.Version}，导出时间 {metadata?.ExportDate}");
                     }
 
@@ -136,8 +136,9 @@ namespace Docked_AI.Features.Pages.WebApp.Shared
                         {
                             // 合并模式：读取现有数据，合并新数据
                             var existing = await WebAppShortcutStore.LoadAsync();
-                            var imported = JsonSerializer.Deserialize<List<WebAppShortcutStore.StoredWebAppShortcut>>(
-                                await File.ReadAllTextAsync(importedShortcutsFile)
+                            var imported = JsonSerializer.Deserialize(
+                                await File.ReadAllTextAsync(importedShortcutsFile),
+                                WebAppJsonContext.Default.ListStoredWebAppShortcut
                             );
 
                             var existingIds = new HashSet<string>(existing.Select(s => s.Id));
@@ -233,7 +234,7 @@ namespace Docked_AI.Features.Pages.WebApp.Shared
         /// <summary>
         /// 导出元数据
         /// </summary>
-        private sealed class ExportMetadata
+        public sealed class ExportMetadata
         {
             public DateTime ExportDate { get; set; }
             public string? Version { get; set; }

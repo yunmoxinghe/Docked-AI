@@ -20,11 +20,16 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
-    <!-- ⭐ 框架依赖模式：体积最小，依赖系统安装 .NET Runtime -->
-    <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
-    <SelfContained>false</SelfContained>
-    <PublishAot>false</PublishAot>
-    <PublishTrimmed>false</PublishTrimmed>
+    <!-- AOT 发布时禁用 MSIX 打包（AOT 需要先编译完成再打包） -->
+    <GenerateAppxPackageOnBuild Condition="'$(PublishAot)' == 'true'">false</GenerateAppxPackageOnBuild>
+    <EnableMsixTooling Condition="'$(PublishAot)' == 'true'">false</EnableMsixTooling>
+    <!-- ⭐ Native AOT 模式：自包含、提前编译、启动更快、内存占用更小 -->
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <!-- ⚠️ 保持 IsAotCompatible 开启，用于编译时检查 AOT 兼容性（不影响 Debug 运行） -->
+    <IsAotCompatible>true</IsAotCompatible>
+    <!-- 不变全球化（可选，进一步减小体积，但会移除文化特定格式化） -->
+    <!-- <InvariantGlobalization>true</InvariantGlobalization> -->
     <!-- ⭐⭐⭐ 核心修复：使用 Workstation GC 避免 WinUI 3 的 COM 互操作死锁 -->
     <ServerGarbageCollection>false</ServerGarbageCollection>
     <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
@@ -139,14 +144,44 @@
     <PackageCertificateKeyFile>Docked AI_StoreKey.pfx</PackageCertificateKeyFile>
   </PropertyGroup>
 
-  <!-- Release 优化（Framework-Dependent 模式） -->
+  <!-- ⭐⭐⭐ Debug 配置：优化调试体验 -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <!-- 🚫 Debug 模式不启用 AOT（使用 JIT，启动快，调试体验好） -->
+    <PublishAot>false</PublishAot>
+    <!-- 保留完整调试符号 -->
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <!-- 禁用优化，便于断点调试 -->
+    <Optimize>false</Optimize>
+    <!-- 不裁剪代码（保留所有程序集，避免调试时找不到类型） -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <!-- 启用 AOT 兼容性警告（开发时发现问题） -->
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <!-- 如需测试 AOT，可手动 publish：dotnet publish -c Debug /p:PublishAot=true -->
+  </PropertyGroup>
+
+  <!-- ⭐⭐⭐ Release 配置：启用 AOT 和优化 -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
-    <!-- 保留调试符号用于诊断（如需最小体积可设为 none） -->
+    <!-- ✅ Release 模式启用 AOT（自动生效） -->
+    <PublishAot>true</PublishAot>
+    <!-- AOT 编译器选项：优化速度 -->
+    <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
+    <!-- 不生成堆栈跟踪数据（减小体积，生产环境） -->
+    <IlcGenerateStackTraceData>false</IlcGenerateStackTraceData>
+    <!-- 裁剪未使用代码 -->
+    <PublishTrimmed>true</PublishTrimmed>
+    <TrimMode>partial</TrimMode>
+    <!-- 保留嵌入式调试符号（可选，用于生产环境崩溃分析） -->
     <DebugType>embedded</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <!-- 优化编译 -->
     <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <!-- Release 优化（原有配置保留） -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
     <!-- 启用分层编译以获得更好的运行时性能 -->
     <TieredCompilation>true</TieredCompilation>
     <TieredCompilationQuickJit>true</TieredCompilationQuickJit>

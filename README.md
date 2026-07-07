@@ -140,14 +140,101 @@ Docked AI/
 
 ## 发布
 
-项目支持多平台发布：
+项目支持多平台发布和 Native AOT 编译：
+
+### 标准发布（Framework-Dependent）
 
 ```bash
-# 发布 x64 版本
+# 发布 x64 版本（依赖系统 .NET 运行时，体积小）
 dotnet publish -c Release -r win-x64
 
-# 发布 x86 版本
-dotnet publish -c Release -r win-x86
+# 发布 x64 版本（依赖系统 .NET 运行时，体积小）
+dotnet publish -c Release -r win-x64
+
+# 发布 ARM64 版本
+dotnet publish -c Release -r win-arm64
+```
+
+### Native AOT 发布（自包含，启动更快）
+
+Native AOT 将应用编译为原生机器码，具有以下优势：
+- ⚡ **启动速度更快**（无需 JIT 编译）
+- 💾 **内存占用更小**（无 JIT 编译器开销）
+- 📦 **自包含**（无需安装 .NET 运行时）
+
+**前置要求**：
+- Visual C++ 构建工具（可通过 Visual Studio Installer 安装）
+- 足够的磁盘空间（AOT 编译需要更多时间和空间）
+
+**发布命令**：
+
+```bash
+# 使用预定义的 AOT 发布配置（推荐）
+dotnet publish -p:PublishProfile=win-x64-aot     # x64 平台
+dotnet publish -p:PublishProfile=win-arm64-aot   # ARM64 平台
+
+# 或手动指定 AOT 参数
+dotnet publish -c Release -r win-x64 /p:PublishAot=true
+
+# 发布 ARM64 版本
+dotnet publish -c Release -r win-arm64 /p:PublishAot=true
+```
+
+**发布输出路径**：
+- 标准发布：`bin\x64\Release\net10.0-windows10.0.26100.0\win-x64\publish\`
+- AOT 发布：`bin\publish\win-x64-aot\`（使用配置文件时）
+
+**性能对比**：
+
+| 模式 | 启动时间 | 内存占用 | 体积 | .NET 运行时依赖 |
+|------|---------|---------|------|----------------|
+| Framework-Dependent | 中等 | 中等 | 小 | ✅ 需要 |
+| Native AOT | 快 | 小 | 大 | ❌ 不需要 |
+
+**信息来源**：
+- [Native AOT 部署概述](https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/)
+- [WinUI 3 Native AOT 支持](https://github.com/microsoft/WindowsAppSDK/issues/4971)
+
+### MSIX 打包
+
+使用 Windows App CLI 打包为 MSIX：
+
+```bash
+# 生成 MSIX 安装包
+winapp package .\bin\Release\net10.0-windows10.0.26100.0\win-x64
+
+# 或使用 Visual Studio 的「打包」功能
+```
+
+## AOT 兼容性注意事项
+
+本项目已启用 Native AOT 编译，所有代码均已验证 AOT 兼容性：
+
+✅ **已处理的 AOT 问题**：
+- JSON 序列化使用源生成器（`WebAppJsonContext`）
+- 避免使用反射和动态代码生成
+- 所有 NuGet 包均兼容 AOT
+
+⚠️ **添加新代码时的注意事项**：
+1. **避免反射**：不要使用 `Type.GetType()`, `Assembly.Load()`, `Activator.CreateInstance()` 等
+2. **JSON 序列化**：使用 `WebAppJsonContext` 源生成上下文，而非 `JsonSerializer.Serialize<T>()`
+3. **构建时验证**：运行 `dotnet build -c Release` 检查是否有 IL2XXX 或 IL3XXX 警告
+
+**示例（正确的 JSON 序列化）**：
+
+```csharp
+// ❌ 错误：不兼容 AOT
+var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+
+// ✅ 正确：使用源生成上下文
+var json = JsonSerializer.Serialize(data, WebAppJsonContext.Default.ExportMetadata);
+```
+
+**信息来源**：
+- [如何使库兼容 Native AOT](https://devblogs.microsoft.com/dotnet/creating-aot-compatible-libraries/)
+- [AOT 警告参考](https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/warnings/il3050)
+
+
 
 # 发布 ARM64 版本
 dotnet publish -c Release -r win-arm64
