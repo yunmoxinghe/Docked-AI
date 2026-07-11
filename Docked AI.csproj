@@ -206,14 +206,22 @@
   <PropertyGroup>
     <!-- 压缩优化 -->
     <AppxPackageCompression>maximum</AppxPackageCompression>
+    
+    <!-- ⭐⭐⭐ 只保留中英文语言资源，移除其他语言 -->
+    <AppxBundleLanguages>zh-Hans;en-US</AppxBundleLanguages>
+    
+    <!-- ⭐ 禁用卫星程序集（去除多余语言资源文件夹） -->
+    <SatelliteResourceLanguages>zh-Hans;en-US</SatelliteResourceLanguages>
   </PropertyGroup>
 
-  <!-- ⭐⭐⭐ 最佳解决方案：编译时动态替换 Package Identity Name -->
+  <!-- ⭐⭐⭐ 最佳解决方案：编译时动态替换 Package Identity Name 和 DisplayName -->
   <Target Name="UpdateAppxManifestIdentity" BeforeTargets="_GenerateCurrentProjectAppxManifest;_CopyAppxManifest">
     <PropertyGroup>
-      <!-- 根据配置设置包名 -->
+      <!-- 根据配置设置包名和显示名称 -->
       <_AppxPackageName Condition="'$(Configuration)' == 'Debug'">8B8CC4F4.482486777ECD9.Debug</_AppxPackageName>
       <_AppxPackageName Condition="'$(Configuration)' == 'Release'">8B8CC4F4.482486777ECD9</_AppxPackageName>
+      <_AppxDisplayName Condition="'$(Configuration)' == 'Debug'">边栏助手 (开发版)</_AppxDisplayName>
+      <_AppxDisplayName Condition="'$(Configuration)' == 'Release'">边栏助手</_AppxDisplayName>
     </PropertyGroup>
     
     <!-- 读取原始 manifest -->
@@ -221,10 +229,12 @@
       <Output TaskParameter="Lines" ItemName="_ManifestLines" />
     </ReadLinesFromFile>
     
-    <!-- 替换 Identity Name -->
+    <!-- 替换 Identity Name、Properties DisplayName 和 VisualElements DisplayName -->
     <PropertyGroup>
       <_ManifestContent>@(_ManifestLines, '%0D%0A')</_ManifestContent>
       <_ManifestContent>$(_ManifestContent.Replace('Name="8B8CC4F4.482486777ECD9"', 'Name="$(_AppxPackageName)"'))</_ManifestContent>
+      <_ManifestContent>$(_ManifestContent.Replace('&lt;DisplayName&gt;边栏助手&lt;/DisplayName&gt;', '&lt;DisplayName&gt;$(_AppxDisplayName)&lt;/DisplayName&gt;'))</_ManifestContent>
+      <_ManifestContent>$(_ManifestContent.Replace('DisplayName="边栏助手"', 'DisplayName="$(_AppxDisplayName)"'))</_ManifestContent>
     </PropertyGroup>
     
     <!-- 写入临时 manifest -->
@@ -237,6 +247,7 @@
     </ItemGroup>
     
     <Message Text="[UpdateAppxManifest] Using package name: $(_AppxPackageName)" Importance="high" />
+    <Message Text="[UpdateAppxManifest] Using display name: $(_AppxDisplayName)" Importance="high" />
   </Target>
 
 </Project>
