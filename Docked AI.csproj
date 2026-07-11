@@ -208,4 +208,35 @@
     <AppxPackageCompression>maximum</AppxPackageCompression>
   </PropertyGroup>
 
+  <!-- ⭐⭐⭐ 最佳解决方案：编译时动态替换 Package Identity Name -->
+  <Target Name="UpdateAppxManifestIdentity" BeforeTargets="_GenerateCurrentProjectAppxManifest;_CopyAppxManifest">
+    <PropertyGroup>
+      <!-- 根据配置设置包名 -->
+      <_AppxPackageName Condition="'$(Configuration)' == 'Debug'">8B8CC4F4.482486777ECD9.Debug</_AppxPackageName>
+      <_AppxPackageName Condition="'$(Configuration)' == 'Release'">8B8CC4F4.482486777ECD9</_AppxPackageName>
+    </PropertyGroup>
+    
+    <!-- 读取原始 manifest -->
+    <ReadLinesFromFile File="Package.appxmanifest">
+      <Output TaskParameter="Lines" ItemName="_ManifestLines" />
+    </ReadLinesFromFile>
+    
+    <!-- 替换 Identity Name -->
+    <PropertyGroup>
+      <_ManifestContent>@(_ManifestLines, '%0D%0A')</_ManifestContent>
+      <_ManifestContent>$(_ManifestContent.Replace('Name="8B8CC4F4.482486777ECD9"', 'Name="$(_AppxPackageName)"'))</_ManifestContent>
+    </PropertyGroup>
+    
+    <!-- 写入临时 manifest -->
+    <WriteLinesToFile File="$(IntermediateOutputPath)Package.appxmanifest" Lines="$(_ManifestContent)" Overwrite="true" />
+    
+    <!-- 使用临时 manifest 替换原始文件 -->
+    <ItemGroup>
+      <AppxManifest Remove="@(AppxManifest)" />
+      <AppxManifest Include="$(IntermediateOutputPath)Package.appxmanifest" />
+    </ItemGroup>
+    
+    <Message Text="[UpdateAppxManifest] Using package name: $(_AppxPackageName)" Importance="high" />
+  </Target>
+
 </Project>

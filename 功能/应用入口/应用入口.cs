@@ -95,8 +95,15 @@ namespace Docked_AI
         private ShareLaunchHandler? _shareLaunchHandler;
 
         // 单实例 Mutex（在构造函数中提前检测）
+#if DEBUG
         private static Mutex? _singleInstanceMutex;
         private static bool _isMainInstance;
+        private const string MutexName = @"Local\DockedAI_SingleInstance_Mutex_DEBUG";
+#else
+        private static Mutex? _singleInstanceMutex;
+        private static bool _isMainInstance;
+        private const string MutexName = @"Local\DockedAI_SingleInstance_Mutex";
+#endif
 
         // 应用退出状态标志（防止主动退出时 keep-alive 自愈重新创建窗口）
         private bool _isExiting = false;
@@ -124,7 +131,7 @@ namespace Docked_AI
             // ⭐ 方案一：使用 Mutex 提前检测单实例，避免不必要的初始化
             // 这是最早的检测点，在 InitializeComponent() 之前执行
             // ⭐ MSIX 沙箱兼容：添加 Local\ 前缀
-            _singleInstanceMutex = new Mutex(true, @"Local\DockedAI_SingleInstance_Mutex", out _isMainInstance);
+            _singleInstanceMutex = new Mutex(true, MutexName, out _isMainInstance);
             
             if (!_isMainInstance)
             {
@@ -142,7 +149,7 @@ namespace Docked_AI
                     {
                         try
                         {
-                            _singleInstanceMutex = new Mutex(true, @"Local\DockedAI_SingleInstance_Mutex", out _isMainInstance);
+                            _singleInstanceMutex = new Mutex(true, MutexName, out _isMainInstance);
                             if (_isMainInstance)
                             {
                                 System.Diagnostics.Debug.WriteLine($"[App] Old instance exited after {(i + 1) * 100}ms, proceeding as main instance");

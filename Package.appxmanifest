@@ -9,7 +9,7 @@
   IgnorableNamespaces="uap uap5 rescap">
 
   <Identity
-    Name="$(AppxPackageIdentityName)"
+    Name="8B8CC4F4.482486777ECD9"
     Publisher="CN=A19C62A9-1AA6-44AB-9F57-2DE6C380D9C9"
     Version="1.1.60.0" />
 

@@ -11,8 +11,13 @@ namespace Docked_AI.Features.AppEntry.SingleInstance
     public class SingleInstanceCommunication : IDisposable
     {
         // ⭐ MSIX 沙箱兼容：添加 Local\ 前缀，避免跨会话冲突
+#if DEBUG
+        private const string ShowWindowEventName = @"Local\DockedAI_ShowWindow_Event_DEBUG";
+        private const string CancelEventName = @"Local\DockedAI_Cancel_Event_DEBUG";
+#else
         private const string ShowWindowEventName = @"Local\DockedAI_ShowWindow_Event";
         private const string CancelEventName = @"Local\DockedAI_Cancel_Event";
+#endif
         
         private EventWaitHandle? _showWindowEvent;
         private EventWaitHandle? _cancelEvent;
