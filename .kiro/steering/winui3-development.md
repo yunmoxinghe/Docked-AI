@@ -108,14 +108,17 @@ class NewFeatureComponent : Component
 - Reactor CLI (`mur`) 用于 Reactor 项目管理
 
 ## 构建和运行命令
+**在构建之前：**
+1. 检查
+
 
 **日常开发工作流（推荐）：**
 
 ```bash
-# 快速开发：自动构建、打包、注册并启动应用（使用 WinApp CLI 集成）
+# 不要使用 快速开发：自动构建、打包、注册并启动应用（使用 WinApp CLI 集成）
 dotnet run
 
-# 调试模式：捕获详细输出、异常堆栈和 WinUI 诊断信息
+# 应该使用调试模式：捕获详细输出、异常堆栈和 WinUI 诊断信息
 dotnet run -c Debug /p:Platform=x64 --debug-output
 
 # 热重载开发：保存文件后自动重新编译和启动（需要手动重启应用）

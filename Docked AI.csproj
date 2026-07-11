@@ -7,8 +7,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x64;ARM64</Platforms>
     <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
-    <!-- ⭐ 本地化：设置默认语言 -->
-    <DefaultLanguage>zh-Hans</DefaultLanguage>
+    <!-- ⭐ 本地化：设置默认语言（英文优先，中英双语系统更友好） -->
+    <DefaultLanguage>en-US</DefaultLanguage>
     <!-- 根据平台动态设置 PlatformTarget -->
     <PlatformTarget Condition="'$(Platform)' == 'x64'">x64</PlatformTarget>
     <PlatformTarget Condition="'$(Platform)' == 'ARM64'">ARM64</PlatformTarget>
@@ -161,6 +161,10 @@
     <!-- ⭐ 启用 EventPipe 支持（用于性能分析和诊断） -->
     <EventSourceSupport>true</EventSourceSupport>
     <!-- 如需测试 AOT，可手动 publish：dotnet publish -c Debug /p:PublishAot=true -->
+    
+    <!-- ⭐⭐⭐ Debug 模式：使用开发版包名（与正式版共存） -->
+    <AppxPackageIdentityName>8B8CC4F4.482486777ECD9.Debug</AppxPackageIdentityName>
+    <AppxPackageDisplayName>边栏助手 (开发版)</AppxPackageDisplayName>
   </PropertyGroup>
 
   <!-- ⭐⭐⭐ Release 配置：启用 AOT 和优化 -->
@@ -181,6 +185,10 @@
     <Optimize>true</Optimize>
     <!-- ⭐ 启用 EventPipe 支持（用于生产环境性能分析） -->
     <EventSourceSupport>true</EventSourceSupport>
+    
+    <!-- ⭐⭐⭐ Release 模式：使用正式版包名 -->
+    <AppxPackageIdentityName>8B8CC4F4.482486777ECD9</AppxPackageIdentityName>
+    <AppxPackageDisplayName>边栏助手</AppxPackageDisplayName>
   </PropertyGroup>
 
   <!-- Release 优化（原有配置保留） -->
@@ -200,8 +208,4 @@
     <AppxPackageCompression>maximum</AppxPackageCompression>
   </PropertyGroup>
 
-  <!-- 调试运行/编译前自动结束旧进程，避免 WinApp loose layout 复制 exe 时被占用 -->
-  <Target Name="KillDockedAIProcess" BeforeTargets="PrepareForBuild;_WinAppPrepareRunArguments;_WinAppCopyContentToLooseLayout">
-    <Exec Command="taskkill /F /IM &quot;Docked AI.exe&quot; 2&gt;nul || exit 0" IgnoreExitCode="true" />
-  </Target>
 </Project>
