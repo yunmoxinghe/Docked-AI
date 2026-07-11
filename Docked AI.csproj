@@ -1,52 +1,66 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  
+  <!-- ========================================
+       基本项目属性
+       ======================================== -->
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>Docked_AI</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Platforms>x64;ARM64</Platforms>
-    <!-- ⭐⭐⭐ 根据 Platform 动态设置 RuntimeIdentifier -->
-    <RuntimeIdentifier Condition="'$(Platform)' == 'x64'">win-x64</RuntimeIdentifier>
-    <RuntimeIdentifier Condition="'$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
-    <!-- 移除静态 RuntimeIdentifiers（避免冲突） -->
-    <!-- <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers> -->
-    <!-- ⭐ 本地化：设置默认语言（英文优先，中英双语系统更友好） -->
+    <ApplicationIcon>Assets\Sparkles.ico</ApplicationIcon>
+    <Nullable>enable</Nullable>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <!-- 根据平台动态设置 PlatformTarget -->
+    <NoWarn>$(NoWarn);PRI249</NoWarn>
+  </PropertyGroup>
+
+  <!-- ========================================
+       平台配置
+       ======================================== -->
+  <PropertyGroup>
+    <Platforms>x64;ARM64</Platforms>
+    <Platform Condition="'$(Platform)' == '' or '$(Platform)' == 'AnyCPU'">x64</Platform>
     <PlatformTarget Condition="'$(Platform)' == 'x64'">x64</PlatformTarget>
     <PlatformTarget Condition="'$(Platform)' == 'ARM64'">ARM64</PlatformTarget>
-    <!-- 默认使用 x64 平台 -->
-    <Platform Condition="'$(Platform)' == '' or '$(Platform)' == 'AnyCPU'">x64</Platform>
-    <!-- 移除发布配置文件引用（避免缺失警告） -->
-    <!-- <PublishProfile Condition="'$(Platform)' == 'x64'">win-x64.pubxml</PublishProfile> -->
-    <!-- <PublishProfile Condition="'$(Platform)' == 'ARM64'">win-arm64.pubxml</PublishProfile> -->
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <RuntimeIdentifier Condition="'$(Platform)' == 'x64'">win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <!-- ========================================
+       WinUI 3 配置
+       ======================================== -->
+  <PropertyGroup>
     <UseWinUI>true</UseWinUI>
     <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
-    <Nullable>enable</Nullable>
-    <!-- AOT 发布时禁用 MSIX 打包（AOT 需要先编译完成再打包） -->
-    <GenerateAppxPackageOnBuild Condition="'$(PublishAot)' == 'true'">false</GenerateAppxPackageOnBuild>
     <EnableMsixTooling Condition="'$(PublishAot)' == 'true'">false</EnableMsixTooling>
-    <!-- ⭐ Native AOT 模式：自包含、提前编译、启动更快、内存占用更小 -->
-    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
-    <SelfContained>true</SelfContained>
-    <!-- ⚠️ 保持 IsAotCompatible 开启，用于编译时检查 AOT 兼容性（不影响 Debug 运行） -->
-    <IsAotCompatible>true</IsAotCompatible>
-    <!-- 不变全球化（可选，进一步减小体积，但会移除文化特定格式化） -->
-    <!-- <InvariantGlobalization>true</InvariantGlobalization> -->
-    <!-- ⭐⭐⭐ 核心修复：使用 Workstation GC 避免 WinUI 3 的 COM 互操作死锁 -->
-    <ServerGarbageCollection>false</ServerGarbageCollection>
-    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
-    <!-- ⭐ 减少 GC 压力 -->
-    <TieredCompilation>true</TieredCompilation>
-    <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
-    <!-- 忽略无效的 PRI 限定符警告 -->
-    <NoWarn>$(NoWarn);PRI249</NoWarn>
-
   </PropertyGroup>
 
-  <!-- ⭐ GC 运行时配置（替代 runtimeconfig.template.json） -->
+  <!-- ========================================
+       Native AOT 配置
+       ======================================== -->
+  <PropertyGroup>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <IsAotCompatible>true</IsAotCompatible>
+    <GenerateAppxPackageOnBuild Condition="'$(PublishAot)' == 'true'">false</GenerateAppxPackageOnBuild>
+  </PropertyGroup>
+
+  <!-- ========================================
+       垃圾回收配置
+       ======================================== -->
+  <PropertyGroup>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <TieredCompilation>true</TieredCompilation>
+    <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
+  </PropertyGroup>
+
+  <!-- ========================================
+       运行时配置
+       ======================================== -->
   <ItemGroup>
     <RuntimeHostConfigurationOption Include="System.GC.Server" Value="false" />
     <RuntimeHostConfigurationOption Include="System.GC.Concurrent" Value="true" />
@@ -57,8 +71,10 @@
     <RuntimeHostConfigurationOption Include="System.Runtime.Serialization.EnableUnsafeBinaryFormatterSerialization" Value="false" />
   </ItemGroup>
 
+  <!-- ========================================
+       资源文件
+       ======================================== -->
   <ItemGroup>
-    <!-- 只包含必需的资源文件 -->
     <Content Include="Assets\SplashScreen.scale-200.png" />
     <Content Include="Assets\Square150x150Logo.scale-200.png" />
     <Content Include="Assets\Square44x44Logo.scale-200.png" />
@@ -67,51 +83,59 @@
     <Content Include="Assets\Sparkles.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <!-- Logo SVG 文件 -->
     <Content Include="Assets\logos\*.svg" />
-    <!-- 赞助二维码图片 -->
     <Content Include="Assets\赞助\*.jpg" />
     <Content Include="Assets\赞助\*.png" />
   </ItemGroup>
 
+  <!-- ========================================
+       应用清单
+       ======================================== -->
   <ItemGroup>
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
+  <!-- ========================================
+       XAML 应用定义
+       ======================================== -->
   <ItemGroup>
     <Page Remove="功能\应用入口\App.xaml" />
     <ApplicationDefinition Include="功能\应用入口\App.xaml" />
   </ItemGroup>
 
-  <!--
-    Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
-    Tools extension to be activated for this project even if the Windows App SDK Nuget
-    package has not yet been restored.
-  -->
+  <!-- ========================================
+       项目能力声明
+       ======================================== -->
   <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <ProjectCapability Include="Msix" />
   </ItemGroup>
+
+  <!-- ========================================
+       NuGet 包引用
+       ======================================== -->
   <ItemGroup>
-    <!-- 保留 CommunityToolkit.WinUI.Controls.SettingsControls - 依赖复杂，保持 NuGet 引用 -->
-    <!-- 已移除 DevWinUI.Controls - 使用自定义 KeyVisual -->
-    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
-    <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />
+    <!-- WinUI 3 核心包 -->
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2270" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools.WinApp" Version="0.4.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
-    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
-    <PackageReference Include="WinUIEx" Version="2.9.1" />
-    <!-- ⭐ Microsoft.UI.Reactor - 声明式 UI 框架（公开预览版） -->
+    <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.2.0" />
+    
+    <!-- UI 框架和控件 -->
     <PackageReference Include="Microsoft.UI.Reactor" Version="0.1.0-preview.4" />
-    <!-- 已移除 DevWinUI NuGet，改用本地源码 -->
-    <!-- 移除 NHotkey.WinUI NuGet，改用本地源码 -->
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
+    <PackageReference Include="WinUIEx" Version="2.9.1" />
+    
+    <!-- 数据库 -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
   </ItemGroup>
 
-  <!-- 排除临时下载的源码目录，第三方源码会选择性包含 -->
+  <!-- ========================================
+       编译排除
+       ======================================== -->
   <ItemGroup>
     <Compile Remove="Vendors_Temp\**" />
     <EmbeddedResource Remove="Vendors_Temp\**" />
@@ -119,131 +143,95 @@
     <Page Remove="Vendors_Temp\**" />
   </ItemGroup>
 
-  <!--
-    Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution
-    Explorer "Package and Publish" context menu entry to be enabled for this project even if
-    the Windows App SDK Nuget package has not yet been restored.
-  -->
+  <!-- ========================================
+       打包和发布菜单
+       ======================================== -->
   <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
     <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
   </PropertyGroup>
 
-  <!-- Publish Properties -->
+  <!-- ========================================
+       MSIX 打包配置
+       ======================================== -->
   <PropertyGroup>
-    <ApplicationIcon>Assets\Sparkles.ico</ApplicationIcon>
+    <PackageCertificateKeyFile>Docked AI_StoreKey.pfx</PackageCertificateKeyFile>
     <GenerateTemporaryStoreCertificate>False</GenerateTemporaryStoreCertificate>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
+    <GenerateTestArtifacts>False</GenerateTestArtifacts>
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
     <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
-    <GenerateTestArtifacts>False</GenerateTestArtifacts>
     <AppxBundle>Always</AppxBundle>
     <AppxBundlePlatforms>x64|arm64</AppxBundlePlatforms>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
     <AppxSymbolPackageEnabled>True</AppxSymbolPackageEnabled>
     <AppxPackageDir>AppPackages\</AppxPackageDir>
     <UapAppxPackageBuildMode>StoreUpload</UapAppxPackageBuildMode>
-    <!-- 启用资源包压缩 -->
     <AppxPackageAllowDebugFrameworkReferencesInManifest>false</AppxPackageAllowDebugFrameworkReferencesInManifest>
     <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
-    <PackageCertificateKeyFile>Docked AI_StoreKey.pfx</PackageCertificateKeyFile>
+    <AppxPackageCompression>maximum</AppxPackageCompression>
+    <AppxBundleLanguages>zh-Hans;en-US</AppxBundleLanguages>
+    <SatelliteResourceLanguages>zh-Hans;en-US</SatelliteResourceLanguages>
   </PropertyGroup>
 
-  <!-- ⭐⭐⭐ Debug 配置：优化调试体验 -->
+  <!-- ========================================
+       Debug 构建配置
+       ======================================== -->
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
-    <!-- 🚫 Debug 模式不启用 AOT（使用 JIT，启动快，调试体验好） -->
     <PublishAot>false</PublishAot>
-    <!-- 保留完整调试符号 -->
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <!-- 禁用优化，便于断点调试 -->
     <Optimize>false</Optimize>
-    <!-- 不裁剪代码（保留所有程序集，避免调试时找不到类型） -->
     <PublishTrimmed>false</PublishTrimmed>
-    <!-- 启用 AOT 兼容性警告（开发时发现问题） -->
     <EnableAotAnalyzer>true</EnableAotAnalyzer>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-    <!-- ⭐ 启用 EventPipe 支持（用于性能分析和诊断） -->
     <EventSourceSupport>true</EventSourceSupport>
-    <!-- 如需测试 AOT，可手动 publish：dotnet publish -c Debug /p:PublishAot=true -->
-    
-    <!-- ⭐⭐⭐ Debug 模式：使用开发版包名（与正式版共存） -->
     <AppxPackageIdentityName>8B8CC4F4.482486777ECD9.Debug</AppxPackageIdentityName>
     <AppxPackageDisplayName>边栏助手 (开发版)</AppxPackageDisplayName>
   </PropertyGroup>
 
-  <!-- ⭐⭐⭐ Release 配置：启用 AOT 和优化 -->
+  <!-- ========================================
+       Release 构建配置
+       ======================================== -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <!-- ✅ Release 模式启用 AOT（自动生效） -->
     <PublishAot>true</PublishAot>
-    <!-- ⚠️ .NET 10 强制要求：PublishAot 隐含 PublishTrimmed，无法禁用 -->
-    <!-- 解决方案：使用 TrimMode=partial 减少裁剪范围 -->
     <TrimMode>partial</TrimMode>
-    <!-- ⚠️ 使用 WindowsAppSDK 自包含模式（与 SelfContained 保持一致） -->
     <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <SelfContained>true</SelfContained>
-    <!-- ⚠️ 禁用 InvariantGlobalization（WinUI 3 需要本地化支持） -->
-    <!-- <InvariantGlobalization>true</InvariantGlobalization> -->
-    <!-- ⚠️ 保留调试器支持以便生产环境排查问题 -->
     <IlcGenerateStackTraceData>true</IlcGenerateStackTraceData>
     <EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
-    
-    <!-- AOT 编译器选项：优化速度 -->
     <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
-    <!-- 保留嵌入式调试符号 -->
     <DebugType>embedded</DebugType>
     <DebugSymbols>true</DebugSymbols>
-    <!-- 优化编译 -->
     <Optimize>true</Optimize>
-    
-    <!-- ⭐⭐⭐ 核心修复：指定正确的 MSIX 输出路径（避免路径冲突） -->
+    <TieredPGO>true</TieredPGO>
+    <DynamicPGO>true</DynamicPGO>
     <GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
     <AppxPackageDir>$(MSBuildProjectDirectory)\AppPackages\$(Configuration)\</AppxPackageDir>
-    
-    <!-- ⭐⭐⭐ Release 模式：使用正式版包名 -->
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
+    <_ResolveReferenceCopyLocalPathsForMsix>false</_ResolveReferenceCopyLocalPathsForMsix>
+    <AppxPackagePayloadFilesFromPublishOutput>true</AppxPackagePayloadFilesFromPublishOutput>
     <AppxPackageIdentityName>8B8CC4F4.482486777ECD9</AppxPackageIdentityName>
     <AppxPackageDisplayName>边栏助手</AppxPackageDisplayName>
   </PropertyGroup>
 
-  <!-- Release 优化（原有配置保留） -->
-  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
-    <!-- 启用分层编译以获得更好的运行时性能 -->
-    <TieredCompilation>true</TieredCompilation>
-    <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
-    <!-- 启用 PGO (Profile-Guided Optimization) -->
-    <TieredPGO>true</TieredPGO>
-    <DynamicPGO>true</DynamicPGO>
-  </PropertyGroup>
-
-  <!-- MSIX 打包优化 -->
-  <PropertyGroup>
-    <!-- 压缩优化 -->
-    <AppxPackageCompression>maximum</AppxPackageCompression>
-    
-    <!-- ⭐⭐⭐ 只保留中英文语言资源，移除其他语言 -->
-    <AppxBundleLanguages>zh-Hans;en-US</AppxBundleLanguages>
-    
-    <!-- ⭐ 禁用卫星程序集（去除多余语言资源文件夹） -->
-    <SatelliteResourceLanguages>zh-Hans;en-US</SatelliteResourceLanguages>
-  </PropertyGroup>
-
-  <!-- ⭐⭐⭐ 最佳解决方案：编译时动态替换 Package Identity Name 和 DisplayName -->
+  <!-- ========================================
+       自定义构建目标
+       ======================================== -->
+  
+  <!-- 动态更新 MSIX 清单中的包标识 -->
   <Target Name="UpdateAppxManifestIdentity" BeforeTargets="_GenerateCurrentProjectAppxManifest;_CopyAppxManifest">
     <PropertyGroup>
-      <!-- 根据配置设置包名和显示名称 -->
       <_AppxPackageName Condition="'$(Configuration)' == 'Debug'">8B8CC4F4.482486777ECD9.Debug</_AppxPackageName>
       <_AppxPackageName Condition="'$(Configuration)' == 'Release'">8B8CC4F4.482486777ECD9</_AppxPackageName>
       <_AppxDisplayName Condition="'$(Configuration)' == 'Debug'">边栏助手 (开发版)</_AppxDisplayName>
       <_AppxDisplayName Condition="'$(Configuration)' == 'Release'">边栏助手</_AppxDisplayName>
     </PropertyGroup>
     
-    <!-- 读取原始 manifest -->
     <ReadLinesFromFile File="Package.appxmanifest">
       <Output TaskParameter="Lines" ItemName="_ManifestLines" />
     </ReadLinesFromFile>
     
-    <!-- 替换 Identity Name、Properties DisplayName 和 VisualElements DisplayName -->
     <PropertyGroup>
       <_ManifestContent>@(_ManifestLines, '%0D%0A')</_ManifestContent>
       <_ManifestContent>$(_ManifestContent.Replace('Name="8B8CC4F4.482486777ECD9"', 'Name="$(_AppxPackageName)"'))</_ManifestContent>
@@ -251,10 +239,8 @@
       <_ManifestContent>$(_ManifestContent.Replace('DisplayName="边栏助手"', 'DisplayName="$(_AppxDisplayName)"'))</_ManifestContent>
     </PropertyGroup>
     
-    <!-- 写入临时 manifest -->
     <WriteLinesToFile File="$(IntermediateOutputPath)Package.appxmanifest" Lines="$(_ManifestContent)" Overwrite="true" />
     
-    <!-- 使用临时 manifest 替换原始文件 -->
     <ItemGroup>
       <AppxManifest Remove="@(AppxManifest)" />
       <AppxManifest Include="$(IntermediateOutputPath)Package.appxmanifest" />
@@ -262,6 +248,14 @@
     
     <Message Text="[UpdateAppxManifest] Using package name: $(_AppxPackageName)" Importance="high" />
     <Message Text="[UpdateAppxManifest] Using display name: $(_AppxDisplayName)" Importance="high" />
+  </Target>
+
+  <!-- 移除重复的 NuGet 程序集（仅 Release AOT 模式） -->
+  <Target Name="RemoveDuplicateReferenceCopyLocalPaths" AfterTargets="ResolveReferenceCopyLocalPaths" Condition="'$(Configuration)' == 'Release' and '$(PublishAot)' == 'true'">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="$([System.String]::Copy('%(ReferenceCopyLocalPaths.FullPath)').Contains('\.nuget\packages\'))" />
+    </ItemGroup>
+    <Message Text="[RemoveDuplicateReferenceCopyLocalPaths] Removed NuGet assemblies from copy list (using AOT linked output)" Importance="high" />
   </Target>
 
 </Project>
