@@ -6,7 +6,11 @@
     <RootNamespace>Docked_AI</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <Platforms>x64;ARM64</Platforms>
-    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <!-- ⭐⭐⭐ 根据 Platform 动态设置 RuntimeIdentifier -->
+    <RuntimeIdentifier Condition="'$(Platform)' == 'x64'">win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
+    <!-- 移除静态 RuntimeIdentifiers（避免冲突） -->
+    <!-- <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers> -->
     <!-- ⭐ 本地化：设置默认语言（英文优先，中英双语系统更友好） -->
     <DefaultLanguage>en-US</DefaultLanguage>
     <!-- 根据平台动态设置 PlatformTarget -->
@@ -14,8 +18,9 @@
     <PlatformTarget Condition="'$(Platform)' == 'ARM64'">ARM64</PlatformTarget>
     <!-- 默认使用 x64 平台 -->
     <Platform Condition="'$(Platform)' == '' or '$(Platform)' == 'AnyCPU'">x64</Platform>
-    <PublishProfile Condition="'$(Platform)' == 'x64'">win-x64.pubxml</PublishProfile>
-    <PublishProfile Condition="'$(Platform)' == 'ARM64'">win-arm64.pubxml</PublishProfile>
+    <!-- 移除发布配置文件引用（避免缺失警告） -->
+    <!-- <PublishProfile Condition="'$(Platform)' == 'x64'">win-x64.pubxml</PublishProfile> -->
+    <!-- <PublishProfile Condition="'$(Platform)' == 'ARM64'">win-arm64.pubxml</PublishProfile> -->
     <UseWinUI>true</UseWinUI>
     <WinUISDKReferences>false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
@@ -171,20 +176,29 @@
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <!-- ✅ Release 模式启用 AOT（自动生效） -->
     <PublishAot>true</PublishAot>
+    <!-- ⚠️ .NET 10 强制要求：PublishAot 隐含 PublishTrimmed，无法禁用 -->
+    <!-- 解决方案：使用 TrimMode=partial 减少裁剪范围 -->
+    <TrimMode>partial</TrimMode>
+    <!-- ⚠️ 使用 WindowsAppSDK 自包含模式（与 SelfContained 保持一致） -->
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <!-- ⚠️ 禁用 InvariantGlobalization（WinUI 3 需要本地化支持） -->
+    <!-- <InvariantGlobalization>true</InvariantGlobalization> -->
+    <!-- ⚠️ 保留调试器支持以便生产环境排查问题 -->
+    <IlcGenerateStackTraceData>true</IlcGenerateStackTraceData>
+    <EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
+    
     <!-- AOT 编译器选项：优化速度 -->
     <IlcOptimizationPreference>Speed</IlcOptimizationPreference>
-    <!-- ⭐⭐⭐ 启用堆栈跟踪数据（调试 AOT 崩溃问题） -->
-    <IlcGenerateStackTraceData>true</IlcGenerateStackTraceData>
-    <!-- ⭐ 暂时禁用代码裁剪（测试是否裁剪导致崩溃） -->
-    <PublishTrimmed>false</PublishTrimmed>
-    <!-- <TrimMode>partial</TrimMode> -->
-    <!-- 保留嵌入式调试符号（可选，用于生产环境崩溃分析） -->
+    <!-- 保留嵌入式调试符号 -->
     <DebugType>embedded</DebugType>
     <DebugSymbols>true</DebugSymbols>
     <!-- 优化编译 -->
     <Optimize>true</Optimize>
-    <!-- ⭐ 启用 EventPipe 支持（用于生产环境性能分析） -->
-    <EventSourceSupport>true</EventSourceSupport>
+    
+    <!-- ⭐⭐⭐ 核心修复：指定正确的 MSIX 输出路径（避免路径冲突） -->
+    <GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
+    <AppxPackageDir>$(MSBuildProjectDirectory)\AppPackages\$(Configuration)\</AppxPackageDir>
     
     <!-- ⭐⭐⭐ Release 模式：使用正式版包名 -->
     <AppxPackageIdentityName>8B8CC4F4.482486777ECD9</AppxPackageIdentityName>

@@ -8,6 +8,7 @@ using Docked_AI.Features.UnifiedCalls.AsyncSafety;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Windowing;
 using System;
+using WinRT;  // ⭐ Native AOT 修复：用于 .As<T>() COM 转换方法
 
 namespace Docked_AI.Features.MainWindow.Visibility
 {
@@ -916,9 +917,32 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         private async System.Threading.Tasks.Task ApplyMaximizedModeAsync()
         {
-            if (_window.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            System.Diagnostics.Debug.WriteLine($"[ApplyMaximizedModeAsync] 开始执行最大化操作");
+            System.Diagnostics.Debug.WriteLine($"[ApplyMaximizedModeAsync] Presenter 类型: {_window.AppWindow.Presenter.GetType().FullName}");
+            
+            try
             {
-                presenter.Maximize();
+                // ⭐⭐⭐ Native AOT 修复：使用 CsWinRT 的 .As<T>() 方法进行 COM 转换
+                // 不要使用 is/as 关键字，它们在 AOT 下依赖 RTTI 可能失败
+                var presenter = _window.AppWindow.Presenter.As<Microsoft.UI.Windowing.OverlappedPresenter>();
+                
+                if (presenter != null)
+                {
+                    System.Diagnostics.Debug.WriteLine("[ApplyMaximizedModeAsync] 成功获取 OverlappedPresenter，调用 Maximize()");
+                    presenter.Maximize();
+                    System.Diagnostics.Debug.WriteLine("[ApplyMaximizedModeAsync] Maximize() 调用完成");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[ApplyMaximizedModeAsync] 错误：无法转换为 OverlappedPresenter");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[ApplyMaximizedModeAsync] 异常：{ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[ApplyMaximizedModeAsync] 堆栈：{ex.StackTrace}");
+                // 重新抛出异常以触发状态回滚
+                throw;
             }
 
             await System.Threading.Tasks.Task.Delay(MaximizedModeDelay);
@@ -978,9 +1002,32 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         private async System.Threading.Tasks.Task RestoreFromMaximizedModeAsync()
         {
-            if (_window.AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter presenter)
+            System.Diagnostics.Debug.WriteLine($"[RestoreFromMaximizedModeAsync] 开始执行还原操作");
+            System.Diagnostics.Debug.WriteLine($"[RestoreFromMaximizedModeAsync] Presenter 类型: {_window.AppWindow.Presenter.GetType().FullName}");
+            
+            try
             {
-                presenter.Restore();
+                // ⭐⭐⭐ Native AOT 修复：使用 CsWinRT 的 .As<T>() 方法进行 COM 转换
+                // 不要使用 is/as 关键字，它们在 AOT 下依赖 RTTI 可能失败
+                var presenter = _window.AppWindow.Presenter.As<Microsoft.UI.Windowing.OverlappedPresenter>();
+                
+                if (presenter != null)
+                {
+                    System.Diagnostics.Debug.WriteLine("[RestoreFromMaximizedModeAsync] 成功获取 OverlappedPresenter，调用 Restore()");
+                    presenter.Restore();
+                    System.Diagnostics.Debug.WriteLine("[RestoreFromMaximizedModeAsync] Restore() 调用完成");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[RestoreFromMaximizedModeAsync] 错误：无法转换为 OverlappedPresenter");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[RestoreFromMaximizedModeAsync] 异常：{ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[RestoreFromMaximizedModeAsync] 堆栈：{ex.StackTrace}");
+                // 重新抛出异常以触发状态回滚
+                throw;
             }
 
             await System.Threading.Tasks.Task.Delay(MaximizedModeDelay);
