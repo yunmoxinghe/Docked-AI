@@ -285,15 +285,27 @@ namespace Docked_AI.Features.Pages.Settings
                 // BEST PRACTICE: Unsubscribe before making changes to prevent unwanted events
                 LanguageComboBox.SelectionChanged -= OnLanguageChanged;
 
-                // Try to find matching language
-                bool found = TrySetLanguageSelection(currentLanguage);
-
-                // BEST PRACTICE: Always resubscribe in a finally block (done implicitly here)
-                LanguageComboBox.SelectionChanged += OnLanguageChanged;
+                try
+                {
+                    // Try to find matching language
+                    bool found = TrySetLanguageSelection(currentLanguage);
+                }
+                finally
+                {
+                    // ✅ AOT 修复：使用 finally 确保事件一定会被重新订阅
+                    LanguageComboBox.SelectionChanged += OnLanguageChanged;
+                    System.Diagnostics.Debug.WriteLine("[SettingsPage] Language event handler resubscribed");
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[SettingsPage] Failed to load language settings: {ex.Message}");
+                // 确保事件处理器被订阅（如果发生在 finally 之前的异常）
+                if (LanguageComboBox != null)
+                {
+                    LanguageComboBox.SelectionChanged -= OnLanguageChanged;
+                    LanguageComboBox.SelectionChanged += OnLanguageChanged;
+                }
             }
         }
         
@@ -319,41 +331,39 @@ namespace Docked_AI.Features.Pages.Settings
         {
             if (LanguageComboBox == null) return false;
             
-            // Try exact match first
-            foreach (ComboBoxItem item in LanguageComboBox.Items)
+            // ✅ AOT 修复：使用索引映射，避免类型转换
+            // XAML 定义顺序：0="" (跟随系统), 1="zh-CN" (简体中文), 2="en-US" (English)
+            int targetIndex = languageTag switch
             {
-                if (item == null) continue;
-                
-                var tag = item.Tag?.ToString() ?? "";
-                if (tag == languageTag)
+                "" => 0,        // 跟随系统
+                "zh-CN" => 1,   // 简体中文
+                "en-US" => 2,   // English
+                _ => 0          // 默认跟随系统
+            };
+            
+            // Try simplified tag if no exact match (e.g., "zh-Hans-CN" -> "zh-CN")
+            if (targetIndex == 0 && !string.IsNullOrEmpty(languageTag) && languageTag.Contains("-"))
+            {
+                var parts = languageTag.Split('-');
+                if (parts.Length >= 2)
                 {
-                    LanguageComboBox.SelectedItem = item;
-                    System.Diagnostics.Debug.WriteLine($"[SettingsPage] Found exact language match: {tag}");
-                    return true;
+                    var simplifiedTag = $"{parts[0]}-{parts[parts.Length - 1]}";
+                    System.Diagnostics.Debug.WriteLine($"[SettingsPage] Trying simplified language tag: {simplifiedTag}");
+                    
+                    targetIndex = simplifiedTag switch
+                    {
+                        "zh-CN" => 1,
+                        "en-US" => 2,
+                        _ => 0
+                    };
                 }
             }
 
-            // Try simplified tag (e.g., "zh-Hans-CN" -> "zh-CN")
-            if (!string.IsNullOrEmpty(languageTag) && languageTag.Contains("-"))
+            if (targetIndex >= 0 && targetIndex < LanguageComboBox.Items.Count)
             {
-                var parts = languageTag.Split('-');
-                if (parts.Length == 3)
-                {
-                    var simplifiedTag = $"{parts[0]}-{parts[2]}";
-                    System.Diagnostics.Debug.WriteLine($"[SettingsPage] Trying simplified language tag: {simplifiedTag}");
-                    
-                    foreach (ComboBoxItem item in LanguageComboBox.Items)
-                    {
-                        if (item == null) continue;
-                        
-                        if (item.Tag?.ToString() == simplifiedTag)
-                        {
-                            LanguageComboBox.SelectedItem = item;
-                            System.Diagnostics.Debug.WriteLine($"[SettingsPage] Found simplified language match: {simplifiedTag}");
-                            return true;
-                        }
-                    }
-                }
+                LanguageComboBox.SelectedIndex = targetIndex;
+                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Language selection set to index: {targetIndex} (tag: {languageTag})");
+                return true;
             }
 
             // Default to "Follow System" (first item)
@@ -716,12 +726,18 @@ namespace Docked_AI.Features.Pages.Settings
 
         private async void OnDockSideChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem item)
+            Docked_AI.Features.Shared.AotOptimization.AotDebugLogger.Log($"[SettingsPage] OnDockSideChanged triggered");
+            
+            if (sender is ComboBox comboBox)
             {
-                if (int.TryParse(item.Tag?.ToString(), out int dockSideValue))
+                Docked_AI.Features.Shared.AotOptimization.AotDebugLogger.Log($"[SettingsPage] Sender is ComboBox, SelectedIndex: {comboBox.SelectedIndex}");
+                
+                // ✅ AOT 修复：直接使用 SelectedIndex 而不是类型转换
+                if (comboBox.SelectedIndex >= 0)
                 {
-                    var newDockSide = (WindowDockSide)dockSideValue;
+                    var newDockSide = (WindowDockSide)comboBox.SelectedIndex;
                     var currentDockSide = ExperimentalSettings.DockSide;
+                    Docked_AI.Features.Shared.AotOptimization.AotDebugLogger.Log($"[SettingsPage] DockSide change: {currentDockSide} -> {newDockSide}");
                     if (LeftDockNavigationToggle != null)
                     {
                         LeftDockNavigationToggle.IsEnabled = newDockSide == WindowDockSide.Left;
@@ -879,16 +895,14 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void OnFrameAnimationChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem item)
+            // ✅ AOT 修复：使用 SelectedIndex
+            if (sender is ComboBox comboBox && comboBox.SelectedIndex >= 0)
             {
-                if (int.TryParse(item.Tag?.ToString(), out int animationType))
-                {
-                    var newAnimation = (FrameAnimationType)animationType;
-                    ExperimentalSettings.FrameNavigationAnimation = newAnimation;
-                    
-                    // 通知应用更新 Frame 动画设置
-                    FrameAnimationSettingsChanged?.Invoke(this, EventArgs.Empty);
-                }
+                var newAnimation = (FrameAnimationType)comboBox.SelectedIndex;
+                ExperimentalSettings.FrameNavigationAnimation = newAnimation;
+                
+                // 通知应用更新 Frame 动画设置
+                FrameAnimationSettingsChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -939,15 +953,13 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void OnSubPageAnimationChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem item)
+            // ✅ AOT 修复：使用 SelectedIndex
+            if (sender is ComboBox comboBox && comboBox.SelectedIndex >= 0)
             {
-                if (int.TryParse(item.Tag?.ToString(), out int animationType))
-                {
-                    var newAnimation = (FrameAnimationType)animationType;
-                    ExperimentalSettings.SubPageNavigationAnimation = newAnimation;
-                    
-                    System.Diagnostics.Debug.WriteLine($"[SettingsPage] Sub-page animation changed to: {newAnimation}");
-                }
+                var newAnimation = (FrameAnimationType)comboBox.SelectedIndex;
+                ExperimentalSettings.SubPageNavigationAnimation = newAnimation;
+                
+                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Sub-page animation changed to: {newAnimation}");
             }
         }
 
@@ -995,15 +1007,13 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void OnTrayCloseWindowBehaviorChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem item)
+            // ✅ AOT 修复：使用 SelectedIndex
+            if (sender is ComboBox comboBox && comboBox.SelectedIndex >= 0)
             {
-                if (int.TryParse(item.Tag?.ToString(), out int behaviorValue))
-                {
-                    var newBehavior = (TrayCloseWindowBehavior)behaviorValue;
-                    ExperimentalSettings.CloseWindowBehavior = newBehavior;
-                    
-                    System.Diagnostics.Debug.WriteLine($"[SettingsPage] Tray close window behavior changed to: {newBehavior}");
-                }
+                var newBehavior = (TrayCloseWindowBehavior)comboBox.SelectedIndex;
+                ExperimentalSettings.CloseWindowBehavior = newBehavior;
+                
+                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Tray close window behavior changed to: {newBehavior}");
             }
         }
 
@@ -1051,18 +1061,16 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void OnContentAreaBackdropChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem item)
+            // ✅ AOT 修复：使用 SelectedIndex
+            if (sender is ComboBox comboBox && comboBox.SelectedIndex >= 0)
             {
-                if (int.TryParse(item.Tag?.ToString(), out int backdropValue))
-                {
-                    var newBackdrop = (ContentAreaBackdropType)backdropValue;
-                    ExperimentalSettings.ContentAreaBackdrop = newBackdrop;
-                    
-                    System.Diagnostics.Debug.WriteLine($"[SettingsPage] Content area backdrop changed to: {newBackdrop}");
-                    
-                    // 通知应用更新背景材质
-                    ContentAreaBackdropSettingsChanged?.Invoke(this, EventArgs.Empty);
-                }
+                var newBackdrop = (ContentAreaBackdropType)comboBox.SelectedIndex;
+                ExperimentalSettings.ContentAreaBackdrop = newBackdrop;
+                
+                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Content area backdrop changed to: {newBackdrop}");
+                
+                // 通知应用更新背景材质
+                ContentAreaBackdropSettingsChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -1076,12 +1084,8 @@ namespace Docked_AI.Features.Pages.Settings
 
         private async void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Event handlers must be async void, but we delegate to async Task for better error handling
-            await OnLanguageChangedAsync(sender, e).ConfigureAwait(true);
-        }
-
-        private async System.Threading.Tasks.Task OnLanguageChangedAsync(object sender, SelectionChangedEventArgs e)
-        {
+            Docked_AI.Features.Shared.AotOptimization.AotDebugLogger.Log($"[SettingsPage] OnLanguageChanged triggered");
+            
             // Early validation
             if (this.XamlRoot == null)
             {
@@ -1089,80 +1093,52 @@ namespace Docked_AI.Features.Pages.Settings
                 return;
             }
 
-            if (LanguageComboBox?.SelectedItem is not ComboBoxItem selectedItem)
+            // ✅ AOT 修复：直接使用 SelectedIndex 而不是类型转换
+            if (sender is not ComboBox comboBox || comboBox.SelectedIndex < 0)
             {
                 System.Diagnostics.Debug.WriteLine("[SettingsPage] No valid language item selected");
                 return;
             }
 
-            var languageTag = selectedItem.Tag?.ToString() ?? "";
+            Docked_AI.Features.Shared.AotOptimization.AotDebugLogger.Log($"[SettingsPage] Language ComboBox SelectedIndex: {comboBox.SelectedIndex}");
+
+            // ✅ AOT 兼容：使用索引映射代替类型转换
+            // XAML 定义顺序：0=跟随系统(""), 1=简体中文("zh-CN"), 2=English("en-US")
+            string languageTag = comboBox.SelectedIndex switch
+            {
+                0 => "",        // 跟随系统
+                1 => "zh-CN",   // 简体中文
+                2 => "en-US",   // English
+                _ => ""         // 默认跟随系统
+            };
+
+            Docked_AI.Features.Shared.AotOptimization.AotDebugLogger.Log($"[SettingsPage] Language tag from index mapping: {languageTag}");
+
             var currentLanguage = ApplicationLanguages.PrimaryLanguageOverride;
 
             if (languageTag == currentLanguage)
             {
+                Docked_AI.Features.Shared.AotOptimization.AotDebugLogger.Log($"[SettingsPage] Language unchanged: {languageTag}");
                 return; // No change needed
             }
 
             try
             {
-                await ChangeLanguageAsync(languageTag, currentLanguage);
+                // Set language (empty string means follow system)
+                ApplicationLanguages.PrimaryLanguageOverride = languageTag;
+
+                // Show restart dialog
+                var title = LocalizationHelper.GetString("SettingsPage_LanguageChangedTitle") ?? "语言已更改";
+                var content = LocalizationHelper.GetString("SettingsPage_LanguageChangedContent") ?? "语言设置已更改。需要重启应用以应用新的语言设置。";
+                var closeButtonText = LocalizationHelper.GetString("SettingsPage_ConfirmButton") ?? "确定";
+
+                var dialog = CreateMessageDialog(title, content, closeButtonText: closeButtonText);
+                await InAppDialogService.ShowAsync(dialog, this);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[SettingsPage] OnLanguageChanged error: {ex}");
                 await ShowErrorNotificationAsync("语言切换失败", ex.Message);
-            }
-        }
-
-        private async System.Threading.Tasks.Task ChangeLanguageAsync(string newLanguage, string currentLanguage)
-        {
-            try
-            {
-                // Set language (empty string means follow system)
-                ApplicationLanguages.PrimaryLanguageOverride = newLanguage;
-                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Language changed to: {newLanguage}");
-
-                var shouldRestart = await PromptForRestartAsync();
-                if (shouldRestart)
-                {
-                    AppRestartService.RestartWithArgs("--restart-from=settings-language");
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Error changing language: {ex}");
-                
-                // Rollback on failure
-                await RollbackLanguageChangeAsync(currentLanguage);
-                throw; // Re-throw to be handled by caller
-            }
-        }
-
-        private async System.Threading.Tasks.Task<bool> PromptForRestartAsync()
-        {
-            var dialog = CreateMessageDialog(
-                LocalizationHelper.GetString("SettingsPage_RestartTitle") ?? "重启应用",
-                LocalizationHelper.GetString("SettingsPage_RestartContent") ?? "需要重启应用以应用语言更改",
-                LocalizationHelper.GetString("SettingsPage_RestartButton") ?? "立即重启",
-                LocalizationHelper.GetString("SettingsPage_LaterButton") ?? "稍后",
-                ContentDialogButton.Primary);
-            
-            var result = await InAppDialogService.ShowAsync(dialog, this);
-            return result == ContentDialogResult.Primary;
-        }
-
-        private async System.Threading.Tasks.Task RollbackLanguageChangeAsync(string previousLanguage)
-        {
-            try
-            {
-                ApplicationLanguages.PrimaryLanguageOverride = previousLanguage;
-                LoadLanguageSettings(); // Reload UI state
-                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Language rolled back to: {previousLanguage}");
-            }
-            catch (Exception rollbackEx)
-            {
-                // Log rollback failure but don't throw - we're already in error handling
-                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Failed to rollback language: {rollbackEx}");
             }
         }
 
@@ -1368,7 +1344,7 @@ namespace Docked_AI.Features.Pages.Settings
 
             var displayText = new TextBlock
             {
-                Text = LocalizationHelper.GetString("SettingsPage_HotkeyDialogRecordText.Text"),
+                Text = LocalizationHelper.GetString("SettingsPage_HotkeyDialogRecordText"),
                 FontSize = 16,
                 TextAlignment = TextAlignment.Center,
                 TextWrapping = TextWrapping.Wrap
@@ -1482,13 +1458,13 @@ namespace Docked_AI.Features.Pages.Settings
                 {
                     new TextBlock
                     {
-                        Text = LocalizationHelper.GetString("SettingsPage_HotkeyDialogPrompt.Text"),
+                        Text = LocalizationHelper.GetString("SettingsPage_HotkeyDialogPrompt"),
                         TextWrapping = TextWrapping.Wrap
                     },
                     recordButton,
                     new TextBlock
                     {
-                        Text = LocalizationHelper.GetString("SettingsPage_HotkeyDialogHint.Text"),
+                        Text = LocalizationHelper.GetString("SettingsPage_HotkeyDialogHint"),
                         FontSize = 12,
                         Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
                         TextWrapping = TextWrapping.Wrap
@@ -1498,10 +1474,10 @@ namespace Docked_AI.Features.Pages.Settings
 
             var dialog = new UnifiedInAppDialog();
             dialog.Configure(
-                LocalizationHelper.GetString("SettingsPage_HotkeyDialog.Title"),
+                LocalizationHelper.GetString("SettingsPage_HotkeyDialogTitle"),
                 content,
-                LocalizationHelper.GetString("SettingsPage_HotkeyDialog.PrimaryButtonText"),
-                LocalizationHelper.GetString("SettingsPage_HotkeyDialog.CloseButtonText"),
+                LocalizationHelper.GetString("SettingsPage_HotkeyDialogPrimaryButton"),
+                LocalizationHelper.GetString("SettingsPage_HotkeyDialogCloseButton"),
                 defaultButton: ContentDialogButton.Primary);
 
             var result = await InAppDialogService.ShowAsync(dialog, this);

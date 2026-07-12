@@ -5,7 +5,11 @@ using Docked_AI.Features.Shared.AotOptimization;
 namespace Docked_AI.Features.Pages.Settings
 {
     /// <summary>
-    /// 实验特性设置管理
+    /// 实验特性设置管理（AOT 优化版本）
+    /// 
+    /// <para>
+    /// 使用 AotSafeSettingsHelper 确保在 Native AOT 编译环境下设置的读写操作安全可靠。
+    /// </para>
     /// </summary>
     public static class ExperimentalSettings
     {
@@ -50,39 +54,24 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool EnableWinUIContextMenu
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(EnableWinUIContextMenuKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return false; // 默认关闭
-            }
-            set
-            {
-                _localSettings.Values[EnableWinUIContextMenuKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, EnableWinUIContextMenuKey, defaultValue: false);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, EnableWinUIContextMenuKey, value);
         }
 
         /// <summary>
-        /// 获取或设置同时打开的 WebView 最大数量
+        /// 获取或设置同时打开的 WebView 最大数量（范围：1-20）
         /// </summary>
         public static int MaxWebViewCount
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(MaxWebViewCountKey, out object? value))
-                {
-                    return value is int intValue ? intValue : 2;
-                }
-                return 2; // 默认值为 2
-            }
-            set
-            {
-                // 限制范围在 1-20 之间
-                int clampedValue = Math.Max(1, Math.Min(20, value));
-                _localSettings.Values[MaxWebViewCountKey] = clampedValue;
-            }
+            get => Math.Clamp(
+                AotSafeSettingsHelper.GetInt(_localSettings, MaxWebViewCountKey, defaultValue: 2),
+                1, 20
+            );
+            set => AotSafeSettingsHelper.SetInt(
+                _localSettings,
+                MaxWebViewCountKey,
+                Math.Clamp(value, 1, 20)
+            );
         }
 
         /// <summary>
@@ -90,21 +79,12 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static FrameAnimationType FrameNavigationAnimation
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(FrameNavigationAnimationKey, out object? value))
-                {
-                    if (value is int intValue && EnumValidationExtensions.IsValidFrameAnimationType(intValue))
-                    {
-                        return (FrameAnimationType)intValue;
-                    }
-                }
-                return FrameAnimationType.EntranceTransition; // 默认使用 EntranceTransition
-            }
-            set
-            {
-                _localSettings.Values[FrameNavigationAnimationKey] = (int)value;
-            }
+            get => AotSafeSettingsHelper.GetEnum(
+                _localSettings,
+                FrameNavigationAnimationKey,
+                FrameAnimationType.EntranceTransition
+            );
+            set => AotSafeSettingsHelper.SetEnum(_localSettings, FrameNavigationAnimationKey, value);
         }
 
         /// <summary>
@@ -113,21 +93,12 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static FrameAnimationType SubPageNavigationAnimation
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(SubPageNavigationAnimationKey, out object? value))
-                {
-                    if (value is int intValue && EnumValidationExtensions.IsValidFrameAnimationType(intValue))
-                    {
-                        return (FrameAnimationType)intValue;
-                    }
-                }
-                return FrameAnimationType.SlideFromRight; // 默认使用 SlideFromRight
-            }
-            set
-            {
-                _localSettings.Values[SubPageNavigationAnimationKey] = (int)value;
-            }
+            get => AotSafeSettingsHelper.GetEnum(
+                _localSettings,
+                SubPageNavigationAnimationKey,
+                FrameAnimationType.SlideFromRight
+            );
+            set => AotSafeSettingsHelper.SetEnum(_localSettings, SubPageNavigationAnimationKey, value);
         }
 
         /// <summary>
@@ -135,18 +106,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool EnableAILab
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(EnableAILabKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return false; // 默认关闭
-            }
-            set
-            {
-                _localSettings.Values[EnableAILabKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, EnableAILabKey, defaultValue: false);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, EnableAILabKey, value);
         }
 
         /// <summary>
@@ -154,18 +115,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool EnableBackButton
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(EnableBackButtonKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return false; // 默认关闭
-            }
-            set
-            {
-                _localSettings.Values[EnableBackButtonKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, EnableBackButtonKey, defaultValue: false);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, EnableBackButtonKey, value);
         }
 
         /// <summary>
@@ -173,18 +124,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool EnableTopBarBackButton
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(EnableTopBarBackButtonKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return false; // 默认关闭
-            }
-            set
-            {
-                _localSettings.Values[EnableTopBarBackButtonKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, EnableTopBarBackButtonKey, defaultValue: false);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, EnableTopBarBackButtonKey, value);
         }
 
         /// <summary>
@@ -192,18 +133,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool EnableTopBarMenuButton
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(EnableTopBarMenuButtonKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return false; // 默认关闭
-            }
-            set
-            {
-                _localSettings.Values[EnableTopBarMenuButtonKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, EnableTopBarMenuButtonKey, defaultValue: false);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, EnableTopBarMenuButtonKey, value);
         }
 
         /// <summary>
@@ -211,21 +142,12 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static WindowDockSide DockSide
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(WindowDockSideKey, out object? value))
-                {
-                    if (value is int intValue && EnumValidationExtensions.IsValidWindowDockSide(intValue))
-                    {
-                        return (WindowDockSide)intValue;
-                    }
-                }
-                return WindowDockSide.Right; // 默认右侧
-            }
-            set
-            {
-                _localSettings.Values[WindowDockSideKey] = (int)value;
-            }
+            get => AotSafeSettingsHelper.GetEnum(
+                _localSettings,
+                WindowDockSideKey,
+                WindowDockSide.Right
+            );
+            set => AotSafeSettingsHelper.SetEnum(_localSettings, WindowDockSideKey, value);
         }
 
         /// <summary>
@@ -233,18 +155,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool PlaceNavigationBarOnLeftWhenDockedLeft
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(PlaceNavigationBarOnLeftWhenDockedLeftKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return false; // 默认保持导航栏在右侧
-            }
-            set
-            {
-                _localSettings.Values[PlaceNavigationBarOnLeftWhenDockedLeftKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, PlaceNavigationBarOnLeftWhenDockedLeftKey, defaultValue: false);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, PlaceNavigationBarOnLeftWhenDockedLeftKey, value);
         }
 
         /// <summary>
@@ -252,21 +164,12 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static TrayCloseWindowBehavior CloseWindowBehavior
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(TrayCloseWindowBehaviorKey, out object? value))
-                {
-                    if (value is int intValue && EnumValidationExtensions.IsValidTrayCloseWindowBehavior(intValue))
-                    {
-                        return (TrayCloseWindowBehavior)intValue;
-                    }
-                }
-                return TrayCloseWindowBehavior.DestroyWindow; // 默认直接销毁窗口
-            }
-            set
-            {
-                _localSettings.Values[TrayCloseWindowBehaviorKey] = (int)value;
-            }
+            get => AotSafeSettingsHelper.GetEnum(
+                _localSettings,
+                TrayCloseWindowBehaviorKey,
+                TrayCloseWindowBehavior.DestroyWindow
+            );
+            set => AotSafeSettingsHelper.SetEnum(_localSettings, TrayCloseWindowBehaviorKey, value);
         }
 
         /// <summary>
@@ -274,18 +177,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool HideTrayRateButton
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(HideTrayRateButtonKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return false; // 默认显示评价按钮
-            }
-            set
-            {
-                _localSettings.Values[HideTrayRateButtonKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, HideTrayRateButtonKey, defaultValue: false);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, HideTrayRateButtonKey, value);
         }
 
         /// <summary>
@@ -293,18 +186,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool HideWebViewCloseButton
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(HideWebViewCloseButtonKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return false; // 默认显示关闭按钮
-            }
-            set
-            {
-                _localSettings.Values[HideWebViewCloseButtonKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, HideWebViewCloseButtonKey, defaultValue: false);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, HideWebViewCloseButtonKey, value);
         }
 
         /// <summary>
@@ -312,21 +195,12 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static ContentAreaBackdropType ContentAreaBackdrop
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(ContentAreaBackdropTypeKey, out object? value))
-                {
-                    if (value is int intValue && EnumValidationExtensions.IsValidContentAreaBackdropType(intValue))
-                    {
-                        return (ContentAreaBackdropType)intValue;
-                    }
-                }
-                return ContentAreaBackdropType.SolidColor; // 默认纯色背景
-            }
-            set
-            {
-                _localSettings.Values[ContentAreaBackdropTypeKey] = (int)value;
-            }
+            get => AotSafeSettingsHelper.GetEnum(
+                _localSettings,
+                ContentAreaBackdropTypeKey,
+                ContentAreaBackdropType.SolidColor
+            );
+            set => AotSafeSettingsHelper.SetEnum(_localSettings, ContentAreaBackdropTypeKey, value);
         }
 
         /// <summary>
@@ -334,21 +208,12 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static WebViewMemoryMode MemoryMode
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(WebViewMemoryModeKey, out object? value))
-                {
-                    if (value is int intValue && EnumValidationExtensions.IsValidWebViewMemoryMode(intValue))
-                    {
-                        return (WebViewMemoryMode)intValue;
-                    }
-                }
-                return WebViewMemoryMode.Normal; // 默认正常模式
-            }
-            set
-            {
-                _localSettings.Values[WebViewMemoryModeKey] = (int)value;
-            }
+            get => AotSafeSettingsHelper.GetEnum(
+                _localSettings,
+                WebViewMemoryModeKey,
+                WebViewMemoryMode.Normal
+            );
+            set => AotSafeSettingsHelper.SetEnum(_localSettings, WebViewMemoryModeKey, value);
         }
 
         /// <summary>
@@ -356,18 +221,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool AutoClearCache
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(WebViewAutoClearCacheKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return false; // 默认关闭
-            }
-            set
-            {
-                _localSettings.Values[WebViewAutoClearCacheKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, WebViewAutoClearCacheKey, defaultValue: false);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, WebViewAutoClearCacheKey, value);
         }
 
         /// <summary>
@@ -375,18 +230,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool SuspendInactiveWebView
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(WebViewSuspendInactiveKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return false; // 默认关闭
-            }
-            set
-            {
-                _localSettings.Values[WebViewSuspendInactiveKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, WebViewSuspendInactiveKey, defaultValue: false);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, WebViewSuspendInactiveKey, value);
         }
 
         /// <summary>
@@ -394,18 +239,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool DisableBackgroundNetwork
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(WebViewDisableBackgroundNetworkKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return false; // 默认关闭
-            }
-            set
-            {
-                _localSettings.Values[WebViewDisableBackgroundNetworkKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, WebViewDisableBackgroundNetworkKey, defaultValue: false);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, WebViewDisableBackgroundNetworkKey, value);
         }
 
         /// <summary>
@@ -413,18 +248,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool DisableExtensions
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(WebViewDisableExtensionsKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return true; // 默认禁用扩展
-            }
-            set
-            {
-                _localSettings.Values[WebViewDisableExtensionsKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, WebViewDisableExtensionsKey, defaultValue: true);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, WebViewDisableExtensionsKey, value);
         }
 
         /// <summary>
@@ -432,39 +257,24 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool DisablePlugins
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(WebViewDisablePluginsKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return true; // 默认禁用插件
-            }
-            set
-            {
-                _localSettings.Values[WebViewDisablePluginsKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, WebViewDisablePluginsKey, defaultValue: true);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, WebViewDisablePluginsKey, value);
         }
 
         /// <summary>
-        /// 获取或设置磁盘缓存大小（MB）
+        /// 获取或设置磁盘缓存大小（MB，范围：10-500）
         /// </summary>
         public static int DiskCacheSize
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(WebViewDiskCacheSizeKey, out object? value))
-                {
-                    return value is int intValue ? intValue : 100;
-                }
-                return 100; // 默认 100MB
-            }
-            set
-            {
-                // 限制范围在 10-500 MB 之间
-                int clampedValue = Math.Max(10, Math.Min(500, value));
-                _localSettings.Values[WebViewDiskCacheSizeKey] = clampedValue;
-            }
+            get => Math.Clamp(
+                AotSafeSettingsHelper.GetInt(_localSettings, WebViewDiskCacheSizeKey, defaultValue: 100),
+                10, 500
+            );
+            set => AotSafeSettingsHelper.SetInt(
+                _localSettings,
+                WebViewDiskCacheSizeKey,
+                Math.Clamp(value, 10, 500)
+            );
         }
 
         /// <summary>
@@ -472,18 +282,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool FastStartupMode
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(WebViewFastStartupModeKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return true; // 默认开启
-            }
-            set
-            {
-                _localSettings.Values[WebViewFastStartupModeKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, WebViewFastStartupModeKey, defaultValue: true);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, WebViewFastStartupModeKey, value);
         }
 
         /// <summary>
@@ -491,18 +291,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool SingleProcessMode
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(WebViewSingleProcessModeKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return false; // 默认关闭（多进程更稳定）
-            }
-            set
-            {
-                _localSettings.Values[WebViewSingleProcessModeKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, WebViewSingleProcessModeKey, defaultValue: false);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, WebViewSingleProcessModeKey, value);
         }
 
         /// <summary>
@@ -510,18 +300,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool EnableHardwareAcceleration
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(WebViewEnableHardwareAccelerationKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return true; // 默认开启
-            }
-            set
-            {
-                _localSettings.Values[WebViewEnableHardwareAccelerationKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, WebViewEnableHardwareAccelerationKey, defaultValue: true);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, WebViewEnableHardwareAccelerationKey, value);
         }
 
         /// <summary>
@@ -529,18 +309,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool EnableHardwareOverlays
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(WebViewEnableHardwareOverlaysKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return true; // 默认开启
-            }
-            set
-            {
-                _localSettings.Values[WebViewEnableHardwareOverlaysKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, WebViewEnableHardwareOverlaysKey, defaultValue: true);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, WebViewEnableHardwareOverlaysKey, value);
         }
 
         /// <summary>
@@ -548,18 +318,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool EnableHardwareVideoDecoder
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(WebViewEnableHardwareVideoDecoderKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return true; // 默认开启
-            }
-            set
-            {
-                _localSettings.Values[WebViewEnableHardwareVideoDecoderKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, WebViewEnableHardwareVideoDecoderKey, defaultValue: true);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, WebViewEnableHardwareVideoDecoderKey, value);
         }
 
         /// <summary>
@@ -567,18 +327,8 @@ namespace Docked_AI.Features.Pages.Settings
         /// </summary>
         public static bool DisableSoftwareRasterizer
         {
-            get
-            {
-                if (_localSettings.Values.TryGetValue(WebViewDisableSoftwareRasterizerKey, out object? value))
-                {
-                    return value is bool boolValue && boolValue;
-                }
-                return true; // 默认开启（禁用软件光栅化）
-            }
-            set
-            {
-                _localSettings.Values[WebViewDisableSoftwareRasterizerKey] = value;
-            }
+            get => AotSafeSettingsHelper.GetBool(_localSettings, WebViewDisableSoftwareRasterizerKey, defaultValue: true);
+            set => AotSafeSettingsHelper.SetBool(_localSettings, WebViewDisableSoftwareRasterizerKey, value);
         }
     }
 

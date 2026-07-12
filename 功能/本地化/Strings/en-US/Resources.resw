@@ -317,6 +317,12 @@
   <data name="SettingsPage_RestartButton" xml:space="preserve">
     <value>Restart</value>
   </data>
+  <data name="SettingsPage_LanguageChangedTitle" xml:space="preserve">
+    <value>Language Changed</value>
+  </data>
+  <data name="SettingsPage_LanguageChangedContent" xml:space="preserve">
+    <value>Language settings have been changed. Please restart the application to apply the new language.</value>
+  </data>
   <data name="SettingsPage_LaterButton" xml:space="preserve">
     <value>Later</value>
   </data>
@@ -597,7 +603,7 @@
   <data name="LabPage_TopBarRightClearButton.Content" xml:space="preserve">
     <value>Clear</value>
   </data>
-  <!-- Settings Page - Hotkey Dialog -->
+  <!-- Settings Page - Hotkey Dialog (XAML x:Uid usage) -->
   <data name="SettingsPage_HotkeyDialog.Title" xml:space="preserve">
     <value>Set Hotkey</value>
   </data>
@@ -607,16 +613,25 @@
   <data name="SettingsPage_HotkeyDialog.CloseButtonText" xml:space="preserve">
     <value>Cancel</value>
   </data>
-  <data name="SettingsPage_HotkeyDialogPrompt.Text" xml:space="preserve">
+  <!-- Settings Page - C# Code Strings -->
+  <data name="SettingsPage_HotkeyDialogTitle" xml:space="preserve">
+    <value>Set Hotkey</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogPrimaryButton" xml:space="preserve">
+    <value>Confirm</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogCloseButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="SettingsPage_HotkeyDialogPrompt" xml:space="preserve">
     <value>Press the hotkey combination you want to set</value>
   </data>
-  <data name="SettingsPage_HotkeyDialogRecordText.Text" xml:space="preserve">
+  <data name="SettingsPage_HotkeyDialogRecordText" xml:space="preserve">
     <value>Click to start recording</value>
   </data>
-  <data name="SettingsPage_HotkeyDialogHint.Text" xml:space="preserve">
+  <data name="SettingsPage_HotkeyDialogHint" xml:space="preserve">
     <value>Tip: At least one modifier key (Ctrl, Alt, Shift, or Win) is required</value>
   </data>
-  <!-- Settings Page - C# Code Strings -->
   <data name="SettingsPage_ErrorTitle" xml:space="preserve">
     <value>Error</value>
   </data>

@@ -117,13 +117,11 @@ namespace Docked_AI.Features.Pages.Settings
 
         private void OnMemoryModeChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (sender is ComboBox comboBox && comboBox.SelectedItem is ComboBoxItem item)
+            // ✅ AOT 修复：使用 SelectedIndex 而不是类型转换
+            if (sender is ComboBox comboBox && comboBox.SelectedIndex >= 0)
             {
-                if (int.TryParse(item.Tag?.ToString(), out int modeValue))
-                {
-                    ExperimentalSettings.MemoryMode = (WebViewMemoryMode)modeValue;
-                    RaiseWebViewPerformanceSettingsChanged();
-                }
+                ExperimentalSettings.MemoryMode = (WebViewMemoryMode)comboBox.SelectedIndex;
+                RaiseWebViewPerformanceSettingsChanged();
             }
         }
 
