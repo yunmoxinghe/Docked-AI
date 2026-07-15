@@ -19,6 +19,42 @@ namespace Docked_AI.Features.Tray
         // 🔧 Subclass ID 常量，避免魔法数字
         private const nuint SUBCLASS_ID = 102;
 
+        // 🎯 根据应用包标识动态生成托盘图标 GUID
+        // 这样开发版和正式版使用不同的 GUID，不会相互冲突
+        private static readonly Guid TRAY_ICON_GUID = GenerateTrayIconGuid();
+
+        private static Guid GenerateTrayIconGuid()
+        {
+            try
+            {
+                // 尝试获取打包应用的包标识
+                var package = Windows.ApplicationModel.Package.Current;
+                var packageName = package.Id.Name;
+                
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Package name: {packageName}");
+                
+                // 使用包名的哈希值生成稳定的 GUID
+                // 这样相同包名总是生成相同 GUID，但不同包（开发版/正式版）会生成不同 GUID
+                var hash = System.Security.Cryptography.SHA256.HashData(
+                    System.Text.Encoding.UTF8.GetBytes(packageName));
+                
+                // 取前 16 字节作为 GUID
+                var guidBytes = new byte[16];
+                Array.Copy(hash, guidBytes, 16);
+                
+                var guid = new Guid(guidBytes);
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Generated GUID: {guid}");
+                
+                return guid;
+            }
+            catch (Exception ex)
+            {
+                // 如果获取失败（例如未打包应用），使用固定 GUID
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Failed to get package identity, using fallback GUID: {ex.Message}");
+                return new Guid("A5B8C3D4-E6F7-4891-A2B3-C4D5E6F78901");
+            }
+        }
+
         private readonly Window _hiddenWindow;
         private readonly uint _iconId;
         private IntPtr _hWnd;
@@ -60,14 +96,25 @@ namespace Docked_AI.Features.Tray
 
         private void LoadIcon(string iconPath)
         {
+            System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] LoadIcon: path={iconPath}");
+            System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] File exists: {System.IO.File.Exists(iconPath)}");
+            
             var p = Marshal.StringToHGlobalUni(iconPath);
             try
             {
                 var dpi = GetDpiForWindow(_hWnd);
                 int size = (int)(dpi / 6d);
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] DPI={dpi}, icon size={size}");
+                
                 _hIcon = LoadImage(IntPtr.Zero, p, 1, size, size, 0x0010);
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] LoadImage returned: 0x{_hIcon.ToInt64():X}");
+                
                 if (_hIcon == IntPtr.Zero)
-                    throw new ArgumentException($"Failed to load icon from {iconPath}");
+                {
+                    int error = Marshal.GetLastWin32Error();
+                    System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] LoadImage FAILED, Win32Error={error}");
+                    throw new ArgumentException($"Failed to load icon from {iconPath}, Win32Error={error}");
+                }
             }
             finally
             {
@@ -188,9 +235,49 @@ namespace Docked_AI.Features.Tray
 
         private void AddToTray()
         {
+            System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] AddToTray: iconId={_iconId}, hIcon=0x{_hIcon.ToInt64():X}");
+            
+            // 🔧 首先尝试删除可能存在的僵尸图标（开发模式下常见问题）
+            var deleteData = new NOTIFYICONDATAW
+            {
+                cbSize = (uint)Marshal.SizeOf<NOTIFYICONDATAW>(),
+                hWnd = _hWnd,
+                uID = _iconId,
+                uFlags = NIF_GUID,
+                guidItem = TRAY_ICON_GUID
+            };
+            Shell_NotifyIconW(NIM_DELETE, ref deleteData);
+            System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Pre-cleanup: attempted to delete any existing tray icon");
+            
             var data = CreateNotifyIconData(NIM_ADD);
-            Shell_NotifyIconW(NIM_ADD, ref data);
-            Shell_NotifyIconW(NIM_SETVERSION, ref data);
+            
+            bool addResult = Shell_NotifyIconW(NIM_ADD, ref data);
+            System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Shell_NotifyIconW(NIM_ADD) returned: {addResult}");
+            if (!addResult)
+            {
+                int error = Marshal.GetLastWin32Error();
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Shell_NotifyIconW(NIM_ADD) FAILED, Win32Error={error} (0x{error:X})");
+                
+                // 🔧 如果失败，尝试使用 MODIFY 而不是 ADD（图标可能已存在）
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Retrying with NIM_MODIFY...");
+                bool modifyResult = Shell_NotifyIconW(NIM_MODIFY, ref data);
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Shell_NotifyIconW(NIM_MODIFY) returned: {modifyResult}");
+                
+                if (!modifyResult)
+                {
+                    int modifyError = Marshal.GetLastWin32Error();
+                    System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Shell_NotifyIconW(NIM_MODIFY) also FAILED, Win32Error={modifyError} (0x{modifyError:X})");
+                    System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] WARNING: Tray icon may not be visible!");
+                }
+            }
+            
+            bool versionResult = Shell_NotifyIconW(NIM_SETVERSION, ref data);
+            System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Shell_NotifyIconW(NIM_SETVERSION) returned: {versionResult}");
+            if (!versionResult)
+            {
+                int error = Marshal.GetLastWin32Error();
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Shell_NotifyIconW(NIM_SETVERSION) FAILED, Win32Error={error} (0x{error:X})");
+            }
         }
 
         private void RemoveFromTray()
@@ -199,7 +286,9 @@ namespace Docked_AI.Features.Tray
             {
                 cbSize = (uint)Marshal.SizeOf<NOTIFYICONDATAW>(),
                 hWnd = _hWnd,
-                uID = _iconId
+                uID = _iconId,
+                uFlags = NIF_GUID,  // 🎯 使用 GUID 标识要删除的图标
+                guidItem = TRAY_ICON_GUID  // 🎯 设置固定的 GUID
             };
             Shell_NotifyIconW(NIM_DELETE, ref data);
         }
@@ -217,8 +306,9 @@ namespace Docked_AI.Features.Tray
                 cbSize = (uint)Marshal.SizeOf<NOTIFYICONDATAW>(),
                 hWnd = _hWnd,
                 uID = _iconId,
-                uFlags = NIF_ICON,
+                uFlags = NIF_ICON | NIF_GUID,  // 🎯 添加 NIF_GUID 标志
                 hIcon = _hIcon,
+                guidItem = TRAY_ICON_GUID,  // 🎯 设置固定的 GUID
                 szTip = new ushort[128],
                 szInfo = new ushort[256],
                 szInfoTitle = new ushort[64],
@@ -377,7 +467,8 @@ namespace Docked_AI.Features.Tray
             {
                 cbSize = (uint)Marshal.SizeOf<NOTIFYICONIDENTIFIER>(),
                 hWnd = _hWnd,
-                uID = _iconId
+                uID = _iconId,
+                guidItem = TRAY_ICON_GUID  // 🎯 设置固定的 GUID
             };
 
             if (Shell_NotifyIconGetRect(ref iconId, out var iconRect) == 0)
@@ -477,6 +568,7 @@ namespace Docked_AI.Features.Tray
         private const uint NIF_ICON = 0x0002;
         private const uint NIF_TIP = 0x0004;
         private const uint NIF_SHOWTIP = 0x0080;
+        private const uint NIF_GUID = 0x0020;  // 🎯 使用 GUID 标识图标
         private const uint WM_LBUTTONDOWN = 0x0201;
         private const uint WM_LBUTTONUP = 0x0202;  // 🛠️ 添加 WM_LBUTTONUP
         private const uint WM_RBUTTONDOWN = 0x0204;
@@ -524,9 +616,6 @@ namespace Docked_AI.Features.Tray
             public uint dwInfoFlags;
             public Guid guidItem;
         }
-
-        [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-        private static extern bool Shell_NotifyIconW(uint dwMessage, ref NOTIFYICONDATAW lpData);
 
         [DllImport("shell32.dll")]
         private static extern int Shell_NotifyIconGetRect(ref NOTIFYICONIDENTIFIER identifier, out RECT iconLocation);
@@ -607,6 +696,9 @@ namespace Docked_AI.Features.Tray
 
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern IntPtr LoadImage(IntPtr hInst, IntPtr name, uint type, int cx, int cy, uint fuLoad);
+
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern bool Shell_NotifyIconW(uint dwMessage, ref NOTIFYICONDATAW lpData);
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern bool DestroyIcon(IntPtr hIcon);

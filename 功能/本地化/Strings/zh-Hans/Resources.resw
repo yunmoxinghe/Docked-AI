@@ -323,6 +323,12 @@
   <data name="SettingsPage_LanguageChangedContent" xml:space="preserve">
     <value>语言设置已更改。需要重启应用以应用新的语言设置。</value>
   </data>
+  <data name="SettingsPage_RestartNowButton" xml:space="preserve">
+    <value>立即重启</value>
+  </data>
+  <data name="SettingsPage_RestartLaterButton" xml:space="preserve">
+    <value>稍后重启</value>
+  </data>
   <data name="SettingsPage_LaterButton" xml:space="preserve">
     <value>稍后</value>
   </data>
@@ -868,5 +874,39 @@ https://developer.microsoft.com/microsoft-edge/webview2/</value>
   </data>
   <data name="SettingsPage_DisableSoftwareRasterizerHeader.Description" xml:space="preserve">
     <value>强制使用 GPU 渲染（需重启 WebView）</value>
+  </data>
+  <!-- 实验室页面 - 新增功能 -->
+  <data name="LabPage_HideWebCloseButtonHeader.Header" xml:space="preserve">
+    <value>隐藏网页关闭按钮</value>
+  </data>
+  <data name="LabPage_HideWebCloseButtonHeader.Description" xml:space="preserve">
+    <value>隐藏网页浏览器顶部的关闭按钮</value>
+  </data>
+  <data name="LabPage_WebView2PerformanceHeader.Header" xml:space="preserve">
+    <value>WebView2 性能优化</value>
+  </data>
+  <data name="LabPage_WebView2PerformanceHeader.Description" xml:space="preserve">
+    <value>配置 WebView2 的内存、性能和 GPU 加速设置</value>
+  </data>
+  <data name="LabPage_WindowMaxMonitorHeader.Header" xml:space="preserve">
+    <value>窗口最大化监听器</value>
+  </data>
+  <data name="LabPage_WindowMaxMonitorHeader.Description" xml:space="preserve">
+    <value>实时显示其他应用的最大化状态</value>
+  </data>
+  <data name="LabPage_WindowMaxMonitorDetecting" xml:space="preserve">
+    <value>检测中 ...</value>
+  </data>
+  <data name="LabPage_WebViewBackupHeader.Header" xml:space="preserve">
+    <value>WebView 配置备份</value>
+  </data>
+  <data name="LabPage_WebViewBackupHeader.Description" xml:space="preserve">
+    <value>一键备份和恢复所有网页应用的登录状态、缓存、Cookie等数据,支持快速迁移和数据保护</value>
+  </data>
+  <data name="LabPage_BackupButton.Content" xml:space="preserve">
+    <value>备份</value>
+  </data>
+  <data name="LabPage_RestoreButton.Content" xml:space="preserve">
+    <value>恢复</value>
   </data>
 </root>

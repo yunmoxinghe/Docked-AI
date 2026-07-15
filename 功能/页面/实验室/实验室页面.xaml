@@ -69,8 +69,7 @@
 
                     <!-- 窗口最大化监听器状态 -->
                     <controls:SettingsCard 
-                        Header="窗口最大化监听器"
-                        Description="实时显示其他应用的最大化状态"
+                        x:Uid="LabPage_WindowMaxMonitorHeader"
                         IsClickEnabled="False"
                         IsActionIconVisible="False">
                         <controls:SettingsCard.HeaderIcon>
@@ -83,7 +82,7 @@
                                 FontSize="16"/>
                             <TextBlock 
                                 x:Name="MaximizedStateText"
-                                Text="检测中..."
+                                x:Uid="LabPage_WindowMaxMonitorDetecting"
                                 VerticalAlignment="Center"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
                         </StackPanel>
@@ -107,19 +106,20 @@
 
                     <!-- WebView 配置备份 -->
                     <controls:SettingsCard 
-                        Header="WebView 配置备份"
-                        Description="一键备份和恢复所有网页应用的登录状态、缓存、Cookie 等数据，支持快速迁移和数据保护">
+                        x:Uid="LabPage_WebViewBackupHeader">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE74E;" />
                         </controls:SettingsCard.HeaderIcon>
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <Button 
-                                Content="💾 备份"
+                                x:Uid="LabPage_BackupButton"
+                                Content="💾"
                                 Click="OnQuickBackupClick"
                                 ToolTipService.ToolTip="保存当前所有 WebView2 数据到桌面"
                                 Style="{StaticResource AccentButtonStyle}"/>
                             <Button 
-                                Content="♻️ 恢复"
+                                x:Uid="LabPage_RestoreButton"
+                                Content="♻️"
                                 Click="OnQuickRestoreClick"
                                 ToolTipService.ToolTip="从备份文件恢复配置（需重启）"/>
                         </StackPanel>

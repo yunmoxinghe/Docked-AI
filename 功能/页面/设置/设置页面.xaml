@@ -296,9 +296,7 @@
                     </controls:SettingsCard>
 
                     <controls:SettingsCard 
-                        x:Uid="SettingsPage_HideWebViewCloseButtonHeader"
-                        Header="隐藏网页关闭按钮"
-                        Description="隐藏网页浏览器顶部的关闭按钮"
+                        x:Uid="LabPage_HideWebCloseButtonHeader"
                         IsClickEnabled="True"
                         IsActionIconVisible="False"
                         Click="OnHideWebViewCloseButtonCardClick">
@@ -312,9 +310,7 @@
 
                     <!-- WebView2 性能优化 -->
                     <controls:SettingsCard
-                        x:Uid="SettingsPage_WebViewPerformanceHeader"
-                        Header="WebView2 性能优化"
-                        Description="配置 WebView2 的内存、性能和 GPU 加速设置"
+                        x:Uid="LabPage_WebView2PerformanceHeader"
                         IsClickEnabled="True"
                         Click="OnWebViewPerformanceCardClick">
                         <controls:SettingsCard.HeaderIcon>

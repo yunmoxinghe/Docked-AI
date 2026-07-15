@@ -323,6 +323,12 @@
   <data name="SettingsPage_LanguageChangedContent" xml:space="preserve">
     <value>Language settings have been changed. Please restart the application to apply the new language.</value>
   </data>
+  <data name="SettingsPage_RestartNowButton" xml:space="preserve">
+    <value>Restart Now</value>
+  </data>
+  <data name="SettingsPage_RestartLaterButton" xml:space="preserve">
+    <value>Restart Later</value>
+  </data>
   <data name="SettingsPage_LaterButton" xml:space="preserve">
     <value>Later</value>
   </data>
@@ -868,5 +874,39 @@ Error Message: {1}</value>
   </data>
   <data name="SettingsPage_DisableSoftwareRasterizerHeader.Description" xml:space="preserve">
     <value>Force GPU rendering (requires WebView restart)</value>
+  </data>
+  <!-- Lab Page - New Features -->
+  <data name="LabPage_HideWebCloseButtonHeader.Header" xml:space="preserve">
+    <value>Hide Web Close Button</value>
+  </data>
+  <data name="LabPage_HideWebCloseButtonHeader.Description" xml:space="preserve">
+    <value>Hide the close button at the top of the web browser</value>
+  </data>
+  <data name="LabPage_WebView2PerformanceHeader.Header" xml:space="preserve">
+    <value>WebView2 Performance Optimization</value>
+  </data>
+  <data name="LabPage_WebView2PerformanceHeader.Description" xml:space="preserve">
+    <value>Configure WebView2 memory, performance, and GPU acceleration settings</value>
+  </data>
+  <data name="LabPage_WindowMaxMonitorHeader.Header" xml:space="preserve">
+    <value>Window Maximization Monitor</value>
+  </data>
+  <data name="LabPage_WindowMaxMonitorHeader.Description" xml:space="preserve">
+    <value>Display the maximization status of other applications in real-time</value>
+  </data>
+  <data name="LabPage_WindowMaxMonitorDetecting" xml:space="preserve">
+    <value>Detecting ...</value>
+  </data>
+  <data name="LabPage_WebViewBackupHeader.Header" xml:space="preserve">
+    <value>WebView Configuration Backup</value>
+  </data>
+  <data name="LabPage_WebViewBackupHeader.Description" xml:space="preserve">
+    <value>Backup and restore all web app login states, cache, cookies, and data with one click, supports quick migration and data protection</value>
+  </data>
+  <data name="LabPage_BackupButton.Content" xml:space="preserve">
+    <value>Backup</value>
+  </data>
+  <data name="LabPage_RestoreButton.Content" xml:space="preserve">
+    <value>Restore</value>
   </data>
 </root>

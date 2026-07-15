@@ -1127,19 +1127,42 @@ namespace Docked_AI.Features.Pages.Settings
                 // Set language (empty string means follow system)
                 ApplicationLanguages.PrimaryLanguageOverride = languageTag;
 
-                // Show restart dialog
+                // Show restart dialog with "Restart Now" and "Later" options
                 var title = LocalizationHelper.GetString("SettingsPage_LanguageChangedTitle") ?? "语言已更改";
                 var content = LocalizationHelper.GetString("SettingsPage_LanguageChangedContent") ?? "语言设置已更改。需要重启应用以应用新的语言设置。";
-                var closeButtonText = LocalizationHelper.GetString("SettingsPage_ConfirmButton") ?? "确定";
+                var primaryButtonText = LocalizationHelper.GetString("SettingsPage_RestartNowButton") ?? "立即重启";
+                var closeButtonText = LocalizationHelper.GetString("SettingsPage_RestartLaterButton") ?? "稍后重启";
 
-                var dialog = CreateMessageDialog(title, content, closeButtonText: closeButtonText);
+                var dialog = CreateMessageDialog(
+                    title, 
+                    content, 
+                    primaryButtonText: primaryButtonText,
+                    closeButtonText: closeButtonText
+                );
+                
+                // ✅ AOT 兼容：使用命名方法而不是 Lambda，避免编译器生成的闭包类
+                // 注意：虽然这个 Lambda 不捕获变量，但使用命名方法更明确且符合项目规范
+                dialog.PrimaryButtonClick += OnRestartDialogPrimaryButtonClick;
+
                 await InAppDialogService.ShowAsync(dialog, this);
+                
+                // 清理：对话框关闭后取消订阅
+                dialog.PrimaryButtonClick -= OnRestartDialogPrimaryButtonClick;
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[SettingsPage] OnLanguageChanged error: {ex}");
                 await ShowErrorNotificationAsync("语言切换失败", ex.Message);
             }
+        }
+
+        /// <summary>
+        /// ✅ AOT 兼容：命名方法处理重启对话框的主按钮点击
+        /// </summary>
+        private void OnRestartDialogPrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        {
+            System.Diagnostics.Debug.WriteLine("[SettingsPage] User clicked 'Restart Now', restarting application...");
+            Docked_AI.功能.统一调用.AppRestartService.Restart();
         }
 
         private async System.Threading.Tasks.Task ShowErrorNotificationAsync(string title, string message)
