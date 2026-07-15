@@ -438,10 +438,20 @@ public sealed class WindowStateManager : IDisposable
     {
         if (osState != CommittedState)
         {
-            System.Diagnostics.Debug.WriteLine($"Syncing to OS state: {CommittedState} -> {osState}");
-            // 触发状态转换（由 Controller 处理）
-            // 注意：这里不直接调用 CreatePlan，而是通过事件通知 Controller
-            // Controller 会调用 CreatePlan 并执行计划
+            System.Diagnostics.Debug.WriteLine($"[StateManager] Syncing to OS state: {CommittedState} -> {osState}");
+            
+            // ⭐ 修复：实际执行状态转换
+            // 当 OS 通过快捷键（Win+↑/↓）改变窗口状态时，需要同步内部状态
+            var plan = CreatePlan(osState, $"OS sync from {CommittedState} to {osState}");
+            
+            if (plan == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[StateManager] WARNING: Cannot sync to OS state {osState}, transition not allowed");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[StateManager] OS sync plan created: {plan.TransitionId}");
+            }
         }
     }
     

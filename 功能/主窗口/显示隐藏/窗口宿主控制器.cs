@@ -866,6 +866,76 @@ namespace Docked_AI.Features.MainWindow.Visibility
             System.Diagnostics.Debug.WriteLine("[WindowHostController] HideFromPinnedModeAsync: Completed");
         }
 
+        /// <summary>
+        /// 从最大化模式直接隐藏（避免闪烁到 Windowed 中间状态）
+        /// 
+        /// 【调用时机】
+        /// Maximized -> Hidden 状态转换时调用
+        /// 
+        /// 【关键优化】
+        /// 不执行还原 + 滑入动画，直接从最大化还原到停靠位置并隐藏
+        /// 避免用户看到"闪一下就消失"的视觉问题
+        /// 
+        /// 【执行步骤】
+        /// 1. 还原窗口（从最大化到正常大小）
+        /// 2. 移动到停靠位置（不显示）
+        /// 3. 执行滑出隐藏动画
+        /// </summary>
+        private async System.Threading.Tasks.Task HideFromMaximizedModeAsync()
+        {
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] HideFromMaximizedModeAsync: Starting direct hide from maximized mode");
+            
+            // 1. 还原窗口到正常大小（但不移动位置）
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] HideFromMaximizedModeAsync: Restoring window size");
+            try
+            {
+                var presenter = _window.AppWindow.Presenter.As<Microsoft.UI.Windowing.OverlappedPresenter>();
+                if (presenter != null)
+                {
+                    presenter.Restore();
+                    System.Diagnostics.Debug.WriteLine("[WindowHostController] HideFromMaximizedModeAsync: Window restored");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[WindowHostController] HideFromMaximizedModeAsync: ERROR - Cannot get OverlappedPresenter");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[WindowHostController] HideFromMaximizedModeAsync: Exception restoring window: {ex.Message}");
+                throw;
+            }
+            
+            // 2. 等待 Restore() 完成（给系统一点时间更新窗口状态）
+            await System.Threading.Tasks.Task.Delay(50);
+            
+            // 3. 刷新布局信息，移动到停靠位置（不触发显示）
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] HideFromMaximizedModeAsync: Moving to dock position");
+            _layoutService.Refresh(_state, _hwnd);
+            _state.CurrentX = _state.TargetX;
+            _state.CurrentY = _state.TargetY;
+            
+            if (_hwnd != IntPtr.Zero)
+            {
+                _ = VisibilityWin32Api.SetWindowPos(
+                    _hwnd,
+                    VisibilityWin32Api.HWND_NOTOPMOST,
+                    (int)_state.CurrentX,
+                    (int)_state.TargetY,
+                    _state.WindowWidth,
+                    _state.WindowHeight,
+                    VisibilityWin32Api.SWP_NOACTIVATE | VisibilityWin32Api.SWP_NOOWNERZORDER
+                );
+                System.Diagnostics.Debug.WriteLine($"[WindowHostController] HideFromMaximizedModeAsync: Window moved to ({_state.CurrentX}, {_state.TargetY})");
+            }
+            
+            // 4. 执行滑出隐藏动画
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] HideFromMaximizedModeAsync: Starting hide animation");
+            await ExecuteHideAnimationAsync();
+            
+            System.Diagnostics.Debug.WriteLine("[WindowHostController] HideFromMaximizedModeAsync: Completed");
+        }
+
         private async System.Threading.Tasks.Task ApplyPinnedModeAsync()
         {
             _window.AppWindow.IsShownInSwitchers = false;
