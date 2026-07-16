@@ -37,6 +37,10 @@ namespace Docked_AI.Features.Pages.Home
             InitializeComponent();
             Loaded += OnLoaded;
             SizeChanged += OnSizeChanged;
+
+            // 订阅统一删除服务事件
+            WebAppDeletionService.DeletionStarting += OnDeletionStarting;
+            WebAppDeletionService.DeletionCompleted += OnDeletionCompleted;
         }
 
         protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
@@ -49,6 +53,10 @@ namespace Docked_AI.Features.Pages.Home
         {
             base.OnNavigatedFrom(e);
             _智能标题.Cleanup();
+
+            // 取消订阅删除服务事件
+            WebAppDeletionService.DeletionStarting -= OnDeletionStarting;
+            WebAppDeletionService.DeletionCompleted -= OnDeletionCompleted;
         }
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
@@ -136,7 +144,8 @@ namespace Docked_AI.Features.Pages.Home
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                     Header = shortcut.Name,
                     Description = shortcut.Url,
-                    IsClickEnabled = true
+                    IsClickEnabled = true,
+                    Tag = shortcut // ⭐ 添加 Tag 用于删除时识别
                 };
 
                 card.Click += (sender, e) => OnCardClick(shortcut);
@@ -201,6 +210,58 @@ namespace Docked_AI.Features.Pages.Home
                 FrameAnimationType.ScaleAnimation => new Microsoft.UI.Xaml.Media.Animation.DrillInNavigationTransitionInfo(),
                 _ => new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo()
             };
+        }
+
+        private void OnDeletionStarting(object? sender, string appId)
+        {
+            // 找到要删除的卡片并播放淡出动画
+            foreach (var child in WebAppsList.Children)
+            {
+                if (child is SettingsCard card && 
+                    card.Tag is WebAppShortcut shortcut && 
+                    shortcut.Id == appId)
+                {
+                    // 播放淡出动画
+                    var fadeOutAnimation = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
+                    {
+                        From = 1.0,
+                        To = 0.0,
+                        Duration = new Duration(TimeSpan.FromMilliseconds(250))
+                    };
+
+                    var storyboard = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
+                    storyboard.Children.Add(fadeOutAnimation);
+                    Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(fadeOutAnimation, card);
+                    Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(fadeOutAnimation, "Opacity");
+                    storyboard.Begin();
+                    break;
+                }
+            }
+        }
+
+        private void OnDeletionCompleted(object? sender, string appId)
+        {
+            // 找到卡片并移除
+            SettingsCard? cardToRemove = null;
+            foreach (var child in WebAppsList.Children)
+            {
+                if (child is SettingsCard card && 
+                    card.Tag is WebAppShortcut shortcut && 
+                    shortcut.Id == appId)
+                {
+                    cardToRemove = card;
+                    break;
+                }
+            }
+
+            if (cardToRemove != null)
+            {
+                // 移除元素（触发补位动画）
+                WebAppsList.Children.Remove(cardToRemove);
+
+                // 更新空状态显示
+                EmptyText.Visibility = WebAppsList.Children.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            }
         }
     }
 }

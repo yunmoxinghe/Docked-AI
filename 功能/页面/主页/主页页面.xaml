@@ -33,6 +33,11 @@
                 <StackPanel
                     x:Name="WebAppsList"
                     Spacing="4">
+                    <StackPanel.ChildrenTransitions>
+                        <TransitionCollection>
+                            <AddDeleteThemeTransition/>
+                        </TransitionCollection>
+                    </StackPanel.ChildrenTransitions>
                 </StackPanel>
 
                 <TextBlock

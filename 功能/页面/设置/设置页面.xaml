@@ -276,6 +276,21 @@
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Margin="1,16,0,4"/>
                     
+                    <!-- 网页应用管理 -->
+                    <controls:SettingsCard
+                        x:Uid="SettingsPage_WebAppManagementHeader"
+                        Header="网页应用管理"
+                        Description="管理已添加的网页应用，包括名称、网址、图标以及 Cookie 等信息。"
+                        IsClickEnabled="True"
+                        Click="OnWebAppManagementCardClick">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE8F1;"/>
+                        </controls:SettingsCard.HeaderIcon>
+                        <controls:SettingsCard.ActionIcon>
+                            <FontIcon Glyph="&#xE76C;"/>
+                        </controls:SettingsCard.ActionIcon>
+                    </controls:SettingsCard>
+                    
                     <controls:SettingsCard 
                         x:Uid="SettingsPage_MaxWebViewHeader"
                         IsClickEnabled="True"

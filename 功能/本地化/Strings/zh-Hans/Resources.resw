@@ -909,4 +909,96 @@ https://developer.microsoft.com/microsoft-edge/webview2/</value>
   <data name="LabPage_RestoreButton.Content" xml:space="preserve">
     <value>恢复</value>
   </data>
+  <!-- 网页应用管理 -->
+  <data name="SettingsPage_WebAppManagementHeader.Header" xml:space="preserve">
+    <value>网页应用管理</value>
+  </data>
+  <data name="SettingsPage_WebAppManagementHeader.Description" xml:space="preserve">
+    <value>管理已添加的网页应用，包括名称、网址、图标以及 Cookie 等信息。</value>
+  </data>
+  <data name="WebAppManagementPage_Title.Text" xml:space="preserve">
+    <value>网页应用管理</value>
+  </data>
+  <data name="WebAppManagementPage_AddNewHeader.Header" xml:space="preserve">
+    <value>添加网页应用</value>
+  </data>
+  <data name="WebAppManagementPage_AddNewHeader.Description" xml:space="preserve">
+    <value>创建新的网页应用快捷方式</value>
+  </data>
+  <data name="WebAppManagementPage_AppListSection.Text" xml:space="preserve">
+    <value>已添加的应用</value>
+  </data>
+  <data name="WebAppManagementPage_DeleteButton.Content" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="WebAppManagementPage_EmptyState.Text" xml:space="preserve">
+    <value>还没有添加任何网页应用</value>
+  </data>
+  <data name="WebAppManagementPage_EmptyStateHint.Text" xml:space="preserve">
+    <value>点击上方「添加网页应用」按钮开始添加</value>
+  </data>
+  <!-- 网页应用详情页 -->
+  <data name="WebAppDetailPage_Title.Text" xml:space="preserve">
+    <value>编辑网页应用</value>
+  </data>
+  <data name="WebAppDetailPage_BasicInfoSection.Text" xml:space="preserve">
+    <value>基本信息</value>
+  </data>
+  <data name="WebAppDetailPage_NameHeader.Header" xml:space="preserve">
+    <value>应用名称</value>
+  </data>
+  <data name="WebAppDetailPage_NameHeader.Description" xml:space="preserve">
+    <value>显示在主页上的名称</value>
+  </data>
+  <data name="WebAppDetailPage_UrlHeader.Header" xml:space="preserve">
+    <value>网站地址</value>
+  </data>
+  <data name="WebAppDetailPage_UrlHeader.Description" xml:space="preserve">
+    <value>完整的 URL，包括 https://</value>
+  </data>
+  <data name="WebAppDetailPage_IconSection.Text" xml:space="preserve">
+    <value>应用图标</value>
+  </data>
+  <data name="WebAppDetailPage_IconPreviewHeader.Header" xml:space="preserve">
+    <value>图标预览</value>
+  </data>
+  <data name="WebAppDetailPage_IconPreviewHeader.Description" xml:space="preserve">
+    <value>当前应用图标</value>
+  </data>
+  <data name="WebAppDetailPage_ChooseLocalIconHeader.Header" xml:space="preserve">
+    <value>选择本地图片</value>
+  </data>
+  <data name="WebAppDetailPage_ChooseLocalIconHeader.Description" xml:space="preserve">
+    <value>从设备中选择图片作为图标</value>
+  </data>
+  <data name="WebAppDetailPage_IconUrlHeader.Header" xml:space="preserve">
+    <value>从 URL 加载图标</value>
+  </data>
+  <data name="WebAppDetailPage_IconUrlHeader.Description" xml:space="preserve">
+    <value>输入图片 URL 地址</value>
+  </data>
+  <data name="WebAppDetailPage_IconUrlInputHeader.Header" xml:space="preserve">
+    <value>图标 URL</value>
+  </data>
+  <data name="WebAppDetailPage_IconUrlInputHeader.Description" xml:space="preserve">
+    <value>输入图片的完整 URL 地址</value>
+  </data>
+  <data name="WebAppDetailPage_LoadIconButton.Content" xml:space="preserve">
+    <value>加载</value>
+  </data>
+  <data name="WebAppDetailPage_ResetIconHeader.Header" xml:space="preserve">
+    <value>重置图标</value>
+  </data>
+  <data name="WebAppDetailPage_ResetIconHeader.Description" xml:space="preserve">
+    <value>移除自定义图标，使用默认图标</value>
+  </data>
+  <data name="WebAppDetailPage_CookieSection.Text" xml:space="preserve">
+    <value>Cookie 管理</value>
+  </data>
+  <data name="WebAppDetailPage_CookieHeader.Header" xml:space="preserve">
+    <value>Cookie 数据</value>
+  </data>
+  <data name="WebAppDetailPage_CookieHeader.Description" xml:space="preserve">
+    <value>查看和管理此应用的 Cookie（即将推出）</value>
+  </data>
 </root>

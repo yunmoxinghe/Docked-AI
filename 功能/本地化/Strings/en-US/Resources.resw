@@ -909,4 +909,96 @@ Error Message: {1}</value>
   <data name="LabPage_RestoreButton.Content" xml:space="preserve">
     <value>Restore</value>
   </data>
+  <!-- Web App Management -->
+  <data name="SettingsPage_WebAppManagementHeader.Header" xml:space="preserve">
+    <value>Web App Management</value>
+  </data>
+  <data name="SettingsPage_WebAppManagementHeader.Description" xml:space="preserve">
+    <value>Manage added web apps, including name, URL, icon, and Cookie information.</value>
+  </data>
+  <data name="WebAppManagementPage_Title.Text" xml:space="preserve">
+    <value>Web App Management</value>
+  </data>
+  <data name="WebAppManagementPage_AddNewHeader.Header" xml:space="preserve">
+    <value>Add Web App</value>
+  </data>
+  <data name="WebAppManagementPage_AddNewHeader.Description" xml:space="preserve">
+    <value>Create a new web app shortcut</value>
+  </data>
+  <data name="WebAppManagementPage_AppListSection.Text" xml:space="preserve">
+    <value>Added Apps</value>
+  </data>
+  <data name="WebAppManagementPage_DeleteButton.Content" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="WebAppManagementPage_EmptyState.Text" xml:space="preserve">
+    <value>No web apps added yet</value>
+  </data>
+  <data name="WebAppManagementPage_EmptyStateHint.Text" xml:space="preserve">
+    <value>Click "Add Web App" button above to get started</value>
+  </data>
+  <!-- Web App Detail Page -->
+  <data name="WebAppDetailPage_Title.Text" xml:space="preserve">
+    <value>Edit Web App</value>
+  </data>
+  <data name="WebAppDetailPage_BasicInfoSection.Text" xml:space="preserve">
+    <value>Basic Information</value>
+  </data>
+  <data name="WebAppDetailPage_NameHeader.Header" xml:space="preserve">
+    <value>App Name</value>
+  </data>
+  <data name="WebAppDetailPage_NameHeader.Description" xml:space="preserve">
+    <value>Name displayed on the homepage</value>
+  </data>
+  <data name="WebAppDetailPage_UrlHeader.Header" xml:space="preserve">
+    <value>Website URL</value>
+  </data>
+  <data name="WebAppDetailPage_UrlHeader.Description" xml:space="preserve">
+    <value>Full URL including https://</value>
+  </data>
+  <data name="WebAppDetailPage_IconSection.Text" xml:space="preserve">
+    <value>App Icon</value>
+  </data>
+  <data name="WebAppDetailPage_IconPreviewHeader.Header" xml:space="preserve">
+    <value>Icon Preview</value>
+  </data>
+  <data name="WebAppDetailPage_IconPreviewHeader.Description" xml:space="preserve">
+    <value>Current app icon</value>
+  </data>
+  <data name="WebAppDetailPage_ChooseLocalIconHeader.Header" xml:space="preserve">
+    <value>Choose Local Image</value>
+  </data>
+  <data name="WebAppDetailPage_ChooseLocalIconHeader.Description" xml:space="preserve">
+    <value>Select an image from your device as icon</value>
+  </data>
+  <data name="WebAppDetailPage_IconUrlHeader.Header" xml:space="preserve">
+    <value>Load Icon from URL</value>
+  </data>
+  <data name="WebAppDetailPage_IconUrlHeader.Description" xml:space="preserve">
+    <value>Enter image URL address</value>
+  </data>
+  <data name="WebAppDetailPage_IconUrlInputHeader.Header" xml:space="preserve">
+    <value>Icon URL</value>
+  </data>
+  <data name="WebAppDetailPage_IconUrlInputHeader.Description" xml:space="preserve">
+    <value>Enter the full URL of the image</value>
+  </data>
+  <data name="WebAppDetailPage_LoadIconButton.Content" xml:space="preserve">
+    <value>Load</value>
+  </data>
+  <data name="WebAppDetailPage_ResetIconHeader.Header" xml:space="preserve">
+    <value>Reset Icon</value>
+  </data>
+  <data name="WebAppDetailPage_ResetIconHeader.Description" xml:space="preserve">
+    <value>Remove custom icon and use default icon</value>
+  </data>
+  <data name="WebAppDetailPage_CookieSection.Text" xml:space="preserve">
+    <value>Cookie Management</value>
+  </data>
+  <data name="WebAppDetailPage_CookieHeader.Header" xml:space="preserve">
+    <value>Cookie Data</value>
+  </data>
+  <data name="WebAppDetailPage_CookieHeader.Description" xml:space="preserve">
+    <value>View and manage cookies for this app (Coming Soon)</value>
+  </data>
 </root>

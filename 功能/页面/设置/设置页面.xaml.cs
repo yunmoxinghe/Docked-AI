@@ -673,6 +673,13 @@ namespace Docked_AI.Features.Pages.Settings
             Frame.Navigate(typeof(LabPage), null, transitionInfo);
         }
 
+        private void OnWebAppManagementCardClick(object sender, RoutedEventArgs e)
+        {
+            var animationType = ExperimentalSettings.SubPageNavigationAnimation;
+            var transitionInfo = GetNavigationTransitionInfo(animationType);
+            Frame.Navigate(typeof(WebSettings.WebAppManagementPage), null, transitionInfo);
+        }
+
         private void OnWebViewPerformanceCardClick(object sender, RoutedEventArgs e)
         {
             var animationType = ExperimentalSettings.SubPageNavigationAnimation;

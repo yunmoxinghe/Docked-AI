@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Docked_AI.Features.MainWindowContent.NavigationBar
@@ -22,6 +23,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
     {
         private readonly Dictionary<string, WebAppShortcut> _webShortcuts = new();
         private readonly Dictionary<string, NavigationViewItem> _webShortcutItems = new();
+        private readonly Dictionary<string, ImageIcon> _webShortcutIconCache = new(); // ⭐ 图标缓存
         private NavigationViewItemBase? _lastSelectedNavigationItem;
         private bool _suppressSelectionChanged;
         
@@ -128,10 +130,21 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
 
             WebAppEventBus.ShortcutCreated += OnShortcutCreated;
             WebAppEventBus.ShortcutsRefreshRequested += OnShortcutsRefreshRequested;
+            
+            // 订阅统一删除服务事件
+            WebAppDeletionService.DeletionStarting += OnDeletionStarting;
+            WebAppDeletionService.DeletionCompleted += OnDeletionCompleted;
+            
+            // 订阅统一更新服务事件
+            WebAppUpdateService.UpdateCompleted += OnUpdateCompleted;
+            
             Unloaded += (_, _) =>
             {
                 WebAppEventBus.ShortcutCreated -= OnShortcutCreated;
                 WebAppEventBus.ShortcutsRefreshRequested -= OnShortcutsRefreshRequested;
+                WebAppDeletionService.DeletionStarting -= OnDeletionStarting;
+                WebAppDeletionService.DeletionCompleted -= OnDeletionCompleted;
+                WebAppUpdateService.UpdateCompleted -= OnUpdateCompleted;
             };
             Loaded += NavigationBar_Loaded;
             SizeChanged += NavigationBar_SizeChanged;
@@ -232,8 +245,50 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
 
         private async void OnShortcutsRefreshRequested(object? sender, EventArgs e)
         {
-            // 重新加载所有快捷方式
-            await RestorePersistedShortcutsAsync();
+            // ⭐ 智能刷新：只更新修改过的项，避免闪烁
+            IReadOnlyList<WebAppShortcut> shortcuts = await WebAppShortcutStore.LoadAsync();
+            
+            // 更新现有项
+            foreach (WebAppShortcut shortcut in shortcuts)
+            {
+                if (_webShortcuts.TryGetValue(shortcut.Id, out WebAppShortcut? existingShortcut))
+                {
+                    // 检查是否有变化
+                    bool hasChanges = existingShortcut.Name != shortcut.Name ||
+                                     existingShortcut.Url != shortcut.Url ||
+                                     !ByteArrayEquals(existingShortcut.IconBytes, shortcut.IconBytes);
+                    
+                    if (hasChanges)
+                    {
+                        // 只更新有变化的项
+                        AddOrUpdateShortcutNavigationItem(shortcut, selectItem: false);
+                        System.Diagnostics.Debug.WriteLine($"[NavigationBar] 更新快捷方式: {shortcut.Name}");
+                    }
+                }
+                else
+                {
+                    // 新增项
+                    AddOrUpdateShortcutNavigationItem(shortcut, selectItem: false);
+                    System.Diagnostics.Debug.WriteLine($"[NavigationBar] 新增快捷方式: {shortcut.Name}");
+                }
+            }
+            
+            // 删除不存在的项（已被删除）
+            var shortcutIds = new HashSet<string>(shortcuts.Select(s => s.Id));
+            var itemsToRemove = _webShortcuts.Keys.Where(id => !shortcutIds.Contains(id)).ToList();
+            foreach (string idToRemove in itemsToRemove)
+            {
+                RemoveShortcut(idToRemove);
+                System.Diagnostics.Debug.WriteLine($"[NavigationBar] 删除快捷方式: {idToRemove}");
+            }
+        }
+        
+        private static bool ByteArrayEquals(byte[]? a, byte[]? b)
+        {
+            if (a == null && b == null) return true;
+            if (a == null || b == null) return false;
+            if (a.Length != b.Length) return false;
+            return a.SequenceEqual(b);
         }
 
         private async Task RestorePersistedShortcutsAsync()
@@ -369,6 +424,9 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                 var bitmapImage = new BitmapImage();
                 var imageIcon = new ImageIcon { Source = bitmapImage };
                 
+                // ⭐ 缓存 ImageIcon 对象（用于后续复用）
+                _webShortcutIconCache[shortcutId] = imageIcon;
+                
                 // 监听图片加载失败事件，失败时切换到地球图标
                 bitmapImage.ImageFailed += (s, e) =>
                 {
@@ -380,6 +438,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                         if (_webShortcutItems.TryGetValue(shortcutId, out var navItem))
                         {
                             navItem.Icon = new FontIcon { Glyph = "\uE774" }; // Globe 地球图标
+                            _webShortcutIconCache.Remove(shortcutId); // 清除缓存
                             System.Diagnostics.Debug.WriteLine($"[NavigationBar] 已切换到地球图标: {shortcutId}");
                         }
                     });
@@ -666,7 +725,114 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
         {
             if (sender is MenuFlyoutItem menuItem && menuItem.Tag is string shortcutId)
             {
-                RemoveShortcut(shortcutId);
+                // 使用统一删除服务
+                _ = WebAppDeletionService.DeleteWithAnimationAsync(shortcutId);
+            }
+        }
+
+        private void OnDeletionStarting(object? sender, string appId)
+        {
+            // 找到导航项并播放淡出动画
+            if (_webShortcutItems.TryGetValue(appId, out NavigationViewItem? navItem))
+            {
+                var fadeOutAnimation = new Microsoft.UI.Xaml.Media.Animation.DoubleAnimation
+                {
+                    From = 1.0,
+                    To = 0.0,
+                    Duration = new Duration(TimeSpan.FromMilliseconds(250))
+                };
+
+                var storyboard = new Microsoft.UI.Xaml.Media.Animation.Storyboard();
+                storyboard.Children.Add(fadeOutAnimation);
+                Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTarget(fadeOutAnimation, navItem);
+                Microsoft.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(fadeOutAnimation, "Opacity");
+                storyboard.Begin();
+            }
+        }
+
+        private void OnDeletionCompleted(object? sender, string appId)
+        {
+            // 删除完成后移除导航项
+            RemoveShortcut(appId);
+        }
+
+        private async void OnUpdateCompleted(object? sender, WebAppUpdateEventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"[NavigationBar] 收到更新通知: {e.AppId}, 类型: {e.UpdateType}");
+
+                // 从存储重新加载数据
+                var shortcuts = await WebAppShortcutStore.LoadAsync();
+                var updatedShortcut = shortcuts.FirstOrDefault(s => s.Id == e.AppId);
+                
+                if (updatedShortcut == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[NavigationBar] 未找到更新的快捷方式: {e.AppId}");
+                    return;
+                }
+
+                // 更新内存缓存
+                _webShortcuts[e.AppId] = updatedShortcut;
+
+                // 找到对应的导航项
+                if (!_webShortcutItems.TryGetValue(e.AppId, out NavigationViewItem? navItem))
+                {
+                    System.Diagnostics.Debug.WriteLine($"[NavigationBar] 未找到导航项: {e.AppId}");
+                    return;
+                }
+
+                // ⭐ 细粒度更新：只更新变化的属性（避免重新创建图标导致闪烁）
+                if (e.UpdateType.HasFlag(WebAppUpdateType.Name))
+                {
+                    navItem.Content = updatedShortcut.Name;
+                    System.Diagnostics.Debug.WriteLine($"[NavigationBar] 更新名称: {updatedShortcut.Name}");
+                }
+
+                if (e.UpdateType.HasFlag(WebAppUpdateType.Icon))
+                {
+                    // ⚠️ 尝试复用现有图标对象
+                    if (_webShortcutIconCache.TryGetValue(e.AppId, out ImageIcon? cachedIcon) &&
+                        cachedIcon.Source is BitmapImage existingBitmap)
+                    {
+                        // 更新现有 BitmapImage 的 URI（避免重新创建）
+                        string cacheDir = Path.Combine(
+                            Windows.Storage.ApplicationData.Current.LocalFolder.Path,
+                            "web-icons");
+                        Directory.CreateDirectory(cacheDir);
+                        string extension = DetectImageExtension(updatedShortcut.IconBytes ?? Array.Empty<byte>());
+                        string iconPath = Path.Combine(cacheDir, $"{updatedShortcut.Id}{extension}");
+
+                        if (updatedShortcut.IconBytes is { Length: > 0 })
+                        {
+                            File.WriteAllBytes(iconPath, updatedShortcut.IconBytes);
+                            existingBitmap.UriSource = new Uri(iconPath);
+                            System.Diagnostics.Debug.WriteLine($"[NavigationBar] 复用图标对象，更新 URI: {iconPath}");
+                        }
+                        else
+                        {
+                            // 重置为默认图标
+                            navItem.Icon = new FontIcon { Glyph = "\uE774" };
+                            _webShortcutIconCache.Remove(e.AppId);
+                            System.Diagnostics.Debug.WriteLine($"[NavigationBar] 重置为地球图标: {e.AppId}");
+                        }
+                    }
+                    else
+                    {
+                        // 没有缓存或不是 ImageIcon，重新创建
+                        navItem.Icon = BuildShortcutIcon(updatedShortcut);
+                        System.Diagnostics.Debug.WriteLine($"[NavigationBar] 重新创建图标: {e.AppId}");
+                    }
+                }
+
+                // URL 变化不需要更新 UI（只存储在 Tag 中）
+
+                await PersistShortcutsAsync();
+                System.Diagnostics.Debug.WriteLine($"[NavigationBar] 更新完成: {e.AppId}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[NavigationBar] 更新失败: {e.AppId}, {ex}");
             }
         }
 
@@ -677,17 +843,18 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                 return;
             }
 
-                if (_webShortcutItems.TryGetValue(shortcutId, out NavigationViewItem? navItem))
-                {
-                    NavView.MenuItems.Remove(navItem);
-                    _webShortcutItems.Remove(shortcutId);
+            if (_webShortcutItems.TryGetValue(shortcutId, out NavigationViewItem? navItem))
+            {
+                NavView.MenuItems.Remove(navItem);
+                _webShortcutItems.Remove(shortcutId);
+                _webShortcutIconCache.Remove(shortcutId); // ⭐ 清除图标缓存
 
-                    if (NavView.SelectedItem is NavigationViewItem selectedItem && selectedItem == navItem)
-                    {
-                        NavView.SelectedItem = HomeNavigationItem;
-                        NavigationRequested?.Invoke(this, new NavigationRequest(typeof(HomePage), null));
-                    }
+                if (NavView.SelectedItem is NavigationViewItem selectedItem && selectedItem == navItem)
+                {
+                    NavView.SelectedItem = HomeNavigationItem;
+                    NavigationRequested?.Invoke(this, new NavigationRequest(typeof(HomePage), null));
                 }
+            }
 
             // 触发快捷方式移除事件，通知清除缓存
             ShortcutRemoved?.Invoke(this, shortcutId);
