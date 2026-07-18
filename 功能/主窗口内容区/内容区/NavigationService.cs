@@ -204,10 +204,70 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             }
 
             System.Diagnostics.Debug.WriteLine($"[NavigationService] GoBack 被调用，BackStack 深度: {_frame.BackStackDepth}");
-            
-            // ⭐ 直接使用 Frame.GoBack()，保持标准的返回行为
-            _frame.GoBack();
-            return true;
+
+            // 获取 BackStack 中的上一页信息
+            var backEntry = _frame.BackStack[_frame.BackStack.Count - 1];
+            Type pageType = backEntry.SourcePageType;
+            object? parameter = backEntry.Parameter;
+
+            System.Diagnostics.Debug.WriteLine($"[NavigationService] 返回到页面: {pageType.Name}");
+
+            // 生成缓存键
+            string? cacheKey = GenerateCacheKey(pageType, parameter);
+
+            // ⭐ 检查是否使用自定义缓存（仅 WebBrowserPage）
+            if (!string.IsNullOrEmpty(cacheKey) && _cacheManager.IsPageCached(cacheKey))
+            {
+                System.Diagnostics.Debug.WriteLine($"[NavigationService] 使用自定义缓存返回: {cacheKey}");
+
+                // 移除 BackStack 中的最后一项（因为我们要手动导航）
+                _frame.BackStack.RemoveAt(_frame.BackStack.Count - 1);
+
+                // 调用当前页面的 OnNavigatedFrom
+                if (_currentPage is INavigationAware currentNavigationAware)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[NavigationService] 调用当前页面的 INavigationAware.OnNavigatedFrom");
+                    currentNavigationAware.OnNavigatedFrom();
+                }
+
+                // 从缓存获取页面（使用已缓存的实例）
+                Page? cachedPage = _cacheManager.GetCachedPage(cacheKey);
+                if (cachedPage == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[NavigationService] ⚠️ 缓存页面不存在，回退到 Frame.GoBack()");
+                    _frame.BackStack.Add(backEntry); // 恢复 BackStack
+                    _frame.GoBack();
+                    return true;
+                }
+
+                // 直接设置内容（返回到缓存页时不走 Frame.GoBack，避免触发前进方向的内容动画）
+                SetFrameContentToCachedPage(cachedPage, suppressContentTransition: true);
+                _currentPage = cachedPage;
+                _currentPageType = pageType;
+                _currentPageParameter = parameter;
+                _isFrameContentSetDirectly = true;
+
+                System.Diagnostics.Debug.WriteLine($"[NavigationService] 已设置缓存页面到 Frame.Content，BackStack 深度: {_frame.BackStackDepth}");
+
+                // 手动调用 OnNavigatedTo
+                if (cachedPage is INavigationAware navigationAware)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[NavigationService] 调用 INavigationAware.OnNavigatedTo");
+                    navigationAware.OnNavigatedTo(parameter);
+                }
+
+                // 触发缓存导航事件
+                CachedPageNavigated?.Invoke(this, (pageType, parameter));
+
+                return true;
+            }
+            else
+            {
+                // ⭐ 其他页面（管理页等）使用 Frame 原生缓存（NavigationCacheMode）
+                System.Diagnostics.Debug.WriteLine($"[NavigationService] 页面未使用自定义缓存，使用 Frame.GoBack()");
+                _frame.GoBack();
+                return true;
+            }
         }
 
         private void SetFrameContentToCachedPage(Page cachedPage, bool suppressContentTransition)
@@ -281,16 +341,15 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
         /// </summary>
         private string? GenerateCacheKey(Type pageType, object? parameter)
         {
-            // WebBrowserPage 使用 shortcut.Id 作为缓存键
+            // ⭐ WebBrowserPage 使用自定义 LRU 缓存（基于 shortcut.Id）
             if (pageType.Name == "WebBrowserPage" && parameter is Pages.WebApp.Shared.WebAppShortcut shortcut)
             {
                 return $"WebBrowser_{shortcut.Id}";
             }
 
-            // ⭐ WebAppManagementPage 和 WebAppDetailPage 使用 WinUI 原生缓存（NavigationCacheMode）
-            // 返回 null 让它们走 Frame.Navigate/GoBack，由 Frame 自己管理缓存
-
-            // 其他页面不缓存（每次都创建新实例）
+            // ⭐ 其他页面返回 null，使用 WinUI 原生缓存（NavigationCacheMode）
+            // WebAppManagementPage 和 WebAppDetailPage 可以在 XAML 中设置 NavigationCacheMode="Required"
+            // 由 Frame 自己管理缓存，不计入自定义缓存池
             return null;
         }
 
