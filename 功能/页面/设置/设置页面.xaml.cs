@@ -551,14 +551,14 @@ namespace Docked_AI.Features.Pages.Settings
             // 如果页面已经被 unload，强制回到 UI 线程可能访问已释放的资源
             await OpenExternalLinkAsync(
                 "https://github.com/yunmoxinghe/Docked-AI",
-                "无法打开GitHub");
+                LocalizationHelper.GetString("SettingsPage_OpenGitHubError") ?? "无法打开 GitHub");
         }
 
         private async void OnSendFeedbackClick(object sender, RoutedEventArgs args)
         {
             await OpenExternalLinkAsync(
                 "https://github.com/yunmoxinghe/Docked-AI/issues",
-                "无法打开反馈页面");
+                LocalizationHelper.GetString("SettingsPage_OpenLinkFailed") ?? "打开链接失败");
         }
 
         /// <summary>
@@ -1683,7 +1683,9 @@ namespace Docked_AI.Features.Pages.Settings
                 if (!success)
                 {
                     System.Diagnostics.Debug.WriteLine("[SettingsPage] Failed to launch Adsterra URL");
-                    await ShowErrorNotificationAsync("打开链接失败", "无法打开 Adsterra 广告页面");
+                    await ShowErrorNotificationAsync(
+                        LocalizationHelper.GetString("SettingsPage_OpenLinkFailed") ?? "打开链接失败",
+                        LocalizationHelper.GetString("SettingsPage_OpenLinkError") ?? "无法打开 Adsterra 广告页面");
                 }
                 else
                 {
@@ -1693,7 +1695,9 @@ namespace Docked_AI.Features.Pages.Settings
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[SettingsPage] Launch Adsterra URL failed: {ex.Message}");
-                await ShowErrorNotificationAsync("打开链接异常", ex.Message);
+                await ShowErrorNotificationAsync(
+                    LocalizationHelper.GetString("SettingsPage_OpenLinkException") ?? "打开链接异常",
+                    ex.Message);
             }
         }
 
@@ -1713,7 +1717,9 @@ namespace Docked_AI.Features.Pages.Settings
                 if (!success)
                 {
                     System.Diagnostics.Debug.WriteLine("[SettingsPage] Failed to launch Monetag URL");
-                    await ShowErrorNotificationAsync("打开链接失败", "无法打开 Monetag 广告页面");
+                    await ShowErrorNotificationAsync(
+                        LocalizationHelper.GetString("SettingsPage_OpenLinkFailed") ?? "打开链接失败",
+                        LocalizationHelper.GetString("SettingsPage_OpenLinkError") ?? "无法打开 Monetag 广告页面");
                 }
                 else
                 {
@@ -1723,7 +1729,9 @@ namespace Docked_AI.Features.Pages.Settings
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[SettingsPage] Launch Monetag URL failed: {ex.Message}");
-                await ShowErrorNotificationAsync("打开链接异常", ex.Message);
+                await ShowErrorNotificationAsync(
+                    LocalizationHelper.GetString("SettingsPage_OpenLinkException") ?? "打开链接异常",
+                    ex.Message);
             }
         }
 
@@ -1743,7 +1751,9 @@ namespace Docked_AI.Features.Pages.Settings
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[SettingsPage] Show WeChat sponsor dialog failed: {ex.Message}");
-                await ShowErrorNotificationAsync("显示微信赞助对话框失败", ex.Message);
+                await ShowErrorNotificationAsync(
+                    LocalizationHelper.GetString("SettingsPage_ShowWeChatSponsorDialogFailed") ?? "显示微信赞助对话框失败",
+                    ex.Message);
             }
         }
 
@@ -1763,7 +1773,9 @@ namespace Docked_AI.Features.Pages.Settings
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[SettingsPage] Show sponsor dialog failed: {ex.Message}");
-                await ShowErrorNotificationAsync("显示赞助对话框失败", ex.Message);
+                await ShowErrorNotificationAsync(
+                    LocalizationHelper.GetString("SettingsPage_ShowSponsorDialogFailed") ?? "显示赞助对话框失败",
+                    ex.Message);
             }
         }
 

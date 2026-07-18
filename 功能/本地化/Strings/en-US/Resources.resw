@@ -916,6 +916,54 @@ Error Message: {1}</value>
   <data name="SettingsPage_WebAppManagementHeader.Description" xml:space="preserve">
     <value>Manage added web apps, including name, URL, icon, and Cookie information.</value>
   </data>
+  <data name="SettingsPage_ContentAreaBackdropHeader.Header" xml:space="preserve">
+    <value>Content Area Backdrop</value>
+  </data>
+  <data name="SettingsPage_ContentAreaBackdropHeader.Description" xml:space="preserve">
+    <value>Choose the background effect for the content area</value>
+  </data>
+  <data name="SettingsPage_BackdropSolidColor.Content" xml:space="preserve">
+    <value>Solid Color</value>
+  </data>
+  <data name="SettingsPage_BackdropMicaBase.Content" xml:space="preserve">
+    <value>Mica Base</value>
+  </data>
+  <data name="SettingsPage_BackdropMicaAlt.Content" xml:space="preserve">
+    <value>Mica Alt</value>
+  </data>
+  <data name="SettingsPage_BackdropAcrylic.Content" xml:space="preserve">
+    <value>Acrylic</value>
+  </data>
+  <data name="SettingsPage_AlipayScanHint.Text" xml:space="preserve">
+    <value>Scan to sponsor via Alipay</value>
+  </data>
+  <data name="SettingsPage_WeChatScanHint.Text" xml:space="preserve">
+    <value>Scan to sponsor via WeChat</value>
+  </data>
+  <data name="SettingsPage_RatingError" xml:space="preserve">
+    <value>Unable to open the rating page. Please try again later.</value>
+  </data>
+  <data name="SettingsPage_OpenGitHubError" xml:space="preserve">
+    <value>Unable to open GitHub</value>
+  </data>
+  <data name="SettingsPage_OpenLinkFailed" xml:space="preserve">
+    <value>Failed to open link</value>
+  </data>
+  <data name="SettingsPage_OpenLinkError" xml:space="preserve">
+    <value>Unable to open link</value>
+  </data>
+  <data name="SettingsPage_OpenLinkException" xml:space="preserve">
+    <value>Link opening exception</value>
+  </data>
+  <data name="SettingsPage_ShowDialogFailed" xml:space="preserve">
+    <value>Failed to show dialog</value>
+  </data>
+  <data name="SettingsPage_ShowSponsorDialogFailed" xml:space="preserve">
+    <value>Failed to show sponsor dialog</value>
+  </data>
+  <data name="SettingsPage_ShowWeChatSponsorDialogFailed" xml:space="preserve">
+    <value>Failed to show WeChat sponsor dialog</value>
+  </data>
   <data name="WebAppManagementPage_Title.Text" xml:space="preserve">
     <value>Web App Management</value>
   </data>

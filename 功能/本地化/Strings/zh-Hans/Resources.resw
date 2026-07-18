@@ -118,6 +118,36 @@
   <data name="SettingsPage_DockSideHeader.Description" xml:space="preserve">
     <value>选择窗口停靠在屏幕的左侧或右侧</value>
   </data>
+  <data name="SettingsPage_ContentAreaBackdropHeader.Header" xml:space="preserve">
+    <value>内容区背景材质</value>
+  </data>
+  <data name="SettingsPage_ContentAreaBackdropHeader.Description" xml:space="preserve">
+    <value>选择内容区域的背景效果</value>
+  </data>
+  <data name="SettingsPage_BackdropSolidColor.Content" xml:space="preserve">
+    <value>纯色背景</value>
+  </data>
+  <data name="SettingsPage_BackdropMicaBase.Content" xml:space="preserve">
+    <value>云母材质</value>
+  </data>
+  <data name="SettingsPage_BackdropMicaAlt.Content" xml:space="preserve">
+    <value>云母 Alt</value>
+  </data>
+  <data name="SettingsPage_BackdropAcrylic.Content" xml:space="preserve">
+    <value>亚克力</value>
+  </data>
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Header" xml:space="preserve">
+    <value>托盘关闭窗口行为</value>
+  </data>
+  <data name="SettingsPage_TrayCloseWindowBehaviorHeader.Description" xml:space="preserve">
+    <value>选择点击托盘"关闭窗口"按钮时的行为</value>
+  </data>
+  <data name="SettingsPage_AlipayScanHint.Text" xml:space="preserve">
+    <value>扫码支付宝赞助</value>
+  </data>
+  <data name="SettingsPage_WeChatScanHint.Text" xml:space="preserve">
+    <value>扫码微信赞赏</value>
+  </data>
   <data name="SettingsPage_DockSideLeft.Content" xml:space="preserve">
     <value>左侧</value>
   </data>
@@ -915,6 +945,30 @@ https://developer.microsoft.com/microsoft-edge/webview2/</value>
   </data>
   <data name="SettingsPage_WebAppManagementHeader.Description" xml:space="preserve">
     <value>管理已添加的网页应用，包括名称、网址、图标以及 Cookie 等信息。</value>
+  </data>
+  <data name="SettingsPage_RatingError" xml:space="preserve">
+    <value>无法打开评价页面,请稍后重试。</value>
+  </data>
+  <data name="SettingsPage_OpenGitHubError" xml:space="preserve">
+    <value>无法打开 GitHub</value>
+  </data>
+  <data name="SettingsPage_OpenLinkFailed" xml:space="preserve">
+    <value>打开链接失败</value>
+  </data>
+  <data name="SettingsPage_OpenLinkError" xml:space="preserve">
+    <value>无法打开链接</value>
+  </data>
+  <data name="SettingsPage_OpenLinkException" xml:space="preserve">
+    <value>打开链接异常</value>
+  </data>
+  <data name="SettingsPage_ShowDialogFailed" xml:space="preserve">
+    <value>显示对话框失败</value>
+  </data>
+  <data name="SettingsPage_ShowSponsorDialogFailed" xml:space="preserve">
+    <value>显示赞助对话框失败</value>
+  </data>
+  <data name="SettingsPage_ShowWeChatSponsorDialogFailed" xml:space="preserve">
+    <value>显示微信赞助对话框失败</value>
   </data>
   <data name="WebAppManagementPage_Title.Text" xml:space="preserve">
     <value>网页应用管理</value>

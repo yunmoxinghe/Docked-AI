@@ -79,8 +79,6 @@
                     <controls:SettingsExpander
                         x:Name="DockSideExpander"
                         x:Uid="SettingsPage_DockSideHeader"
-                        Header="窗口停靠位置"
-                        Description="选择窗口停靠在屏幕的左侧或右侧"
                         IsExpanded="False">
                         <controls:SettingsExpander.HeaderIcon>
                             <FontIcon Glyph="&#xE746;"/>
@@ -128,8 +126,6 @@
                     <!-- 内容区背景材质 -->
                     <controls:SettingsCard
                         x:Uid="SettingsPage_ContentAreaBackdropHeader"
-                        Header="内容区背景材质"
-                        Description="选择内容区域的背景效果"
                         IsClickEnabled="True"
                         IsActionIconVisible="False"
                         Click="OnContentAreaBackdropCardClick">
@@ -150,8 +146,6 @@
                     <!-- 托盘关闭窗口行为 -->
                     <controls:SettingsCard
                         x:Uid="SettingsPage_TrayCloseWindowBehaviorHeader"
-                        Header="托盘关闭窗口行为"
-                        Description="选择点击托盘'关闭窗口'按钮时的行为"
                         IsClickEnabled="True"
                         IsActionIconVisible="False"
                         Click="OnTrayCloseWindowBehaviorCardClick">
@@ -384,7 +378,7 @@
                                            Height="200" 
                                            Stretch="Uniform"
                                            Margin="0,0,0,8"/>
-                                    <TextBlock Text="扫码支付宝赞助" 
+                                    <TextBlock x:Uid="SettingsPage_AlipayScanHint"
                                                HorizontalAlignment="Center"
                                                FontSize="14"
                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
@@ -415,7 +409,7 @@
                                            Height="200" 
                                            Stretch="Uniform"
                                            Margin="0,0,0,8"/>
-                                    <TextBlock Text="扫码微信赞赏" 
+                                    <TextBlock x:Uid="SettingsPage_WeChatScanHint"
                                                HorizontalAlignment="Center"
                                                FontSize="14"
                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
