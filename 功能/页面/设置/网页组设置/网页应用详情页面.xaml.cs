@@ -153,6 +153,16 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             CheckForChanges();
         }
 
+        private void OnNameCardClick(object sender, RoutedEventArgs e)
+        {
+            NameTextBox?.Focus(FocusState.Programmatic);
+        }
+
+        private void OnUrlCardClick(object sender, RoutedEventArgs e)
+        {
+            UrlTextBox?.Focus(FocusState.Programmatic);
+        }
+
         private void OnIconUrlChanged(object sender, TextChangedEventArgs e)
         {
             string url = IconUrlTextBox.Text?.Trim() ?? string.Empty;

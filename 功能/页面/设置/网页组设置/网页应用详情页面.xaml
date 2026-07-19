@@ -41,22 +41,23 @@
                         x:Uid="WebAppDetailPage_BasicInfoSection"
                         Text="基本信息"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
-                        Margin="1,0,0,4"/>
+                        Margin="1,16,0,4"/>
 
                     <!-- 应用名称 -->
                     <controls:SettingsCard 
                         x:Uid="WebAppDetailPage_NameHeader"
                         Header="应用名称"
-                        Description="显示在主页上的名称">
+                        Description="显示在主页上的名称"
+                        IsClickEnabled="True"
+                        IsActionIconVisible="False"
+                        Click="OnNameCardClick">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE8AC;" />
                         </controls:SettingsCard.HeaderIcon>
                         <TextBox 
                             x:Name="NameTextBox"
                             PlaceholderText="输入应用名称"
-                            MinWidth="200"
-                            MaxWidth="400"
-                            HorizontalAlignment="Right"
+                            HorizontalAlignment="Left"
                             TextChanged="OnFieldChanged"/>
                     </controls:SettingsCard>
 
@@ -64,16 +65,17 @@
                     <controls:SettingsCard 
                         x:Uid="WebAppDetailPage_UrlHeader"
                         Header="网站地址"
-                        Description="完整的 URL，包括 https://">
+                        Description="完整的 URL，包括 https://"
+                        IsClickEnabled="True"
+                        IsActionIconVisible="False"
+                        Click="OnUrlCardClick">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE71B;" />
                         </controls:SettingsCard.HeaderIcon>
                         <TextBox 
                             x:Name="UrlTextBox"
                             PlaceholderText="https://example.com"
-                            MinWidth="200"
-                            MaxWidth="400"
-                            HorizontalAlignment="Right"
+                            HorizontalAlignment="Left"
                             TextChanged="OnFieldChanged"/>
                     </controls:SettingsCard>
 
@@ -122,13 +124,15 @@
                         Header="选择本地图片"
                         Description="从设备中选择图片作为图标"
                         IsClickEnabled="True"
+                        IsActionIconVisible="False"
                         Click="OnChooseLocalIconClick">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE8B9;" />
                         </controls:SettingsCard.HeaderIcon>
-                        <controls:SettingsCard.ActionIcon>
-                            <FontIcon Glyph="&#xE8E5;"/>
-                        </controls:SettingsCard.ActionIcon>
+                        <Button 
+                            Content="选择文件"
+                            Click="OnChooseLocalIconClick"
+                            HorizontalAlignment="Left"/>
                     </controls:SettingsCard>
 
                     <!-- 从 URL 加载图标 -->
@@ -168,13 +172,15 @@
                         Header="重置图标"
                         Description="移除自定义图标，使用默认图标"
                         IsClickEnabled="True"
+                        IsActionIconVisible="False"
                         Click="OnResetIconClick">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE894;" />
                         </controls:SettingsCard.HeaderIcon>
-                        <controls:SettingsCard.ActionIcon>
-                            <FontIcon Glyph="&#xE74D;"/>
-                        </controls:SettingsCard.ActionIcon>
+                        <Button 
+                            Content="重置"
+                            Click="OnResetIconClick"
+                            HorizontalAlignment="Left"/>
                     </controls:SettingsCard>
 
                     <!-- Cookie 管理（占位，暂不实现） -->

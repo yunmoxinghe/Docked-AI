@@ -66,7 +66,7 @@
                             <FontIcon Glyph="&#xE710;" />
                         </controls:SettingsCard.HeaderIcon>
                         <controls:SettingsCard.ActionIcon>
-                            <FontIcon Glyph="&#xE710;"/>
+                            <FontIcon Glyph="&#xE76C;"/>
                         </controls:SettingsCard.ActionIcon>
                     </controls:SettingsCard>
 
