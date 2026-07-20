@@ -1049,4 +1049,150 @@ Error Message: {1}</value>
   <data name="WebAppDetailPage_CookieHeader.Description" xml:space="preserve">
     <value>View and manage cookies for this app (Coming Soon)</value>
   </data>
+  
+  <!-- Web App Detail Page - Keyboard Mapping Buttons -->
+  <data name="WebAppDetailPage_KeyboardMappingSection.Text" xml:space="preserve">
+    <value>Keyboard Mapping Buttons</value>
+  </data>
+  <data name="WebAppDetailPage_LeftButtonHeader.Header" xml:space="preserve">
+    <value>Left Button</value>
+  </data>
+  <data name="WebAppDetailPage_LeftButtonHeader.Description" xml:space="preserve">
+    <value>Keyboard mapping button displayed after the back button, sends hotkey to webpage when clicked</value>
+  </data>
+  <data name="WebAppDetailPage_LeftButtonEnabledToggle.OnContent" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="WebAppDetailPage_LeftButtonEnabledToggle.OffContent" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="WebAppDetailPage_RightButtonHeader.Header" xml:space="preserve">
+    <value>Right Button</value>
+  </data>
+  <data name="WebAppDetailPage_RightButtonHeader.Description" xml:space="preserve">
+    <value>Keyboard mapping button displayed before the close button, sends hotkey to webpage when clicked</value>
+  </data>
+  <data name="WebAppDetailPage_RightButtonEnabledToggle.OnContent" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="WebAppDetailPage_RightButtonEnabledToggle.OffContent" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  
+  <!-- Icon Picker -->
+  <data name="IconPicker_Search.PlaceholderText" xml:space="preserve">
+    <value>Search icon name or tags...</value>
+  </data>
+  <data name="IconPicker_CountFormat" xml:space="preserve">
+    <value>Found {0} icons</value>
+  </data>
+  <data name="IconPicker_Searching" xml:space="preserve">
+    <value>Searching...</value>
+  </data>
+  <data name="IconPicker_NotFound" xml:space="preserve">
+    <value>No icons found</value>
+  </data>
+  
+  <!-- Web App Detail Page - Buttons and Placeholders -->
+  <data name="WebAppDetailPage_Name.PlaceholderText" xml:space="preserve">
+    <value>Enter app name</value>
+  </data>
+  <data name="WebAppDetailPage_Url.PlaceholderText" xml:space="preserve">
+    <value>https://example.com</value>
+  </data>
+  <data name="WebAppDetailPage_IconUrl.PlaceholderText" xml:space="preserve">
+    <value>https://example.com/icon.png</value>
+  </data>
+  <data name="WebAppDetailPage_ChooseFile.Content" xml:space="preserve">
+    <value>Choose File</value>
+  </data>
+  <data name="WebAppDetailPage_LoadIcon.Content" xml:space="preserve">
+    <value>Load</value>
+  </data>
+  <data name="WebAppDetailPage_Reset.Content" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="WebAppDetailPage_ChooseIcon.Content" xml:space="preserve">
+    <value>Choose</value>
+  </data>
+  <data name="WebAppDetailPage_RecordHotkey.Content" xml:space="preserve">
+    <value>Click to Record Hotkey</value>
+  </data>
+  <data name="WebAppDetailPage_HotkeyNotSet.Text" xml:space="preserve">
+    <value>Not Set</value>
+  </data>
+  <data name="WebAppDetailPage_CookieCount" xml:space="preserve">
+    <value>{0} Cookies</value>
+  </data>
+  
+  <!-- Keyboard Mapping Configuration -->
+  <data name="KeyboardMapping_IconTypeHeader" xml:space="preserve">
+    <value>Icon Type</value>
+  </data>
+  <data name="KeyboardMapping_IconTypeDescription" xml:space="preserve">
+    <value>Choose the icon style for the button</value>
+  </data>
+  <data name="KeyboardMapping_IconTypeStatic.Content" xml:space="preserve">
+    <value>Static Icon (FontIcon)</value>
+  </data>
+  <data name="KeyboardMapping_IconTypeAnimated.Content" xml:space="preserve">
+    <value>Animated Icon (AnimatedIcon)</value>
+  </data>
+  <data name="KeyboardMapping_StaticIconHeader" xml:space="preserve">
+    <value>Static Icon Glyph</value>
+  </data>
+  <data name="KeyboardMapping_StaticIconDescription" xml:space="preserve">
+    <value>Segoe Fluent Icons character code</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconHeader" xml:space="preserve">
+    <value>Animated Icon Type</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconDescription" xml:space="preserve">
+    <value>Choose a preset AnimatedIcon</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconAccept.Content" xml:space="preserve">
+    <value>✓ Accept/Check</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconBack.Content" xml:space="preserve">
+    <value>← Back Arrow</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconChevronDown.Content" xml:space="preserve">
+    <value>↓ Chevron Down</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconChevronRightDown.Content" xml:space="preserve">
+    <value>↘ Chevron Right-Down</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconChevronUpDown.Content" xml:space="preserve">
+    <value>↕ Chevron Up-Down</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconFind.Content" xml:space="preserve">
+    <value>🔍 Search/Find</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconMenu.Content" xml:space="preserve">
+    <value>≡ Navigation Menu</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconSettings.Content" xml:space="preserve">
+    <value>⚙ Settings Gear</value>
+  </data>
+  <data name="KeyboardMapping_TooltipHeader" xml:space="preserve">
+    <value>Button Tooltip Text</value>
+  </data>
+  <data name="KeyboardMapping_TooltipDescription" xml:space="preserve">
+    <value>Text displayed on mouse hover</value>
+  </data>
+  <data name="KeyboardMapping_Tooltip.PlaceholderText" xml:space="preserve">
+    <value>Execute Hotkey</value>
+  </data>
+  <data name="KeyboardMapping_HotkeyHeader" xml:space="preserve">
+    <value>Hotkey to Send</value>
+  </data>
+  <data name="KeyboardMapping_HotkeyDescription" xml:space="preserve">
+    <value>The hotkey combination that will be sent to the webpage when this button is clicked</value>
+  </data>
+  <data name="KeyboardMapping_CurrentHotkeyHeader" xml:space="preserve">
+    <value>Current Hotkey</value>
+  </data>
+  <data name="KeyboardMapping_CurrentHotkeyDescription" xml:space="preserve">
+    <value>Configured hotkey combination</value>
+  </data>
 </root>
