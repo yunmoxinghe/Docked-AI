@@ -1,5 +1,6 @@
 using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.UnifiedCalls.TopAppBar;
+using Docked_AI.Features.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -63,7 +64,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             }
 
             // 添加保存按钮到标题栏（使用 C# Unicode 转义格式）
-            _saveButton = TopAppBarService.SetRightIconButton("\uE74E", OnSaveClick, "保存");
+            _saveButton = TopAppBarService.SetRightIconButton("\uE74E", OnSaveClick, LocalizationHelper.GetString("WebAppDetailPage_SaveButton"));
             if (_saveButton != null)
             {
                 _saveButton.IsEnabled = false;
@@ -96,7 +97,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 
                 if (app == null)
                 {
-                    ShowStatus("应用不存在", InfoBarSeverity.Error);
+                    ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_AppNotFound"), InfoBarSeverity.Error);
                     return;
                 }
 
@@ -126,7 +127,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] Failed to load app: {ex}");
-                ShowStatus("加载失败", InfoBarSeverity.Error);
+                ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_LoadFailed"), InfoBarSeverity.Error);
             }
         }
 
@@ -219,7 +220,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 IntPtr hwnd = GetForegroundWindow();
                 if (hwnd == IntPtr.Zero)
                 {
-                    ShowStatus("无法打开文件选择器", InfoBarSeverity.Error);
+                    ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_CannotOpenPicker"), InfoBarSeverity.Error);
                     return;
                 }
 
@@ -236,25 +237,25 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 
                 if (bytes.Length == 0)
                 {
-                    ShowStatus("图片文件为空", InfoBarSeverity.Warning);
+                    ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_ImageFileEmpty"), InfoBarSeverity.Warning);
                     return;
                 }
 
                 if (bytes.Length > 4 * 1024 * 1024)
                 {
-                    ShowStatus("图片文件过大（最大 4MB）", InfoBarSeverity.Warning);
+                    ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_ImageFileTooLarge"), InfoBarSeverity.Warning);
                     return;
                 }
 
                 _currentIconBytes = bytes;
                 await ShowIconAsync(bytes);
                 CheckForChanges();
-                ShowStatus("图标已更新", InfoBarSeverity.Success);
+                ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_IconUpdated"), InfoBarSeverity.Success);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] Failed to choose icon: {ex}");
-                ShowStatus("选择图标失败", InfoBarSeverity.Error);
+                ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_SelectIconFailed"), InfoBarSeverity.Error);
             }
         }
 
@@ -264,14 +265,14 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
             {
-                ShowStatus("URL 格式不正确", InfoBarSeverity.Warning);
+                ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_InvalidUrl"), InfoBarSeverity.Warning);
                 return;
             }
 
             try
             {
                 LoadIconFromUrlButton.IsEnabled = false;
-                ShowStatus("正在下载图标...", InfoBarSeverity.Informational);
+                ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_DownloadingIcon"), InfoBarSeverity.Informational);
 
                 using var response = await HttpClient.GetAsync(uri);
                 response.EnsureSuccessStatusCode();
@@ -281,12 +282,12 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 {
                     if (!contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
                     {
-                        ShowStatus("URL 不是有效的图片", InfoBarSeverity.Warning);
+                        ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_UrlNotValidImage"), InfoBarSeverity.Warning);
                         return;
                     }
                     if (contentType.Contains("svg", StringComparison.OrdinalIgnoreCase))
                     {
-                        ShowStatus("不支持 SVG 格式", InfoBarSeverity.Warning);
+                        ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_SvgNotSupported"), InfoBarSeverity.Warning);
                         return;
                     }
                 }
@@ -295,32 +296,32 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 
                 if (bytes.Length == 0)
                 {
-                    ShowStatus("图片为空", InfoBarSeverity.Warning);
+                    ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_ImageEmpty"), InfoBarSeverity.Warning);
                     return;
                 }
 
                 if (bytes.Length > 4 * 1024 * 1024)
                 {
-                    ShowStatus("图片过大（最大 4MB）", InfoBarSeverity.Warning);
+                    ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_ImageTooLarge"), InfoBarSeverity.Warning);
                     return;
                 }
 
                 // 验证是否可以解码
                 if (!await CanDecodeBitmapAsync(bytes))
                 {
-                    ShowStatus("无法解码图片", InfoBarSeverity.Warning);
+                    ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_CannotDecodeImage"), InfoBarSeverity.Warning);
                     return;
                 }
 
                 _currentIconBytes = bytes;
                 await ShowIconAsync(bytes);
                 CheckForChanges();
-                ShowStatus("图标加载成功", InfoBarSeverity.Success);
+                ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_IconLoadSuccess"), InfoBarSeverity.Success);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] Failed to load icon from URL: {ex}");
-                ShowStatus($"加载失败：{ex.Message}", InfoBarSeverity.Error);
+                ShowStatus(string.Format(LocalizationHelper.GetString("WebAppDetailPage_LoadFailedWithReason"), ex.Message), InfoBarSeverity.Error);
             }
             finally
             {
@@ -339,7 +340,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             CheckForChanges();
             
             System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] OnResetIconClick: _hasChanges={_hasChanges}, SaveButton.IsEnabled={_saveButton?.IsEnabled}");
-            ShowStatus("图标已重置", InfoBarSeverity.Success);
+            ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_IconReset"), InfoBarSeverity.Success);
         }
 
         private async void OnSaveClick(object sender, RoutedEventArgs e)

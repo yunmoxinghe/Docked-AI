@@ -1228,4 +1228,60 @@ Error Message: {1}</value>
   <data name="NewPage_CancelButton" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  
+  <!-- Web App Detail Page - Status Messages -->
+  <data name="WebAppDetailPage_SaveButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="WebAppDetailPage_AppNotFound" xml:space="preserve">
+    <value>App not found</value>
+  </data>
+  <data name="WebAppDetailPage_LoadFailed" xml:space="preserve">
+    <value>Load failed</value>
+  </data>
+  <data name="WebAppDetailPage_CannotOpenPicker" xml:space="preserve">
+    <value>Cannot open file picker</value>
+  </data>
+  <data name="WebAppDetailPage_ImageFileEmpty" xml:space="preserve">
+    <value>Image file is empty</value>
+  </data>
+  <data name="WebAppDetailPage_ImageFileTooLarge" xml:space="preserve">
+    <value>Image file too large (max 4MB)</value>
+  </data>
+  <data name="WebAppDetailPage_IconUpdated" xml:space="preserve">
+    <value>Icon updated</value>
+  </data>
+  <data name="WebAppDetailPage_SelectIconFailed" xml:space="preserve">
+    <value>Failed to select icon</value>
+  </data>
+  <data name="WebAppDetailPage_InvalidUrl" xml:space="preserve">
+    <value>Invalid URL format</value>
+  </data>
+  <data name="WebAppDetailPage_DownloadingIcon" xml:space="preserve">
+    <value>Downloading icon...</value>
+  </data>
+  <data name="WebAppDetailPage_UrlNotValidImage" xml:space="preserve">
+    <value>URL is not a valid image</value>
+  </data>
+  <data name="WebAppDetailPage_SvgNotSupported" xml:space="preserve">
+    <value>SVG format not supported</value>
+  </data>
+  <data name="WebAppDetailPage_ImageEmpty" xml:space="preserve">
+    <value>Image is empty</value>
+  </data>
+  <data name="WebAppDetailPage_ImageTooLarge" xml:space="preserve">
+    <value>Image too large (max 4MB)</value>
+  </data>
+  <data name="WebAppDetailPage_CannotDecodeImage" xml:space="preserve">
+    <value>Cannot decode image</value>
+  </data>
+  <data name="WebAppDetailPage_IconLoadSuccess" xml:space="preserve">
+    <value>Icon loaded successfully</value>
+  </data>
+  <data name="WebAppDetailPage_LoadFailedWithReason" xml:space="preserve">
+    <value>Load failed: {0}</value>
+  </data>
+  <data name="WebAppDetailPage_IconReset" xml:space="preserve">
+    <value>Icon reset</value>
+  </data>
 </root>
