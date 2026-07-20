@@ -27,7 +27,6 @@
                 <TextBlock
                     x:Name="PageTitleBlock"
                     x:Uid="WebAppDetailPage_Title"
-                    Text="编辑网页应用"
                     FontSize="32"
                     FontWeight="SemiBold" />
                 <Border Height="36" />
@@ -39,15 +38,12 @@
                     <!-- 基本信息 -->
                     <TextBlock 
                         x:Uid="WebAppDetailPage_BasicInfoSection"
-                        Text="基本信息"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Margin="1,16,0,4"/>
 
                     <!-- 应用名称 -->
                     <controls:SettingsCard 
                         x:Uid="WebAppDetailPage_NameHeader"
-                        Header="应用名称"
-                        Description="显示在主页上的名称"
                         IsClickEnabled="True"
                         IsActionIconVisible="False"
                         Click="OnNameCardClick">
@@ -64,8 +60,6 @@
                     <!-- 网站地址 -->
                     <controls:SettingsCard 
                         x:Uid="WebAppDetailPage_UrlHeader"
-                        Header="网站地址"
-                        Description="完整的 URL，包括 https://"
                         IsClickEnabled="True"
                         IsActionIconVisible="False"
                         Click="OnUrlCardClick">
@@ -82,15 +76,12 @@
                     <!-- 应用图标 -->
                     <TextBlock 
                         x:Uid="WebAppDetailPage_IconSection"
-                        Text="应用图标"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Margin="1,16,0,4"/>
 
                     <!-- 图标预览 -->
                     <controls:SettingsCard 
-                        x:Uid="WebAppDetailPage_IconPreviewHeader"
-                        Header="图标预览"
-                        Description="当前应用图标">
+                        x:Uid="WebAppDetailPage_IconPreviewHeader">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE91B;" />
                         </controls:SettingsCard.HeaderIcon>
@@ -121,8 +112,6 @@
                     <!-- 选择本地图片 -->
                     <controls:SettingsCard 
                         x:Uid="WebAppDetailPage_ChooseLocalIconHeader"
-                        Header="选择本地图片"
-                        Description="从设备中选择图片作为图标"
                         IsClickEnabled="True"
                         IsActionIconVisible="False"
                         Click="OnChooseLocalIconClick">
@@ -139,8 +128,6 @@
                     <controls:SettingsExpander
                         x:Name="IconUrlExpander"
                         x:Uid="WebAppDetailPage_IconUrlHeader"
-                        Header="从 URL 加载图标"
-                        Description="输入图片 URL 地址"
                         IsExpanded="False">
                         <controls:SettingsExpander.HeaderIcon>
                             <FontIcon Glyph="&#xE71B;"/>
@@ -168,8 +155,6 @@
                     <!-- 重置图标 -->
                     <controls:SettingsCard 
                         x:Uid="WebAppDetailPage_ResetIconHeader"
-                        Header="重置图标"
-                        Description="移除自定义图标，使用默认图标"
                         IsClickEnabled="True"
                         IsActionIconVisible="False"
                         Click="OnResetIconClick">
@@ -185,7 +170,6 @@
                     <!-- 键盘映射按钮配置 -->
                     <TextBlock 
                         x:Uid="WebAppDetailPage_KeyboardMappingSection"
-                        Text="键盘映射按钮"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Margin="1,16,0,4"/>
 
@@ -193,8 +177,6 @@
                     <controls:SettingsExpander
                         x:Name="LeftButtonExpander"
                         x:Uid="WebAppDetailPage_LeftButtonHeader"
-                        Header="左侧按钮"
-                        Description="在返回按钮后显示的键盘映射按钮，点击发送快捷键到网页"
                         IsExpanded="False">
                         <controls:SettingsExpander.HeaderIcon>
                             <FontIcon Glyph="&#xE92E;"/>
@@ -202,14 +184,11 @@
                         <ToggleSwitch 
                             x:Name="LeftButtonEnabledToggle"
                             x:Uid="WebAppDetailPage_LeftButtonEnabledToggle"
-                            OnContent="已启用"
-                            OffContent="已禁用"
                             Toggled="OnLeftButtonEnabledToggled"/>
                         <controls:SettingsExpander.Items>
                             <!-- 图标类型选择 -->
                             <controls:SettingsCard 
-                                x:Uid="KeyboardMapping_IconTypeHeader"
-                                Description="选择按钮显示的图标样式">
+                                x:Uid="KeyboardMapping_IconTypeHeader">
                                 <ComboBox 
                                     x:Name="LeftButtonIconTypeComboBox"
                                     Width="200"
@@ -222,8 +201,7 @@
                             <!-- 静态图标配置 -->
                             <controls:SettingsCard 
                                 x:Name="LeftButtonStaticIconCard"
-                                x:Uid="KeyboardMapping_StaticIconHeader"
-                                Description="Segoe Fluent Icons 字符代码">
+                                x:Uid="KeyboardMapping_StaticIconHeader">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon 
                                         x:Name="LeftButtonStaticIconPreview"
@@ -241,7 +219,6 @@
                             <controls:SettingsCard 
                                 x:Name="LeftButtonAnimatedIconCard"
                                 x:Uid="KeyboardMapping_AnimatedIconHeader"
-                                Description="选择预设的 AnimatedIcon"
                                 Visibility="Collapsed">
                                 <ComboBox 
                                     x:Name="LeftButtonAnimatedIconTypeComboBox"
@@ -260,8 +237,7 @@
                             
                             <!-- 工具提示文本 -->
                             <controls:SettingsCard 
-                                x:Uid="KeyboardMapping_TooltipHeader"
-                                Description="鼠标悬停时显示的文字">
+                                x:Uid="KeyboardMapping_TooltipHeader">
                                 <TextBox 
                                     x:Name="LeftButtonTooltipTextBox"
                                     x:Uid="KeyboardMapping_Tooltip"
@@ -271,8 +247,7 @@
                             
                             <!-- 快捷键配置 -->
                             <controls:SettingsCard 
-                                x:Uid="KeyboardMapping_HotkeyHeader"
-                                Description="点击按钮时将向网页发送以下快捷键">
+                                x:Uid="KeyboardMapping_HotkeyHeader">
                                 <Button 
                                     x:Name="LeftButtonHotkeyButton"
                                     x:Uid="WebAppDetailPage_RecordHotkey"
@@ -281,8 +256,7 @@
                             
                             <!-- 快捷键预览 -->
                             <controls:SettingsCard 
-                                x:Uid="KeyboardMapping_CurrentHotkeyHeader"
-                                Description="已配置的快捷键组合">
+                                x:Uid="KeyboardMapping_CurrentHotkeyHeader">
                                 <TextBlock 
                                     x:Name="LeftButtonHotkeyPreview"
                                     x:Uid="WebAppDetailPage_HotkeyNotSet"
@@ -297,8 +271,6 @@
                     <controls:SettingsExpander
                         x:Name="RightButtonExpander"
                         x:Uid="WebAppDetailPage_RightButtonHeader"
-                        Header="右侧按钮"
-                        Description="在关闭按钮前显示的键盘映射按钮，点击发送快捷键到网页"
                         IsExpanded="False">
                         <controls:SettingsExpander.HeaderIcon>
                             <FontIcon Glyph="&#xE92E;"/>
@@ -306,14 +278,11 @@
                         <ToggleSwitch 
                             x:Name="RightButtonEnabledToggle"
                             x:Uid="WebAppDetailPage_RightButtonEnabledToggle"
-                            OnContent="已启用"
-                            OffContent="已禁用"
                             Toggled="OnRightButtonEnabledToggled"/>
                         <controls:SettingsExpander.Items>
                             <!-- 图标类型选择 -->
                             <controls:SettingsCard 
-                                x:Uid="KeyboardMapping_IconTypeHeader"
-                                Description="选择按钮显示的图标样式">
+                                x:Uid="KeyboardMapping_IconTypeHeader">
                                 <ComboBox 
                                     x:Name="RightButtonIconTypeComboBox"
                                     Width="200"
@@ -326,8 +295,7 @@
                             <!-- 静态图标配置 -->
                             <controls:SettingsCard 
                                 x:Name="RightButtonStaticIconCard"
-                                x:Uid="KeyboardMapping_StaticIconHeader"
-                                Description="Segoe Fluent Icons 字符代码">
+                                x:Uid="KeyboardMapping_StaticIconHeader">
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <FontIcon 
                                         x:Name="RightButtonStaticIconPreview"
@@ -345,7 +313,6 @@
                             <controls:SettingsCard 
                                 x:Name="RightButtonAnimatedIconCard"
                                 x:Uid="KeyboardMapping_AnimatedIconHeader"
-                                Description="选择预设的 AnimatedIcon"
                                 Visibility="Collapsed">
                                 <ComboBox 
                                     x:Name="RightButtonAnimatedIconTypeComboBox"
@@ -364,8 +331,7 @@
                             
                             <!-- 工具提示文本 -->
                             <controls:SettingsCard 
-                                x:Uid="KeyboardMapping_TooltipHeader"
-                                Description="鼠标悬停时显示的文字">
+                                x:Uid="KeyboardMapping_TooltipHeader">
                                 <TextBox 
                                     x:Name="RightButtonTooltipTextBox"
                                     x:Uid="KeyboardMapping_Tooltip"
@@ -375,8 +341,7 @@
                             
                             <!-- 快捷键配置 -->
                             <controls:SettingsCard 
-                                x:Uid="KeyboardMapping_HotkeyHeader"
-                                Description="点击按钮时将向网页发送以下快捷键">
+                                x:Uid="KeyboardMapping_HotkeyHeader">
                                 <Button 
                                     x:Name="RightButtonHotkeyButton"
                                     x:Uid="WebAppDetailPage_RecordHotkey"
@@ -385,8 +350,7 @@
                             
                             <!-- 快捷键预览 -->
                             <controls:SettingsCard 
-                                x:Uid="KeyboardMapping_CurrentHotkeyHeader"
-                                Description="已配置的快捷键组合">
+                                x:Uid="KeyboardMapping_CurrentHotkeyHeader">
                                 <TextBlock 
                                     x:Name="RightButtonHotkeyPreview"
                                     x:Uid="WebAppDetailPage_HotkeyNotSet"
@@ -400,14 +364,11 @@
                     <!-- Cookie 管理（占位，暂不实现） -->
                     <TextBlock 
                         x:Uid="WebAppDetailPage_CookieSection"
-                        Text="Cookie 管理"
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Margin="1,16,0,4"/>
 
                     <controls:SettingsCard 
                         x:Uid="WebAppDetailPage_CookieHeader"
-                        Header="Cookie 数据"
-                        Description="查看和管理此应用的 Cookie（即将推出）"
                         IsEnabled="False">
                         <controls:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE81C;" />
