@@ -65,6 +65,7 @@ public sealed class IconData
 /// </summary>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
+    PropertyNameCaseInsensitive = true,
     GenerationMode = JsonSourceGenerationMode.Metadata)]
 [JsonSerializable(typeof(List<IconData>))]
 internal partial class IconDataJsonContext : JsonSerializerContext
