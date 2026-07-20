@@ -1284,4 +1284,25 @@ Error Message: {1}</value>
   <data name="WebAppDetailPage_IconReset" xml:space="preserve">
     <value>Icon reset</value>
   </data>
+  <data name="WebAppDetailPage_PleaseEnterName" xml:space="preserve">
+    <value>Please enter app name</value>
+  </data>
+  <data name="WebAppDetailPage_PleaseEnterUrl" xml:space="preserve">
+    <value>Please enter website URL</value>
+  </data>
+  <data name="WebAppDetailPage_InvalidUrlFormat" xml:space="preserve">
+    <value>Invalid URL format</value>
+  </data>
+  <data name="WebAppDetailPage_SaveSuccess" xml:space="preserve">
+    <value>Saved successfully</value>
+  </data>
+  <data name="WebAppDetailPage_SaveFailedWithReason" xml:space="preserve">
+    <value>Save failed: {0}</value>
+  </data>
+  <data name="WebAppDetailPage_HotkeyNotSetShort" xml:space="preserve">
+    <value>Not set</value>
+  </data>
+  <data name="WebAppDetailPage_DefaultTooltip" xml:space="preserve">
+    <value>Execute hotkey</value>
+  </data>
 </root>

@@ -1290,4 +1290,25 @@ https://developer.microsoft.com/microsoft-edge/webview2/</value>
   <data name="WebAppDetailPage_IconReset" xml:space="preserve">
     <value>图标已重置</value>
   </data>
+  <data name="WebAppDetailPage_PleaseEnterName" xml:space="preserve">
+    <value>请输入应用名称</value>
+  </data>
+  <data name="WebAppDetailPage_PleaseEnterUrl" xml:space="preserve">
+    <value>请输入网站地址</value>
+  </data>
+  <data name="WebAppDetailPage_InvalidUrlFormat" xml:space="preserve">
+    <value>网站地址格式不正确</value>
+  </data>
+  <data name="WebAppDetailPage_SaveSuccess" xml:space="preserve">
+    <value>保存成功</value>
+  </data>
+  <data name="WebAppDetailPage_SaveFailedWithReason" xml:space="preserve">
+    <value>保存失败：{0}</value>
+  </data>
+  <data name="WebAppDetailPage_HotkeyNotSetShort" xml:space="preserve">
+    <value>未设置</value>
+  </data>
+  <data name="WebAppDetailPage_DefaultTooltip" xml:space="preserve">
+    <value>执行快捷键</value>
+  </data>
 </root>

@@ -360,20 +360,20 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
 
             if (string.IsNullOrWhiteSpace(name))
             {
-                ShowStatus("请输入应用名称", InfoBarSeverity.Warning);
+                ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_PleaseEnterName"), InfoBarSeverity.Warning);
                 return;
             }
 
             if (string.IsNullOrWhiteSpace(url))
             {
-                ShowStatus("请输入网站地址", InfoBarSeverity.Warning);
+                ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_PleaseEnterUrl"), InfoBarSeverity.Warning);
                 return;
             }
 
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
                 (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
             {
-                ShowStatus("网站地址格式不正确", InfoBarSeverity.Warning);
+                ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_InvalidUrlFormat"), InfoBarSeverity.Warning);
                 return;
             }
 
@@ -463,7 +463,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 _hasChanges = false;
 
                 System.Diagnostics.Debug.WriteLine("[WebAppDetailPage] OnSaveClick: Save successful");
-                ShowStatus("保存成功", InfoBarSeverity.Success);
+                ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_SaveSuccess"), InfoBarSeverity.Success);
 
                 // 延迟返回上一页
                 await Task.Delay(1000);
@@ -477,7 +477,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] Failed to save: {ex}");
-                ShowStatus($"保存失败：{ex.Message}", InfoBarSeverity.Error);
+                ShowStatus(string.Format(LocalizationHelper.GetString("WebAppDetailPage_SaveFailedWithReason"), ex.Message), InfoBarSeverity.Error);
             }
             finally
             {
@@ -811,7 +811,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
 
             if (_leftButtonRecordedKey == VirtualKey.None)
             {
-                LeftButtonHotkeyPreview.Text = "未设置";
+                LeftButtonHotkeyPreview.Text = LocalizationHelper.GetString("WebAppDetailPage_HotkeyNotSetShort");
                 return;
             }
 
@@ -833,7 +833,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
 
             if (_rightButtonRecordedKey == VirtualKey.None)
             {
-                RightButtonHotkeyPreview.Text = "未设置";
+                RightButtonHotkeyPreview.Text = LocalizationHelper.GetString("WebAppDetailPage_HotkeyNotSetShort");
                 return;
             }
 
@@ -884,7 +884,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 IconType = GetSelectedComboBoxTag(LeftButtonIconTypeComboBox) ?? "Static",
                 StaticIconGlyph = CodeToGlyph(_leftButtonIconCode) ?? "\uE92E", // Code → Glyph
                 AnimatedIconType = GetSelectedComboBoxTag(LeftButtonAnimatedIconTypeComboBox) ?? "AnimatedChevronDownSmallVisualSource",
-                Tooltip = LeftButtonTooltipTextBox.Text?.Trim() ?? "执行快捷键",
+                Tooltip = LeftButtonTooltipTextBox.Text?.Trim() ?? LocalizationHelper.GetString("WebAppDetailPage_DefaultTooltip"),
                 Key = _leftButtonRecordedKey,
                 Ctrl = _leftButtonRecordedCtrl,
                 Shift = _leftButtonRecordedShift,
@@ -908,7 +908,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 IconType = GetSelectedComboBoxTag(RightButtonIconTypeComboBox) ?? "Static",
                 StaticIconGlyph = CodeToGlyph(_rightButtonIconCode) ?? "\uE92E", // Code → Glyph
                 AnimatedIconType = GetSelectedComboBoxTag(RightButtonAnimatedIconTypeComboBox) ?? "AnimatedChevronDownSmallVisualSource",
-                Tooltip = RightButtonTooltipTextBox.Text?.Trim() ?? "执行快捷键",
+                Tooltip = RightButtonTooltipTextBox.Text?.Trim() ?? LocalizationHelper.GetString("WebAppDetailPage_DefaultTooltip"),
                 Key = _rightButtonRecordedKey,
                 Ctrl = _rightButtonRecordedCtrl,
                 Shift = _rightButtonRecordedShift,
