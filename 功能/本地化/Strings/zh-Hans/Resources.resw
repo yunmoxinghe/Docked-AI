@@ -1156,28 +1156,28 @@ https://developer.microsoft.com/microsoft-edge/webview2/</value>
   <data name="KeyboardMapping_AnimatedIconDescription" xml:space="preserve">
     <value>选择预设的 AnimatedIcon</value>
   </data>
-  <data name="KeyboardMapping_AnimatedIconAccept" xml:space="preserve">
+  <data name="KeyboardMapping_AnimatedIconAccept.Content" xml:space="preserve">
     <value>✓ 接受/勾选</value>
   </data>
-  <data name="KeyboardMapping_AnimatedIconBack" xml:space="preserve">
+  <data name="KeyboardMapping_AnimatedIconBack.Content" xml:space="preserve">
     <value>← 返回箭头</value>
   </data>
-  <data name="KeyboardMapping_AnimatedIconChevronDown" xml:space="preserve">
+  <data name="KeyboardMapping_AnimatedIconChevronDown.Content" xml:space="preserve">
     <value>↓ 向下箭头</value>
   </data>
-  <data name="KeyboardMapping_AnimatedIconChevronRightDown" xml:space="preserve">
+  <data name="KeyboardMapping_AnimatedIconChevronRightDown.Content" xml:space="preserve">
     <value>↘ 右转下箭头</value>
   </data>
-  <data name="KeyboardMapping_AnimatedIconChevronUpDown" xml:space="preserve">
+  <data name="KeyboardMapping_AnimatedIconChevronUpDown.Content" xml:space="preserve">
     <value>↕ 上下箭头</value>
   </data>
-  <data name="KeyboardMapping_AnimatedIconFind" xml:space="preserve">
+  <data name="KeyboardMapping_AnimatedIconFind.Content" xml:space="preserve">
     <value>🔍 搜索/放大镜</value>
   </data>
-  <data name="KeyboardMapping_AnimatedIconMenu" xml:space="preserve">
+  <data name="KeyboardMapping_AnimatedIconMenu.Content" xml:space="preserve">
     <value>≡ 导航菜单</value>
   </data>
-  <data name="KeyboardMapping_AnimatedIconSettings" xml:space="preserve">
+  <data name="KeyboardMapping_AnimatedIconSettings.Content" xml:space="preserve">
     <value>⚙ 设置齿轮</value>
   </data>
   <data name="KeyboardMapping_TooltipHeader" xml:space="preserve">
