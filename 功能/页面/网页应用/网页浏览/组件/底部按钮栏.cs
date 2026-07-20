@@ -4,6 +4,7 @@ using Microsoft.UI.Reactor.Core;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using static Microsoft.UI.Reactor.Factories;
+using Docked_AI.Features.Localization;
 
 namespace Docked_AI.Features.Pages.WebApp.Browser.Components;
 
@@ -51,12 +52,12 @@ public class BottomButtonBar : Component
         // 为每个图标按钮提供无障碍名称
         string automationName = glyph switch
         {
-            "\uE72B" => "后退",
-            "\uE72A" => "前进",
-            "\uE72C" => "刷新",
-            "\uE8C8" => "复制链接",
-            "\uE774" => "在浏览器中打开",
-            _ => "按钮"
+            "\uE72B" => LocalizationHelper.GetString("BottomButtonBar_BackButton"),
+            "\uE72A" => LocalizationHelper.GetString("BottomButtonBar_ForwardButton"),
+            "\uE72C" => LocalizationHelper.GetString("BottomButtonBar_RefreshButton"),
+            "\uE8C8" => LocalizationHelper.GetString("BottomButtonBar_CopyUrlButton"),
+            "\uE774" => LocalizationHelper.GetString("BottomButtonBar_OpenExternalButton"),
+            _ => "Button"
         };
 
         return Button(

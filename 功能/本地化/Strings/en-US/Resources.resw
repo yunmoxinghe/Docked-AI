@@ -1206,6 +1206,112 @@ Error Message: {1}</value>
   <data name="HotkeyRecorder_CloseButton" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="HotkeyRecorder_PleasePress" xml:space="preserve">
+    <value>Please press the hotkey combination</value>
+  </data>
+  <data name="HotkeyRecorder_Recording" xml:space="preserve">
+    <value>Recording... Press a hotkey</value>
+  </data>
+  <data name="HotkeyRecorder_Instruction" xml:space="preserve">
+    <value>Click the button below to start recording, then press the hotkey combination</value>
+  </data>
+  <data name="HotkeyRecorder_Hint" xml:space="preserve">
+    <value>Tip: You can use Ctrl/Shift/Alt combined with other keys</value>
+  </data>
+  <data name="HotkeyRecorder_NotSet" xml:space="preserve">
+    <value>Not set</value>
+  </data>
+  
+  <!-- Bottom Button Bar Accessibility Names -->
+  <data name="BottomButtonBar_BackButton" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="BottomButtonBar_ForwardButton" xml:space="preserve">
+    <value>Forward</value>
+  </data>
+  <data name="BottomButtonBar_RefreshButton" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="BottomButtonBar_CopyUrlButton" xml:space="preserve">
+    <value>Copy link</value>
+  </data>
+  <data name="BottomButtonBar_OpenExternalButton" xml:space="preserve">
+    <value>Open in browser</value>
+  </data>
+  
+  <!-- Data Management Page -->
+  <data name="DataManagement_Title" xml:space="preserve">
+    <value>Data Management</value>
+  </data>
+  <data name="DataManagement_Loading" xml:space="preserve">
+    <value>Loading...</value>
+  </data>
+  <data name="DataManagement_CurrentSize" xml:space="preserve">
+    <value>Current data size: {0} ({1} files)</value>
+  </data>
+  <data name="DataManagement_StorageLocation" xml:space="preserve">
+    <value>Storage location: {0}</value>
+  </data>
+  <data name="DataManagement_RefreshButton" xml:space="preserve">
+    <value>🔄 Refresh</value>
+  </data>
+  <data name="DataManagement_ExportHeader" xml:space="preserve">
+    <value>📤 Export Data</value>
+  </data>
+  <data name="DataManagement_ExportDescription" xml:space="preserve">
+    <value>Export website shortcuts and icon cache as backup file</value>
+  </data>
+  <data name="DataManagement_ExportButton" xml:space="preserve">
+    <value>Choose export location...</value>
+  </data>
+  <data name="DataManagement_Exporting" xml:space="preserve">
+    <value>Exporting...</value>
+  </data>
+  <data name="DataManagement_ExportSuccess" xml:space="preserve">
+    <value>✅ Export successful! File saved to: {0}</value>
+  </data>
+  <data name="DataManagement_ExportFailed" xml:space="preserve">
+    <value>❌ Export failed, please check logs</value>
+  </data>
+  <data name="DataManagement_ExportCancelled" xml:space="preserve">
+    <value>Export cancelled</value>
+  </data>
+  <data name="DataManagement_Error" xml:space="preserve">
+    <value>❌ Error: {0}</value>
+  </data>
+  <data name="DataManagement_ImportHeader" xml:space="preserve">
+    <value>📥 Import Data</value>
+  </data>
+  <data name="DataManagement_ImportDescription" xml:space="preserve">
+    <value>Restore website shortcuts and icons from backup file</value>
+  </data>
+  <data name="DataManagement_OverwriteMode" xml:space="preserve">
+    <value>Overwrite mode (check to replace existing data, uncheck to merge)</value>
+  </data>
+  <data name="DataManagement_ImportButton" xml:space="preserve">
+    <value>Choose backup file...</value>
+  </data>
+  <data name="DataManagement_Importing" xml:space="preserve">
+    <value>Importing...</value>
+  </data>
+  <data name="DataManagement_ImportSuccessOverwrite" xml:space="preserve">
+    <value>✅ Import successful! Data overwritten, please restart app to apply</value>
+  </data>
+  <data name="DataManagement_ImportSuccessMerge" xml:space="preserve">
+    <value>✅ Import successful! Data merged, please restart app to apply</value>
+  </data>
+  <data name="DataManagement_ImportFailed" xml:space="preserve">
+    <value>❌ Import failed, please check logs</value>
+  </data>
+  <data name="DataManagement_ImportCancelled" xml:space="preserve">
+    <value>Import cancelled</value>
+  </data>
+  <data name="DataManagement_BackupFileFilter" xml:space="preserve">
+    <value>Backup file</value>
+  </data>
+  <data name="DataManagement_BackupFileNameFormat" xml:space="preserve">
+    <value>DockedAI_Backup_{0}</value>
+  </data>
   
   <!-- Icon Picker Dialog -->
   <data name="IconPicker_DialogTitle" xml:space="preserve">

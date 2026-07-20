@@ -1,5 +1,6 @@
 using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.AppEntry;
+using Docked_AI.Features.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
@@ -23,8 +24,8 @@ namespace Docked_AI.Features.Pages.Settings.Experimental
         private async void LoadDataSize()
         {
             var sizeInfo = WebAppDataExporter.GetDataSize();
-            DataSizeText.Text = $"当前数据大小: {sizeInfo.TotalSizeFormatted} ({sizeInfo.FileCount} 个文件)";
-            DataPathText.Text = $"存储位置: {sizeInfo.LocalStatePath}";
+            DataSizeText.Text = string.Format(LocalizationHelper.GetString("DataManagement_CurrentSize"), sizeInfo.TotalSizeFormatted, sizeInfo.FileCount);
+            DataPathText.Text = string.Format(LocalizationHelper.GetString("DataManagement_StorageLocation"), sizeInfo.LocalStatePath);
         }
 
         private async void ExportButton_Click(object sender, RoutedEventArgs e)
@@ -32,15 +33,15 @@ namespace Docked_AI.Features.Pages.Settings.Experimental
             try
             {
                 ExportButton.IsEnabled = false;
-                ExportStatusText.Text = "正在导出...";
+                ExportStatusText.Text = LocalizationHelper.GetString("DataManagement_Exporting");
 
                 // 使用文件保存选择器
                 var savePicker = new FileSavePicker
                 {
                     SuggestedStartLocation = PickerLocationId.DocumentsLibrary,
-                    SuggestedFileName = $"边栏助手_备份_{DateTime.Now:yyyyMMdd_HHmmss}"
+                    SuggestedFileName = string.Format(LocalizationHelper.GetString("DataManagement_BackupFileNameFormat"), DateTime.Now.ToString("yyyyMMdd_HHmmss"))
                 };
-                savePicker.FileTypeChoices.Add("备份文件", new[] { ".zip" });
+                savePicker.FileTypeChoices.Add(LocalizationHelper.GetString("DataManagement_BackupFileFilter"), new[] { ".zip" });
 
                 // 获取窗口句柄（WinUI 3 必需）
                 var app = (App)Application.Current;
@@ -54,14 +55,14 @@ namespace Docked_AI.Features.Pages.Settings.Experimental
                     
                     if (success)
                     {
-                        ExportStatusText.Text = $"✅ 导出成功！文件已保存到: {file.Path}";
+                        ExportStatusText.Text = string.Format(LocalizationHelper.GetString("DataManagement_ExportSuccess"), file.Path);
                         ExportStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                             Microsoft.UI.Colors.Green
                         );
                     }
                     else
                     {
-                        ExportStatusText.Text = "❌ 导出失败，请查看日志";
+                        ExportStatusText.Text = LocalizationHelper.GetString("DataManagement_ExportFailed");
                         ExportStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                             Microsoft.UI.Colors.Red
                         );
@@ -69,12 +70,12 @@ namespace Docked_AI.Features.Pages.Settings.Experimental
                 }
                 else
                 {
-                    ExportStatusText.Text = "已取消导出";
+                    ExportStatusText.Text = LocalizationHelper.GetString("DataManagement_ExportCancelled");
                 }
             }
             catch (Exception ex)
             {
-                ExportStatusText.Text = $"❌ 错误: {ex.Message}";
+                ExportStatusText.Text = string.Format(LocalizationHelper.GetString("DataManagement_Error"), ex.Message);
                 ExportStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                     Microsoft.UI.Colors.Red
                 );
@@ -90,7 +91,7 @@ namespace Docked_AI.Features.Pages.Settings.Experimental
             try
             {
                 ImportButton.IsEnabled = false;
-                ImportStatusText.Text = "正在导入...";
+                ImportStatusText.Text = LocalizationHelper.GetString("DataManagement_Importing");
 
                 // 使用文件打开选择器
                 var openPicker = new FileOpenPicker
@@ -113,8 +114,8 @@ namespace Docked_AI.Features.Pages.Settings.Experimental
                     if (success)
                     {
                         ImportStatusText.Text = overwrite 
-                            ? "✅ 导入成功！数据已覆盖，请重启应用生效" 
-                            : "✅ 导入成功！数据已合并，请重启应用生效";
+                            ? LocalizationHelper.GetString("DataManagement_ImportSuccessOverwrite")
+                            : LocalizationHelper.GetString("DataManagement_ImportSuccessMerge");
                         ImportStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                             Microsoft.UI.Colors.Green
                         );
@@ -123,7 +124,7 @@ namespace Docked_AI.Features.Pages.Settings.Experimental
                     }
                     else
                     {
-                        ImportStatusText.Text = "❌ 导入失败，请查看日志";
+                        ImportStatusText.Text = LocalizationHelper.GetString("DataManagement_ImportFailed");
                         ImportStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                             Microsoft.UI.Colors.Red
                         );
@@ -131,12 +132,12 @@ namespace Docked_AI.Features.Pages.Settings.Experimental
                 }
                 else
                 {
-                    ImportStatusText.Text = "已取消导入";
+                    ImportStatusText.Text = LocalizationHelper.GetString("DataManagement_ImportCancelled");
                 }
             }
             catch (Exception ex)
             {
-                ImportStatusText.Text = $"❌ 错误: {ex.Message}";
+                ImportStatusText.Text = string.Format(LocalizationHelper.GetString("DataManagement_Error"), ex.Message);
                 ImportStatusText.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
                     Microsoft.UI.Colors.Red
                 );
@@ -167,13 +168,13 @@ namespace Docked_AI.Features.Pages.Settings.Experimental
             // 标题
             var title = new TextBlock
             {
-                Text = "数据管理",
+                Text = LocalizationHelper.GetString("DataManagement_Title"),
                 Style = (Style)Application.Current.Resources["TitleTextBlockStyle"]
             };
 
             // 数据大小信息
             var infoPanel = new StackPanel { Spacing = 8 };
-            DataSizeText = new TextBlock { Text = "正在加载..." };
+            DataSizeText = new TextBlock { Text = LocalizationHelper.GetString("DataManagement_Loading") };
             DataPathText = new TextBlock 
             { 
                 Text = "",
@@ -182,7 +183,7 @@ namespace Docked_AI.Features.Pages.Settings.Experimental
             };
             var refreshButton = new Button
             {
-                Content = "🔄 刷新",
+                Content = LocalizationHelper.GetString("DataManagement_RefreshButton"),
                 Margin = new Thickness(0, 8, 0, 0)
             };
             refreshButton.Click += RefreshButton_Click;
@@ -194,17 +195,17 @@ namespace Docked_AI.Features.Pages.Settings.Experimental
             // 导出部分
             var exportCard = new Expander
             {
-                Header = "📤 导出数据",
+                Header = LocalizationHelper.GetString("DataManagement_ExportHeader"),
                 IsExpanded = true,
                 Margin = new Thickness(0, 16, 0, 0)
             };
             var exportContent = new StackPanel { Spacing = 12, Padding = new Thickness(16) };
             exportContent.Children.Add(new TextBlock
             {
-                Text = "将网站快捷方式和图标缓存导出为备份文件",
+                Text = LocalizationHelper.GetString("DataManagement_ExportDescription"),
                 TextWrapping = TextWrapping.Wrap
             });
-            ExportButton = new Button { Content = "选择导出位置..." };
+            ExportButton = new Button { Content = LocalizationHelper.GetString("DataManagement_ExportButton") };
             ExportButton.Click += ExportButton_Click;
             exportContent.Children.Add(ExportButton);
             ExportStatusText = new TextBlock 
@@ -219,22 +220,22 @@ namespace Docked_AI.Features.Pages.Settings.Experimental
             // 导入部分
             var importCard = new Expander
             {
-                Header = "📥 导入数据",
+                Header = LocalizationHelper.GetString("DataManagement_ImportHeader"),
                 IsExpanded = false,
                 Margin = new Thickness(0, 8, 0, 0)
             };
             var importContent = new StackPanel { Spacing = 12, Padding = new Thickness(16) };
             importContent.Children.Add(new TextBlock
             {
-                Text = "从备份文件恢复网站快捷方式和图标",
+                Text = LocalizationHelper.GetString("DataManagement_ImportDescription"),
                 TextWrapping = TextWrapping.Wrap
             });
             OverwriteModeCheckBox = new CheckBox
             {
-                Content = "覆盖模式（勾选则替换现有数据，不勾选则合并）"
+                Content = LocalizationHelper.GetString("DataManagement_OverwriteMode")
             };
             importContent.Children.Add(OverwriteModeCheckBox);
-            ImportButton = new Button { Content = "选择备份文件..." };
+            ImportButton = new Button { Content = LocalizationHelper.GetString("DataManagement_ImportButton") };
             ImportButton.Click += ImportButton_Click;
             importContent.Children.Add(ImportButton);
             ImportStatusText = new TextBlock 

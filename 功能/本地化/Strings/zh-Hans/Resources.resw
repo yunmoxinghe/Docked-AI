@@ -1212,6 +1212,112 @@ https://developer.microsoft.com/microsoft-edge/webview2/</value>
   <data name="HotkeyRecorder_CloseButton" xml:space="preserve">
     <value>取消</value>
   </data>
+  <data name="HotkeyRecorder_PleasePress" xml:space="preserve">
+    <value>请按下要设置的快捷键组合</value>
+  </data>
+  <data name="HotkeyRecorder_Recording" xml:space="preserve">
+    <value>正在录制... 请按下快捷键</value>
+  </data>
+  <data name="HotkeyRecorder_Instruction" xml:space="preserve">
+    <value>点击下方按钮开始录制，然后按下要设置的快捷键组合</value>
+  </data>
+  <data name="HotkeyRecorder_Hint" xml:space="preserve">
+    <value>提示：可以使用 Ctrl/Shift/Alt 加其他键的组合</value>
+  </data>
+  <data name="HotkeyRecorder_NotSet" xml:space="preserve">
+    <value>未设置</value>
+  </data>
+  
+  <!-- 底部按钮栏无障碍名称 -->
+  <data name="BottomButtonBar_BackButton" xml:space="preserve">
+    <value>后退</value>
+  </data>
+  <data name="BottomButtonBar_ForwardButton" xml:space="preserve">
+    <value>前进</value>
+  </data>
+  <data name="BottomButtonBar_RefreshButton" xml:space="preserve">
+    <value>刷新</value>
+  </data>
+  <data name="BottomButtonBar_CopyUrlButton" xml:space="preserve">
+    <value>复制链接</value>
+  </data>
+  <data name="BottomButtonBar_OpenExternalButton" xml:space="preserve">
+    <value>在浏览器中打开</value>
+  </data>
+  
+  <!-- 数据管理页面 -->
+  <data name="DataManagement_Title" xml:space="preserve">
+    <value>数据管理</value>
+  </data>
+  <data name="DataManagement_Loading" xml:space="preserve">
+    <value>正在加载...</value>
+  </data>
+  <data name="DataManagement_CurrentSize" xml:space="preserve">
+    <value>当前数据大小: {0} ({1} 个文件)</value>
+  </data>
+  <data name="DataManagement_StorageLocation" xml:space="preserve">
+    <value>存储位置: {0}</value>
+  </data>
+  <data name="DataManagement_RefreshButton" xml:space="preserve">
+    <value>🔄 刷新</value>
+  </data>
+  <data name="DataManagement_ExportHeader" xml:space="preserve">
+    <value>📤 导出数据</value>
+  </data>
+  <data name="DataManagement_ExportDescription" xml:space="preserve">
+    <value>将网站快捷方式和图标缓存导出为备份文件</value>
+  </data>
+  <data name="DataManagement_ExportButton" xml:space="preserve">
+    <value>选择导出位置...</value>
+  </data>
+  <data name="DataManagement_Exporting" xml:space="preserve">
+    <value>正在导出...</value>
+  </data>
+  <data name="DataManagement_ExportSuccess" xml:space="preserve">
+    <value>✅ 导出成功！文件已保存到: {0}</value>
+  </data>
+  <data name="DataManagement_ExportFailed" xml:space="preserve">
+    <value>❌ 导出失败，请查看日志</value>
+  </data>
+  <data name="DataManagement_ExportCancelled" xml:space="preserve">
+    <value>已取消导出</value>
+  </data>
+  <data name="DataManagement_Error" xml:space="preserve">
+    <value>❌ 错误: {0}</value>
+  </data>
+  <data name="DataManagement_ImportHeader" xml:space="preserve">
+    <value>📥 导入数据</value>
+  </data>
+  <data name="DataManagement_ImportDescription" xml:space="preserve">
+    <value>从备份文件恢复网站快捷方式和图标</value>
+  </data>
+  <data name="DataManagement_OverwriteMode" xml:space="preserve">
+    <value>覆盖模式（勾选则替换现有数据，不勾选则合并）</value>
+  </data>
+  <data name="DataManagement_ImportButton" xml:space="preserve">
+    <value>选择备份文件...</value>
+  </data>
+  <data name="DataManagement_Importing" xml:space="preserve">
+    <value>正在导入...</value>
+  </data>
+  <data name="DataManagement_ImportSuccessOverwrite" xml:space="preserve">
+    <value>✅ 导入成功！数据已覆盖，请重启应用生效</value>
+  </data>
+  <data name="DataManagement_ImportSuccessMerge" xml:space="preserve">
+    <value>✅ 导入成功！数据已合并，请重启应用生效</value>
+  </data>
+  <data name="DataManagement_ImportFailed" xml:space="preserve">
+    <value>❌ 导入失败，请查看日志</value>
+  </data>
+  <data name="DataManagement_ImportCancelled" xml:space="preserve">
+    <value>已取消导入</value>
+  </data>
+  <data name="DataManagement_BackupFileFilter" xml:space="preserve">
+    <value>备份文件</value>
+  </data>
+  <data name="DataManagement_BackupFileNameFormat" xml:space="preserve">
+    <value>边栏助手_备份_{0}</value>
+  </data>
   
   <!-- 图标选择对话框 -->
   <data name="IconPicker_DialogTitle" xml:space="preserve">

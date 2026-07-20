@@ -40,7 +40,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
 
             var displayText = new TextBlock
             {
-                Text = tempKey == VirtualKey.None ? "请按下要设置的快捷键组合" : GetHotkeyDisplayText(tempKey, tempCtrl, tempAlt, tempShift),
+                Text = tempKey == VirtualKey.None ? LocalizationHelper.GetString("HotkeyRecorder_PleasePress") : GetHotkeyDisplayText(tempKey, tempCtrl, tempAlt, tempShift),
                 FontSize = 16,
                 TextAlignment = TextAlignment.Center,
                 TextWrapping = TextWrapping.Wrap
@@ -61,7 +61,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 isCapturingHotkey = true;
                 tempKey = VirtualKey.None;
                 tempCtrl = tempAlt = tempShift = false;
-                displayText.Text = "正在录制... 请按下快捷键";
+                displayText.Text = LocalizationHelper.GetString("HotkeyRecorder_Recording");
             };
 
             recordButton.Unchecked += (_, _) => isCapturingHotkey = false;
@@ -128,13 +128,13 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 {
                     new TextBlock
                     {
-                        Text = "点击下方按钮开始录制，然后按下要设置的快捷键组合",
+                        Text = LocalizationHelper.GetString("HotkeyRecorder_Instruction"),
                         TextWrapping = TextWrapping.Wrap
                     },
                     recordButton,
                     new TextBlock
                     {
-                        Text = "提示：可以使用 Ctrl/Shift/Alt 加其他键的组合",
+                        Text = LocalizationHelper.GetString("HotkeyRecorder_Hint"),
                         FontSize = 12,
                         Foreground = (Microsoft.UI.Xaml.Media.Brush)Application.Current.Resources["TextFillColorSecondaryBrush"],
                         TextWrapping = TextWrapping.Wrap
@@ -168,7 +168,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             if (shift) parts.Add("Shift");
             if (alt) parts.Add("Alt");
             if (key != VirtualKey.None) parts.Add(GetKeyDisplayName(key));
-            return parts.Count > 0 ? string.Join(" + ", parts) : "未设置";
+            return parts.Count > 0 ? string.Join(" + ", parts) : LocalizationHelper.GetString("HotkeyRecorder_NotSet");
         }
 
         private static string GetKeyDisplayName(VirtualKey key)
