@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml.Controls;
 using System.Threading.Tasks;
 using Docked_AI.Features.UnifiedCalls.InAppDialog;
+using Docked_AI.Features.Localization;
 
 namespace Docked_AI.Features.Pages.Settings.WebSettings
 {
@@ -23,10 +24,10 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
 
             var dialog = new UnifiedInAppDialog();
             dialog.Configure(
-                "选择图标",
+                LocalizationHelper.GetString("IconPicker_DialogTitle"),
                 pickerControl,
-                "确定",
-                "取消",
+                LocalizationHelper.GetString("IconPicker_PrimaryButton"),
+                LocalizationHelper.GetString("IconPicker_CloseButton"),
                 defaultButton: ContentDialogButton.Primary);
 
             var result = await InAppDialogService.ShowAsync(dialog, page);

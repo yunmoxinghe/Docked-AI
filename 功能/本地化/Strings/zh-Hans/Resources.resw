@@ -1132,10 +1132,10 @@ https://developer.microsoft.com/microsoft-edge/webview2/</value>
   </data>
   
   <!-- 键盘映射按钮配置 -->
-  <data name="KeyboardMapping_IconTypeHeader" xml:space="preserve">
+  <data name="KeyboardMapping_IconTypeHeader.Header" xml:space="preserve">
     <value>图标类型</value>
   </data>
-  <data name="KeyboardMapping_IconTypeDescription" xml:space="preserve">
+  <data name="KeyboardMapping_IconTypeHeader.Description" xml:space="preserve">
     <value>选择按钮显示的图标样式</value>
   </data>
   <data name="KeyboardMapping_IconTypeStatic.Content" xml:space="preserve">
@@ -1144,16 +1144,16 @@ https://developer.microsoft.com/microsoft-edge/webview2/</value>
   <data name="KeyboardMapping_IconTypeAnimated.Content" xml:space="preserve">
     <value>动态图标（AnimatedIcon）</value>
   </data>
-  <data name="KeyboardMapping_StaticIconHeader" xml:space="preserve">
+  <data name="KeyboardMapping_StaticIconHeader.Header" xml:space="preserve">
     <value>静态图标 Glyph</value>
   </data>
-  <data name="KeyboardMapping_StaticIconDescription" xml:space="preserve">
+  <data name="KeyboardMapping_StaticIconHeader.Description" xml:space="preserve">
     <value>Segoe Fluent Icons 字符代码</value>
   </data>
-  <data name="KeyboardMapping_AnimatedIconHeader" xml:space="preserve">
+  <data name="KeyboardMapping_AnimatedIconHeader.Header" xml:space="preserve">
     <value>动态图标类型</value>
   </data>
-  <data name="KeyboardMapping_AnimatedIconDescription" xml:space="preserve">
+  <data name="KeyboardMapping_AnimatedIconHeader.Description" xml:space="preserve">
     <value>选择预设的 AnimatedIcon</value>
   </data>
   <data name="KeyboardMapping_AnimatedIconAccept.Content" xml:space="preserve">
@@ -1180,25 +1180,58 @@ https://developer.microsoft.com/microsoft-edge/webview2/</value>
   <data name="KeyboardMapping_AnimatedIconSettings.Content" xml:space="preserve">
     <value>⚙ 设置齿轮</value>
   </data>
-  <data name="KeyboardMapping_TooltipHeader" xml:space="preserve">
+  <data name="KeyboardMapping_TooltipHeader.Header" xml:space="preserve">
     <value>按钮提示文本</value>
   </data>
-  <data name="KeyboardMapping_TooltipDescription" xml:space="preserve">
+  <data name="KeyboardMapping_TooltipHeader.Description" xml:space="preserve">
     <value>鼠标悬停时显示的文字</value>
   </data>
   <data name="KeyboardMapping_Tooltip.PlaceholderText" xml:space="preserve">
     <value>执行快捷键</value>
   </data>
-  <data name="KeyboardMapping_HotkeyHeader" xml:space="preserve">
+  <data name="KeyboardMapping_HotkeyHeader.Header" xml:space="preserve">
     <value>要发送的快捷键</value>
   </data>
-  <data name="KeyboardMapping_HotkeyDescription" xml:space="preserve">
+  <data name="KeyboardMapping_HotkeyHeader.Description" xml:space="preserve">
     <value>点击按钮时将向网页发送以下快捷键</value>
   </data>
-  <data name="KeyboardMapping_CurrentHotkeyHeader" xml:space="preserve">
+  <data name="KeyboardMapping_CurrentHotkeyHeader.Header" xml:space="preserve">
     <value>当前快捷键</value>
   </data>
-  <data name="KeyboardMapping_CurrentHotkeyDescription" xml:space="preserve">
+  <data name="KeyboardMapping_CurrentHotkeyHeader.Description" xml:space="preserve">
     <value>已配置的快捷键组合</value>
+  </data>
+  
+  <!-- 快捷键录制对话框 -->
+  <data name="HotkeyRecorder_DialogTitle" xml:space="preserve">
+    <value>录制快捷键</value>
+  </data>
+  <data name="HotkeyRecorder_PrimaryButton" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="HotkeyRecorder_CloseButton" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  
+  <!-- 图标选择对话框 -->
+  <data name="IconPicker_DialogTitle" xml:space="preserve">
+    <value>选择图标</value>
+  </data>
+  <data name="IconPicker_PrimaryButton" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="IconPicker_CloseButton" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  
+  <!-- 文件夹选择对话框（导入收藏夹） -->
+  <data name="NewPage_SelectFolderDialogTitle" xml:space="preserve">
+    <value>选择要导入的文件夹</value>
+  </data>
+  <data name="NewPage_ImportButton" xml:space="preserve">
+    <value>导入</value>
+  </data>
+  <data name="NewPage_CancelButton" xml:space="preserve">
+    <value>取消</value>
   </data>
 </root>

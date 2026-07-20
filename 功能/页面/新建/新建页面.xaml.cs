@@ -172,10 +172,10 @@ namespace Docked_AI.Features.Pages.New
 
                 var dialog = new UnifiedInAppDialog();
                 dialog.Configure(
-                    "选择要导入的文件夹",
+                    LocalizationHelper.GetString("NewPage_SelectFolderDialogTitle"),
                     listView,
-                    "导入",
-                    "取消",
+                    LocalizationHelper.GetString("NewPage_ImportButton"),
+                    LocalizationHelper.GetString("NewPage_CancelButton"),
                     defaultButton: ContentDialogButton.Primary);
 
                 var result = await InAppDialogService.ShowAsync(dialog, this);

@@ -1126,10 +1126,10 @@ Error Message: {1}</value>
   </data>
   
   <!-- Keyboard Mapping Configuration -->
-  <data name="KeyboardMapping_IconTypeHeader" xml:space="preserve">
+  <data name="KeyboardMapping_IconTypeHeader.Header" xml:space="preserve">
     <value>Icon Type</value>
   </data>
-  <data name="KeyboardMapping_IconTypeDescription" xml:space="preserve">
+  <data name="KeyboardMapping_IconTypeHeader.Description" xml:space="preserve">
     <value>Choose the icon style for the button</value>
   </data>
   <data name="KeyboardMapping_IconTypeStatic.Content" xml:space="preserve">
@@ -1138,16 +1138,16 @@ Error Message: {1}</value>
   <data name="KeyboardMapping_IconTypeAnimated.Content" xml:space="preserve">
     <value>Animated Icon (AnimatedIcon)</value>
   </data>
-  <data name="KeyboardMapping_StaticIconHeader" xml:space="preserve">
+  <data name="KeyboardMapping_StaticIconHeader.Header" xml:space="preserve">
     <value>Static Icon Glyph</value>
   </data>
-  <data name="KeyboardMapping_StaticIconDescription" xml:space="preserve">
+  <data name="KeyboardMapping_StaticIconHeader.Description" xml:space="preserve">
     <value>Segoe Fluent Icons character code</value>
   </data>
-  <data name="KeyboardMapping_AnimatedIconHeader" xml:space="preserve">
+  <data name="KeyboardMapping_AnimatedIconHeader.Header" xml:space="preserve">
     <value>Animated Icon Type</value>
   </data>
-  <data name="KeyboardMapping_AnimatedIconDescription" xml:space="preserve">
+  <data name="KeyboardMapping_AnimatedIconHeader.Description" xml:space="preserve">
     <value>Choose a preset AnimatedIcon</value>
   </data>
   <data name="KeyboardMapping_AnimatedIconAccept.Content" xml:space="preserve">
@@ -1174,25 +1174,58 @@ Error Message: {1}</value>
   <data name="KeyboardMapping_AnimatedIconSettings.Content" xml:space="preserve">
     <value>⚙ Settings Gear</value>
   </data>
-  <data name="KeyboardMapping_TooltipHeader" xml:space="preserve">
+  <data name="KeyboardMapping_TooltipHeader.Header" xml:space="preserve">
     <value>Button Tooltip Text</value>
   </data>
-  <data name="KeyboardMapping_TooltipDescription" xml:space="preserve">
+  <data name="KeyboardMapping_TooltipHeader.Description" xml:space="preserve">
     <value>Text displayed on mouse hover</value>
   </data>
   <data name="KeyboardMapping_Tooltip.PlaceholderText" xml:space="preserve">
     <value>Execute Hotkey</value>
   </data>
-  <data name="KeyboardMapping_HotkeyHeader" xml:space="preserve">
+  <data name="KeyboardMapping_HotkeyHeader.Header" xml:space="preserve">
     <value>Hotkey to Send</value>
   </data>
-  <data name="KeyboardMapping_HotkeyDescription" xml:space="preserve">
+  <data name="KeyboardMapping_HotkeyHeader.Description" xml:space="preserve">
     <value>The hotkey combination that will be sent to the webpage when this button is clicked</value>
   </data>
-  <data name="KeyboardMapping_CurrentHotkeyHeader" xml:space="preserve">
+  <data name="KeyboardMapping_CurrentHotkeyHeader.Header" xml:space="preserve">
     <value>Current Hotkey</value>
   </data>
-  <data name="KeyboardMapping_CurrentHotkeyDescription" xml:space="preserve">
+  <data name="KeyboardMapping_CurrentHotkeyHeader.Description" xml:space="preserve">
     <value>Configured hotkey combination</value>
+  </data>
+  
+  <!-- Hotkey Recorder Dialog -->
+  <data name="HotkeyRecorder_DialogTitle" xml:space="preserve">
+    <value>Record Hotkey</value>
+  </data>
+  <data name="HotkeyRecorder_PrimaryButton" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="HotkeyRecorder_CloseButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  
+  <!-- Icon Picker Dialog -->
+  <data name="IconPicker_DialogTitle" xml:space="preserve">
+    <value>Choose Icon</value>
+  </data>
+  <data name="IconPicker_PrimaryButton" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="IconPicker_CloseButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  
+  <!-- Folder Selection Dialog (Import Favorites) -->
+  <data name="NewPage_SelectFolderDialogTitle" xml:space="preserve">
+    <value>Select Folder to Import</value>
+  </data>
+  <data name="NewPage_ImportButton" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="NewPage_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
   </data>
 </root>
