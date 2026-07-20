@@ -1138,10 +1138,10 @@ https://developer.microsoft.com/microsoft-edge/webview2/</value>
   <data name="KeyboardMapping_IconTypeDescription" xml:space="preserve">
     <value>选择按钮显示的图标样式</value>
   </data>
-  <data name="KeyboardMapping_IconTypeStatic" xml:space="preserve">
+  <data name="KeyboardMapping_IconTypeStatic.Content" xml:space="preserve">
     <value>静态图标（FontIcon）</value>
   </data>
-  <data name="KeyboardMapping_IconTypeAnimated" xml:space="preserve">
+  <data name="KeyboardMapping_IconTypeAnimated.Content" xml:space="preserve">
     <value>动态图标（AnimatedIcon）</value>
   </data>
   <data name="KeyboardMapping_StaticIconHeader" xml:space="preserve">
