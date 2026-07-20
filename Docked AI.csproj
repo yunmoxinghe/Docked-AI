@@ -86,6 +86,11 @@
     <Content Include="Assets\logos\*.svg" />
     <Content Include="Assets\赞助\*.jpg" />
     <Content Include="Assets\赞助\*.png" />
+    
+    <!-- 图标数据文件 -->
+    <Content Include="功能\页面\设置\网页组设置\图标数据.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <!-- ========================================

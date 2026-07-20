@@ -8,12 +8,16 @@ using System.Linq;
 using Docked_AI.Features.Pages.WebApp;
 using Docked_AI.Features.Pages.WebApp.EdgeSync;
 using Docked_AI.Features.Pages.WebApp.Shared;
+using Docked_AI.Features.Pages.Settings; // ⭐ 引用设置页面命名空间以使用 ExperimentalSettings
 using Docked_AI.Features.UnifiedCalls.TopAppBar;
 using Docked_AI.Features.UnifiedCalls.InAppDialog;
 using Docked_AI.Features.Localization;
 
 namespace Docked_AI.Features.Pages.New
 {
+    /// <summary>
+    /// ⭐ NewPage 现在使用主 Frame 导航到子页面（与 SettingsPage 一致），不再需要 IBackHandler
+    /// </summary>
     public sealed partial class NewPage : Page
     {
         private readonly 智能标题 _智能标题 = new();
@@ -38,26 +42,14 @@ namespace Docked_AI.Features.Pages.New
 
             System.Diagnostics.Debug.WriteLine($"NewPage.OnNavigatedTo called with parameter: {e.Parameter}");
 
+            // ⭐ 移除 SubPageFrame 相关逻辑，NewPage 现在使用主 Frame 导航
+            // 如果有 URL 参数，说明是从其他地方导航过来的，应该继续导航到 WebAppPage
             if (e.Parameter is string url && !string.IsNullOrWhiteSpace(url))
             {
                 System.Diagnostics.Debug.WriteLine($"NewPage: navigating to WebAppPage with URL: {url}");
-                CreateScrollViewer.Visibility = Visibility.Collapsed;
-                SubPageFrame.Visibility = Visibility.Visible;
-                // 使用 EntranceNavigationTransitionInfo（官方推荐的轻量级动画）
-                SubPageFrame.Navigate(
-                    typeof(WebAppPage),
-                    url,
-                    new EntranceNavigationTransitionInfo());
-            }
-            else
-            {
-                // 返回到新建页面主界面，清理 SubPageFrame
-                if (SubPageFrame.Content != null)
-                {
-                    SubPageFrame.Content = null;
-                }
-                CreateScrollViewer.Visibility = Visibility.Visible;
-                SubPageFrame.Visibility = Visibility.Collapsed;
+                var animationType = ExperimentalSettings.SubPageNavigationAnimation;
+                var transitionInfo = GetNavigationTransitionInfo(animationType);
+                Frame.Navigate(typeof(WebAppPage), url, transitionInfo);
             }
         }
 
@@ -107,13 +99,38 @@ namespace Docked_AI.Features.Pages.New
 
         private void PinWebCard_Tapped(object sender, TappedRoutedEventArgs e)
         {
-            CreateScrollViewer.Visibility = Visibility.Collapsed;
-            SubPageFrame.Visibility = Visibility.Visible;
-            // 使用 EntranceNavigationTransitionInfo（官方推荐的轻量级动画）
-            SubPageFrame.Navigate(
-                typeof(WebAppPage),
-                null,
-                new EntranceNavigationTransitionInfo());
+            // ⭐ 改为使用主 Frame 导航（与设置页面一致）
+            var animationType = ExperimentalSettings.SubPageNavigationAnimation;
+            var transitionInfo = GetNavigationTransitionInfo(animationType);
+            Frame.Navigate(typeof(WebAppPage), null, transitionInfo);
+        }
+
+        /// <summary>
+        /// 根据动画类型获取对应的 NavigationTransitionInfo
+        /// </summary>
+        private Microsoft.UI.Xaml.Media.Animation.NavigationTransitionInfo GetNavigationTransitionInfo(FrameAnimationType animationType)
+        {
+            return animationType switch
+            {
+                FrameAnimationType.None => new Microsoft.UI.Xaml.Media.Animation.SuppressNavigationTransitionInfo(),
+                FrameAnimationType.EntranceTransition => new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo(),
+                FrameAnimationType.SlideFromRight => new Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo 
+                { 
+                    Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromRight 
+                },
+                FrameAnimationType.SlideFromLeft => new Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo 
+                { 
+                    Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromLeft 
+                },
+                FrameAnimationType.SlideFromBottom => new Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo 
+                { 
+                    Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromBottom 
+                },
+                FrameAnimationType.DrillIn => new Microsoft.UI.Xaml.Media.Animation.DrillInNavigationTransitionInfo(),
+                FrameAnimationType.FadeInOut => new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo(),
+                FrameAnimationType.ScaleAnimation => new Microsoft.UI.Xaml.Media.Animation.DrillInNavigationTransitionInfo(),
+                _ => new Microsoft.UI.Xaml.Media.Animation.EntranceNavigationTransitionInfo()
+            };
         }
 
         // Edge 收藏夹 - 选择文件夹导入

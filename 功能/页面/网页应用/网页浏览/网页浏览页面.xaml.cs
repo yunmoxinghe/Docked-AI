@@ -15,6 +15,7 @@ using Microsoft.Web.WebView2.Core;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -67,6 +68,10 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
         private const int MaxUnresponsiveCountBeforeReload = 3; // ⭐ 连续无响应多少次后触发 Reload
         private bool _isRecoveringWebView; // ⭐ 任务 3.5：防重入 guard，多个进程事件同时触发时只执行一次恢复
 
+        // 键盘映射按钮
+        private Button? _leftMappingButton;
+        private Button? _rightMappingButton;
+
         // ✅ 修复：初始背景色完全透明，避免黑色闪现
         // 首次采样后会立即设置为正确的颜色
         private readonly SolidColorBrush _topBarBackgroundBrush = new(Colors.Transparent);
@@ -118,6 +123,9 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             
             // ✅ 监听系统主题变化
             ActualThemeChanged += OnSystemThemeChanged;
+            
+            // ✅ 订阅网页应用更新事件
+            Shared.WebAppUpdateService.UpdateCompleted += OnWebAppUpdated;
             
             Pages.Settings.SettingsPage.WinUIContextMenuSettingsChanged += OnWinUIContextMenuSettingsChanged;
             Pages.Settings.SettingsPage.WebViewPerformanceSettingsChanged += OnWebViewPerformanceSettingsChanged;
@@ -194,11 +202,11 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             // 在页面加载后设置顶部栏
             TopAppBarService.SetCenterContent(_topBarContent);
             
-            // 根据设置决定是否显示关闭按钮
-            if (!ExperimentalSettings.HideWebViewCloseButton)
-            {
-                _unpinButton = TopAppBarService.SetRightIconButton("\uE733", CloseButton_Click, "关闭");
-            }
+            // 设置左侧键盘映射按钮
+            SetupLeftMappingButton();
+            
+            // 设置右侧内容（映射按钮 + 关闭按钮）
+            SetupRightContent();
             
             TopAppBarService.SetForeground(_topBarForegroundBrush);
             TopAppBarService.IsVisible = true;
@@ -835,9 +843,79 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             TryNavigatePendingUri();
         }
 
+        /// <summary>
+        /// 处理网页应用配置更新事件
+        /// </summary>
+        private async void OnWebAppUpdated(object? sender, Shared.WebAppUpdateEventArgs e)
+        {
+            // 只处理当前快捷方式的更新
+            if (_currentShortcut == null || e.AppId != _currentShortcut.Id)
+            {
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 收到更新通知: {e.AppId}, 类型: {e.UpdateType}");
+
+            // 如果按钮配置有变化，重新加载快捷方式并刷新按钮
+            if (e.UpdateType.HasFlag(Shared.WebAppUpdateType.ButtonConfig))
+            {
+                await DispatcherQueue.EnqueueAsync(async () =>
+                {
+                    try
+                    {
+                        // 重新加载快捷方式数据
+                        var shortcuts = await Shared.WebAppShortcutStore.LoadAsync();
+                        var updatedShortcut = shortcuts.FirstOrDefault(s => s.Id == e.AppId);
+                        
+                        if (updatedShortcut != null)
+                        {
+                            _currentShortcut = updatedShortcut;
+                            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 快捷方式已重新加载: {updatedShortcut.Name}");
+                            
+                            // 重新设置顶部栏（刷新按钮）
+                            SetupTopBar();
+                            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 按钮配置已刷新");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 更新按钮配置失败: {ex.Message}");
+                    }
+                });
+            }
+
+            // 如果名称或图标有变化，更新标题栏
+            if (e.UpdateType.HasFlag(Shared.WebAppUpdateType.Name) || 
+                e.UpdateType.HasFlag(Shared.WebAppUpdateType.Icon))
+            {
+                await DispatcherQueue.EnqueueAsync(async () =>
+                {
+                    try
+                    {
+                        var shortcuts = await Shared.WebAppShortcutStore.LoadAsync();
+                        var updatedShortcut = shortcuts.FirstOrDefault(s => s.Id == e.AppId);
+                        
+                        if (updatedShortcut != null)
+                        {
+                            _currentShortcut = updatedShortcut;
+                            UpdateTopBarContent();
+                            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 标题栏已更新");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 更新标题栏失败: {ex.Message}");
+                    }
+                });
+            }
+        }
+
         private void WebBrowserPage_Unloaded(object sender, RoutedEventArgs e)
         {
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] Unloaded 事件触发");
+            
+            // 取消订阅更新事件
+            Shared.WebAppUpdateService.UpdateCompleted -= OnWebAppUpdated;
             
             // 延迟检查：如果页面真的被移除了（不在可视树中），才清理
             // 使用 DispatcherQueue 延迟执行，让 Loaded 事件有机会先触发
@@ -2713,6 +2791,367 @@ namespace Docked_AI.Features.Pages.WebApp.Browser
             System.Diagnostics.Debug.WriteLine("[GetMainWindowInstance] 所有方法都失败了");
             return null;
         }
+
+        #region 键盘映射按钮
+
+        private void SetupRightContent()
+        {
+            var container = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 4
+            };
+
+            // 1. 添加右侧映射按钮（如果启用）
+            if (_currentShortcut?.RightButton.IsEnabled == true)
+            {
+                SetupRightMappingButton();
+                if (_rightMappingButton != null)
+                {
+                    container.Children.Add(_rightMappingButton);
+                }
+            }
+
+            // 2. 添加关闭按钮（如果未隐藏）
+            if (!ExperimentalSettings.HideWebViewCloseButton)
+            {
+                _unpinButton = new Button
+                {
+                    Width = 40,
+                    Height = 40,
+                    Padding = new Thickness(0),
+                    BorderThickness = new Thickness(0),
+                    CornerRadius = new CornerRadius(4),
+                    Content = new FontIcon
+                    {
+                        Glyph = "\uE733",
+                        FontSize = 16,
+                        Foreground = _topBarForegroundBrush
+                    }
+                };
+
+                // 设置按钮背景样式（与返回按钮一致）
+                var transparentColor = (Windows.UI.Color)Application.Current.Resources["SubtleFillColorTransparent"];
+                _unpinButton.Background = new SolidColorBrush(transparentColor);
+                _unpinButton.BackgroundSizing = BackgroundSizing.InnerBorderEdge;
+
+                // 设置悬停和按下状态的背景色
+                var resources = new ResourceDictionary();
+                var secondaryColor = (Windows.UI.Color)Application.Current.Resources["SubtleFillColorSecondary"];
+                var tertiaryColor = (Windows.UI.Color)Application.Current.Resources["SubtleFillColorTertiary"];
+                resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(secondaryColor);
+                resources["ButtonBackgroundPressed"] = new SolidColorBrush(tertiaryColor);
+                _unpinButton.Resources = resources;
+
+                ToolTipService.SetToolTip(_unpinButton, "关闭");
+                _unpinButton.Click += CloseButton_Click;
+                container.Children.Add(_unpinButton);
+            }
+
+            // 设置到右侧面板
+            TopAppBarService.SetRightContent(container.Children.Count > 0 ? container : null);
+        }
+
+        private void SetupLeftMappingButton()
+        {
+            if (_currentShortcut == null)
+            {
+                return;
+            }
+
+            var config = _currentShortcut.LeftButton;
+            
+            // 如果未启用，不显示按钮
+            if (!config.IsEnabled)
+            {
+                TopAppBarService.SetLeftContent(null);
+                _leftMappingButton = null;
+                return;
+            }
+
+            // 根据图标类型创建图标
+            UIElement icon;
+            if (config.IconType == "Animated")
+            {
+                icon = CreateAnimatedIcon(config.AnimatedIconType);
+            }
+            else
+            {
+                var fontIcon = new FontIcon
+                {
+                    Glyph = config.StaticIconGlyph,
+                    FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Segoe Fluent Icons"),
+                    FontSize = 16,
+                    Foreground = _topBarForegroundBrush
+                };
+                
+                // 调试日志
+                System.Diagnostics.Debug.WriteLine($"[CreateLeftButton] Glyph='{config.StaticIconGlyph}' (长度={config.StaticIconGlyph?.Length}), FontFamily={fontIcon.FontFamily.Source}");
+                
+                icon = fontIcon;
+            }
+            
+            _leftMappingButton = new Button
+            {
+                Width = 40,
+                Height = 40,
+                Padding = new Thickness(0),
+                BorderThickness = new Thickness(0),
+                CornerRadius = new CornerRadius(4),
+                Content = icon
+            };
+
+            // 设置按钮背景样式（与返回按钮一致）
+            var transparentColor = (Windows.UI.Color)Application.Current.Resources["SubtleFillColorTransparent"];
+            _leftMappingButton.Background = new SolidColorBrush(transparentColor);
+            _leftMappingButton.BackgroundSizing = BackgroundSizing.InnerBorderEdge;
+
+            // 设置悬停和按下状态的背景色
+            var resources = new ResourceDictionary();
+            var secondaryColor = (Windows.UI.Color)Application.Current.Resources["SubtleFillColorSecondary"];
+            var tertiaryColor = (Windows.UI.Color)Application.Current.Resources["SubtleFillColorTertiary"];
+            resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(secondaryColor);
+            resources["ButtonBackgroundPressed"] = new SolidColorBrush(tertiaryColor);
+            _leftMappingButton.Resources = resources;
+
+            ToolTipService.SetToolTip(_leftMappingButton, config.Tooltip);
+            _leftMappingButton.Click += OnLeftMappingButtonClick;
+
+            // 创建容器
+            var container = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Spacing = 4
+            };
+
+            container.Children.Add(_leftMappingButton);
+
+            TopAppBarService.SetLeftContent(container);
+        }
+
+        private void SetupRightMappingButton()
+        {
+            _rightMappingButton = null;
+
+            if (_currentShortcut == null)
+            {
+                return;
+            }
+
+            var config = _currentShortcut.RightButton;
+            
+            // 如果未启用，不创建按钮
+            if (!config.IsEnabled)
+            {
+                return;
+            }
+
+            // 根据图标类型创建图标
+            UIElement icon;
+            if (config.IconType == "Animated")
+            {
+                icon = CreateAnimatedIcon(config.AnimatedIconType);
+            }
+            else
+            {
+                var fontIcon = new FontIcon
+                {
+                    Glyph = config.StaticIconGlyph,
+                    FontFamily = new Microsoft.UI.Xaml.Media.FontFamily("Segoe Fluent Icons"),
+                    FontSize = 16,
+                    Foreground = _topBarForegroundBrush
+                };
+                
+                icon = fontIcon;
+            }
+            
+            _rightMappingButton = new Button
+            {
+                Width = 40,
+                Height = 40,
+                Padding = new Thickness(0),
+                BorderThickness = new Thickness(0),
+                CornerRadius = new CornerRadius(4),
+                Content = icon,
+                Margin = new Thickness(0, 0, 4, 0)
+            };
+
+            // 设置按钮背景样式（与返回按钮一致）
+            var transparentColor = (Windows.UI.Color)Application.Current.Resources["SubtleFillColorTransparent"];
+            _rightMappingButton.Background = new SolidColorBrush(transparentColor);
+            _rightMappingButton.BackgroundSizing = BackgroundSizing.InnerBorderEdge;
+
+            // 设置悬停和按下状态的背景色
+            var resources = new ResourceDictionary();
+            var secondaryColor = (Windows.UI.Color)Application.Current.Resources["SubtleFillColorSecondary"];
+            var tertiaryColor = (Windows.UI.Color)Application.Current.Resources["SubtleFillColorTertiary"];
+            resources["ButtonBackgroundPointerOver"] = new SolidColorBrush(secondaryColor);
+            resources["ButtonBackgroundPressed"] = new SolidColorBrush(tertiaryColor);
+            _rightMappingButton.Resources = resources;
+
+            ToolTipService.SetToolTip(_rightMappingButton, config.Tooltip);
+            _rightMappingButton.Click += OnRightMappingButtonClick;
+        }
+
+        private Microsoft.UI.Xaml.Controls.AnimatedIcon CreateAnimatedIcon(string animatedIconType)
+        {
+            var animatedIcon = new Microsoft.UI.Xaml.Controls.AnimatedIcon
+            {
+                Width = 16,
+                Height = 16,
+                Foreground = _topBarForegroundBrush
+            };
+
+            // 根据类型名创建对应的 Source
+            animatedIcon.Source = animatedIconType switch
+            {
+                "AnimatedAcceptVisualSource" => new Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedAcceptVisualSource(),
+                "AnimatedBackVisualSource" => new Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedBackVisualSource(),
+                "AnimatedChevronDownSmallVisualSource" => new Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedChevronDownSmallVisualSource(),
+                "AnimatedChevronRightDownSmallVisualSource" => new Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedChevronRightDownSmallVisualSource(),
+                "AnimatedChevronUpDownSmallVisualSource" => new Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedChevronUpDownSmallVisualSource(),
+                "AnimatedFindVisualSource" => new Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedFindVisualSource(),
+                "AnimatedGlobalNavigationButtonVisualSource" => new Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedGlobalNavigationButtonVisualSource(),
+                "AnimatedSettingsVisualSource" => new Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedSettingsVisualSource(),
+                _ => new Microsoft.UI.Xaml.Controls.AnimatedVisuals.AnimatedChevronDownSmallVisualSource() // 默认
+            };
+
+            // 设置状态为 Normal
+            Microsoft.UI.Xaml.Controls.AnimatedIcon.SetState(animatedIcon, "Normal");
+
+            return animatedIcon;
+        }
+
+        private async void OnLeftMappingButtonClick(object sender, RoutedEventArgs e)
+        {
+            if (_currentShortcut == null || WebView?.CoreWebView2 == null)
+            {
+                return;
+            }
+
+            var config = _currentShortcut.LeftButton;
+            
+            // 播放点击动画
+            if (_leftMappingButton?.Content is Microsoft.UI.Xaml.Controls.AnimatedIcon animatedIcon)
+            {
+                Microsoft.UI.Xaml.Controls.AnimatedIcon.SetState(animatedIcon, "Pressed");
+                await Task.Delay(200);
+                Microsoft.UI.Xaml.Controls.AnimatedIcon.SetState(animatedIcon, "Normal");
+            }
+            
+            // 发送快捷键到 WebView2
+            await SendHotkeyToWebViewAsync(config.Key, config.Ctrl, config.Shift, config.Alt);
+
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 左侧按钮发送快捷键: {config.GetHotkeyDisplayText()}");
+        }
+
+        private async void OnRightMappingButtonClick(object sender, RoutedEventArgs e)
+        {
+            if (_currentShortcut == null || WebView?.CoreWebView2 == null)
+            {
+                return;
+            }
+
+            var config = _currentShortcut.RightButton;
+            
+            // 播放点击动画
+            if (_rightMappingButton?.Content is Microsoft.UI.Xaml.Controls.AnimatedIcon animatedIcon)
+            {
+                Microsoft.UI.Xaml.Controls.AnimatedIcon.SetState(animatedIcon, "Pressed");
+                await Task.Delay(200);
+                Microsoft.UI.Xaml.Controls.AnimatedIcon.SetState(animatedIcon, "Normal");
+            }
+            
+            // 发送快捷键到 WebView2
+            await SendHotkeyToWebViewAsync(config.Key, config.Ctrl, config.Shift, config.Alt);
+
+            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 右侧按钮发送快捷键: {config.GetHotkeyDisplayText()}");
+        }
+
+        private async Task SendHotkeyToWebViewAsync(VirtualKey key, bool ctrl, bool shift, bool alt)
+        {
+            if (WebView?.CoreWebView2 == null || key == VirtualKey.None)
+            {
+                return;
+            }
+
+            try
+            {
+                // 构建修饰键字符串
+                var modifiers = new System.Collections.Generic.List<string>();
+                if (ctrl) modifiers.Add("ctrlKey: true");
+                if (shift) modifiers.Add("shiftKey: true");
+                if (alt) modifiers.Add("altKey: true");
+                
+                string modifiersStr = modifiers.Count > 0 ? ", " + string.Join(", ", modifiers) : "";
+                
+                // 使用 JavaScript 模拟键盘事件
+                string script = $@"
+                    (function() {{
+                        const event = new KeyboardEvent('keydown', {{
+                            key: '{GetKeyString(key)}',
+                            code: '{GetKeyCode(key)}',
+                            keyCode: {(int)key},
+                            which: {(int)key},
+                            bubbles: true,
+                            cancelable: true{modifiersStr}
+                        }});
+                        document.dispatchEvent(event);
+                        
+                        const eventUp = new KeyboardEvent('keyup', {{
+                            key: '{GetKeyString(key)}',
+                            code: '{GetKeyCode(key)}',
+                            keyCode: {(int)key},
+                            which: {(int)key},
+                            bubbles: true,
+                            cancelable: true{modifiersStr}
+                        }});
+                        document.dispatchEvent(eventUp);
+                        
+                        return 'OK';
+                    }})();
+                ";
+
+                await WebView.CoreWebView2.ExecuteScriptAsync(script);
+                System.Diagnostics.Debug.WriteLine($"[SendHotkeyToWebViewAsync] 已发送快捷键");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SendHotkeyToWebViewAsync] 发送快捷键失败: {ex.Message}");
+            }
+        }
+
+        private static string GetKeyString(VirtualKey key)
+        {
+            return key switch
+            {
+                VirtualKey.Enter => "Enter",
+                VirtualKey.Tab => "Tab",
+                VirtualKey.Escape => "Escape",
+                VirtualKey.Space => " ",
+                VirtualKey.Back => "Backspace",
+                VirtualKey.Delete => "Delete",
+                VirtualKey.F5 => "F5",
+                _ => key.ToString()
+            };
+        }
+
+        private static string GetKeyCode(VirtualKey key)
+        {
+            return key switch
+            {
+                VirtualKey.Enter => "Enter",
+                VirtualKey.Tab => "Tab",
+                VirtualKey.Escape => "Escape",
+                VirtualKey.Space => "Space",
+                VirtualKey.Back => "Backspace",
+                VirtualKey.Delete => "Delete",
+                VirtualKey.F5 => "F5",
+                _ => $"Key{key}"
+            };
+        }
+
+        #endregion
 
         /// <summary>
         /// 清理并释放 WebView 资源（公开方法，供 PageCacheManager 和 WebViewManager 调用）

@@ -9,10 +9,11 @@ namespace Docked_AI.Features.Pages.WebApp.Shared
     public enum WebAppUpdateType
     {
         None = 0,
-        Name = 1 << 0,      // 名称变化
-        Url = 1 << 1,       // URL 变化
-        Icon = 1 << 2,      // 图标变化（包括重置为默认）
-        All = Name | Url | Icon
+        Name = 1 << 0,        // 名称变化
+        Url = 1 << 1,         // URL 变化
+        Icon = 1 << 2,        // 图标变化（包括重置为默认）
+        ButtonConfig = 1 << 3, // 按钮配置变化
+        All = Name | Url | Icon | ButtonConfig
     }
 
     /// <summary>

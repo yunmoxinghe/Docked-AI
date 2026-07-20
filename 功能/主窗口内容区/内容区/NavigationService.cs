@@ -140,6 +140,7 @@ namespace Docked_AI.Features.MainWindowContent.ContentArea
             }
 
             // 触发缓存导航事件
+            System.Diagnostics.Debug.WriteLine($"[NavigationService] 🔥 触发 CachedPageNavigated 事件: {pageType.Name}");
             CachedPageNavigated?.Invoke(this, (pageType, parameter));
 
             return true;

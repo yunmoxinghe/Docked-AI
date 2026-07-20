@@ -183,6 +183,221 @@
                             HorizontalAlignment="Left"/>
                     </controls:SettingsCard>
 
+                    <!-- 键盘映射按钮配置 -->
+                    <TextBlock 
+                        x:Uid="WebAppDetailPage_KeyboardMappingSection"
+                        Text="键盘映射按钮"
+                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                        Margin="1,16,0,4"/>
+
+                    <!-- 左侧按钮配置 -->
+                    <controls:SettingsExpander
+                        x:Name="LeftButtonExpander"
+                        x:Uid="WebAppDetailPage_LeftButtonHeader"
+                        Header="左侧按钮"
+                        Description="在返回按钮后显示的键盘映射按钮，点击发送快捷键到网页"
+                        IsExpanded="False">
+                        <controls:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE92E;"/>
+                        </controls:SettingsExpander.HeaderIcon>
+                        <ToggleSwitch 
+                            x:Name="LeftButtonEnabledToggle"
+                            x:Uid="WebAppDetailPage_LeftButtonEnabledToggle"
+                            OnContent="已启用"
+                            OffContent="已禁用"
+                            Toggled="OnLeftButtonEnabledToggled"/>
+                        <controls:SettingsExpander.Items>
+                            <!-- 图标类型选择 -->
+                            <controls:SettingsCard 
+                                Header="图标类型"
+                                Description="选择按钮显示的图标样式">
+                                <ComboBox 
+                                    x:Name="LeftButtonIconTypeComboBox"
+                                    Width="200"
+                                    SelectionChanged="OnLeftButtonFieldChanged">
+                                    <ComboBoxItem Content="静态图标（FontIcon）" Tag="Static" IsSelected="True"/>
+                                    <ComboBoxItem Content="动态图标（AnimatedIcon）" Tag="Animated"/>
+                                </ComboBox>
+                            </controls:SettingsCard>
+                            
+                            <!-- 静态图标配置 -->
+                            <controls:SettingsCard 
+                                x:Name="LeftButtonStaticIconCard"
+                                Header="静态图标 Glyph"
+                                Description="Segoe Fluent Icons 字符代码">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon 
+                                        x:Name="LeftButtonStaticIconPreview"
+                                        Glyph="&#xE92E;"
+                                        FontFamily="Segoe Fluent Icons"
+                                        FontSize="24"
+                                        VerticalAlignment="Center"/>
+                                    <Button 
+                                        Content="选择"
+                                        Click="OnLeftButtonPickIconClick"/>
+                                </StackPanel>
+                            </controls:SettingsCard>
+                            
+                            <!-- 动态图标配置 -->
+                            <controls:SettingsCard 
+                                x:Name="LeftButtonAnimatedIconCard"
+                                Header="动态图标类型"
+                                Description="选择预设的 AnimatedIcon"
+                                Visibility="Collapsed">
+                                <ComboBox 
+                                    x:Name="LeftButtonAnimatedIconTypeComboBox"
+                                    Width="200"
+                                    SelectionChanged="OnLeftButtonFieldChanged">
+                                    <ComboBoxItem Content="✓ 接受/勾选" Tag="AnimatedAcceptVisualSource"/>
+                                    <ComboBoxItem Content="← 返回箭头" Tag="AnimatedBackVisualSource"/>
+                                    <ComboBoxItem Content="↓ 向下箭头" Tag="AnimatedChevronDownSmallVisualSource" IsSelected="True"/>
+                                    <ComboBoxItem Content="↘ 右转下箭头" Tag="AnimatedChevronRightDownSmallVisualSource"/>
+                                    <ComboBoxItem Content="↕ 上下箭头" Tag="AnimatedChevronUpDownSmallVisualSource"/>
+                                    <ComboBoxItem Content="🔍 搜索/放大镜" Tag="AnimatedFindVisualSource"/>
+                                    <ComboBoxItem Content="≡ 导航菜单" Tag="AnimatedGlobalNavigationButtonVisualSource"/>
+                                    <ComboBoxItem Content="⚙ 设置齿轮" Tag="AnimatedSettingsVisualSource"/>
+                                </ComboBox>
+                            </controls:SettingsCard>
+                            
+                            <!-- 工具提示文本 -->
+                            <controls:SettingsCard 
+                                Header="按钮提示文本"
+                                Description="鼠标悬停时显示的文字">
+                                <TextBox 
+                                    x:Name="LeftButtonTooltipTextBox"
+                                    PlaceholderText="执行快捷键"
+                                    Width="200"
+                                    TextChanged="OnLeftButtonFieldChanged"/>
+                            </controls:SettingsCard>
+                            
+                            <!-- 快捷键配置 -->
+                            <controls:SettingsCard 
+                                Header="要发送的快捷键"
+                                Description="点击按钮时将向网页发送以下快捷键">
+                                <Button 
+                                    x:Name="LeftButtonHotkeyButton"
+                                    Content="点击录制快捷键"
+                                    Click="OnLeftButtonHotkeyButtonClick"/>
+                            </controls:SettingsCard>
+                            
+                            <!-- 快捷键预览 -->
+                            <controls:SettingsCard 
+                                Header="当前快捷键"
+                                Description="已配置的快捷键组合">
+                                <TextBlock 
+                                    x:Name="LeftButtonHotkeyPreview"
+                                    Text="未设置"
+                                    FontSize="16"
+                                    FontWeight="SemiBold"
+                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                            </controls:SettingsCard>
+                        </controls:SettingsExpander.Items>
+                    </controls:SettingsExpander>
+
+                    <!-- 右侧按钮配置 -->
+                    <controls:SettingsExpander
+                        x:Name="RightButtonExpander"
+                        x:Uid="WebAppDetailPage_RightButtonHeader"
+                        Header="右侧按钮"
+                        Description="在关闭按钮前显示的键盘映射按钮，点击发送快捷键到网页"
+                        IsExpanded="False">
+                        <controls:SettingsExpander.HeaderIcon>
+                            <FontIcon Glyph="&#xE92E;"/>
+                        </controls:SettingsExpander.HeaderIcon>
+                        <ToggleSwitch 
+                            x:Name="RightButtonEnabledToggle"
+                            x:Uid="WebAppDetailPage_RightButtonEnabledToggle"
+                            OnContent="已启用"
+                            OffContent="已禁用"
+                            Toggled="OnRightButtonEnabledToggled"/>
+                        <controls:SettingsExpander.Items>
+                            <!-- 图标类型选择 -->
+                            <controls:SettingsCard 
+                                Header="图标类型"
+                                Description="选择按钮显示的图标样式">
+                                <ComboBox 
+                                    x:Name="RightButtonIconTypeComboBox"
+                                    Width="200"
+                                    SelectionChanged="OnRightButtonFieldChanged">
+                                    <ComboBoxItem Content="静态图标（FontIcon）" Tag="Static" IsSelected="True"/>
+                                    <ComboBoxItem Content="动态图标（AnimatedIcon）" Tag="Animated"/>
+                                </ComboBox>
+                            </controls:SettingsCard>
+                            
+                            <!-- 静态图标配置 -->
+                            <controls:SettingsCard 
+                                x:Name="RightButtonStaticIconCard"
+                                Header="静态图标 Glyph"
+                                Description="Segoe Fluent Icons 字符代码">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon 
+                                        x:Name="RightButtonStaticIconPreview"
+                                        Glyph="&#xE92E;"
+                                        FontFamily="Segoe Fluent Icons"
+                                        FontSize="24"
+                                        VerticalAlignment="Center"/>
+                                    <Button 
+                                        Content="选择"
+                                        Click="OnRightButtonPickIconClick"/>
+                                </StackPanel>
+                            </controls:SettingsCard>
+                            
+                            <!-- 动态图标配置 -->
+                            <controls:SettingsCard 
+                                x:Name="RightButtonAnimatedIconCard"
+                                Header="动态图标类型"
+                                Description="选择预设的 AnimatedIcon"
+                                Visibility="Collapsed">
+                                <ComboBox 
+                                    x:Name="RightButtonAnimatedIconTypeComboBox"
+                                    Width="200"
+                                    SelectionChanged="OnRightButtonFieldChanged">
+                                    <ComboBoxItem Content="✓ 接受/勾选" Tag="AnimatedAcceptVisualSource"/>
+                                    <ComboBoxItem Content="← 返回箭头" Tag="AnimatedBackVisualSource"/>
+                                    <ComboBoxItem Content="↓ 向下箭头" Tag="AnimatedChevronDownSmallVisualSource" IsSelected="True"/>
+                                    <ComboBoxItem Content="↘ 右转下箭头" Tag="AnimatedChevronRightDownSmallVisualSource"/>
+                                    <ComboBoxItem Content="↕ 上下箭头" Tag="AnimatedChevronUpDownSmallVisualSource"/>
+                                    <ComboBoxItem Content="🔍 搜索/放大镜" Tag="AnimatedFindVisualSource"/>
+                                    <ComboBoxItem Content="≡ 导航菜单" Tag="AnimatedGlobalNavigationButtonVisualSource"/>
+                                    <ComboBoxItem Content="⚙ 设置齿轮" Tag="AnimatedSettingsVisualSource"/>
+                                </ComboBox>
+                            </controls:SettingsCard>
+                            
+                            <!-- 工具提示文本 -->
+                            <controls:SettingsCard 
+                                Header="按钮提示文本"
+                                Description="鼠标悬停时显示的文字">
+                                <TextBox 
+                                    x:Name="RightButtonTooltipTextBox"
+                                    PlaceholderText="执行快捷键"
+                                    Width="200"
+                                    TextChanged="OnRightButtonFieldChanged"/>
+                            </controls:SettingsCard>
+                            
+                            <!-- 快捷键配置 -->
+                            <controls:SettingsCard 
+                                Header="要发送的快捷键"
+                                Description="点击按钮时将向网页发送以下快捷键">
+                                <Button 
+                                    x:Name="RightButtonHotkeyButton"
+                                    Content="点击录制快捷键"
+                                    Click="OnRightButtonHotkeyButtonClick"/>
+                            </controls:SettingsCard>
+                            
+                            <!-- 快捷键预览 -->
+                            <controls:SettingsCard 
+                                Header="当前快捷键"
+                                Description="已配置的快捷键组合">
+                                <TextBlock 
+                                    x:Name="RightButtonHotkeyPreview"
+                                    Text="未设置"
+                                    FontSize="16"
+                                    FontWeight="SemiBold"
+                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"/>
+                            </controls:SettingsCard>
+                        </controls:SettingsExpander.Items>
+                    </controls:SettingsExpander>
+
                     <!-- Cookie 管理（占位，暂不实现） -->
                     <TextBlock 
                         x:Uid="WebAppDetailPage_CookieSection"

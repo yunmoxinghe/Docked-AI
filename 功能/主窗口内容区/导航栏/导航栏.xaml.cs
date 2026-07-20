@@ -67,38 +67,46 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
 
         public void SelectNewPageItem()
         {
+            System.Diagnostics.Debug.WriteLine("[NavigationBar] 🔥 SelectNewPageItem 被调用");
             _suppressSelectionChanged = true;
             NavView.SelectedItem = CreateNavigationItem;
             TopNavView.SelectedItem = null;
             _lastSelectedNavigationItem = CreateNavigationItem; // ⭐ 修复：同步更新选中记录
             _suppressSelectionChanged = false;
+            System.Diagnostics.Debug.WriteLine($"[NavigationBar] ✅ 已选中新建页，SelectedItem={NavView.SelectedItem?.GetType().Name}");
         }
 
         public void SelectHomeItem()
         {
+            System.Diagnostics.Debug.WriteLine("[NavigationBar] 🔥 SelectHomeItem 被调用");
             _suppressSelectionChanged = true;
             NavView.SelectedItem = HomeNavigationItem;
             TopNavView.SelectedItem = null;
             _lastSelectedNavigationItem = HomeNavigationItem; // ⭐ 修复：同步更新选中记录
             _suppressSelectionChanged = false;
+            System.Diagnostics.Debug.WriteLine($"[NavigationBar] ✅ 已选中首页，SelectedItem={NavView.SelectedItem?.GetType().Name}");
         }
 
         public void SelectSettingsItem()
         {
+            System.Diagnostics.Debug.WriteLine("[NavigationBar] 🔥 SelectSettingsItem 被调用");
             _suppressSelectionChanged = true;
             NavView.SelectedItem = SettingsNavigationItem;
             TopNavView.SelectedItem = null;
             _lastSelectedNavigationItem = SettingsNavigationItem; // ⭐ 修复：同步更新选中记录
             _suppressSelectionChanged = false;
+            System.Diagnostics.Debug.WriteLine($"[NavigationBar] ✅ 已选中设置页，SelectedItem={NavView.SelectedItem?.GetType().Name}");
         }
 
         public void SelectAIItem()
         {
+            System.Diagnostics.Debug.WriteLine("[NavigationBar] 🔥 SelectAIItem 被调用");
             _suppressSelectionChanged = true;
             NavView.SelectedItem = AINavigationItem;
             TopNavView.SelectedItem = null;
             _lastSelectedNavigationItem = AINavigationItem; // ⭐ 修复：同步更新选中记录
             _suppressSelectionChanged = false;
+            System.Diagnostics.Debug.WriteLine($"[NavigationBar] ✅ 已选中 AI 页，SelectedItem={NavView.SelectedItem?.GetType().Name}");
         }
 
         /// <summary>
@@ -113,6 +121,7 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
 
         public void SelectWebAppItem(string shortcutId)
         {
+            System.Diagnostics.Debug.WriteLine($"[NavigationBar] 🔥 SelectWebAppItem 被调用: {shortcutId}");
             if (_webShortcutItems.TryGetValue(shortcutId, out NavigationViewItem? navItem))
             {
                 _suppressSelectionChanged = true;
@@ -120,6 +129,11 @@ namespace Docked_AI.Features.MainWindowContent.NavigationBar
                 TopNavView.SelectedItem = null;
                 _lastSelectedNavigationItem = navItem; // ⭐ 修复：同步更新选中记录
                 _suppressSelectionChanged = false;
+                System.Diagnostics.Debug.WriteLine($"[NavigationBar] ✅ 已选中 WebApp 标签: {shortcutId}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[NavigationBar] ⚠️ 未找到 WebApp 导航项: {shortcutId}");
             }
         }
 

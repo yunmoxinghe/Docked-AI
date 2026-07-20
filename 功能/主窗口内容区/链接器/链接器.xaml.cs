@@ -214,6 +214,7 @@ namespace Docked_AI.Features.MainWindowContent.Linker
 
         private void ContentHost_CachedPageNavigated(object? sender, (Type PageType, object? Parameter) e)
         {
+            System.Diagnostics.Debug.WriteLine($"[Linker] 🔥 收到 CachedPageNavigated 事件: {e.PageType.Name}, Parameter={(e.Parameter?.ToString() ?? "null")}");
             SyncNavigationBarSelection(e.PageType, e.Parameter);
             _isNavigatingBack = false;
             NavBar.UpdateBackButtonVisibility(ContentHost.CanGoBack);
@@ -274,25 +275,43 @@ namespace Docked_AI.Features.MainWindowContent.Linker
 
         public void SyncNavigationBarSelection(Type pageType, object? parameter)
         {
+            System.Diagnostics.Debug.WriteLine($"[Linker] 🔥 SyncNavigationBarSelection 被调用: {pageType.Name}, Parameter={(parameter?.ToString() ?? "null")}");
+            
             if (pageType == typeof(WebBrowserPage) && parameter is WebAppShortcut shortcut)
             {
+                System.Diagnostics.Debug.WriteLine($"[Linker] ✅ 选中 WebApp 标签: {shortcut.Id}");
                 NavBar.SelectWebAppItem(shortcut.Id);
             }
             else if (pageType == typeof(HomePage))
             {
+                System.Diagnostics.Debug.WriteLine($"[Linker] ✅ 选中首页");
                 NavBar.SelectHomeItem();
             }
             else if (pageType == typeof(SettingsPage))
             {
+                System.Diagnostics.Debug.WriteLine($"[Linker] ✅ 选中设置页");
                 NavBar.SelectSettingsItem();
             }
             else if (pageType == typeof(Pages.AI.AIPage))
             {
+                System.Diagnostics.Debug.WriteLine($"[Linker] ✅ 选中 AI 页");
                 NavBar.SelectAIItem();
             }
             else if (pageType == typeof(NewPage))
             {
+                System.Diagnostics.Debug.WriteLine($"[Linker] ✅ 选中新建页");
                 NavBar.SelectNewPageItem();
+            }
+            // ⭐ 修复：处理子页面（WebAppManagementPage、WebAppDetailPage）
+            // 这些页面是设置页的子页面，应该选中设置页的导航项
+            else if (pageType.Name == "WebAppManagementPage" || pageType.Name == "WebAppDetailPage")
+            {
+                System.Diagnostics.Debug.WriteLine($"[Linker] ✅ 子页面 {pageType.Name} → 选中设置页");
+                NavBar.SelectSettingsItem();
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[Linker] ⚠️ 未知页面类型，无法同步选中项");
             }
         }
 

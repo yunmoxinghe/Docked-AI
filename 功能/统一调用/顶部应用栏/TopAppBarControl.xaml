@@ -127,20 +127,22 @@
 
             <Grid Grid.Column="1" />
 
-            <StackPanel
-                Grid.Column="2"
-                Orientation="Horizontal"
-                VerticalAlignment="Center"
-                Spacing="4">
+            <Grid Grid.Column="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
                 <StackPanel
                     x:Name="RightPanel"
+                    Grid.Column="0"
                     Orientation="Horizontal"
                     VerticalAlignment="Center"
                     Spacing="4" />
 
                 <Button
                     x:Name="MoreButton"
+                    Grid.Column="1"
                     Width="40"
                     Height="40"
                     Padding="0"
@@ -161,7 +163,7 @@
                         <MenuFlyout x:Name="MoreMenuFlyout" Placement="BottomEdgeAlignedRight" />
                     </Button.Flyout>
                 </Button>
-            </StackPanel>
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>

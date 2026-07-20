@@ -10,6 +10,7 @@ namespace Docked_AI.Features.Pages.WebApp.Shared
 {
     [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
     [JsonSerializable(typeof(List<WebAppShortcutStore.StoredWebAppShortcut>))]
+    [JsonSerializable(typeof(KeyboardMappingButtonConfig))]
     internal partial class WebAppShortcutJsonContext : JsonSerializerContext
     {
     }
@@ -50,7 +51,13 @@ namespace Docked_AI.Features.Pages.WebApp.Shared
 
                 return stored
                     .Where(s => !string.IsNullOrWhiteSpace(s.Id) && !string.IsNullOrWhiteSpace(s.Url))
-                    .Select(s => new WebAppShortcut(s.Id!, s.Name ?? string.Empty, s.Url!, s.IconBytes))
+                    .Select(s => new WebAppShortcut(
+                        s.Id!, 
+                        s.Name ?? string.Empty, 
+                        s.Url!, 
+                        s.IconBytes,
+                        s.LeftButtonConfig,
+                        s.RightButtonConfig))
                     .ToList();
             }
             catch
@@ -69,7 +76,9 @@ namespace Docked_AI.Features.Pages.WebApp.Shared
                     Id = s.Id,
                     Name = s.Name,
                     Url = s.Url,
-                    IconBytes = s.IconBytes
+                    IconBytes = s.IconBytes,
+                    LeftButtonConfig = s.LeftButtonConfig,
+                    RightButtonConfig = s.RightButtonConfig
                 })
                 .ToList();
 
@@ -83,6 +92,16 @@ namespace Docked_AI.Features.Pages.WebApp.Shared
             public string? Name { get; set; }
             public string? Url { get; set; }
             public byte[]? IconBytes { get; set; }
+            
+            /// <summary>
+            /// 左侧键盘映射按钮配置（可选，默认为 null 表示使用默认禁用配置）
+            /// </summary>
+            public KeyboardMappingButtonConfig? LeftButtonConfig { get; set; }
+            
+            /// <summary>
+            /// 右侧键盘映射按钮配置（可选，默认为 null 表示使用默认禁用配置）
+            /// </summary>
+            public KeyboardMappingButtonConfig? RightButtonConfig { get; set; }
         }
     }
 }

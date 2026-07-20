@@ -14,6 +14,7 @@ using Windows.Graphics.Imaging;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.Storage.Streams;
+using Windows.System;
 
 namespace Docked_AI.Features.Pages.Settings.WebSettings
 {
@@ -29,11 +30,17 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
         private readonly 智能标题 _智能标题 = new();
         private static readonly HttpClient HttpClient = CreateHttpClient();
 
+        // 图标 Code 存储（十六进制，如 "E707"）
+        private string? _leftButtonIconCode;
+        private string? _rightButtonIconCode;
+
         private string? _appId;
         private string _originalName = string.Empty;
         private string _originalUrl = string.Empty;
         private byte[]? _originalIconBytes;
         private byte[]? _currentIconBytes;
+        private KeyboardMappingButtonConfig? _originalLeftButtonConfig;
+        private KeyboardMappingButtonConfig? _originalRightButtonConfig;
         private bool _hasChanges;
         private Button? _saveButton;
 
@@ -98,6 +105,8 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 _originalUrl = app.Url;
                 _originalIconBytes = app.IconBytes;
                 _currentIconBytes = app.IconBytes;
+                _originalLeftButtonConfig = app.LeftButtonConfig;
+                _originalRightButtonConfig = app.RightButtonConfig;
 
                 // 填充界面
                 NameTextBox.Text = app.Name;
@@ -107,6 +116,12 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 {
                     await ShowIconAsync(app.IconBytes);
                 }
+                
+                // 填充左侧按钮配置
+                LoadLeftButtonConfig(app.LeftButton);
+                
+                // 填充右侧按钮配置
+                LoadRightButtonConfig(app.RightButton);
             }
             catch (Exception ex)
             {
@@ -178,8 +193,10 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             bool nameChanged = currentName != _originalName;
             bool urlChanged = currentUrl != _originalUrl;
             bool iconChanged = !ByteArrayEquals(_currentIconBytes, _originalIconBytes);
+            bool leftButtonChanged = IsLeftButtonConfigChanged();
+            bool rightButtonChanged = IsRightButtonConfigChanged();
 
-            _hasChanges = nameChanged || urlChanged || iconChanged;
+            _hasChanges = nameChanged || urlChanged || iconChanged || leftButtonChanged || rightButtonChanged;
 
             if (_saveButton != null)
             {
@@ -385,6 +402,16 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                     updateType |= WebAppUpdateType.Icon;
                     System.Diagnostics.Debug.WriteLine("[WebAppDetailPage] 检测到图标变化");
                 }
+                
+                // 检测按钮配置变化
+                var currentLeftConfig = GetCurrentLeftButtonConfig();
+                var currentRightConfig = GetCurrentRightButtonConfig();
+                if (!IsButtonConfigEqual(currentLeftConfig, _originalLeftButtonConfig) ||
+                    !IsButtonConfigEqual(currentRightConfig, _originalRightButtonConfig))
+                {
+                    updateType |= WebAppUpdateType.ButtonConfig;
+                    System.Diagnostics.Debug.WriteLine("[WebAppDetailPage] 检测到按钮配置变化");
+                }
 
                 // 读取现有数据
                 var shortcuts = await WebAppShortcutStore.LoadAsync();
@@ -397,7 +424,18 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 if (index >= 0)
                 {
                     System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] OnSaveClick: Found app at index {index}, updating");
-                    updatedShortcuts[index] = new WebAppShortcut(_appId, name, uri.AbsoluteUri, _currentIconBytes);
+                    
+                    // 获取当前按钮配置
+                    var leftButtonConfig = GetCurrentLeftButtonConfig();
+                    var rightButtonConfig = GetCurrentRightButtonConfig();
+                    
+                    updatedShortcuts[index] = new WebAppShortcut(
+                        _appId, 
+                        name, 
+                        uri.AbsoluteUri, 
+                        _currentIconBytes,
+                        leftButtonConfig,
+                        rightButtonConfig);
                 }
                 else
                 {
@@ -419,6 +457,8 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 _originalName = name;
                 _originalUrl = uri.AbsoluteUri;
                 _originalIconBytes = _currentIconBytes;
+                _originalLeftButtonConfig = GetCurrentLeftButtonConfig();
+                _originalRightButtonConfig = GetCurrentRightButtonConfig();
                 _hasChanges = false;
 
                 System.Diagnostics.Debug.WriteLine("[WebAppDetailPage] OnSaveClick: Save successful");
@@ -521,5 +561,537 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
 
         [DllImport("user32.dll")]
         private static extern IntPtr GetForegroundWindow();
+        
+        #region 键盘映射按钮配置
+
+        // 快捷键录制状态
+        private VirtualKey _leftButtonRecordedKey = VirtualKey.None;
+        private bool _leftButtonRecordedCtrl;
+        private bool _leftButtonRecordedShift;
+        private bool _leftButtonRecordedAlt;
+        
+        private VirtualKey _rightButtonRecordedKey = VirtualKey.None;
+        private bool _rightButtonRecordedCtrl;
+        private bool _rightButtonRecordedShift;
+        private bool _rightButtonRecordedAlt;
+
+        private void LoadLeftButtonConfig(KeyboardMappingButtonConfig config)
+        {
+            System.Diagnostics.Debug.WriteLine($"[LoadLeftButtonConfig] config.StaticIconGlyph='{config.StaticIconGlyph}' (长度={config.StaticIconGlyph?.Length ?? 0})");
+            
+            LeftButtonEnabledToggle.Toggled -= OnLeftButtonEnabledToggled;
+            LeftButtonEnabledToggle.IsOn = config.IsEnabled;
+            LeftButtonEnabledToggle.Toggled += OnLeftButtonEnabledToggled;
+            
+            // 加载图标类型
+            SelectComboBoxItemByTag(LeftButtonIconTypeComboBox, config.IconType);
+            
+            // 加载静态图标：将 Glyph (Unicode) 转换为 Code (十六进制)
+            _leftButtonIconCode = GlyphToCode(config.StaticIconGlyph);
+            UpdateLeftButtonIconPreview();
+            
+            // 加载动态图标类型
+            SelectComboBoxItemByTag(LeftButtonAnimatedIconTypeComboBox, config.AnimatedIconType);
+            
+            // 加载工具提示
+            LeftButtonTooltipTextBox.Text = config.Tooltip;
+            
+            // 加载快捷键
+            _leftButtonRecordedKey = config.Key;
+            _leftButtonRecordedCtrl = config.Ctrl;
+            _leftButtonRecordedShift = config.Shift;
+            _leftButtonRecordedAlt = config.Alt;
+            
+            UpdateLeftButtonIconVisibility();
+            UpdateLeftButtonHotkeyPreview();
+            UpdateLeftButtonExpanderItemsEnabled();
+        }
+
+        private void LoadRightButtonConfig(KeyboardMappingButtonConfig config)
+        {
+            RightButtonEnabledToggle.Toggled -= OnRightButtonEnabledToggled;
+            RightButtonEnabledToggle.IsOn = config.IsEnabled;
+            RightButtonEnabledToggle.Toggled += OnRightButtonEnabledToggled;
+            
+            // 加载图标类型
+            SelectComboBoxItemByTag(RightButtonIconTypeComboBox, config.IconType);
+            
+            // 加载静态图标：将 Glyph (Unicode) 转换为 Code (十六进制)
+            _rightButtonIconCode = GlyphToCode(config.StaticIconGlyph);
+            UpdateRightButtonIconPreview();
+            
+            // 加载动态图标类型
+            SelectComboBoxItemByTag(RightButtonAnimatedIconTypeComboBox, config.AnimatedIconType);
+            
+            // 加载工具提示
+            RightButtonTooltipTextBox.Text = config.Tooltip;
+            
+            // 加载快捷键
+            _rightButtonRecordedKey = config.Key;
+            _rightButtonRecordedCtrl = config.Ctrl;
+            _rightButtonRecordedShift = config.Shift;
+            _rightButtonRecordedAlt = config.Alt;
+            
+            UpdateRightButtonIconVisibility();
+            UpdateRightButtonHotkeyPreview();
+            UpdateRightButtonExpanderItemsEnabled();
+        }
+
+        private void OnLeftButtonEnabledToggled(object sender, RoutedEventArgs e)
+        {
+            UpdateLeftButtonExpanderItemsEnabled();
+            CheckForChanges();
+        }
+
+        private void OnRightButtonEnabledToggled(object sender, RoutedEventArgs e)
+        {
+            UpdateRightButtonExpanderItemsEnabled();
+            CheckForChanges();
+        }
+
+        private void OnLeftButtonFieldChanged(object sender, RoutedEventArgs e)
+        {
+            // ✅ 使用 ReferenceEquals 进行引用比较（消除 CS0252 警告）
+            if (ReferenceEquals(sender, LeftButtonIconTypeComboBox))
+            {
+                UpdateLeftButtonIconVisibility();
+            }
+            
+            CheckForChanges();
+        }
+
+        private void OnRightButtonFieldChanged(object sender, RoutedEventArgs e)
+        {
+            // ✅ 使用 ReferenceEquals 进行引用比较（消除 CS0252 警告）
+            if (ReferenceEquals(sender, RightButtonIconTypeComboBox))
+            {
+                UpdateRightButtonIconVisibility();
+            }
+            
+            CheckForChanges();
+        }
+
+        private void UpdateLeftButtonIconVisibility()
+        {
+            var iconType = GetSelectedComboBoxTag(LeftButtonIconTypeComboBox);
+            bool isStatic = iconType == "Static";
+            
+            if (LeftButtonStaticIconCard != null)
+            {
+                LeftButtonStaticIconCard.Visibility = isStatic ? Visibility.Visible : Visibility.Collapsed;
+            }
+            
+            if (LeftButtonAnimatedIconCard != null)
+            {
+                LeftButtonAnimatedIconCard.Visibility = isStatic ? Visibility.Collapsed : Visibility.Visible;
+            }
+        }
+
+        private void UpdateRightButtonIconVisibility()
+        {
+            var iconType = GetSelectedComboBoxTag(RightButtonIconTypeComboBox);
+            bool isStatic = iconType == "Static";
+            
+            if (RightButtonStaticIconCard != null)
+            {
+                RightButtonStaticIconCard.Visibility = isStatic ? Visibility.Visible : Visibility.Collapsed;
+            }
+            
+            if (RightButtonAnimatedIconCard != null)
+            {
+                RightButtonAnimatedIconCard.Visibility = isStatic ? Visibility.Collapsed : Visibility.Visible;
+            }
+        }
+
+        private async void OnLeftButtonHotkeyButtonClick(object sender, RoutedEventArgs e)
+        {
+            var result = await HotkeyRecorderHelper.ShowRecorderAsync(
+                this,
+                _leftButtonRecordedKey,
+                _leftButtonRecordedCtrl,
+                _leftButtonRecordedShift,
+                _leftButtonRecordedAlt);
+
+            if (result != null)
+            {
+                _leftButtonRecordedKey = result.Key;
+                _leftButtonRecordedCtrl = result.Ctrl;
+                _leftButtonRecordedShift = result.Shift;
+                _leftButtonRecordedAlt = result.Alt;
+                
+                UpdateLeftButtonHotkeyPreview();
+                CheckForChanges();
+            }
+        }
+
+        private async void OnLeftButtonPickIconClick(object sender, RoutedEventArgs e)
+        {
+            var result = await IconPickerHelper.ShowPickerAsync(this, _leftButtonIconCode);
+            
+            if (result != null)
+            {
+                _leftButtonIconCode = result; // 存储 Code（十六进制）
+                UpdateLeftButtonIconPreview(); // 更新预览
+                CheckForChanges();
+            }
+        }
+
+        private async void OnRightButtonHotkeyButtonClick(object sender, RoutedEventArgs e)
+        {
+            var result = await HotkeyRecorderHelper.ShowRecorderAsync(
+                this,
+                _rightButtonRecordedKey,
+                _rightButtonRecordedCtrl,
+                _rightButtonRecordedShift,
+                _rightButtonRecordedAlt);
+
+            if (result != null)
+            {
+                _rightButtonRecordedKey = result.Key;
+                _rightButtonRecordedCtrl = result.Ctrl;
+                _rightButtonRecordedShift = result.Shift;
+                _rightButtonRecordedAlt = result.Alt;
+                
+                UpdateRightButtonHotkeyPreview();
+                CheckForChanges();
+            }
+        }
+
+        private async void OnRightButtonPickIconClick(object sender, RoutedEventArgs e)
+        {
+            var result = await IconPickerHelper.ShowPickerAsync(this, _rightButtonIconCode);
+            
+            if (result != null)
+            {
+                _rightButtonIconCode = result; // 存储 Code（十六进制）
+                UpdateRightButtonIconPreview(); // 更新预览
+                CheckForChanges();
+            }
+        }
+
+        private void UpdateLeftButtonExpanderItemsEnabled()
+        {
+            bool isEnabled = LeftButtonEnabledToggle.IsOn;
+            
+            if (LeftButtonExpander?.Items != null)
+            {
+                foreach (var item in LeftButtonExpander.Items)
+                {
+                    if (item is CommunityToolkit.WinUI.Controls.SettingsCard card)
+                    {
+                        card.IsEnabled = isEnabled;
+                    }
+                }
+            }
+        }
+
+        private void UpdateRightButtonExpanderItemsEnabled()
+        {
+            bool isEnabled = RightButtonEnabledToggle.IsOn;
+            
+            if (RightButtonExpander?.Items != null)
+            {
+                foreach (var item in RightButtonExpander.Items)
+                {
+                    if (item is CommunityToolkit.WinUI.Controls.SettingsCard card)
+                    {
+                        card.IsEnabled = isEnabled;
+                    }
+                }
+            }
+        }
+
+        private void UpdateLeftButtonHotkeyPreview()
+        {
+            if (LeftButtonHotkeyPreview == null)
+            {
+                return;
+            }
+
+            if (_leftButtonRecordedKey == VirtualKey.None)
+            {
+                LeftButtonHotkeyPreview.Text = "未设置";
+                return;
+            }
+
+            var parts = new System.Collections.Generic.List<string>();
+            if (_leftButtonRecordedCtrl) parts.Add("Ctrl");
+            if (_leftButtonRecordedShift) parts.Add("Shift");
+            if (_leftButtonRecordedAlt) parts.Add("Alt");
+            parts.Add(GetKeyDisplayName(_leftButtonRecordedKey));
+
+            LeftButtonHotkeyPreview.Text = string.Join(" + ", parts);
+        }
+
+        private void UpdateRightButtonHotkeyPreview()
+        {
+            if (RightButtonHotkeyPreview == null)
+            {
+                return;
+            }
+
+            if (_rightButtonRecordedKey == VirtualKey.None)
+            {
+                RightButtonHotkeyPreview.Text = "未设置";
+                return;
+            }
+
+            var parts = new System.Collections.Generic.List<string>();
+            if (_rightButtonRecordedCtrl) parts.Add("Ctrl");
+            if (_rightButtonRecordedShift) parts.Add("Shift");
+            if (_rightButtonRecordedAlt) parts.Add("Alt");
+            parts.Add(GetKeyDisplayName(_rightButtonRecordedKey));
+
+            RightButtonHotkeyPreview.Text = string.Join(" + ", parts);
+        }
+
+        private static string GetKeyDisplayName(VirtualKey key)
+        {
+            return key switch
+            {
+                VirtualKey.Space => "Space",
+                VirtualKey.Enter => "Enter",
+                VirtualKey.Tab => "Tab",
+                VirtualKey.Escape => "Esc",
+                VirtualKey.Back => "Backspace",
+                VirtualKey.Delete => "Delete",
+                VirtualKey.Home => "Home",
+                VirtualKey.End => "End",
+                VirtualKey.PageUp => "PageUp",
+                VirtualKey.PageDown => "PageDown",
+                VirtualKey.Left => "←",
+                VirtualKey.Right => "→",
+                VirtualKey.Up => "↑",
+                VirtualKey.Down => "↓",
+                _ => key.ToString()
+            };
+        }
+
+        private KeyboardMappingButtonConfig GetCurrentLeftButtonConfig()
+        {
+            // 防止在控件加载前调用
+            if (LeftButtonEnabledToggle == null || 
+                LeftButtonIconTypeComboBox == null || 
+                LeftButtonTooltipTextBox == null)
+            {
+                return KeyboardMappingButtonConfig.CreateDefault();
+            }
+
+            return new KeyboardMappingButtonConfig
+            {
+                IsEnabled = LeftButtonEnabledToggle.IsOn,
+                IconType = GetSelectedComboBoxTag(LeftButtonIconTypeComboBox) ?? "Static",
+                StaticIconGlyph = CodeToGlyph(_leftButtonIconCode) ?? "\uE92E", // Code → Glyph
+                AnimatedIconType = GetSelectedComboBoxTag(LeftButtonAnimatedIconTypeComboBox) ?? "AnimatedChevronDownSmallVisualSource",
+                Tooltip = LeftButtonTooltipTextBox.Text?.Trim() ?? "执行快捷键",
+                Key = _leftButtonRecordedKey,
+                Ctrl = _leftButtonRecordedCtrl,
+                Shift = _leftButtonRecordedShift,
+                Alt = _leftButtonRecordedAlt
+            };
+        }
+
+        private KeyboardMappingButtonConfig GetCurrentRightButtonConfig()
+        {
+            // 防止在控件加载前调用
+            if (RightButtonEnabledToggle == null || 
+                RightButtonIconTypeComboBox == null || 
+                RightButtonTooltipTextBox == null)
+            {
+                return KeyboardMappingButtonConfig.CreateDefault();
+            }
+
+            return new KeyboardMappingButtonConfig
+            {
+                IsEnabled = RightButtonEnabledToggle.IsOn,
+                IconType = GetSelectedComboBoxTag(RightButtonIconTypeComboBox) ?? "Static",
+                StaticIconGlyph = CodeToGlyph(_rightButtonIconCode) ?? "\uE92E", // Code → Glyph
+                AnimatedIconType = GetSelectedComboBoxTag(RightButtonAnimatedIconTypeComboBox) ?? "AnimatedChevronDownSmallVisualSource",
+                Tooltip = RightButtonTooltipTextBox.Text?.Trim() ?? "执行快捷键",
+                Key = _rightButtonRecordedKey,
+                Ctrl = _rightButtonRecordedCtrl,
+                Shift = _rightButtonRecordedShift,
+                Alt = _rightButtonRecordedAlt
+            };
+        }
+
+        private bool IsLeftButtonConfigChanged()
+        {
+            var current = GetCurrentLeftButtonConfig();
+            var original = _originalLeftButtonConfig ?? KeyboardMappingButtonConfig.CreateDefault();
+            
+            return current.IsEnabled != original.IsEnabled ||
+                   current.IconType != original.IconType ||
+                   current.StaticIconGlyph != original.StaticIconGlyph ||
+                   current.AnimatedIconType != original.AnimatedIconType ||
+                   current.Tooltip != original.Tooltip ||
+                   current.Key != original.Key ||
+                   current.Ctrl != original.Ctrl ||
+                   current.Shift != original.Shift ||
+                   current.Alt != original.Alt;
+        }
+
+        private bool IsRightButtonConfigChanged()
+        {
+            var current = GetCurrentRightButtonConfig();
+            var original = _originalRightButtonConfig ?? KeyboardMappingButtonConfig.CreateDefault();
+            
+            return current.IsEnabled != original.IsEnabled ||
+                   current.IconType != original.IconType ||
+                   current.StaticIconGlyph != original.StaticIconGlyph ||
+                   current.AnimatedIconType != original.AnimatedIconType ||
+                   current.Tooltip != original.Tooltip ||
+                   current.Key != original.Key ||
+                   current.Ctrl != original.Ctrl ||
+                   current.Shift != original.Shift ||
+                   current.Alt != original.Alt;
+        }
+
+        // 辅助方法：从 ComboBox 中选择指定 Tag 的项
+        private void SelectComboBoxItemByTag(ComboBox comboBox, string tag)
+        {
+            if (comboBox == null || string.IsNullOrEmpty(tag))
+            {
+                return;
+            }
+
+            foreach (ComboBoxItem item in comboBox.Items)
+            {
+                if (item.Tag?.ToString() == tag)
+                {
+                    comboBox.SelectedItem = item;
+                    return;
+                }
+            }
+        }
+
+        // 辅助方法：获取 ComboBox 选中项的 Tag
+        private string? GetSelectedComboBoxTag(ComboBox? comboBox)
+        {
+            return (comboBox?.SelectedItem as ComboBoxItem)?.Tag?.ToString();
+        }
+
+        // 辅助方法：比较两个按钮配置是否相等
+        private static bool IsButtonConfigEqual(KeyboardMappingButtonConfig? a, KeyboardMappingButtonConfig? b)
+        {
+            if (a == null && b == null) return true;
+            if (a == null || b == null) return false;
+            
+            return a.IsEnabled == b.IsEnabled &&
+                   a.IconType == b.IconType &&
+                   a.StaticIconGlyph == b.StaticIconGlyph &&
+                   a.AnimatedIconType == b.AnimatedIconType &&
+                   a.Tooltip == b.Tooltip &&
+                   a.Key == b.Key &&
+                   a.Ctrl == b.Ctrl &&
+                   a.Shift == b.Shift &&
+                   a.Alt == b.Alt;
+        }
+
+        #endregion
+        
+        #region 图标 Code ↔ Glyph 转换和预览更新
+
+        /// <summary>
+        /// 将 Glyph (Unicode 字符) 转换为 Code (十六进制字符串)
+        /// </summary>
+        private static string? GlyphToCode(string? glyph)
+        {
+            if (string.IsNullOrEmpty(glyph) || glyph.Length == 0)
+            {
+                System.Diagnostics.Debug.WriteLine($"[GlyphToCode] 输入为空");
+                return null;
+            }
+
+            // 获取第一个字符的 Unicode 码点
+            int codePoint = char.ConvertToUtf32(glyph, 0);
+            string code = codePoint.ToString("X"); // 转换为十六进制（大写）
+            
+            System.Diagnostics.Debug.WriteLine($"[GlyphToCode] 输入: '{glyph}' (长度={glyph.Length}), 输出: {code}, 码点={codePoint}");
+            return code;
+        }
+
+        /// <summary>
+        /// 将 Code (十六进制字符串) 转换为 Glyph (Unicode 字符)
+        /// </summary>
+        private static string? CodeToGlyph(string? code)
+        {
+            if (string.IsNullOrEmpty(code))
+            {
+                System.Diagnostics.Debug.WriteLine($"[CodeToGlyph] 输入为空");
+                return null;
+            }
+
+            try
+            {
+                // 解析十六进制字符串
+                int codePoint = Convert.ToInt32(code, 16);
+                string glyph = char.ConvertFromUtf32(codePoint);
+                
+                System.Diagnostics.Debug.WriteLine($"[CodeToGlyph] 输入: {code}, 输出: '{glyph}' (长度={glyph.Length}), 码点={codePoint}");
+                return glyph;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[CodeToGlyph] 转换失败: code={code}, 错误={ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 更新左侧按钮图标预览
+        /// </summary>
+        private void UpdateLeftButtonIconPreview()
+        {
+            if (LeftButtonStaticIconPreview == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[UpdateLeftButtonIconPreview] LeftButtonStaticIconPreview is null");
+                return;
+            }
+
+            string? glyph = CodeToGlyph(_leftButtonIconCode);
+            System.Diagnostics.Debug.WriteLine($"[UpdateLeftButtonIconPreview] _leftButtonIconCode={_leftButtonIconCode}, glyph={(glyph != null ? $"长度={glyph.Length}" : "null")}");
+            
+            if (!string.IsNullOrEmpty(glyph))
+            {
+                LeftButtonStaticIconPreview.Glyph = glyph;
+                System.Diagnostics.Debug.WriteLine($"[UpdateLeftButtonIconPreview] 已设置 Glyph, FontFamily={LeftButtonStaticIconPreview.FontFamily}");
+            }
+            else
+            {
+                // 默认图标
+                LeftButtonStaticIconPreview.Glyph = "\uE92E";
+                System.Diagnostics.Debug.WriteLine($"[UpdateLeftButtonIconPreview] 使用默认 Glyph E92E");
+            }
+        }
+
+        /// <summary>
+        /// 更新右侧按钮图标预览
+        /// </summary>
+        private void UpdateRightButtonIconPreview()
+        {
+            if (RightButtonStaticIconPreview == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"[UpdateRightButtonIconPreview] RightButtonStaticIconPreview is null");
+                return;
+            }
+
+            string? glyph = CodeToGlyph(_rightButtonIconCode);
+            System.Diagnostics.Debug.WriteLine($"[UpdateRightButtonIconPreview] _rightButtonIconCode={_rightButtonIconCode}, glyph={(glyph != null ? $"长度={glyph.Length}" : "null")}");
+            
+            if (!string.IsNullOrEmpty(glyph))
+            {
+                RightButtonStaticIconPreview.Glyph = glyph;
+                System.Diagnostics.Debug.WriteLine($"[UpdateRightButtonIconPreview] 已设置 Glyph, FontFamily={RightButtonStaticIconPreview.FontFamily}");
+            }
+            else
+            {
+                // 默认图标
+                RightButtonStaticIconPreview.Glyph = "\uE92E";
+                System.Diagnostics.Debug.WriteLine($"[UpdateRightButtonIconPreview] 使用默认 Glyph E92E");
+            }
+        }
+
+        #endregion
     }
 }
