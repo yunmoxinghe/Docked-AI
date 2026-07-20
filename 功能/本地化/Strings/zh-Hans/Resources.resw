@@ -1055,4 +1055,150 @@ https://developer.microsoft.com/microsoft-edge/webview2/</value>
   <data name="WebAppDetailPage_CookieHeader.Description" xml:space="preserve">
     <value>查看和管理此应用的 Cookie（即将推出）</value>
   </data>
+  
+  <!-- 网页应用详情页 - 键盘映射按钮 -->
+  <data name="WebAppDetailPage_KeyboardMappingSection.Text" xml:space="preserve">
+    <value>键盘映射按钮</value>
+  </data>
+  <data name="WebAppDetailPage_LeftButtonHeader.Header" xml:space="preserve">
+    <value>左侧按钮</value>
+  </data>
+  <data name="WebAppDetailPage_LeftButtonHeader.Description" xml:space="preserve">
+    <value>在返回按钮后显示的键盘映射按钮，点击发送快捷键到网页</value>
+  </data>
+  <data name="WebAppDetailPage_LeftButtonEnabledToggle.OnContent" xml:space="preserve">
+    <value>已启用</value>
+  </data>
+  <data name="WebAppDetailPage_LeftButtonEnabledToggle.OffContent" xml:space="preserve">
+    <value>已禁用</value>
+  </data>
+  <data name="WebAppDetailPage_RightButtonHeader.Header" xml:space="preserve">
+    <value>右侧按钮</value>
+  </data>
+  <data name="WebAppDetailPage_RightButtonHeader.Description" xml:space="preserve">
+    <value>在关闭按钮前显示的键盘映射按钮，点击发送快捷键到网页</value>
+  </data>
+  <data name="WebAppDetailPage_RightButtonEnabledToggle.OnContent" xml:space="preserve">
+    <value>已启用</value>
+  </data>
+  <data name="WebAppDetailPage_RightButtonEnabledToggle.OffContent" xml:space="preserve">
+    <value>已禁用</value>
+  </data>
+  
+  <!-- 图标选择器 -->
+  <data name="IconPicker_Search.PlaceholderText" xml:space="preserve">
+    <value>搜索图标名称或标签...</value>
+  </data>
+  <data name="IconPicker_CountFormat" xml:space="preserve">
+    <value>找到 {0} 个图标</value>
+  </data>
+  <data name="IconPicker_Searching" xml:space="preserve">
+    <value>搜索中...</value>
+  </data>
+  <data name="IconPicker_NotFound" xml:space="preserve">
+    <value>未找到图标</value>
+  </data>
+  
+  <!-- 网页应用详情页 - 按钮和占位符文本 -->
+  <data name="WebAppDetailPage_Name.PlaceholderText" xml:space="preserve">
+    <value>输入应用名称</value>
+  </data>
+  <data name="WebAppDetailPage_Url.PlaceholderText" xml:space="preserve">
+    <value>https://example.com</value>
+  </data>
+  <data name="WebAppDetailPage_IconUrl.PlaceholderText" xml:space="preserve">
+    <value>https://example.com/icon.png</value>
+  </data>
+  <data name="WebAppDetailPage_ChooseFile.Content" xml:space="preserve">
+    <value>选择文件</value>
+  </data>
+  <data name="WebAppDetailPage_LoadIcon.Content" xml:space="preserve">
+    <value>加载</value>
+  </data>
+  <data name="WebAppDetailPage_Reset.Content" xml:space="preserve">
+    <value>重置</value>
+  </data>
+  <data name="WebAppDetailPage_ChooseIcon.Content" xml:space="preserve">
+    <value>选择</value>
+  </data>
+  <data name="WebAppDetailPage_RecordHotkey.Content" xml:space="preserve">
+    <value>点击录制快捷键</value>
+  </data>
+  <data name="WebAppDetailPage_HotkeyNotSet.Text" xml:space="preserve">
+    <value>未设置</value>
+  </data>
+  <data name="WebAppDetailPage_CookieCount" xml:space="preserve">
+    <value>{0} 个 Cookie</value>
+  </data>
+  
+  <!-- 键盘映射按钮配置 -->
+  <data name="KeyboardMapping_IconTypeHeader" xml:space="preserve">
+    <value>图标类型</value>
+  </data>
+  <data name="KeyboardMapping_IconTypeDescription" xml:space="preserve">
+    <value>选择按钮显示的图标样式</value>
+  </data>
+  <data name="KeyboardMapping_IconTypeStatic" xml:space="preserve">
+    <value>静态图标（FontIcon）</value>
+  </data>
+  <data name="KeyboardMapping_IconTypeAnimated" xml:space="preserve">
+    <value>动态图标（AnimatedIcon）</value>
+  </data>
+  <data name="KeyboardMapping_StaticIconHeader" xml:space="preserve">
+    <value>静态图标 Glyph</value>
+  </data>
+  <data name="KeyboardMapping_StaticIconDescription" xml:space="preserve">
+    <value>Segoe Fluent Icons 字符代码</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconHeader" xml:space="preserve">
+    <value>动态图标类型</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconDescription" xml:space="preserve">
+    <value>选择预设的 AnimatedIcon</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconAccept" xml:space="preserve">
+    <value>✓ 接受/勾选</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconBack" xml:space="preserve">
+    <value>← 返回箭头</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconChevronDown" xml:space="preserve">
+    <value>↓ 向下箭头</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconChevronRightDown" xml:space="preserve">
+    <value>↘ 右转下箭头</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconChevronUpDown" xml:space="preserve">
+    <value>↕ 上下箭头</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconFind" xml:space="preserve">
+    <value>🔍 搜索/放大镜</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconMenu" xml:space="preserve">
+    <value>≡ 导航菜单</value>
+  </data>
+  <data name="KeyboardMapping_AnimatedIconSettings" xml:space="preserve">
+    <value>⚙ 设置齿轮</value>
+  </data>
+  <data name="KeyboardMapping_TooltipHeader" xml:space="preserve">
+    <value>按钮提示文本</value>
+  </data>
+  <data name="KeyboardMapping_TooltipDescription" xml:space="preserve">
+    <value>鼠标悬停时显示的文字</value>
+  </data>
+  <data name="KeyboardMapping_Tooltip.PlaceholderText" xml:space="preserve">
+    <value>执行快捷键</value>
+  </data>
+  <data name="KeyboardMapping_HotkeyHeader" xml:space="preserve">
+    <value>要发送的快捷键</value>
+  </data>
+  <data name="KeyboardMapping_HotkeyDescription" xml:space="preserve">
+    <value>点击按钮时将向网页发送以下快捷键</value>
+  </data>
+  <data name="KeyboardMapping_CurrentHotkeyHeader" xml:space="preserve">
+    <value>当前快捷键</value>
+  </data>
+  <data name="KeyboardMapping_CurrentHotkeyDescription" xml:space="preserve">
+    <value>已配置的快捷键组合</value>
+  </data>
 </root>

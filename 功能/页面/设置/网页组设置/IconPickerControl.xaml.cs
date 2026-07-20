@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Docked_AI.Features.Localization;
 
 namespace DockedAI.功能.页面.设置.网页组设置
 {
@@ -53,7 +54,7 @@ namespace DockedAI.功能.页面.设置.网页组设置
                 DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.High, () =>
                 {
                     IconsItemsView.ItemsSource = _allIcons;
-                    CountTextBlock.Text = $"共 {_allIcons.Count} 个图标";
+                    CountTextBlock.Text = string.Format(LocalizationHelper.GetString("IconPicker_CountFormat"), _allIcons.Count);
 
                     // 恢复之前的选中状态（根据 Code 查找）
                     if (!string.IsNullOrEmpty(_selectedIconCode))
@@ -93,7 +94,7 @@ namespace DockedAI.功能.页面.设置.网页组设置
         {
             // 清空列表，给用户搜索中的反馈
             IconsItemsView.ItemsSource = null;
-            CountTextBlock.Text = "搜索中...";
+            CountTextBlock.Text = LocalizationHelper.GetString("IconPicker_Searching");
 
             // 更新当前搜索词（用于中断旧的搜索线程）
             _currentSearch = search;
@@ -135,8 +136,8 @@ namespace DockedAI.功能.页面.设置.网页组设置
 
                     var count = newItems.Count;
                     CountTextBlock.Text = count > 0
-                        ? $"找到 {count} 个图标"
-                        : "未找到图标";
+                        ? string.Format(LocalizationHelper.GetString("IconPicker_CountFormat"), count)
+                        : LocalizationHelper.GetString("IconPicker_NotFound");
 
                     // 自动选中第一个结果
                     if (count > 0)

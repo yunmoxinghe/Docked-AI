@@ -51,7 +51,7 @@
         <!-- 搜索框 -->
         <TextBox
             x:Name="SearchBox"
-            PlaceholderText="搜索图标名称或标签..."
+            x:Uid="IconPicker_Search"
             TextChanged="SearchBox_TextChanged" />
 
         <!-- 计数 -->
