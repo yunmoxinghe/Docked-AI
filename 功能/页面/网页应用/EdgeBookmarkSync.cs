@@ -12,6 +12,7 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
 {
     /// <summary>
     /// Edge 收藏夹同步服务
+    /// ✅ AOT 兼容：使用 JsonDocument 手动解析，避免反射序列化
     /// </summary>
     public class EdgeBookmarkSyncService
     {
@@ -20,6 +21,16 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
         private const string LastSyncTimeKey = "EdgeBookmarkSync_LastSyncTime";
 
         private static readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
+
+        /// <summary>
+        /// 条件编译的调试日志方法
+        /// 仅在 DEBUG 模式下执行，Release 版本完全移除，避免字符串分配开销
+        /// </summary>
+        [System.Diagnostics.Conditional("DEBUG")]
+        private static void LogDebug(string message)
+        {
+            System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] {message}");
+        }
 
         /// <summary>
         /// 获取或设置是否启用 Edge 收藏夹同步
@@ -117,6 +128,8 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
 
                 System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] JSON content length: {jsonContent.Length}");
                 
+                // ✅ AOT 兼容：使用 JsonDocument 手动遍历，避免反射序列化
+                // JsonDocument 不使用反射，完全支持 Native AOT
                 var bookmarksData = JsonDocument.Parse(jsonContent);
 
                 var bookmarks = new List<EdgeBookmark>();
@@ -209,7 +222,7 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                         }
                         catch (Exception ex)
                         {
-                            System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Database test failed: {ex.Message}, skipping favicon loading");
+                            System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Database test failed: {ex}, skipping favicon loading");
                             databaseLocked = true;
                             faviconLoadFailed = true;
                         }
@@ -251,7 +264,7 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                                             }
                                             catch (Exception ex)
                                             {
-                                                System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Failed to load favicon for {bookmark.Url}: {ex.Message}");
+                                                System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Failed to load favicon for {bookmark.Url}: {ex}");
                                                 failCount++;
                                             }
                                         }
@@ -260,7 +273,7 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                                     }
                                     catch (Exception ex)
                                     {
-                                        System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Failed during favicon loading: {ex.Message}");
+                                        System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Failed during favicon loading: {ex}");
                                     }
                                     finally
                                     {
@@ -272,7 +285,7 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                             }
                             catch (Exception ex)
                             {
-                                System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Failed to load favicons: {ex.Message}");
+                                System.Diagnostics.Debug.WriteLine($"[EdgeBookmarkSync] Failed to load favicons: {ex}");
                                 faviconLoadFailed = true;
                             }
                         }

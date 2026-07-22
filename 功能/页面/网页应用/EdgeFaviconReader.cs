@@ -8,12 +8,24 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
 {
     /// <summary>
     /// Edge Favicon 数据库读取服务
+    /// ✅ AOT 兼容：Microsoft.Data.Sqlite 从 7.0+ 版本完全支持 Native AOT
+    /// 使用参数化查询，避免反射和动态代码生成
     /// </summary>
     public class EdgeFaviconReader : IDisposable
     {
         private readonly string _faviconsDbPath;
         private SqliteConnection? _connection;
         private bool _disposed;
+
+        /// <summary>
+        /// 条件编译的调试日志方法
+        /// 仅在 DEBUG 模式下执行，Release 版本完全移除，避免字符串分配开销
+        /// </summary>
+        [System.Diagnostics.Conditional("DEBUG")]
+        private static void LogDebug(string message)
+        {
+            System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] {message}");
+        }
 
         public EdgeFaviconReader()
         {
@@ -71,18 +83,18 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                 ";
                 command.ExecuteNonQuery();
                 
-                System.Diagnostics.Debug.WriteLine("[EdgeFaviconReader] Database connection opened successfully");
+                LogDebug("Database connection opened successfully");
             }
             catch (SqliteException ex) when (ex.SqliteErrorCode == 5) // SQLITE_BUSY
             {
-                System.Diagnostics.Debug.WriteLine("[EdgeFaviconReader] Database is locked by Edge browser, skipping favicon loading");
+                LogDebug("Database is locked by Edge browser, skipping favicon loading");
                 _connection?.Dispose();
                 _connection = null;
                 throw;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] Failed to open database: {ex.Message}");
+                LogDebug($"Failed to open database: {ex}");
                 _connection?.Dispose();
                 _connection = null;
                 throw;
@@ -128,26 +140,26 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                 if (reader.Read() && !reader.IsDBNull(0))
                 {
                     var imageData = (byte[])reader.GetValue(0);
-                    System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] Found favicon for {pageUrl}, size: {imageData.Length} bytes");
+                    LogDebug($"Found favicon for {pageUrl}, size: {imageData.Length} bytes");
                     return imageData;
                 }
 
-                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] No favicon found for {pageUrl}");
+                LogDebug($"No favicon found for {pageUrl}");
                 return null;
             }
             catch (SqliteException ex) when (ex.SqliteErrorCode == 5) // SQLITE_BUSY
             {
-                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] Database busy for {pageUrl}, Edge may be running. Skipping favicon.");
+                LogDebug($"Database busy for {pageUrl}, Edge may be running. Skipping favicon.");
                 return null;
             }
             catch (SqliteException ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] SQLite Error {ex.SqliteErrorCode} for {pageUrl}: {ex.Message}");
+                LogDebug($"SQLite Error {ex.SqliteErrorCode} for {pageUrl}: {ex}");
                 return null;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] Error getting favicon for {pageUrl}: {ex.Message}");
+                LogDebug($"Error getting favicon for {pageUrl}: {ex}");
                 return null;
             }
         }
@@ -185,7 +197,7 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] Error in batch favicon retrieval: {ex.Message}");
+                LogDebug($"Error in batch favicon retrieval: {ex}");
             }
 
             return result;
@@ -236,7 +248,7 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
                 if (reader.Read() && !reader.IsDBNull(0))
                 {
                     var imageData = (byte[])reader.GetValue(0);
-                    System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] Found favicon by domain for {pageUrl}, size: {imageData.Length} bytes");
+                    LogDebug($"Found favicon by domain for {pageUrl}, size: {imageData.Length} bytes");
                     return imageData;
                 }
 
@@ -244,17 +256,17 @@ namespace Docked_AI.Features.Pages.WebApp.EdgeSync
             }
             catch (SqliteException ex) when (ex.SqliteErrorCode == 5) // SQLITE_BUSY
             {
-                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] Database busy for {pageUrl}, Edge may be running. Skipping favicon.");
+                LogDebug($"Database busy for {pageUrl}, Edge may be running. Skipping favicon.");
                 return null;
             }
             catch (SqliteException ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] SQLite Error {ex.SqliteErrorCode} for {pageUrl}: {ex.Message}");
+                LogDebug($"SQLite Error {ex.SqliteErrorCode} for {pageUrl}: {ex}");
                 return null;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[EdgeFaviconReader] Error getting favicon by domain for {pageUrl}: {ex.Message}");
+                LogDebug($"Error getting favicon by domain for {pageUrl}: {ex}");
                 return null;
             }
         }

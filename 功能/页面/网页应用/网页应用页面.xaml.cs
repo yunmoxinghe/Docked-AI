@@ -25,10 +25,30 @@ using Windows.Storage.Streams;
 
 namespace Docked_AI.Features.Pages.WebApp
 {
+    /// <summary>
+    /// 网页应用创建页面
+    /// Native AOT 兼容：使用 Regex 源生成器代替运行时编译
+    /// </summary>
     public sealed partial class WebAppPage : Page
     {
         private const float IconCornerRadius = 14f;
         private static readonly HttpClient HttpClient = CreateHttpClient();
+
+        // ✅ AOT 兼容：使用 Regex 源生成器（避免运行时编译）
+        [GeneratedRegex("<title[^>]*>(.*?)</title>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
+        private static partial Regex TitleRegex();
+
+        [GeneratedRegex("\\s+")]
+        private static partial Regex WhitespaceRegex();
+
+        [GeneratedRegex("<link\\b[^>]*>", RegexOptions.IgnoreCase)]
+        private static partial Regex LinkTagRegex();
+
+        [GeneratedRegex("(\\d+)x(\\d+)", RegexOptions.IgnoreCase)]
+        private static partial Regex SizeFormatRegex();
+
+        [GeneratedRegex("(['\"])(.*?)\\1", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
+        private static partial Regex HtmlAttributeRegex();
 
         private CancellationTokenSource? _urlLookupCts;
         private CompositionRoundedRectangleGeometry? _iconClipGeometry;
@@ -358,14 +378,14 @@ namespace Docked_AI.Features.Pages.WebApp
 
         private static string ParseTitle(string html)
         {
-            Match titleMatch = Regex.Match(html, "<title[^>]*>(.*?)</title>", RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            Match titleMatch = TitleRegex().Match(html);
             if (!titleMatch.Success)
             {
                 return string.Empty;
             }
 
             string decoded = WebUtility.HtmlDecode(titleMatch.Groups[1].Value);
-            return Regex.Replace(decoded, "\\s+", " ").Trim();
+            return WhitespaceRegex().Replace(decoded, " ").Trim();
         }
 
         private static async Task<byte[]?> TryDownloadBestIconAsync(Uri websiteUri, string html, CancellationToken cancellationToken)
@@ -446,7 +466,7 @@ namespace Docked_AI.Features.Pages.WebApp
                 return new List<Uri>();
             }
 
-            MatchCollection linkMatches = Regex.Matches(html, "<link\\b[^>]*>", RegexOptions.IgnoreCase);
+            MatchCollection linkMatches = LinkTagRegex().Matches(html);
             foreach (Match linkMatch in linkMatches)
             {
                 string tag = linkMatch.Value;
@@ -481,9 +501,45 @@ namespace Docked_AI.Features.Pages.WebApp
 
         private static string GetHtmlAttribute(string tag, string attributeName)
         {
-            string pattern = attributeName + "\\s*=\\s*(['\"])(.*?)\\1";
-            Match match = Regex.Match(tag, pattern, RegexOptions.IgnoreCase | RegexOptions.Singleline);
-            return match.Success ? match.Groups[2].Value.Trim() : string.Empty;
+            string pattern = attributeName + "\\s*=\\s*";
+            Match match = HtmlAttributeRegex().Match(tag, pattern.Length - 5); // 从属性名后开始匹配
+            
+            // 手动查找属性值（更精确的匹配）
+            int attrIndex = tag.IndexOf(attributeName, StringComparison.OrdinalIgnoreCase);
+            if (attrIndex == -1)
+                return string.Empty;
+
+            int equalsIndex = tag.IndexOf('=', attrIndex);
+            if (equalsIndex == -1)
+                return string.Empty;
+
+            int startQuote = -1;
+            char quoteChar = '\0';
+            
+            // 查找起始引号
+            for (int i = equalsIndex + 1; i < tag.Length; i++)
+            {
+                if (tag[i] == '"' || tag[i] == '\'')
+                {
+                    quoteChar = tag[i];
+                    startQuote = i;
+                    break;
+                }
+                else if (!char.IsWhiteSpace(tag[i]))
+                {
+                    break; // 无引号的属性值
+                }
+            }
+
+            if (startQuote == -1)
+                return string.Empty;
+
+            // 查找结束引号
+            int endQuote = tag.IndexOf(quoteChar, startQuote + 1);
+            if (endQuote == -1)
+                return string.Empty;
+
+            return tag.Substring(startQuote + 1, endQuote - startQuote - 1).Trim();
         }
 
         private static int ParseLargestIconSize(string sizesValue)
@@ -494,7 +550,7 @@ namespace Docked_AI.Features.Pages.WebApp
             }
 
             int best = 0;
-            MatchCollection matches = Regex.Matches(sizesValue, "(\\d+)x(\\d+)", RegexOptions.IgnoreCase);
+            MatchCollection matches = SizeFormatRegex().Matches(sizesValue);
             foreach (Match match in matches)
             {
                 if (int.TryParse(match.Groups[1].Value, out int width) &&
@@ -590,8 +646,12 @@ namespace Docked_AI.Features.Pages.WebApp
             ApplyIconClip(false);
         }
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
+        /// <summary>
+        /// ✅ AOT 兼容：使用 LibraryImport 代替 DllImport
+        /// LibraryImport 使用源生成器生成编组代码，完全支持 Native AOT
+        /// </summary>
+        [LibraryImport("user32.dll")]
+        private static partial IntPtr GetForegroundWindow();
 
         private sealed record WebsiteMetadata(string Title, byte[]? IconBytes, string? Error);
     }

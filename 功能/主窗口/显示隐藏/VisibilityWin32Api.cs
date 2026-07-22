@@ -8,7 +8,7 @@ namespace Docked_AI.Features.MainWindow.Visibility
     /// 显示隐藏相关的 Win32 接口。
     /// 这里处理的是“窗口放到哪、显不显示、顶不顶层、接不接系统消息、占不占停靠栏”。
     /// </summary>
-    internal static class VisibilityWin32Api
+    internal static partial class VisibilityWin32Api
     {
         // 自定义窗口消息处理函数签名。
         // 人话就是“Windows 给你发消息时，你要按这个格式接电话”。
@@ -21,33 +21,36 @@ namespace Docked_AI.Features.MainWindow.Visibility
 
         // 改窗口的位置、大小、层级，或者顺便让它显示出来。
         // 这是控制窗口“摆在哪”的核心接口。
-        [DllImport("user32.dll")]
-        internal static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
 
         // 改窗口显示状态。
         // 比如隐藏、显示、还原，都是靠它。
-        [DllImport("user32.dll")]
-        internal static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
         // 向系统注册一条“本应用专用消息”。
         // 这样 AppBar 之类的回调消息就不会跟别的消息号撞车。
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        internal static extern uint RegisterWindowMessage(string lpString);
+        // 🔧 使用 RegisterWindowMessageW（Unicode 版本）
+        [LibraryImport("user32.dll", EntryPoint = "RegisterWindowMessageW", StringMarshalling = StringMarshalling.Utf16)]
+        internal static partial uint RegisterWindowMessage(string lpString);
 
         // 改窗口某个长整型属性。
         // 这里专门拿来替换窗口过程，也就是接管窗口消息分发。
-        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")]
-        private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+        [LibraryImport("user32.dll", EntryPoint = "SetWindowLongPtrW")]
+        private static partial IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
         // 把消息继续交给旧的窗口过程处理。
         // 人话就是“这条消息我不自己吃掉，继续按系统原来的流程走”。
-        [DllImport("user32.dll")]
-        internal static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+        [LibraryImport("user32.dll")]
+        internal static partial IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
         // 跟 Shell 交互 AppBar。
         // 也就是告诉系统“我这个窗口要像任务栏那样占据桌面边缘的一块区域”。
-        [DllImport("shell32.dll")]
-        internal static extern uint SHAppBarMessage(uint dwMessage, ref APPBARDATA pData);
+        [LibraryImport("shell32.dll")]
+        internal static partial uint SHAppBarMessage(uint dwMessage, ref APPBARDATA pData);
 
         // 把当前窗口的消息处理函数替换成我们自己的。
         internal static IntPtr SetWindowProc(IntPtr hWnd, IntPtr newWindowProc)

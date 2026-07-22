@@ -3,12 +3,14 @@ using System.Runtime.InteropServices;
 
 namespace NHotkey
 {
-    internal static class NativeMethods
+    internal static partial class NativeMethods
     {
-        [DllImport("user32.dll", SetLastError = true)]
-        internal static extern bool RegisterHotKey(IntPtr hWnd, int id, HotkeyFlags fsModifiers, uint vk);
+        [LibraryImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool RegisterHotKey(IntPtr hWnd, int id, HotkeyFlags fsModifiers, uint vk);
 
-        [DllImport("user32.dll", SetLastError = true)]
-        internal static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+        [LibraryImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool UnregisterHotKey(IntPtr hWnd, int id);
     }
 }

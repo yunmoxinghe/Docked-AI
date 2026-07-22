@@ -8,7 +8,7 @@ namespace Docked_AI.Features.Pages.Lab
     /// 窗口句柄获取辅助类
     /// 解决 WinUI 3 在托盘架构下从 Page 获取 HWND 的问题
     /// </summary>
-    public static class WindowHandleHelper
+    public static partial class WindowHandleHelper
     {
         /// <summary>
         /// 从 Page 获取其所在窗口的句柄
@@ -118,16 +118,22 @@ namespace Docked_AI.Features.Pages.Lab
                         var titleLength = Win32.GetWindowTextLength(hwnd);
                         if (titleLength > 0)
                         {
-                            var title = new System.Text.StringBuilder(titleLength + 1);
-                            Win32.GetWindowText(hwnd, title, title.Capacity);
+                            // 使用 Span<char> 替代 StringBuilder（AOT 友好）
+                            Span<char> titleBuffer = stackalloc char[titleLength + 1];
+                            var actualLength = Win32.GetWindowText(hwnd, titleBuffer);
                             
-                            // 排除 keep-alive 窗口（通常没有标题或标题为空）
-                            // 优先选择有标题的窗口
-                            if (!string.IsNullOrEmpty(title.ToString()))
+                            if (actualLength > 0)
                             {
-                                foundHwnd = hwnd;
-                                System.Diagnostics.Debug.WriteLine($"[WindowHandleHelper] 找到窗口: {title}, HWND: {hwnd}");
-                                return false; // 停止枚举
+                                var title = new string(titleBuffer.Slice(0, actualLength));
+                                
+                                // 排除 keep-alive 窗口（通常没有标题或标题为空）
+                                // 优先选择有标题的窗口
+                                if (!string.IsNullOrEmpty(title))
+                                {
+                                    foundHwnd = hwnd;
+                                    System.Diagnostics.Debug.WriteLine($"[WindowHandleHelper] 找到窗口: {title}, HWND: {hwnd}");
+                                    return false; // 停止枚举
+                                }
                             }
                         }
                     }
@@ -142,26 +148,26 @@ namespace Docked_AI.Features.Pages.Lab
         /// <summary>
         /// Win32 API 声明
         /// </summary>
-        private static class Win32
+        private static partial class Win32
         {
             public delegate bool EnumWindowsProc(IntPtr hwnd, IntPtr lParam);
 
-            [System.Runtime.InteropServices.DllImport("user32.dll")]
+            [System.Runtime.InteropServices.LibraryImport("user32.dll")]
             [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
-            public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+            public static partial bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
 
-            [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
-            public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+            [System.Runtime.InteropServices.LibraryImport("user32.dll", SetLastError = true)]
+            public static partial uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
-            [System.Runtime.InteropServices.DllImport("user32.dll")]
+            [System.Runtime.InteropServices.LibraryImport("user32.dll")]
             [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
-            public static extern bool IsWindowVisible(IntPtr hWnd);
+            public static partial bool IsWindowVisible(IntPtr hWnd);
 
-            [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
-            public static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder lpString, int nMaxCount);
+            [System.Runtime.InteropServices.LibraryImport("user32.dll", StringMarshalling = System.Runtime.InteropServices.StringMarshalling.Utf16, SetLastError = true)]
+            public static partial int GetWindowText(IntPtr hWnd, System.Span<char> lpString);
 
-            [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
-            public static extern int GetWindowTextLength(IntPtr hWnd);
+            [System.Runtime.InteropServices.LibraryImport("user32.dll", SetLastError = true)]
+            public static partial int GetWindowTextLength(IntPtr hWnd);
         }
     }
 }

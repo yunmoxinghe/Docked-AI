@@ -89,11 +89,11 @@ namespace Docked_AI.Features.MainWindow.Status
     ///    - 不能使用反射
     ///    - 委托必须使用托管方式，AOT 编译器自动生成适配代码
     /// </summary>
-    public sealed class WindowMaximizedMonitorService : IDisposable
+    public sealed partial class WindowMaximizedMonitorService : IDisposable
     {
         // Win32 API 声明
-        [DllImport("user32.dll")]
-        private static extern IntPtr SetWinEventHook(
+        [LibraryImport("user32.dll")]
+        private static partial IntPtr SetWinEventHook(
             uint eventMin,
             uint eventMax,
             IntPtr hmodWinEventProc,
@@ -102,34 +102,39 @@ namespace Docked_AI.Features.MainWindow.Status
             uint idThread,
             uint dwFlags);
 
-        [DllImport("user32.dll")]
-        private static extern bool UnhookWinEvent(IntPtr hWinEventHook);
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool UnhookWinEvent(IntPtr hWinEventHook);
 
-        [DllImport("user32.dll")]
-        private static extern bool IsWindow(IntPtr hWnd);
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool IsWindow(IntPtr hWnd);
 
-        [DllImport("user32.dll")]
-        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+        [LibraryImport("user32.dll")]
+        private static partial uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
-        [DllImport("user32.dll")]
-        private static extern bool GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl);
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool GetWindowPlacement(IntPtr hWnd, ref WINDOWPLACEMENT lpwndpl);
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
+        [LibraryImport("user32.dll")]
+        private static partial IntPtr GetForegroundWindow();
 
-        [DllImport("user32.dll")]
-        private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
 
         private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
-        [DllImport("user32.dll")]
-        private static extern bool IsWindowVisible(IntPtr hWnd);
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool IsWindowVisible(IntPtr hWnd);
 
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        private static extern int GetClassName(IntPtr hWnd, System.Text.StringBuilder lpClassName, int nMaxCount);
+        [LibraryImport("user32.dll", EntryPoint = "GetClassNameW", StringMarshalling = StringMarshalling.Utf16)]
+        private static partial int GetClassName(IntPtr hWnd, Span<char> lpClassName, int nMaxCount);
 
-        [DllImport("user32.dll")]
-        private static extern long GetWindowLongPtr(IntPtr hWnd, int nIndex);
+        [LibraryImport("user32.dll")]
+        private static partial long GetWindowLongPtr(IntPtr hWnd, int nIndex);
 
         private const int GWL_EXSTYLE = -20;
         private const long WS_EX_TOOLWINDOW = 0x00000080L;
@@ -369,9 +374,9 @@ namespace Docked_AI.Features.MainWindow.Status
             try
             {
                 // 1. 获取窗口类名
-                var className = new System.Text.StringBuilder(256);
-                GetClassName(hwnd, className, className.Capacity);
-                string classNameStr = className.ToString();
+                Span<char> classNameBuffer = stackalloc char[256];
+                int len = GetClassName(hwnd, classNameBuffer, classNameBuffer.Length);
+                string classNameStr = new string(classNameBuffer[..len]);
 
                 // 2. 过滤已知的系统 UI 窗口类名
                 string[] systemUIClasses = new[]

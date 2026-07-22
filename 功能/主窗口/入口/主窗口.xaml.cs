@@ -67,11 +67,53 @@ namespace Docked_AI
     /// </summary>
     public sealed partial class MainWindow : Window, IWindowToggle
     {
+        // ==================== 常量定义 ====================
+        
+        /// <summary>
+        /// 单帧延迟时间（毫秒）- 基于 60 FPS 计算
+        /// 用于确保 UI 渲染完成后再执行下一步操作
+        /// </summary>
+        private const int FRAME_DELAY_MS = 16;
+        
+        /// <summary>
+        /// 启动屏幕淡入动画时长（毫秒）
+        /// </summary>
+        private const int SPLASH_FADE_IN_MS = 400;
+        
+        /// <summary>
+        /// 启动屏幕显示时长（毫秒）
+        /// </summary>
+        private const int SPLASH_DISPLAY_MS = 500;
+        
+        /// <summary>
+        /// 启动屏幕总延迟时间（毫秒）= 淡入时长 + 显示时长
+        /// </summary>
+        private const int SPLASH_TOTAL_DELAY_MS = SPLASH_FADE_IN_MS + SPLASH_DISPLAY_MS;
+        
+        /// <summary>
+        /// 焦点检测延迟时间（毫秒）
+        /// 在启动屏幕结束后延迟检测窗口焦点状态
+        /// </summary>
+        private const int FOCUS_CHECK_DELAY_MS = 100;
+        
+        // ==================== 字段定义 ====================
+        
         // 核心依赖：状态容器、控制器、UI 桥接器
         private readonly MainWindowViewModel _viewModel;
         private readonly WindowHostController _windowController;
         private readonly Linker? _linker;
         private bool _isContentInitialized = false;
+
+        /// <summary>
+        /// 条件编译的调试日志方法
+        /// 仅在 DEBUG 模式下执行，Release 版本完全移除，避免字符串分配开销
+        /// </summary>
+        /// <param name="message">调试消息</param>
+        [System.Diagnostics.Conditional("DEBUG")]
+        private static void LogDebug(string message)
+        {
+            System.Diagnostics.Debug.WriteLine($"[MainWindow] {message}");
+        }
 
         /// <summary>
         /// 公开当前窗口状态，供外部组件（如托盘管理器）查询
@@ -93,17 +135,17 @@ namespace Docked_AI
             // 如果窗口失去焦点（Deactivated），且未处于固定模式时自动隐藏
             if (args.WindowActivationState == WindowActivationState.Deactivated)
             {
-                System.Diagnostics.Debug.WriteLine("[MainWindow] Window deactivated after content initialized");
+                LogDebug("Window deactivated after content initialized");
                 // 使用 ToggleWindow 来隐藏窗口（如果当前是显示状态且未固定）
                 if (_viewModel.CurrentState != WindowState.Hidden && 
                     _viewModel.CurrentState != WindowState.Pinned)
                 {
-                    System.Diagnostics.Debug.WriteLine("[MainWindow] Hiding window (not pinned)");
+                    LogDebug("Hiding window (not pinned)");
                     _windowController.ToggleWindow();
                 }
                 else if (_viewModel.CurrentState == WindowState.Pinned)
                 {
-                    System.Diagnostics.Debug.WriteLine("[MainWindow] Window is pinned, ignoring deactivation");
+                    LogDebug("Window is pinned, ignoring deactivation");
                 }
             }
         }
@@ -320,7 +362,7 @@ namespace Docked_AI
         /// </summary>
         private void UpdateWindowStateIcon()
         {
-            _linker?.NavBarInstance.UpdateWindowStateIcon(IsWindowMaximized());
+            _linker?.NavBarInstance?.UpdateWindowStateIcon(IsWindowMaximized());
         }
 
         /// <summary>
@@ -363,7 +405,7 @@ namespace Docked_AI
         /// </summary>
         private void UpdateDockToggleIcon(bool isPinned)
         {
-            _linker?.NavBarInstance.UpdateDockToggleIcon(isPinned);
+            _linker?.NavBarInstance?.UpdateDockToggleIcon(isPinned);
         }
 
         /// <summary>
@@ -502,12 +544,12 @@ namespace Docked_AI
         /// </summary>
         private async Task ShowSplashAsync()
         {
-            System.Diagnostics.Debug.WriteLine("[MainWindow] ShowSplash started");
+            LogDebug("ShowSplash started");
             
             // ⭐ 安全检查：确保窗口未关闭且 Content 可用
             if (this.Content == null)
             {
-                System.Diagnostics.Debug.WriteLine("[MainWindow] ShowSplash aborted: Content is null (window may be closed)");
+                LogDebug("ShowSplash aborted: Content is null (window may be closed)");
                 return;
             }
             
@@ -515,34 +557,34 @@ namespace Docked_AI
             // ⭐ 再次检查 Content（防止竞态条件）
             if (this.Content == null)
             {
-                System.Diagnostics.Debug.WriteLine("[MainWindow] ShowSplash aborted: Content became null during initialization");
+                LogDebug("ShowSplash aborted: Content became null during initialization");
                 return;
             }
             
             ColorOverlay.Opacity = 1;
             
             // 等待一帧，确保 UI 渲染完成
-            await Task.Delay(16); // ~1 frame at 60fps
+            await Task.Delay(FRAME_DELAY_MS);
             
             // ⭐ 检查窗口状态
             if (this.Content == null)
             {
-                System.Diagnostics.Debug.WriteLine("[MainWindow] ShowSplash aborted: Content became null after initial delay");
+                LogDebug("ShowSplash aborted: Content became null after initial delay");
                 return;
             }
             
             // 立即播放淡入动画（纯色 -> 启动屏幕）
             var fadeInStoryboard = (Storyboard)SplashOverlay.Resources["SplashFadeIn"];
             fadeInStoryboard.Begin();
-            System.Diagnostics.Debug.WriteLine("[MainWindow] Fade-in animation started");
+            LogDebug("Fade-in animation started");
 
             // 等待淡入完成 + 显示时间
-            await Task.Delay(900); // 400ms 淡入 + 500ms 显示
+            await Task.Delay(SPLASH_TOTAL_DELAY_MS);
 
             // ⭐ 检查窗口状态
             if (this.Content == null)
             {
-                System.Diagnostics.Debug.WriteLine("[MainWindow] ShowSplash aborted: Content became null during display");
+                LogDebug("ShowSplash aborted: Content became null during display");
                 return;
             }
             
@@ -556,16 +598,16 @@ namespace Docked_AI
             };
 
             fadeOutStoryboard.Begin();
-            System.Diagnostics.Debug.WriteLine("[MainWindow] Fade-out animation started");
+            LogDebug("Fade-out animation started");
             
             // 等待淡出动画完成
             await tcs.Task;
-            System.Diagnostics.Debug.WriteLine("[MainWindow] Fade-out animation completed");
+            LogDebug("Fade-out animation completed");
             
             // ⭐ 检查窗口状态
             if (this.Content == null)
             {
-                System.Diagnostics.Debug.WriteLine("[MainWindow] ShowSplash aborted: Content became null after fade-out");
+                LogDebug("ShowSplash aborted: Content became null after fade-out");
                 return;
             }
             
@@ -573,17 +615,17 @@ namespace Docked_AI
             try
             {
                 this.SystemBackdrop = new Microsoft.UI.Xaml.Media.DesktopAcrylicBackdrop();
-                System.Diagnostics.Debug.WriteLine("[MainWindow] Acrylic backdrop set after splash screen");
+                LogDebug("Acrylic backdrop set after splash screen");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[MainWindow] Failed to set acrylic backdrop: {ex.Message}");
+                LogDebug($"Failed to set acrylic backdrop: {ex.Message}");
             }
             
             // ⭐ 检查窗口状态
             if (this.Content == null)
             {
-                System.Diagnostics.Debug.WriteLine("[MainWindow] ShowSplash aborted: Content became null after backdrop setup");
+                LogDebug("ShowSplash aborted: Content became null after backdrop setup");
                 return;
             }
             
@@ -596,19 +638,19 @@ namespace Docked_AI
 
             // ⭐ 启动屏幕结束后加载内容（导航到首页）
             _linker?.LoadContent();
-            System.Diagnostics.Debug.WriteLine("[MainWindow] Linker content loaded");
+            LogDebug("Linker content loaded");
 
             // ⭐ 标记内容初始化完成（启动屏幕结束后）
             _isContentInitialized = true;
-            System.Diagnostics.Debug.WriteLine("[MainWindow] Content initialization completed");
+            LogDebug("Content initialization completed");
 
             // ⭐ 延迟检测焦点，如果失去焦点则自动隐藏（除非处于固定模式）
-            await Task.Delay(100);
+            await Task.Delay(FOCUS_CHECK_DELAY_MS);
             
             // ⭐ 最后检查窗口状态
             if (this.Content == null)
             {
-                System.Diagnostics.Debug.WriteLine("[MainWindow] ShowSplash aborted: Content became null during focus check");
+                LogDebug("ShowSplash aborted: Content became null during focus check");
                 return;
             }
             
@@ -618,28 +660,28 @@ namespace Docked_AI
             
             if (hwnd != foregroundWindow)
             {
-                System.Diagnostics.Debug.WriteLine("[MainWindow] Window lost focus after initialization");
+                LogDebug("Window lost focus after initialization");
                 // 使用 ToggleWindow 来隐藏窗口（如果当前是显示状态且未固定）
                 if (_viewModel.CurrentState != WindowState.Hidden && 
                     _viewModel.CurrentState != WindowState.Pinned)
                 {
-                    System.Diagnostics.Debug.WriteLine("[MainWindow] Hiding window (not pinned)");
+                    LogDebug("Hiding window (not pinned)");
                     _windowController.ToggleWindow();
                 }
                 else if (_viewModel.CurrentState == WindowState.Pinned)
                 {
-                    System.Diagnostics.Debug.WriteLine("[MainWindow] Window is pinned, ignoring focus loss");
+                    LogDebug("Window is pinned, ignoring focus loss");
                 }
             }
             else
             {
-                System.Diagnostics.Debug.WriteLine("[MainWindow] Window has focus after initialization, keeping visible");
+                LogDebug("Window has focus after initialization, keeping visible");
             }
         }
 
         // Win32 API 用于获取前台窗口
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
+        [LibraryImport("user32.dll")]
+        private static partial IntPtr GetForegroundWindow();
 
         /// <summary>
         /// 处理实验室页面的刷新监听器状态请求
@@ -647,7 +689,7 @@ namespace Docked_AI
         /// </summary>
         private void OnRefreshMonitorStateRequested(object? sender, EventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("[MainWindow] OnRefreshMonitorStateRequested triggered");
+            LogDebug("OnRefreshMonitorStateRequested triggered");
             _windowController.RequestRefreshMonitorState();
         }
 
@@ -657,7 +699,7 @@ namespace Docked_AI
         /// </summary>
         private void OnLabPageWindowMaximizedStateChanged(object? sender, bool isMaximized)
         {
-            System.Diagnostics.Debug.WriteLine($"[MainWindow] OnLabPageWindowMaximizedStateChanged: isMaximized={isMaximized}");
+            LogDebug($"OnLabPageWindowMaximizedStateChanged: isMaximized={isMaximized}");
             // 这里可以根据需要添加额外的处理逻辑
             // 目前事件主要用于实验室页面自身的 UI 更新
         }

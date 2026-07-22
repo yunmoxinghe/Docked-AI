@@ -338,10 +338,24 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
         {
             if (sender is FrameworkElement element && element.Tag is WebAppShortcut shortcut)
             {
+                // ⭐ 增强调试：详细记录导航信息
+                System.Diagnostics.Debug.WriteLine($"[WebAppManagementPage] OnAppCardClick 被调用");
+                System.Diagnostics.Debug.WriteLine($"[WebAppManagementPage] shortcut.Id = {shortcut.Id}");
+                System.Diagnostics.Debug.WriteLine($"[WebAppManagementPage] shortcut.Name = {shortcut.Name}");
+                
                 // 导航到详情页面，传递应用 ID
                 var animationType = ExperimentalSettings.SubPageNavigationAnimation;
                 var transitionInfo = GetNavigationTransitionInfo(animationType);
+                
+                System.Diagnostics.Debug.WriteLine($"[WebAppManagementPage] 开始导航到 WebAppDetailPage，参数类型: {shortcut.Id.GetType().FullName}");
                 Frame.Navigate(typeof(WebAppDetailPage), shortcut.Id, transitionInfo);
+                System.Diagnostics.Debug.WriteLine($"[WebAppManagementPage] 导航完成");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[WebAppManagementPage] ❌ OnAppCardClick: sender 或 Tag 类型不匹配");
+                System.Diagnostics.Debug.WriteLine($"[WebAppManagementPage]    sender 类型: {sender?.GetType().FullName ?? "null"}");
+                System.Diagnostics.Debug.WriteLine($"[WebAppManagementPage]    Tag 类型: {(sender as FrameworkElement)?.Tag?.GetType().FullName ?? "null"}");
             }
         }
 

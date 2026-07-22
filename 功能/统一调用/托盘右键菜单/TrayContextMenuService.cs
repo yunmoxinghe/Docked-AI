@@ -12,7 +12,7 @@ namespace Docked_AI.功能.统一调用.托盘右键菜单;
 /// 托盘右键菜单服务
 /// 统一管理托盘图标的右键菜单项
 /// </summary>
-public static class TrayContextMenuService
+public static partial class TrayContextMenuService
 {
     /// <summary>
     /// 创建完整的托盘菜单（自动检测输入类型）
@@ -467,8 +467,9 @@ public static class TrayContextMenuService
     }
 
     // Win32 API：终止进程（最后的手段）
-    [System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool TerminateProcess(IntPtr hProcess, uint uExitCode);
+    [System.Runtime.InteropServices.LibraryImport("kernel32.dll", SetLastError = true)]
+    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    private static partial bool TerminateProcess(IntPtr hProcess, uint uExitCode);
 
     /// <summary>
     /// 添加自定义菜单项

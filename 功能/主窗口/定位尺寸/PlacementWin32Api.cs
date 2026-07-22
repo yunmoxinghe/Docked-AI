@@ -6,18 +6,20 @@ namespace Docked_AI.Features.MainWindow.Placement
     /// 定位尺寸相关的 Win32 接口。
     /// 这里关注的是“屏幕有多大、工作区多大”，不处理窗口外观和显示状态。
     /// </summary>
-    internal static class PlacementWin32Api
+    internal static partial class PlacementWin32Api
     {
         // 读取系统尺寸信息。
         // 这里主要用它拿整块屏幕的宽高。
-        [DllImport("user32.dll")]
-        internal static extern int GetSystemMetrics(int nIndex);
+        [LibraryImport("user32.dll")]
+        internal static partial int GetSystemMetrics(int nIndex);
 
         // 读取系统参数。
         // 这里传 SPI_GETWORKAREA 时，意思是“告诉我桌面里真正可用的工作区”，
         // 也就是扣掉任务栏后的那块区域。
-        [DllImport("user32.dll")]
-        internal static extern bool SystemParametersInfo(int uAction, int uParam, ref RECT lpvParam, int fuWinIni);
+        // 🔧 使用 SystemParametersInfoW（Unicode 版本）
+        [LibraryImport("user32.dll", EntryPoint = "SystemParametersInfoW")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        internal static partial bool SystemParametersInfo(int uAction, int uParam, ref RECT lpvParam, int fuWinIni);
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct RECT

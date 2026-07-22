@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -10,7 +11,7 @@ using WinRT.Interop;
 
 namespace Docked_AI.Features.Tray
 {
-    public class SystemTrayIcon : IDisposable
+    public partial class SystemTrayIcon : IDisposable
     {
         private const uint WM_APP = 0x8000;
         private const uint TRAY_CALLBACK = WM_APP + 100;
@@ -33,8 +34,9 @@ namespace Docked_AI.Features.Tray
                 
                 System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Package name: {packageName}");
                 
-                // 使用包名的哈希值生成稳定的 GUID
-                // 这样相同包名总是生成相同 GUID，但不同包（开发版/正式版）会生成不同 GUID
+                // ✅ Native AOT 兼容：使用 SHA256.HashData 静态方法
+                // .NET 5+ 引入的静态方法，AOT 友好且性能更好
+                // 参考：https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1850
                 var hash = System.Security.Cryptography.SHA256.HashData(
                     System.Text.Encoding.UTF8.GetBytes(packageName));
                 
@@ -50,7 +52,7 @@ namespace Docked_AI.Features.Tray
             catch (Exception ex)
             {
                 // 如果获取失败（例如未打包应用），使用固定 GUID
-                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Failed to get package identity, using fallback GUID: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Failed to get package identity, using fallback GUID: {ex}");
                 return new Guid("A5B8C3D4-E6F7-4891-A2B3-C4D5E6F78901");
             }
         }
@@ -78,8 +80,8 @@ namespace Docked_AI.Features.Tray
 
             // 🔧 设置窗口样式：WS_POPUP + WS_EX_TRANSPARENT + WS_EX_LAYERED
             // 这样窗口完全透明且不接收鼠标事件
-            SetWindowLongPtr(_hWnd, GWL_STYLE, WS_POPUP);
-            SetWindowLongPtr(_hWnd, GWL_EXSTYLE, WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW);
+            SetWindowLongPtr(_hWnd, GWL_STYLE, unchecked((IntPtr)WS_POPUP));
+            SetWindowLongPtr(_hWnd, GWL_EXSTYLE, unchecked((IntPtr)(WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW)));
             
             // 🔧 设置窗口完全透明（alpha = 0）
             SetLayeredWindowAttributes(_hWnd, 0, 0, LWA_ALPHA);
@@ -147,7 +149,7 @@ namespace Docked_AI.Features.Tray
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Error removing tray icon: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Error removing tray icon: {ex}");
             }
 
             // 2️⃣ 移除 window subclass
@@ -161,7 +163,7 @@ namespace Docked_AI.Features.Tray
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Error removing window subclass: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Error removing window subclass: {ex}");
             }
 
             // 3️⃣ 关闭隐藏窗口
@@ -173,7 +175,7 @@ namespace Docked_AI.Features.Tray
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Error closing hidden window: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Error closing hidden window: {ex}");
                 }
             }
 
@@ -188,7 +190,7 @@ namespace Docked_AI.Features.Tray
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Error destroying icon: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Error destroying icon: {ex}");
             }
 
             // 5️⃣ 释放 GCHandle
@@ -201,7 +203,7 @@ namespace Docked_AI.Features.Tray
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Error freeing GCHandle: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Error freeing GCHandle: {ex}");
             }
         }
 
@@ -383,9 +385,8 @@ namespace Docked_AI.Features.Tray
             }
             catch (Exception ex)
             {
-                // 🔧 P2: 记录异常但不重新抛出，避免从 native callback 抛出导致崩溃
-                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Exception in WndProc: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Stack trace: {ex.StackTrace}");
+                // 🔧 P2: 记录完整异常信息但不重新抛出，避免从 native callback 抛出导致崩溃
+                System.Diagnostics.Debug.WriteLine($"[SystemTrayIcon] Exception in WndProc: {ex}");
                 return DefSubclassProc(hWnd, uMsg, wParam, lParam);
             }
         }
@@ -429,7 +430,9 @@ namespace Docked_AI.Features.Tray
             
             // 🔧 关键修复：设置 MenuFlyout 的 Presenter 样式来调整阴影偏移
             // 使用 -8px 的负边距来微调菜单位置
-            if (flyout is MenuFlyout menuFlyout)
+            // 🔧 AOT 兼容：使用 as + null 检查代替 is 模式匹配
+            var menuFlyout = flyout as MenuFlyout;
+            if (menuFlyout != null)
             {
                 var presenterStyle = new Microsoft.UI.Xaml.Style(typeof(Microsoft.UI.Xaml.Controls.MenuFlyoutPresenter));
                 
@@ -542,7 +545,9 @@ namespace Docked_AI.Features.Tray
 
         private void OnFlyoutClosed(object? sender, object e)
         {
-            if (sender is FlyoutBase flyout)
+            // 🔧 AOT 兼容：使用 as + null 检查代替 is 模式匹配
+            var flyout = sender as FlyoutBase;
+            if (flyout != null)
             {
                 flyout.Closed -= OnFlyoutClosed;
                 ShowWindow(_hWnd, 0);
@@ -617,8 +622,8 @@ namespace Docked_AI.Features.Tray
             public Guid guidItem;
         }
 
-        [DllImport("shell32.dll")]
-        private static extern int Shell_NotifyIconGetRect(ref NOTIFYICONIDENTIFIER identifier, out RECT iconLocation);
+        [LibraryImport("shell32.dll")]
+        private static partial int Shell_NotifyIconGetRect(ref NOTIFYICONIDENTIFIER identifier, out RECT iconLocation);
 
         [StructLayout(LayoutKind.Sequential)]
         private struct NOTIFYICONIDENTIFIER
@@ -658,77 +663,92 @@ namespace Docked_AI.Features.Tray
             public uint dwFlags;
         }
 
-        [DllImport("shell32.dll", SetLastError = true)]
-        private static extern IntPtr SHAppBarMessage(uint dwMessage, ref APPBARDATA pData);
+        [LibraryImport("shell32.dll", SetLastError = true)]
+        private static partial IntPtr SHAppBarMessage(uint dwMessage, ref APPBARDATA pData);
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
+        [LibraryImport("user32.dll")]
+        private static partial IntPtr MonitorFromWindow(IntPtr hwnd, uint dwFlags);
 
-        [DllImport("user32.dll")]
-        private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+        [LibraryImport("user32.dll", EntryPoint = "GetMonitorInfoW")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
 
         private const uint ABM_GETTASKBARPOS = 5;
         private const uint MONITOR_DEFAULTTONEAREST = 2;
 
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern uint SetWindowLongPtr(IntPtr hWnd, int nIndex, uint dwNewLong);
+        // 🔧 x64 平台使用 SetWindowLongPtrW（Unicode 版本）
+        [LibraryImport("user32.dll", EntryPoint = "SetWindowLongPtrW", SetLastError = true)]
+        private static partial nint SetWindowLongPtr(nint hWnd, int nIndex, nint dwNewLong);
 
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool SetLayeredWindowAttributes(IntPtr hwnd, uint crKey, byte bAlpha, uint dwFlags);
+        [LibraryImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool SetLayeredWindowAttributes(IntPtr hwnd, uint crKey, byte bAlpha, uint dwFlags);
 
-        [DllImport("comctl32.dll")]
-        private static extern bool SetWindowSubclass(IntPtr hWnd, IntPtr pfnSubclass, nuint uIdSubclass, nuint dwRefData);
+        [LibraryImport("comctl32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool SetWindowSubclass(IntPtr hWnd, IntPtr pfnSubclass, nuint uIdSubclass, nuint dwRefData);
 
-        [DllImport("comctl32.dll")]
-        private static extern bool RemoveWindowSubclass(IntPtr hWnd, IntPtr pfnSubclass, nuint uIdSubclass);
+        [LibraryImport("comctl32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool RemoveWindowSubclass(IntPtr hWnd, IntPtr pfnSubclass, nuint uIdSubclass);
 
-        [DllImport("comctl32.dll")]
-        private static extern IntPtr DefSubclassProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
+        [LibraryImport("comctl32.dll")]
+        private static partial IntPtr DefSubclassProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
 
-        [DllImport("user32.dll")]
-        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
-        [DllImport("user32.dll")]
-        private static extern bool SetForegroundWindow(IntPtr hWnd);
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool SetForegroundWindow(IntPtr hWnd);
 
-        [DllImport("user32.dll")]
-        private static extern uint GetDpiForWindow(IntPtr hwnd);
+        [LibraryImport("user32.dll")]
+        private static partial uint GetDpiForWindow(IntPtr hwnd);
 
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        private static extern IntPtr LoadImage(IntPtr hInst, IntPtr name, uint type, int cx, int cy, uint fuLoad);
+        // 🔧 LoadImageW 是 Unicode 版本的 API
+        [LibraryImport("user32.dll", EntryPoint = "LoadImageW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+        private static partial IntPtr LoadImage(IntPtr hInst, IntPtr name, uint type, int cx, int cy, uint fuLoad);
 
         [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool Shell_NotifyIconW(uint dwMessage, ref NOTIFYICONDATAW lpData);
 
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool DestroyIcon(IntPtr hIcon);
+        [LibraryImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool DestroyIcon(IntPtr hIcon);
 
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
+        [LibraryImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
 
-        [DllImport("user32.dll")]
-        private static extern bool GetCursorPos(out POINT lpPoint);
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool GetCursorPos(out POINT lpPoint);
 
-        [DllImport("user32.dll")]
-        private static extern bool SetCursorPos(int X, int Y);
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool SetCursorPos(int X, int Y);
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetShellWindow();
+        [LibraryImport("user32.dll")]
+        private static partial IntPtr GetShellWindow();
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
+        [LibraryImport("user32.dll")]
+        private static partial IntPtr GetForegroundWindow();
 
-        [DllImport("user32.dll")]
-        private static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+        [LibraryImport("user32.dll", EntryPoint = "PostMessageW")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetMessageExtraInfo();
+        [LibraryImport("user32.dll")]
+        private static partial IntPtr GetMessageExtraInfo();
 
-        [DllImport("user32.dll")]
-        private static extern int GetSystemMetrics(int nIndex);
+        [LibraryImport("user32.dll")]
+        private static partial int GetSystemMetrics(int nIndex);
 
-        [DllImport("user32.dll")]
-        private static extern bool GetLastInputInfo(ref LASTINPUTINFO plii);
+        [LibraryImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool GetLastInputInfo(ref LASTINPUTINFO plii);
 
         [StructLayout(LayoutKind.Sequential)]
         private struct LASTINPUTINFO

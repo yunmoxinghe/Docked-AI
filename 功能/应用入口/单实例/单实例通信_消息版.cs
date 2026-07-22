@@ -18,7 +18,7 @@ namespace Docked_AI.Features.AppEntry.SingleInstance
     /// - 系统级消息 ID（避免冲突）
     /// - 零配置，自动工作
     /// </summary>
-    public class SingleInstanceCommunicationMessage : IDisposable
+    public partial class SingleInstanceCommunicationMessage : IDisposable
     {
         // 注册全局唯一的 Windows 消息
         private static readonly uint WM_SHOW_DOCKED_AI;
@@ -30,18 +30,18 @@ namespace Docked_AI.Features.AppEntry.SingleInstance
         private IntPtr _oldWndProc = IntPtr.Zero;
 
         // Win32 API 声明
-        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        private static extern uint RegisterWindowMessage(string lpString);
+        [LibraryImport("user32.dll", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
+        private static partial uint RegisterWindowMessage(string lpString);
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [LibraryImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+        private static partial bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+        [LibraryImport("user32.dll", SetLastError = true)]
+        private static partial IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
+        [LibraryImport("user32.dll")]
+        private static partial IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
         private const int GWL_WNDPROC = -4;
         private static readonly IntPtr HWND_BROADCAST = new IntPtr(0xFFFF);

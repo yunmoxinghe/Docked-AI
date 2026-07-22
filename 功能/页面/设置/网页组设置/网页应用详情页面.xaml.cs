@@ -1,13 +1,16 @@
 using Docked_AI.Features.Pages.WebApp.Shared;
 using Docked_AI.Features.UnifiedCalls.TopAppBar;
 using Docked_AI.Features.Localization;
+using Docked_AI.Features.MainWindow.Entry;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
 using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
@@ -19,8 +22,14 @@ using Windows.System;
 
 namespace Docked_AI.Features.Pages.Settings.WebSettings
 {
-    public sealed partial class WebAppDetailPage : Page
+    public sealed partial class WebAppDetailPage : Page, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
         private const double MinResponsiveWidth = 320;
         private const double MaxResponsiveWidth = 760;
         private const double MinHorizontalMargin = 16;
@@ -29,7 +38,59 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
         private double _lastMeasuredWidth = -1;
 
         private readonly 智能标题 _智能标题 = new();
+
+        /// <summary>
+        /// 设置左侧按钮图标类型的可见性
+        /// ✅ AOT 友好：直接操作控件 Visibility，无需 x:Bind
+        /// </summary>
+        private void SetLeftButtonIconVisibility(bool isStatic)
+        {
+            if (LeftButtonStaticIconCard != null && LeftButtonAnimatedIconCard != null)
+            {
+                LeftButtonStaticIconCard.Visibility = isStatic ? Visibility.Visible : Visibility.Collapsed;
+                LeftButtonAnimatedIconCard.Visibility = isStatic ? Visibility.Collapsed : Visibility.Visible;
+                
+                LogDebug($"[SetLeftButtonIconVisibility] Static={isStatic}, StaticCard.Visibility={LeftButtonStaticIconCard.Visibility}, AnimatedCard.Visibility={LeftButtonAnimatedIconCard.Visibility}");
+            }
+        }
+
+        /// <summary>
+        /// 设置右侧按钮图标类型的可见性
+        /// ✅ AOT 友好：直接操作控件 Visibility，无需 x:Bind
+        /// </summary>
+        private void SetRightButtonIconVisibility(bool isStatic)
+        {
+            if (RightButtonStaticIconCard != null && RightButtonAnimatedIconCard != null)
+            {
+                RightButtonStaticIconCard.Visibility = isStatic ? Visibility.Visible : Visibility.Collapsed;
+                RightButtonAnimatedIconCard.Visibility = isStatic ? Visibility.Collapsed : Visibility.Visible;
+                LogDebug($"[SetRightButtonIconVisibility] Static={isStatic}, StaticCard.Visibility={RightButtonStaticIconCard.Visibility}, AnimatedCard.Visibility={RightButtonAnimatedIconCard.Visibility}");
+            }
+        }
+        // ✅ AOT 修复：动态图标类型的 Tag 映射数组（对应 XAML 中的 ComboBoxItem 顺序）
+        private static readonly string[] AnimatedIconTypes = 
+        {
+            "AnimatedAcceptVisualSource",                    // 索引 0
+            "AnimatedBackVisualSource",                      // 索引 1
+            "AnimatedChevronDownSmallVisualSource",          // 索引 2 (默认)
+            "AnimatedChevronRightDownSmallVisualSource",     // 索引 3
+            "AnimatedChevronUpDownSmallVisualSource",        // 索引 4
+            "AnimatedFindVisualSource",                      // 索引 5
+            "AnimatedGlobalNavigationButtonVisualSource",    // 索引 6
+            "AnimatedSettingsVisualSource"                   // 索引 7
+        };
+
         private static readonly HttpClient HttpClient = CreateHttpClient();
+
+        /// <summary>
+        /// 条件编译的调试日志方法
+        /// 仅在 DEBUG 模式下执行，Release 版本完全移除，避免字符串分配开销
+        /// </summary>
+        [System.Diagnostics.Conditional("DEBUG")]
+        private static void LogDebug(string message)
+        {
+            System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] {message}");
+        }
 
         // 图标 Code 存储（十六进制，如 "E707"）
         private string? _leftButtonIconCode;
@@ -57,10 +118,27 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             base.OnNavigatedTo(e);
             _智能标题.Setup(PageScrollViewer, PageTitleBlock);
 
+            // ⭐ 增强调试：详细记录导航参数
+            LogDebug($"OnNavigatedTo 被调用");
+            LogDebug($"e.Parameter 类型: {e.Parameter?.GetType().FullName ?? "null"}");
+            LogDebug($"e.Parameter 值: {e.Parameter}");
+
             // 获取传递的应用 ID
             if (e.Parameter is string appId)
             {
                 _appId = appId;
+                LogDebug($"✅ 成功获取 appId: {_appId}");
+            }
+            else
+            {
+                LogDebug($"❌ 无法转换 Parameter 为 string，实际类型: {e.Parameter?.GetType().FullName ?? "null"}");
+                
+                // ⭐ 尝试其他可能的类型转换
+                if (e.Parameter != null)
+                {
+                    _appId = e.Parameter.ToString();
+                    LogDebug($"⚠️ 使用 ToString() 转换: {_appId}");
+                }
             }
 
             // 添加保存按钮到标题栏（使用 C# Unicode 转义格式）
@@ -69,6 +147,8 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             {
                 _saveButton.IsEnabled = false;
             }
+            
+            LogDebug($"OnNavigatedTo 完成，_appId = {_appId ?? "null"}");
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -77,29 +157,103 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             _智能标题.Cleanup();
         }
 
+        /// <summary>
+        /// 左侧按钮图标类型变更事件（XAML 绑定）
+        /// ✅ AOT 友好：使用 SelectedIndex 而不是 Tag 转换
+        /// </summary>
+        private void OnLeftButtonIconTypeChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.SelectedIndex >= 0)
+            {
+                // 0 = Static, 1 = Animated
+                bool isStatic = comboBox.SelectedIndex == 0;
+                SetLeftButtonIconVisibility(isStatic);
+                CheckForChanges();
+            }
+        }
+
+        /// <summary>
+        /// 右侧按钮图标类型变更事件（XAML 绑定）
+        /// ✅ AOT 友好：使用 SelectedIndex 而不是 Tag 转换
+        /// </summary>
+        private void OnRightButtonIconTypeChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox comboBox && comboBox.SelectedIndex >= 0)
+            {
+                // 0 = Static, 1 = Animated
+                bool isStatic = comboBox.SelectedIndex == 0;
+                SetRightButtonIconVisibility(isStatic);
+                CheckForChanges();
+            }
+        }
+
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
             await LoadAppDataAsync();
             UpdateVisualState();
         }
+        
+        /// <summary>
+        /// AOT 调试弹窗（仅 Debug 模式）
+        /// </summary>
+        private async System.Threading.Tasks.Task ShowDebugDialogAsync(string title, string message)
+        {
+            #if DEBUG
+            try
+            {
+                if (this.XamlRoot == null) return;
+                
+                var dialog = new ContentDialog
+                {
+                    Title = $"🔍 {title}",
+                    Content = message,
+                    CloseButtonText = "确定",
+                    XamlRoot = this.XamlRoot
+                };
+                await dialog.ShowAsync();
+            }
+            catch
+            {
+                // 忽略弹窗错误
+            }
+            #endif
+            await System.Threading.Tasks.Task.CompletedTask;
+        }
 
         private async Task LoadAppDataAsync()
         {
+            LogDebug($"LoadAppDataAsync 开始，_appId = {_appId ?? "null"}");
+            
             if (string.IsNullOrEmpty(_appId))
             {
+                LogDebug("❌ _appId 为空，跳过加载");
+                ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_AppNotFound"), InfoBarSeverity.Error);
                 return;
             }
 
             try
             {
+                LogDebug("开始调用 WebAppShortcutStore.LoadAsync()");
                 var shortcuts = await WebAppShortcutStore.LoadAsync();
+                LogDebug($"✅ 加载了 {shortcuts.Count} 个快捷方式");
+                
+                // ⭐ 详细记录所有快捷方式的 ID
+                foreach (var s in shortcuts)
+                {
+                    LogDebug($"  - 快捷方式: Id={s.Id}, Name={s.Name}");
+                }
+                
+                LogDebug($"开始查找 _appId={_appId}");
                 var app = shortcuts.FirstOrDefault(s => s.Id == _appId);
                 
                 if (app == null)
                 {
+                    LogDebug($"❌ 未找到匹配的应用，_appId={_appId}");
                     ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_AppNotFound"), InfoBarSeverity.Error);
                     return;
                 }
+                
+                LogDebug($"✅ 找到应用: Name={app.Name}, Url={app.Url}");
 
                 // 保存原始数据
                 _originalName = app.Name;
@@ -108,25 +262,43 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 _currentIconBytes = app.IconBytes;
                 _originalLeftButtonConfig = app.LeftButtonConfig;
                 _originalRightButtonConfig = app.RightButtonConfig;
+                
+                LogDebug($"原始数据已保存: Name={_originalName}, Url={_originalUrl}");
 
                 // 填充界面
+                LogDebug("开始填充界面...");
                 NameTextBox.Text = app.Name;
                 UrlTextBox.Text = app.Url;
+                LogDebug($"✅ 文本框已填充");
                 
                 if (app.IconBytes != null && app.IconBytes.Length > 0)
                 {
+                    LogDebug($"开始加载图标 ({app.IconBytes.Length} 字节)");
                     await ShowIconAsync(app.IconBytes);
+                    LogDebug("✅ 图标已加载");
+                }
+                else
+                {
+                    LogDebug("⚠️ 无图标数据");
                 }
                 
                 // 填充左侧按钮配置
+                LogDebug("开始加载左侧按钮配置...");
                 LoadLeftButtonConfig(app.LeftButton);
+                LogDebug("✅ 左侧按钮配置已加载");
                 
                 // 填充右侧按钮配置
+                LogDebug("开始加载右侧按钮配置...");
                 LoadRightButtonConfig(app.RightButton);
+                LogDebug("✅ 右侧按钮配置已加载");
+                
+                LogDebug("LoadAppDataAsync 完成");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] Failed to load app: {ex}");
+                LogDebug($"❌ LoadAppDataAsync 异常: {ex.GetType().Name}");
+                LogDebug($"   消息: {ex.Message}");
+                LogDebug($"   堆栈: {ex.StackTrace}");
                 ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_LoadFailed"), InfoBarSeverity.Error);
             }
         }
@@ -254,7 +426,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] Failed to choose icon: {ex}");
+                LogDebug($"Failed to choose icon: {ex}");
                 ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_SelectIconFailed"), InfoBarSeverity.Error);
             }
         }
@@ -320,7 +492,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] Failed to load icon from URL: {ex}");
+                LogDebug($"Failed to load icon from URL: {ex}");
                 ShowStatus(string.Format(LocalizationHelper.GetString("WebAppDetailPage_LoadFailedWithReason"), ex.Message), InfoBarSeverity.Error);
             }
             finally
@@ -331,7 +503,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
 
         private void OnResetIconClick(object sender, RoutedEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] OnResetIconClick: _originalIconBytes={((_originalIconBytes?.Length ?? 0) > 0 ? "有" : "无")}");
+            LogDebug($"OnResetIconClick: _originalIconBytes={((_originalIconBytes?.Length ?? 0) > 0 ? "有" : "无")}");
             
             _currentIconBytes = null;
             IconPreviewImage.Source = null;
@@ -339,24 +511,24 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             IconPreviewFallback.Visibility = Visibility.Visible;
             CheckForChanges();
             
-            System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] OnResetIconClick: _hasChanges={_hasChanges}, SaveButton.IsEnabled={_saveButton?.IsEnabled}");
+            LogDebug($"OnResetIconClick: _hasChanges={_hasChanges}, SaveButton.IsEnabled={_saveButton?.IsEnabled}");
             ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_IconReset"), InfoBarSeverity.Success);
         }
 
         private async void OnSaveClick(object sender, RoutedEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("[WebAppDetailPage] OnSaveClick started");
+            LogDebug("OnSaveClick started");
             
             if (string.IsNullOrEmpty(_appId))
             {
-                System.Diagnostics.Debug.WriteLine("[WebAppDetailPage] OnSaveClick: _appId is empty");
+                LogDebug("OnSaveClick: _appId is empty");
                 return;
             }
 
             string name = NameTextBox.Text?.Trim() ?? string.Empty;
             string url = UrlTextBox.Text?.Trim() ?? string.Empty;
 
-            System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] OnSaveClick: name='{name}', url='{url}', iconBytes={((_currentIconBytes?.Length ?? 0) > 0 ? "有" : "无")}");
+            LogDebug($"OnSaveClick: name='{name}', url='{url}', iconBytes={((_currentIconBytes?.Length ?? 0) > 0 ? "有" : "无")}");
 
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -379,7 +551,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
 
             try
             {
-                System.Diagnostics.Debug.WriteLine("[WebAppDetailPage] OnSaveClick: Starting save process");
+                LogDebug("OnSaveClick: Starting save process");
                 
                 if (_saveButton != null)
                 {
@@ -391,17 +563,17 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 if (name != _originalName)
                 {
                     updateType |= WebAppUpdateType.Name;
-                    System.Diagnostics.Debug.WriteLine("[WebAppDetailPage] 检测到名称变化");
+                    LogDebug("检测到名称变化");
                 }
                 if (uri.AbsoluteUri != _originalUrl)
                 {
                     updateType |= WebAppUpdateType.Url;
-                    System.Diagnostics.Debug.WriteLine("[WebAppDetailPage] 检测到 URL 变化");
+                    LogDebug("检测到 URL 变化");
                 }
                 if (!ByteArrayEquals(_currentIconBytes, _originalIconBytes))
                 {
                     updateType |= WebAppUpdateType.Icon;
-                    System.Diagnostics.Debug.WriteLine("[WebAppDetailPage] 检测到图标变化");
+                    LogDebug("检测到图标变化");
                 }
                 
                 // 检测按钮配置变化
@@ -411,20 +583,20 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                     !IsButtonConfigEqual(currentRightConfig, _originalRightButtonConfig))
                 {
                     updateType |= WebAppUpdateType.ButtonConfig;
-                    System.Diagnostics.Debug.WriteLine("[WebAppDetailPage] 检测到按钮配置变化");
+                    LogDebug("检测到按钮配置变化");
                 }
 
                 // 读取现有数据
                 var shortcuts = await WebAppShortcutStore.LoadAsync();
                 var updatedShortcuts = shortcuts.ToList();
 
-                System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] OnSaveClick: Loaded {updatedShortcuts.Count} shortcuts");
+                LogDebug($"OnSaveClick: Loaded {updatedShortcuts.Count} shortcuts");
 
                 // 查找并更新
                 var index = updatedShortcuts.FindIndex(s => s.Id == _appId);
                 if (index >= 0)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] OnSaveClick: Found app at index {index}, updating");
+                    LogDebug($"OnSaveClick: Found app at index {index}, updating");
                     
                     // 获取当前按钮配置
                     var leftButtonConfig = GetCurrentLeftButtonConfig();
@@ -440,17 +612,17 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine("[WebAppDetailPage] OnSaveClick: App not found in list!");
+                    LogDebug("OnSaveClick: App not found in list!");
                 }
 
                 // 保存
-                System.Diagnostics.Debug.WriteLine("[WebAppDetailPage] OnSaveClick: Saving shortcuts");
+                LogDebug("OnSaveClick: Saving shortcuts");
                 await WebAppShortcutStore.SaveAsync(updatedShortcuts);
 
                 // ⭐ 使用新的更新服务（细粒度通知）
                 if (updateType != WebAppUpdateType.None)
                 {
-                    System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] 通知更新: {_appId}, 类型: {updateType}");
+                    LogDebug($"通知更新: {_appId}, 类型: {updateType}");
                     WebAppUpdateService.NotifyUpdate(_appId, updateType);
                 }
 
@@ -462,21 +634,21 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 _originalRightButtonConfig = GetCurrentRightButtonConfig();
                 _hasChanges = false;
 
-                System.Diagnostics.Debug.WriteLine("[WebAppDetailPage] OnSaveClick: Save successful");
+                LogDebug("OnSaveClick: Save successful");
                 ShowStatus(LocalizationHelper.GetString("WebAppDetailPage_SaveSuccess"), InfoBarSeverity.Success);
 
                 // 延迟返回上一页
                 await Task.Delay(1000);
-                System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] OnSaveClick: CanGoBack={Frame.CanGoBack}");
+                LogDebug($"OnSaveClick: CanGoBack={Frame.CanGoBack}");
                 if (Frame.CanGoBack)
                 {
-                    System.Diagnostics.Debug.WriteLine("[WebAppDetailPage] OnSaveClick: Going back");
+                    LogDebug("OnSaveClick: Going back");
                     Frame.GoBack();
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] Failed to save: {ex}");
+                LogDebug($"Failed to save: {ex}");
                 ShowStatus(string.Format(LocalizationHelper.GetString("WebAppDetailPage_SaveFailedWithReason"), ex.Message), InfoBarSeverity.Error);
             }
             finally
@@ -485,7 +657,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 {
                     _saveButton.IsEnabled = _hasChanges;
                 }
-                System.Diagnostics.Debug.WriteLine("[WebAppDetailPage] OnSaveClick completed");
+                LogDebug("OnSaveClick completed");
             }
         }
 
@@ -505,7 +677,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[WebAppDetailPage] Failed to show icon: {ex}");
+                LogDebug($"Failed to show icon: {ex}");
                 IconPreviewImage.Visibility = Visibility.Collapsed;
                 IconPreviewFallback.Visibility = Visibility.Visible;
             }
@@ -560,8 +732,8 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             return client;
         }
 
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetForegroundWindow();
+        [LibraryImport("user32.dll")]
+        private static partial IntPtr GetForegroundWindow();
         
         #region 键盘映射按钮配置
 
@@ -578,21 +750,30 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
 
         private void LoadLeftButtonConfig(KeyboardMappingButtonConfig config)
         {
-            System.Diagnostics.Debug.WriteLine($"[LoadLeftButtonConfig] config.StaticIconGlyph='{config.StaticIconGlyph}' (长度={config.StaticIconGlyph?.Length ?? 0})");
+            LogDebug($"[LoadLeftButtonConfig] config.StaticIconGlyph='{config.StaticIconGlyph}' (长度={config.StaticIconGlyph?.Length ?? 0})");
+            LogDebug($"[LoadLeftButtonConfig] config.IconType='{config.IconType}'");
             
             LeftButtonEnabledToggle.Toggled -= OnLeftButtonEnabledToggled;
             LeftButtonEnabledToggle.IsOn = config.IsEnabled;
             LeftButtonEnabledToggle.Toggled += OnLeftButtonEnabledToggled;
             
-            // 加载图标类型
-            SelectComboBoxItemByTag(LeftButtonIconTypeComboBox, config.IconType);
+            // ✅ AOT 修复：直接使用 SelectedIndex 而不是 Tag
+            bool isStatic = string.Equals(config.IconType, "Static", StringComparison.OrdinalIgnoreCase);
+            LeftButtonIconTypeComboBox.SelectedIndex = isStatic ? 0 : 1;
+            
+            // ✅ 使用 setter 方法更新可见性
+            SetLeftButtonIconVisibility(isStatic);
+            LogDebug($"[LoadLeftButtonConfig] 已调用 SetLeftButtonIconVisibility: isStatic={isStatic}");
             
             // 加载静态图标：将 Glyph (Unicode) 转换为 Code (十六进制)
             _leftButtonIconCode = GlyphToCode(config.StaticIconGlyph);
             UpdateLeftButtonIconPreview();
             
             // 加载动态图标类型
-            SelectComboBoxItemByTag(LeftButtonAnimatedIconTypeComboBox, config.AnimatedIconType);
+            // ✅ AOT 修复：从 Tag 字符串查找对应的索引
+            int animatedIconIndex = Array.IndexOf(AnimatedIconTypes, config.AnimatedIconType);
+            if (animatedIconIndex < 0) animatedIconIndex = 2; // 默认为 AnimatedChevronDownSmallVisualSource
+            LeftButtonAnimatedIconTypeComboBox.SelectedIndex = animatedIconIndex;
             
             // 加载工具提示
             LeftButtonTooltipTextBox.Text = config.Tooltip;
@@ -603,26 +784,35 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             _leftButtonRecordedShift = config.Shift;
             _leftButtonRecordedAlt = config.Alt;
             
-            UpdateLeftButtonIconVisibility();
             UpdateLeftButtonHotkeyPreview();
             UpdateLeftButtonExpanderItemsEnabled();
         }
 
         private void LoadRightButtonConfig(KeyboardMappingButtonConfig config)
         {
+            LogDebug($"[LoadRightButtonConfig] config.IconType='{config.IconType}'");
+            
             RightButtonEnabledToggle.Toggled -= OnRightButtonEnabledToggled;
             RightButtonEnabledToggle.IsOn = config.IsEnabled;
             RightButtonEnabledToggle.Toggled += OnRightButtonEnabledToggled;
             
-            // 加载图标类型
-            SelectComboBoxItemByTag(RightButtonIconTypeComboBox, config.IconType);
+            // ✅ AOT 修复：直接使用 SelectedIndex 而不是 Tag
+            bool isStatic = string.Equals(config.IconType, "Static", StringComparison.OrdinalIgnoreCase);
+            RightButtonIconTypeComboBox.SelectedIndex = isStatic ? 0 : 1;
+            
+            // ✅ 使用 setter 方法更新可见性
+            SetRightButtonIconVisibility(isStatic);
+            LogDebug($"[LoadRightButtonConfig] 已调用 SetRightButtonIconVisibility: isStatic={isStatic}");
             
             // 加载静态图标：将 Glyph (Unicode) 转换为 Code (十六进制)
             _rightButtonIconCode = GlyphToCode(config.StaticIconGlyph);
             UpdateRightButtonIconPreview();
             
             // 加载动态图标类型
-            SelectComboBoxItemByTag(RightButtonAnimatedIconTypeComboBox, config.AnimatedIconType);
+            // ✅ AOT 修复：从 Tag 字符串查找对应的索引
+            int animatedIconIndex = Array.IndexOf(AnimatedIconTypes, config.AnimatedIconType);
+            if (animatedIconIndex < 0) animatedIconIndex = 2; // 默认为 AnimatedChevronDownSmallVisualSource
+            RightButtonAnimatedIconTypeComboBox.SelectedIndex = animatedIconIndex;
             
             // 加载工具提示
             RightButtonTooltipTextBox.Text = config.Tooltip;
@@ -633,7 +823,6 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             _rightButtonRecordedShift = config.Shift;
             _rightButtonRecordedAlt = config.Alt;
             
-            UpdateRightButtonIconVisibility();
             UpdateRightButtonHotkeyPreview();
             UpdateRightButtonExpanderItemsEnabled();
         }
@@ -650,58 +839,108 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             CheckForChanges();
         }
 
-        private void OnLeftButtonFieldChanged(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// 左侧按钮 ComboBox 选择变更事件处理
+        /// ✅ 使用独立方法名避免 AOT 重载解析问题
+        /// </summary>
+        private async void OnLeftButtonComboBoxSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // ✅ 使用 ReferenceEquals 进行引用比较（消除 CS0252 警告）
-            if (ReferenceEquals(sender, LeftButtonIconTypeComboBox))
+            // ⭐ AOT 调试弹窗
+            await ShowDebugDialogAsync("左侧图标类型", $"事件触发！sender={sender?.GetType().Name}");
+            
+            // 🔥 关键修复：确保在 UI 线程上执行
+            if (DispatcherQueue != null)
             {
-                UpdateLeftButtonIconVisibility();
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (ReferenceEquals(sender, LeftButtonIconTypeComboBox))
+                    {
+                        UpdateLeftButtonIconVisibility();
+                    }
+                });
             }
             
             CheckForChanges();
         }
 
-        private void OnRightButtonFieldChanged(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// 左侧按钮 TextBox 文本变更事件处理
+        /// ✅ 使用独立方法名避免 AOT 重载解析问题
+        /// </summary>
+        private void OnLeftButtonTextBoxTextChanged(object sender, TextChangedEventArgs e)
         {
-            // ✅ 使用 ReferenceEquals 进行引用比较（消除 CS0252 警告）
-            if (ReferenceEquals(sender, RightButtonIconTypeComboBox))
+            LogDebug($"[OnLeftButtonTextBoxTextChanged] sender={sender?.GetType().Name}");
+            CheckForChanges();
+        }
+
+        /// <summary>
+        /// 右侧按钮 ComboBox 选择变更事件处理
+        /// ✅ 使用独立方法名避免 AOT 重载解析问题
+        /// </summary>
+        private async void OnRightButtonComboBoxSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            await ShowDebugDialogAsync("右侧图标类型", $"事件触发！sender={sender?.GetType().Name}");
+            
+            if (DispatcherQueue != null)
             {
-                UpdateRightButtonIconVisibility();
+                DispatcherQueue.TryEnqueue(() =>
+                {
+                    if (ReferenceEquals(sender, RightButtonIconTypeComboBox))
+                    {
+                        UpdateRightButtonIconVisibility();
+                    }
+                });
             }
             
+            CheckForChanges();
+        }
+
+        /// <summary>
+        /// 右侧按钮 TextBox 文本变更事件处理
+        /// ✅ 使用独立方法名避免 AOT 重载解析问题
+        /// </summary>
+        private void OnRightButtonTextBoxTextChanged(object sender, TextChangedEventArgs e)
+        {
+            LogDebug($"[OnRightButtonTextBoxTextChanged] sender={sender?.GetType().Name}");
             CheckForChanges();
         }
 
         private void UpdateLeftButtonIconVisibility()
         {
+            // ✅ AOT 兼容：增加 null 检查和默认值处理
             var iconType = GetSelectedComboBoxTag(LeftButtonIconTypeComboBox);
-            bool isStatic = iconType == "Static";
+            bool isStatic = string.Equals(iconType, "Static", StringComparison.OrdinalIgnoreCase);
             
-            if (LeftButtonStaticIconCard != null)
+            // 如果 iconType 为 null 或空字符串，默认显示静态图标
+            if (string.IsNullOrEmpty(iconType))
             {
-                LeftButtonStaticIconCard.Visibility = isStatic ? Visibility.Visible : Visibility.Collapsed;
+                isStatic = true;
+                LogDebug("[UpdateLeftButtonIconVisibility] iconType 为空，默认显示静态图标");
             }
             
-            if (LeftButtonAnimatedIconCard != null)
-            {
-                LeftButtonAnimatedIconCard.Visibility = isStatic ? Visibility.Collapsed : Visibility.Visible;
-            }
+            LogDebug($"[UpdateLeftButtonIconVisibility] iconType='{iconType}', isStatic={isStatic}");
+            
+            // 🔥 直接设置 Visibility 属性（最 AOT 友好）
+            SetLeftButtonIconVisibility(isStatic);
         }
 
         private void UpdateRightButtonIconVisibility()
         {
+            // ✅ AOT 兼容：增加 null 检查和默认值处理
             var iconType = GetSelectedComboBoxTag(RightButtonIconTypeComboBox);
-            bool isStatic = iconType == "Static";
+            bool isStatic = string.Equals(iconType, "Static", StringComparison.OrdinalIgnoreCase);
             
-            if (RightButtonStaticIconCard != null)
+            // 如果 iconType 为 null 或空字符串，默认显示静态图标
+            if (string.IsNullOrEmpty(iconType))
             {
-                RightButtonStaticIconCard.Visibility = isStatic ? Visibility.Visible : Visibility.Collapsed;
+                isStatic = true;
+                LogDebug("[UpdateRightButtonIconVisibility] iconType 为空，默认显示静态图标");
             }
             
-            if (RightButtonAnimatedIconCard != null)
-            {
-                RightButtonAnimatedIconCard.Visibility = isStatic ? Visibility.Collapsed : Visibility.Visible;
-            }
+            LogDebug($"[UpdateRightButtonIconVisibility] iconType='{iconType}', isStatic={isStatic}");
+            
+            // 🔥 直接设置 Visibility 属性（最 AOT 友好）
+            SetRightButtonIconVisibility(isStatic);
         }
 
         private async void OnLeftButtonHotkeyButtonClick(object sender, RoutedEventArgs e)
@@ -770,34 +1009,56 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             }
         }
 
+        /// <summary>
+        /// 更新左侧按钮 Expander 内的子项启用状态
+        /// ✅ AOT 优化：使用 for 循环 + 类型缓存，避免重复类型检查
+        /// </summary>
         private void UpdateLeftButtonExpanderItemsEnabled()
         {
             bool isEnabled = LeftButtonEnabledToggle.IsOn;
             
-            if (LeftButtonExpander?.Items != null)
+            if (LeftButtonExpander?.Items == null)
             {
-                foreach (var item in LeftButtonExpander.Items)
+                return;
+            }
+
+            // ✅ 缓存 Count 避免重复访问属性
+            int count = LeftButtonExpander.Items.Count;
+            
+            // ✅ 使用索引访问避免 IEnumerable 装箱
+            for (int i = 0; i < count; i++)
+            {
+                // ✅ 使用模式匹配直接获取类型化对象
+                if (LeftButtonExpander.Items[i] is CommunityToolkit.WinUI.Controls.SettingsCard card)
                 {
-                    if (item is CommunityToolkit.WinUI.Controls.SettingsCard card)
-                    {
-                        card.IsEnabled = isEnabled;
-                    }
+                    card.IsEnabled = isEnabled;
                 }
             }
         }
 
+        /// <summary>
+        /// 更新右侧按钮 Expander 内的子项启用状态
+        /// ✅ AOT 优化：使用 for 循环 + 类型缓存，避免重复类型检查
+        /// </summary>
         private void UpdateRightButtonExpanderItemsEnabled()
         {
             bool isEnabled = RightButtonEnabledToggle.IsOn;
             
-            if (RightButtonExpander?.Items != null)
+            if (RightButtonExpander?.Items == null)
             {
-                foreach (var item in RightButtonExpander.Items)
+                return;
+            }
+
+            // ✅ 缓存 Count 避免重复访问属性
+            int count = RightButtonExpander.Items.Count;
+            
+            // ✅ 使用索引访问避免 IEnumerable 装箱
+            for (int i = 0; i < count; i++)
+            {
+                // ✅ 使用模式匹配直接获取类型化对象
+                if (RightButtonExpander.Items[i] is CommunityToolkit.WinUI.Controls.SettingsCard card)
                 {
-                    if (item is CommunityToolkit.WinUI.Controls.SettingsCard card)
-                    {
-                        card.IsEnabled = isEnabled;
-                    }
+                    card.IsEnabled = isEnabled;
                 }
             }
         }
@@ -878,12 +1139,21 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 return KeyboardMappingButtonConfig.CreateDefault();
             }
 
+            // ✅ AOT 修复：使用 SelectedIndex 而不是 Tag
+            string iconType = (LeftButtonIconTypeComboBox.SelectedIndex == 1) ? "Animated" : "Static";
+
+            // ✅ AOT 修复：使用索引数组映射而不是 GetSelectedComboBoxTag
+            int animatedIconIndex = LeftButtonAnimatedIconTypeComboBox?.SelectedIndex ?? 2;
+            if (animatedIconIndex < 0 || animatedIconIndex >= AnimatedIconTypes.Length)
+                animatedIconIndex = 2; // 默认为 AnimatedChevronDownSmallVisualSource
+            string animatedIconType = AnimatedIconTypes[animatedIconIndex];
+
             return new KeyboardMappingButtonConfig
             {
                 IsEnabled = LeftButtonEnabledToggle.IsOn,
-                IconType = GetSelectedComboBoxTag(LeftButtonIconTypeComboBox) ?? "Static",
+                IconType = iconType,
                 StaticIconGlyph = CodeToGlyph(_leftButtonIconCode) ?? "\uE92E", // Code → Glyph
-                AnimatedIconType = GetSelectedComboBoxTag(LeftButtonAnimatedIconTypeComboBox) ?? "AnimatedChevronDownSmallVisualSource",
+                AnimatedIconType = animatedIconType,
                 Tooltip = LeftButtonTooltipTextBox.Text?.Trim() ?? LocalizationHelper.GetString("WebAppDetailPage_DefaultTooltip"),
                 Key = _leftButtonRecordedKey,
                 Ctrl = _leftButtonRecordedCtrl,
@@ -902,12 +1172,21 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 return KeyboardMappingButtonConfig.CreateDefault();
             }
 
+            // ✅ AOT 修复：使用 SelectedIndex 而不是 Tag
+            string iconType = (RightButtonIconTypeComboBox.SelectedIndex == 1) ? "Animated" : "Static";
+
+            // ✅ AOT 修复：使用索引数组映射而不是 GetSelectedComboBoxTag
+            int animatedIconIndex = RightButtonAnimatedIconTypeComboBox?.SelectedIndex ?? 2;
+            if (animatedIconIndex < 0 || animatedIconIndex >= AnimatedIconTypes.Length)
+                animatedIconIndex = 2; // 默认为 AnimatedChevronDownSmallVisualSource
+            string animatedIconType = AnimatedIconTypes[animatedIconIndex];
+
             return new KeyboardMappingButtonConfig
             {
                 IsEnabled = RightButtonEnabledToggle.IsOn,
-                IconType = GetSelectedComboBoxTag(RightButtonIconTypeComboBox) ?? "Static",
+                IconType = iconType,
                 StaticIconGlyph = CodeToGlyph(_rightButtonIconCode) ?? "\uE92E", // Code → Glyph
-                AnimatedIconType = GetSelectedComboBoxTag(RightButtonAnimatedIconTypeComboBox) ?? "AnimatedChevronDownSmallVisualSource",
+                AnimatedIconType = animatedIconType,
                 Tooltip = RightButtonTooltipTextBox.Text?.Trim() ?? LocalizationHelper.GetString("WebAppDetailPage_DefaultTooltip"),
                 Key = _rightButtonRecordedKey,
                 Ctrl = _rightButtonRecordedCtrl,
@@ -948,20 +1227,34 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                    current.Alt != original.Alt;
         }
 
-        // 辅助方法：从 ComboBox 中选择指定 Tag 的项
-        private void SelectComboBoxItemByTag(ComboBox comboBox, string tag)
+        /// <summary>
+        /// 从 ComboBox 中选择指定 Tag 的项
+        /// ✅ AOT 兼容：使用索引遍历 + 显式类型检查 + 字符串比较优化
+        /// </summary>
+        private void SelectComboBoxItemByTag(ComboBox? comboBox, string? tag)
         {
             if (comboBox == null || string.IsNullOrEmpty(tag))
             {
                 return;
             }
 
-            foreach (ComboBoxItem item in comboBox.Items)
+            // ✅ 使用 Count 避免调用 GetEnumerator()（防止装箱）
+            int count = comboBox.Items.Count;
+            for (int i = 0; i < count; i++)
             {
-                if (item.Tag?.ToString() == tag)
+                // ✅ 直接使用索引器访问，避免 foreach 的装箱
+                object? obj = comboBox.Items[i];
+                
+                // ✅ 模式匹配 + null 检查合并，减少分支预测失败
+                if (obj is ComboBoxItem { Tag: not null } item)
                 {
-                    comboBox.SelectedItem = item;
-                    return;
+                    string? itemTag = item.Tag.ToString();
+                    // ✅ 使用 Ordinal 比较避免文化敏感性能开销
+                    if (string.Equals(itemTag, tag, StringComparison.Ordinal))
+                    {
+                        comboBox.SelectedItem = item;
+                        return;
+                    }
                 }
             }
         }
@@ -1000,7 +1293,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
         {
             if (string.IsNullOrEmpty(glyph) || glyph.Length == 0)
             {
-                System.Diagnostics.Debug.WriteLine($"[GlyphToCode] 输入为空");
+                LogDebug("[GlyphToCode] 输入为空");
                 return null;
             }
 
@@ -1008,7 +1301,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
             int codePoint = char.ConvertToUtf32(glyph, 0);
             string code = codePoint.ToString("X"); // 转换为十六进制（大写）
             
-            System.Diagnostics.Debug.WriteLine($"[GlyphToCode] 输入: '{glyph}' (长度={glyph.Length}), 输出: {code}, 码点={codePoint}");
+            LogDebug($"[GlyphToCode] 输入: '{glyph}' (长度={glyph.Length}), 输出: {code}, 码点={codePoint}");
             return code;
         }
 
@@ -1019,7 +1312,7 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
         {
             if (string.IsNullOrEmpty(code))
             {
-                System.Diagnostics.Debug.WriteLine($"[CodeToGlyph] 输入为空");
+                LogDebug("[CodeToGlyph] 输入为空");
                 return null;
             }
 
@@ -1029,12 +1322,12 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
                 int codePoint = Convert.ToInt32(code, 16);
                 string glyph = char.ConvertFromUtf32(codePoint);
                 
-                System.Diagnostics.Debug.WriteLine($"[CodeToGlyph] 输入: {code}, 输出: '{glyph}' (长度={glyph.Length}), 码点={codePoint}");
+                LogDebug($"[CodeToGlyph] 输入: {code}, 输出: '{glyph}' (长度={glyph.Length}), 码点={codePoint}");
                 return glyph;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[CodeToGlyph] 转换失败: code={code}, 错误={ex.Message}");
+                LogDebug($"[CodeToGlyph] 转换失败: code={code}, 错误={ex.Message}");
                 return null;
             }
         }
@@ -1046,23 +1339,23 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
         {
             if (LeftButtonStaticIconPreview == null)
             {
-                System.Diagnostics.Debug.WriteLine($"[UpdateLeftButtonIconPreview] LeftButtonStaticIconPreview is null");
+                LogDebug("[UpdateLeftButtonIconPreview] LeftButtonStaticIconPreview is null");
                 return;
             }
 
             string? glyph = CodeToGlyph(_leftButtonIconCode);
-            System.Diagnostics.Debug.WriteLine($"[UpdateLeftButtonIconPreview] _leftButtonIconCode={_leftButtonIconCode}, glyph={(glyph != null ? $"长度={glyph.Length}" : "null")}");
+            LogDebug($"[UpdateLeftButtonIconPreview] _leftButtonIconCode={_leftButtonIconCode}, glyph={(glyph != null ? $"长度={glyph.Length}" : "null")}");
             
             if (!string.IsNullOrEmpty(glyph))
             {
                 LeftButtonStaticIconPreview.Glyph = glyph;
-                System.Diagnostics.Debug.WriteLine($"[UpdateLeftButtonIconPreview] 已设置 Glyph, FontFamily={LeftButtonStaticIconPreview.FontFamily}");
+                LogDebug($"[UpdateLeftButtonIconPreview] 已设置 Glyph, FontFamily={LeftButtonStaticIconPreview.FontFamily}");
             }
             else
             {
                 // 默认图标
                 LeftButtonStaticIconPreview.Glyph = "\uE92E";
-                System.Diagnostics.Debug.WriteLine($"[UpdateLeftButtonIconPreview] 使用默认 Glyph E92E");
+                LogDebug("[UpdateLeftButtonIconPreview] 使用默认 Glyph E92E");
             }
         }
 
@@ -1073,23 +1366,23 @@ namespace Docked_AI.Features.Pages.Settings.WebSettings
         {
             if (RightButtonStaticIconPreview == null)
             {
-                System.Diagnostics.Debug.WriteLine($"[UpdateRightButtonIconPreview] RightButtonStaticIconPreview is null");
+                LogDebug("[UpdateRightButtonIconPreview] RightButtonStaticIconPreview is null");
                 return;
             }
 
             string? glyph = CodeToGlyph(_rightButtonIconCode);
-            System.Diagnostics.Debug.WriteLine($"[UpdateRightButtonIconPreview] _rightButtonIconCode={_rightButtonIconCode}, glyph={(glyph != null ? $"长度={glyph.Length}" : "null")}");
+            LogDebug($"[UpdateRightButtonIconPreview] _rightButtonIconCode={_rightButtonIconCode}, glyph={(glyph != null ? $"长度={glyph.Length}" : "null")}");
             
             if (!string.IsNullOrEmpty(glyph))
             {
                 RightButtonStaticIconPreview.Glyph = glyph;
-                System.Diagnostics.Debug.WriteLine($"[UpdateRightButtonIconPreview] 已设置 Glyph, FontFamily={RightButtonStaticIconPreview.FontFamily}");
+                LogDebug($"[UpdateRightButtonIconPreview] 已设置 Glyph, FontFamily={RightButtonStaticIconPreview.FontFamily}");
             }
             else
             {
                 // 默认图标
                 RightButtonStaticIconPreview.Glyph = "\uE92E";
-                System.Diagnostics.Debug.WriteLine($"[UpdateRightButtonIconPreview] 使用默认 Glyph E92E");
+                LogDebug("[UpdateRightButtonIconPreview] 使用默认 Glyph E92E");
             }
         }
 

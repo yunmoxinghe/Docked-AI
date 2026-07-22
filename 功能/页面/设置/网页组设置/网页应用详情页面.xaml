@@ -29,7 +29,16 @@
                     x:Uid="WebAppDetailPage_Title"
                     FontSize="32"
                     FontWeight="SemiBold" />
-                <Border Height="36" />
+                <Border Height="16" />
+                
+                <!-- ✅ 状态提示移到顶部，便于用户看到 -->
+                <InfoBar
+                    x:Name="StatusInfoBar"
+                    IsOpen="False"
+                    Severity="Informational"
+                    Margin="0,0,0,16"/>
+                
+                <Border Height="20" />
 
                 <StackPanel
                     x:Name="CardsPanel"
@@ -192,7 +201,7 @@
                                 <ComboBox 
                                     x:Name="LeftButtonIconTypeComboBox"
                                     Width="200"
-                                    SelectionChanged="OnLeftButtonFieldChanged">
+                                    SelectionChanged="OnLeftButtonIconTypeChanged">
                                     <ComboBoxItem x:Uid="KeyboardMapping_IconTypeStatic" Tag="Static" IsSelected="True"/>
                                     <ComboBoxItem x:Uid="KeyboardMapping_IconTypeAnimated" Tag="Animated"/>
                                 </ComboBox>
@@ -222,8 +231,7 @@
                                 Visibility="Collapsed">
                                 <ComboBox 
                                     x:Name="LeftButtonAnimatedIconTypeComboBox"
-                                    Width="200"
-                                    SelectionChanged="OnLeftButtonFieldChanged">
+                                    Width="200">
                                     <ComboBoxItem x:Uid="KeyboardMapping_AnimatedIconAccept" Tag="AnimatedAcceptVisualSource"/>
                                     <ComboBoxItem x:Uid="KeyboardMapping_AnimatedIconBack" Tag="AnimatedBackVisualSource"/>
                                     <ComboBoxItem x:Uid="KeyboardMapping_AnimatedIconChevronDown" Tag="AnimatedChevronDownSmallVisualSource" IsSelected="True"/>
@@ -242,7 +250,7 @@
                                     x:Name="LeftButtonTooltipTextBox"
                                     x:Uid="KeyboardMapping_Tooltip"
                                     Width="200"
-                                    TextChanged="OnLeftButtonFieldChanged"/>
+                                    TextChanged="OnLeftButtonTextBoxTextChanged"/>
                             </controls:SettingsCard>
                             
                             <!-- 快捷键配置 -->
@@ -286,7 +294,7 @@
                                 <ComboBox 
                                     x:Name="RightButtonIconTypeComboBox"
                                     Width="200"
-                                    SelectionChanged="OnRightButtonFieldChanged">
+                                    SelectionChanged="OnRightButtonIconTypeChanged">
                                     <ComboBoxItem x:Uid="KeyboardMapping_IconTypeStatic" Tag="Static" IsSelected="True"/>
                                     <ComboBoxItem x:Uid="KeyboardMapping_IconTypeAnimated" Tag="Animated"/>
                                 </ComboBox>
@@ -316,8 +324,7 @@
                                 Visibility="Collapsed">
                                 <ComboBox 
                                     x:Name="RightButtonAnimatedIconTypeComboBox"
-                                    Width="200"
-                                    SelectionChanged="OnRightButtonFieldChanged">
+                                    Width="200">
                                     <ComboBoxItem x:Uid="KeyboardMapping_AnimatedIconAccept" Tag="AnimatedAcceptVisualSource"/>
                                     <ComboBoxItem x:Uid="KeyboardMapping_AnimatedIconBack" Tag="AnimatedBackVisualSource"/>
                                     <ComboBoxItem x:Uid="KeyboardMapping_AnimatedIconChevronDown" Tag="AnimatedChevronDownSmallVisualSource" IsSelected="True"/>
@@ -336,7 +343,7 @@
                                     x:Name="RightButtonTooltipTextBox"
                                     x:Uid="KeyboardMapping_Tooltip"
                                     Width="200"
-                                    TextChanged="OnRightButtonFieldChanged"/>
+                                    TextChanged="OnRightButtonTextBoxTextChanged"/>
                             </controls:SettingsCard>
                             
                             <!-- 快捷键配置 -->
@@ -377,13 +384,6 @@
                             Text="0 个 Cookie"
                             Opacity="0.6"/>
                     </controls:SettingsCard>
-
-                    <!-- 状态提示 -->
-                    <InfoBar
-                        x:Name="StatusInfoBar"
-                        IsOpen="False"
-                        Severity="Informational"
-                        Margin="0,16,0,0"/>
                 </StackPanel>
 
                 <Border Height="40" />

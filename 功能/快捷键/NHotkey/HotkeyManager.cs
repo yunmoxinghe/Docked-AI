@@ -5,7 +5,7 @@ using WinRT.Interop;
 
 namespace NHotkey.WinUI
 {
-    public class HotkeyManager : HotkeyManagerBase
+    public partial class HotkeyManager : HotkeyManagerBase
     {
         public static HotkeyManager Current { get; } = new HotkeyManager();
 
@@ -20,7 +20,7 @@ namespace NHotkey.WinUI
             _hiddenWindow.AppWindow.IsShownInSwitchers = false;
 
             var hwnd = WindowNative.GetWindowHandle(_hiddenWindow);
-            SetWindowLongPtr(hwnd, GWL_STYLE, WS_POPUP);
+            SetWindowLongPtr(hwnd, GWL_STYLE, unchecked((nint)WS_POPUP));
             SetHwnd(hwnd);
 
             _gcHandle = GCHandle.Alloc(this, GCHandleType.Weak);
@@ -66,14 +66,16 @@ namespace NHotkey.WinUI
         private const int GWL_STYLE = -16;
         private const uint WS_POPUP = 0x80000000;
 
-        [DllImport("user32.dll", SetLastError = true)]
-        private static extern uint SetWindowLongPtr(IntPtr hWnd, int nIndex, uint dwNewLong);
+        // 🔧 x64 平台使用 SetWindowLongPtrW（Unicode 版本）
+        [LibraryImport("user32.dll", EntryPoint = "SetWindowLongPtrW", SetLastError = true)]
+        private static partial nint SetWindowLongPtr(nint hWnd, int nIndex, nint dwNewLong);
 
-        [DllImport("comctl32.dll", SetLastError = true)]
-        private static extern bool SetWindowSubclass(IntPtr hWnd, IntPtr pfnSubclass, nuint uIdSubclass, nuint dwRefData);
+        [LibraryImport("comctl32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static partial bool SetWindowSubclass(IntPtr hWnd, IntPtr pfnSubclass, nuint uIdSubclass, nuint dwRefData);
 
-        [DllImport("comctl32.dll", SetLastError = true)]
-        private static extern IntPtr DefSubclassProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
+        [LibraryImport("comctl32.dll", SetLastError = true)]
+        private static partial IntPtr DefSubclassProc(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam);
 
         private delegate IntPtr SUBCLASSPROC(IntPtr hWnd, uint uMsg, IntPtr wParam, IntPtr lParam, nuint uIdSubclass, nuint dwRefData);
     }

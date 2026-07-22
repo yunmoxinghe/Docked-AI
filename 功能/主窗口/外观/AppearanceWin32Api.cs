@@ -8,32 +8,32 @@ namespace Docked_AI.Features.MainWindow.Appearance
     /// 外观相关的 Win32 接口。
     /// 这里处理的是边框、标题栏、圆角、DWM 外观属性这些“看起来像什么”的问题。
     /// </summary>
-    internal static class AppearanceWin32Api
+    internal static partial class AppearanceWin32Api
     {
         // 读取窗口当前样式。
         // 比如这个窗口现在有没有标题栏、边框、可否拉伸，都是从这里拿。
-        [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
-        internal static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
+        [LibraryImport("user32.dll", EntryPoint = "GetWindowLongPtrW")]
+        internal static partial IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
 
         // 覆盖窗口样式。
         // 比如把普通窗口改成无边框窗口，就是在这里动手。
-        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW")]
-        internal static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+        [LibraryImport("user32.dll", EntryPoint = "SetWindowLongPtrW")]
+        internal static partial IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
         // 设置 DWM 的窗口外观属性。
         // 这里主要拿来改圆角、边框颜色、标题栏颜色。
-        [DllImport("dwmapi.dll")]
-        internal static extern int DwmSetWindowAttribute(IntPtr hwnd, int dwAttribute, ref int pvAttribute, int cbAttribute);
+        [LibraryImport("dwmapi.dll")]
+        internal static partial int DwmSetWindowAttribute(IntPtr hwnd, int dwAttribute, ref int pvAttribute, int cbAttribute);
 
         // 让 DWM 的窗口框架往客户区延伸。
         // 人话就是“把系统边框那层视觉效果推进到内容区里”，方便做无边框效果。
-        [DllImport("dwmapi.dll")]
-        internal static extern int DwmExtendFrameIntoClientArea(IntPtr hwnd, ref MARGINS pMarInset);
+        [LibraryImport("dwmapi.dll")]
+        internal static partial int DwmExtendFrameIntoClientArea(IntPtr hwnd, ref MARGINS pMarInset);
 
         // 读取 DWM 计算后的窗口外框。
         // 这里用它拿真实可见边界，避免看起来对齐了，实际上还差几个像素。
-        [DllImport("dwmapi.dll")]
-        internal static extern int DwmGetWindowAttribute(IntPtr hwnd, int dwAttribute, out PlacementWin32Api.RECT pvAttribute, int cbAttribute);
+        [LibraryImport("dwmapi.dll")]
+        internal static partial int DwmGetWindowAttribute(IntPtr hwnd, int dwAttribute, out PlacementWin32Api.RECT pvAttribute, int cbAttribute);
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct MARGINS
