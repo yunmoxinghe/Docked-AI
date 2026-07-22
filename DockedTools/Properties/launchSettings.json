@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "DockedTools (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "DockedTools (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
