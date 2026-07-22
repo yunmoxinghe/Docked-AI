@@ -17,6 +17,11 @@
 
   <!-- 根据构建配置切换 Package Manifest -->
   <ItemGroup>
+    <!-- 排除默认的 Package.appxmanifest -->
+    <None Remove="Package.appxmanifest" />
+    <AppxManifest Remove="Package.appxmanifest" />
+    
+    <!-- 条件化包含对应配置的 manifest -->
     <AppxManifest Include="Package.Debug.appxmanifest" Condition="'$(Configuration)'=='Debug'">
       <SubType>Designer</SubType>
     </AppxManifest>
