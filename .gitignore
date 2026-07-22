@@ -77,8 +77,9 @@ Migrations/
 
 # Publish output
 publish/
-PublishProfiles/
-*.pubxml
+# PublishProfiles/ - Commented out to keep publish profiles in version control
+# *.pubxml - Commented out to keep publish profiles in version control
+# *.pubxml.user - Keep this excluded for user-specific settings
 *.pubxml.user
 
 # macOS
