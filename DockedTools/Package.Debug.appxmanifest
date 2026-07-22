@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
@@ -9,14 +9,14 @@
   IgnorableNamespaces="uap uap5 rescap">
 
   <Identity
-    Name="8B8CC4F4.482486777ECD9"
+    Name="8B8CC4F4.482486777ECD9.Debug"
     Publisher="CN=A19C62A9-1AA6-44AB-9F57-2DE6C380D9C9"
     Version="1.1.148.0" />
 
   <mp:PhoneIdentity PhoneProductId="3bb471d1-b8f7-4b6d-bba5-cc1b59b654ad" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>边栏助手</DisplayName>
+    <DisplayName>边栏助手 (Debug)</DisplayName>
     <PublisherDisplayName>云漠星</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -37,12 +37,12 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="边栏助手"
+        DisplayName="边栏助手 (Debug)"
         Description="DockedTools"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"  Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png" ShortName="边栏助手">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png"  Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png" ShortName="边栏助手 (Debug)">
           <uap:ShowNameOnTiles>
             <uap:ShowOn Tile="square310x310Logo"/>
             <uap:ShowOn Tile="wide310x150Logo"/>
@@ -66,7 +66,7 @@
           <uap5:StartupTask
             TaskId="AppStartupTask"
             Enabled="false"
-            DisplayName="边栏助手" />
+            DisplayName="边栏助手 (Debug)" />
         </uap5:Extension>
       </Extensions>
     </Application>

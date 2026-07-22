@@ -10,19 +10,10 @@
    - 用于判断技术资讯、API、包版本是否过时
 
 2. **🌐 联网搜索最新信息**
-   - 使用 `remote_web_search` 工具根据问题上下文搜索
-   - 优先搜索官方来源：
-     - Microsoft Learn (learn.microsoft.com)
-     - GitHub 官方仓库 (github.com/microsoft)
-     - NuGet 官方包页面 (nuget.org)
+   - 根据问题上下文联网搜索
    - 验证技术是否有更新、弃用或替代方案
    - 搜索关键词使用英文，结果用中文总结
 
-3. **🔥 新增代码强制使用 Reactor**
-   - ❌ **严禁**：新增 UI 功能使用 XAML
-   - ✅ **必须**：使用 `Microsoft.UI.Reactor` 框架
-   - ✅ **必须**：使用 Hooks（`UseState`, `UseEffect` 等）
-   - ⚠️ **例外**：仅在修改现有 XAML 文件时可继续使用 XAML
 
 ## 💬 语言风格
 
@@ -39,3 +30,7 @@
 ---
 
 # AI 代理与技能
+脚本：
+脚本工具\README.md
+文档：
+文档\README.md

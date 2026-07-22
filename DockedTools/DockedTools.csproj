@@ -15,6 +15,16 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <!-- 根据构建配置切换 Package Manifest -->
+  <ItemGroup>
+    <AppxManifest Include="Package.Debug.appxmanifest" Condition="'$(Configuration)'=='Debug'">
+      <SubType>Designer</SubType>
+    </AppxManifest>
+    <AppxManifest Include="Package.Release.appxmanifest" Condition="'$(Configuration)'=='Release'">
+      <SubType>Designer</SubType>
+    </AppxManifest>
+  </ItemGroup>
+
   <!-- XAML 应用定义 -->
   <ItemGroup>
     <Page Remove="功能\应用入口\App.xaml" />
@@ -29,6 +39,13 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+  </ItemGroup>
+
+  <!-- 图标数据文件 -->
+  <ItemGroup>
+    <Content Include="功能\页面\设置\网页组设置\图标数据.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -70,11 +87,12 @@
   <PublishReadyToRun>false</PublishReadyToRun>
   <InvariantGlobalization>false</InvariantGlobalization>
   <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
-  <AppxPackageSigningEnabled>False</AppxPackageSigningEnabled>
+  <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
+  <PackageCertificateKeyFile>Docked AI_StoreKey.pfx</PackageCertificateKeyFile>
   <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
   <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
   <GenerateTestArtifacts>False</GenerateTestArtifacts>
-  <AppxBundle>Auto</AppxBundle>
+  <AppxBundle>Always</AppxBundle>
   <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
   <AppxBundlePlatforms>x64|arm64</AppxBundlePlatforms>
   </PropertyGroup>

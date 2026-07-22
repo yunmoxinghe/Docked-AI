@@ -118,13 +118,13 @@ namespace DockedTools.Features.Pages.Lab
                         var titleLength = Win32.GetWindowTextLength(hwnd);
                         if (titleLength > 0)
                         {
-                            // 使用 Span<char> 替代 StringBuilder（AOT 友好）
-                            Span<char> titleBuffer = stackalloc char[titleLength + 1];
-                            var actualLength = Win32.GetWindowText(hwnd, titleBuffer);
+                            // 使用 char[] 替代 Span<char>
+                            var titleBuffer = new char[titleLength + 1];
+                            var actualLength = Win32.GetWindowText(hwnd, titleBuffer, titleBuffer.Length);
                             
                             if (actualLength > 0)
                             {
-                                var title = new string(titleBuffer.Slice(0, actualLength));
+                                var title = new string(titleBuffer, 0, actualLength);
                                 
                                 // 排除 keep-alive 窗口（通常没有标题或标题为空）
                                 // 优先选择有标题的窗口
@@ -163,10 +163,10 @@ namespace DockedTools.Features.Pages.Lab
             [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
             public static partial bool IsWindowVisible(IntPtr hWnd);
 
-            [System.Runtime.InteropServices.LibraryImport("user32.dll", StringMarshalling = System.Runtime.InteropServices.StringMarshalling.Utf16, SetLastError = true)]
-            public static partial int GetWindowText(IntPtr hWnd, System.Span<char> lpString);
+            [System.Runtime.InteropServices.LibraryImport("user32.dll", EntryPoint = "GetWindowTextW", StringMarshalling = System.Runtime.InteropServices.StringMarshalling.Utf16, SetLastError = true)]
+            public static partial int GetWindowText(IntPtr hWnd, char[] lpString, int nMaxCount);
 
-            [System.Runtime.InteropServices.LibraryImport("user32.dll", SetLastError = true)]
+            [System.Runtime.InteropServices.LibraryImport("user32.dll", EntryPoint = "GetWindowTextLengthW", SetLastError = true)]
             public static partial int GetWindowTextLength(IntPtr hWnd);
         }
     }
