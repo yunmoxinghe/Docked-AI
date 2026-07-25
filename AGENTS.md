@@ -34,3 +34,5 @@
 脚本工具\README.md
 文档：
 文档\README.md
+
+你可以使用Microsoft.CoreUtils
