@@ -1,10 +1,16 @@
 {
   "profiles": {
     "DockedTools (Package)": {
-      "commandName": "MsixPackage"
+      "commandName": "MsixPackage",
+      "environmentVariables": {
+        "WINAPP_LOG_LEVEL": "debug"
+      }
     },
     "DockedTools (Unpackaged)": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "environmentVariables": {
+        "WINAPP_LOG_LEVEL": "debug"
+      }
     }
   }
 }
