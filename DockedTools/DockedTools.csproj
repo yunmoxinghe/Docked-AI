@@ -100,5 +100,11 @@
   <AppxBundle>Always</AppxBundle>
   <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
   <AppxBundlePlatforms>x64|arm64</AppxBundlePlatforms>
+  
+  <!-- 🌍 本地化配置：将所有语言资源打包到主包中，支持应用内语言切换 -->
+  <!-- 只自动分割 Scale 和 DXFeatureLevel 资源，语言资源不分割 -->
+  <AppxBundleAutoResourcePackageQualifiers>Scale|DXFeatureLevel</AppxBundleAutoResourcePackageQualifiers>
+  <!-- 声明应用支持的所有语言 -->
+  <AppxDefaultResourceQualifiers>Language=zh-Hans;en-US</AppxDefaultResourceQualifiers>
   </PropertyGroup>
 </Project>
