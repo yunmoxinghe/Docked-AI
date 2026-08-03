@@ -110,5 +110,14 @@
   <AppxBundleAutoResourcePackageQualifiers>Scale|DXFeatureLevel</AppxBundleAutoResourcePackageQualifiers>
   <!-- 声明应用支持的所有语言 -->
   <AppxDefaultResourceQualifiers>Language=zh-Hans;en-US</AppxDefaultResourceQualifiers>
+  
+  <!-- 🔍 调试符号配置：生成 PDB 文件用于崩溃分析 -->
+  <!-- 即使是 Release 模式也生成符号文件，用于 Partner Center 崩溃分析 -->
+  <DebugType>embedded</DebugType>
+  <DebugSymbols>true</DebugSymbols>
+  <!-- 包含符号包到 .msixupload 文件中 -->
+  <GenerateAppxSymbolPackage>true</GenerateAppxSymbolPackage>
+  <!-- 上传到商店时包含符号文件 -->
+  <AppxSymbolPackageEnabled>true</AppxSymbolPackageEnabled>
   </PropertyGroup>
 </Project>
