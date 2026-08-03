@@ -74,6 +74,9 @@ namespace DockedTools.Features.MainWindowContent.NavigationBar
             _lastSelectedNavigationItem = CreateNavigationItem; // ⭐ 修复：同步更新选中记录
             _suppressSelectionChanged = false;
             System.Diagnostics.Debug.WriteLine($"[NavigationBar] ✅ 已选中新建页，SelectedItem={NavView.SelectedItem?.GetType().Name}");
+            
+            // ⭐ 滚动到选中的项（如果不可见）
+            ScrollToSelectedItem(CreateNavigationItem);
         }
 
         public void SelectHomeItem()
@@ -85,6 +88,9 @@ namespace DockedTools.Features.MainWindowContent.NavigationBar
             _lastSelectedNavigationItem = HomeNavigationItem; // ⭐ 修复：同步更新选中记录
             _suppressSelectionChanged = false;
             System.Diagnostics.Debug.WriteLine($"[NavigationBar] ✅ 已选中首页，SelectedItem={NavView.SelectedItem?.GetType().Name}");
+            
+            // ⭐ 滚动到选中的项（如果不可见）
+            ScrollToSelectedItem(HomeNavigationItem);
         }
 
         public void SelectSettingsItem()
@@ -96,6 +102,9 @@ namespace DockedTools.Features.MainWindowContent.NavigationBar
             _lastSelectedNavigationItem = SettingsNavigationItem; // ⭐ 修复：同步更新选中记录
             _suppressSelectionChanged = false;
             System.Diagnostics.Debug.WriteLine($"[NavigationBar] ✅ 已选中设置页，SelectedItem={NavView.SelectedItem?.GetType().Name}");
+            
+            // ⭐ 滚动到选中的项（如果不可见）
+            ScrollToSelectedItem(SettingsNavigationItem);
         }
 
         public void SelectAIItem()
@@ -107,6 +116,9 @@ namespace DockedTools.Features.MainWindowContent.NavigationBar
             _lastSelectedNavigationItem = AINavigationItem; // ⭐ 修复：同步更新选中记录
             _suppressSelectionChanged = false;
             System.Diagnostics.Debug.WriteLine($"[NavigationBar] ✅ 已选中 AI 页，SelectedItem={NavView.SelectedItem?.GetType().Name}");
+            
+            // ⭐ 滚动到选中的项（如果不可见）
+            ScrollToSelectedItem(AINavigationItem);
         }
 
         /// <summary>
@@ -117,6 +129,111 @@ namespace DockedTools.Features.MainWindowContent.NavigationBar
         {
             _suppressSelectionChanged = false;
             System.Diagnostics.Debug.WriteLine("[NavigationBar] 导航已启用");
+        }
+
+        /// <summary>
+        /// 获取所有网页应用快捷方式列表（按添加顺序）
+        /// 用于快捷键切换标签页功能
+        /// </summary>
+        public List<WebAppShortcut> GetWebAppShortcuts()
+        {
+            return _webShortcuts.Values.ToList();
+        }
+
+        /// <summary>
+        /// 根据索引切换到对应的网页应用（0-based，用于 Ctrl+1~9）
+        /// </summary>
+        /// <param name="index">标签索引（0 对应第一个标签，-1 对应最后一个标签）</param>
+        /// <returns>如果索引有效且切换成功返回 true，否则返回 false</returns>
+        public bool SwitchToWebAppByIndex(int index)
+        {
+            var shortcuts = GetWebAppShortcuts();
+            
+            // 处理负数索引：-1 表示最后一个标签
+            if (index < 0)
+            {
+                index = shortcuts.Count + index;
+            }
+            
+            if (index >= 0 && index < shortcuts.Count)
+            {
+                var shortcut = shortcuts[index];
+                System.Diagnostics.Debug.WriteLine($"[NavigationBar] 快捷键切换到标签 {index + 1}: {shortcut.Name}");
+                SelectWebAppItem(shortcut.Id);
+                
+                // ⭐ 滚动到选中的项（如果不可见）
+                ScrollToSelectedItem(shortcut.Id);
+                
+                // 触发导航请求
+                NavigationRequested?.Invoke(this, new NavigationRequest(typeof(WebBrowserPage), shortcut));
+                return true;
+            }
+            System.Diagnostics.Debug.WriteLine($"[NavigationBar] 标签索引 {index + 1} 超出范围（共 {shortcuts.Count} 个标签）");
+            return false;
+        }
+
+        /// <summary>
+        /// 切换到下一个标签（Ctrl+Tab）
+        /// 循环顺序：按 NavigationView.MenuItems 和 FooterMenuItems 的实际顺序切换
+        /// 只包含可选中且可见的项
+        /// 
+        /// 【AOT 兼容性】
+        /// 使用显式类型检查而非 OfType<T>()，避免 trimming 警告
+        /// 符合 .NET 10 Native AOT 最佳实践
+        /// </summary>
+        public void SwitchToNextWebApp()
+        {
+            // ⭐ AOT 优化：使用显式类型检查代替 OfType<T>()
+            // 避免 IL2026 trimming 警告
+            var menuItems = new List<NavigationViewItem>();
+            foreach (var item in NavView.MenuItems)
+            {
+                if (item is NavigationViewItem navItem && 
+                    navItem.SelectsOnInvoked && 
+                    navItem.Visibility == Visibility.Visible)
+                {
+                    menuItems.Add(navItem);
+                }
+            }
+            
+            var footerItems = new List<NavigationViewItem>();
+            foreach (var item in NavView.FooterMenuItems)
+            {
+                if (item is NavigationViewItem navItem && 
+                    navItem.SelectsOnInvoked && 
+                    navItem.Visibility == Visibility.Visible)
+                {
+                    footerItems.Add(navItem);
+                }
+            }
+            
+            // 合并 MenuItems 和 FooterMenuItems
+            var allItems = new List<NavigationViewItem>(menuItems.Count + footerItems.Count);
+            allItems.AddRange(menuItems);
+            allItems.AddRange(footerItems);
+            
+            if (allItems.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine("[NavigationBar] 没有可切换的标签");
+                return;
+            }
+            
+            // 查找当前选中项的索引
+            var currentItem = NavView.SelectedItem as NavigationViewItem;
+            int currentIndex = currentItem != null ? allItems.IndexOf(currentItem) : -1;
+            
+            // 切换到下一个标签（循环）
+            int nextIndex = (currentIndex + 1) % allItems.Count;
+            var nextItem = allItems[nextIndex];
+            
+            System.Diagnostics.Debug.WriteLine($"[NavigationBar] Ctrl+Tab 切换: 索引 {currentIndex} → {nextIndex} (Content={nextItem.Content}, Tag={nextItem.Tag})");
+            
+            // ⭐ 直接设置选中项，触发 SelectionChanged 事件
+            // SelectionChanged 事件会根据 Tag 自动处理导航逻辑
+            _suppressSelectionChanged = false; // 确保不被抑制
+            NavView.SelectedItem = nextItem;
+            TopNavView.SelectedItem = null;
+            _lastSelectedNavigationItem = nextItem;
         }
 
         public void SelectWebAppItem(string shortcutId)
@@ -130,10 +247,59 @@ namespace DockedTools.Features.MainWindowContent.NavigationBar
                 _lastSelectedNavigationItem = navItem; // ⭐ 修复：同步更新选中记录
                 _suppressSelectionChanged = false;
                 System.Diagnostics.Debug.WriteLine($"[NavigationBar] ✅ 已选中 WebApp 标签: {shortcutId}");
+                
+                // ⭐ 滚动到选中的项（如果不可见）
+                ScrollToSelectedItem(shortcutId);
             }
             else
             {
                 System.Diagnostics.Debug.WriteLine($"[NavigationBar] ⚠️ 未找到 WebApp 导航项: {shortcutId}");
+            }
+        }
+
+        /// <summary>
+        /// 滚动到指定的快捷方式项
+        /// 使用平滑动画确保用户能看到选中项（符合 UX 最佳实践）
+        /// 
+        /// 【实现原理】
+        /// 使用 WinUI 3 原生的 StartBringIntoView API
+        /// 自动处理布局和滚动逻辑，无需等待 LayoutUpdated
+        /// 参考：https://learn.microsoft.com/en-us/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.uielement.startbringintoview
+        /// </summary>
+        /// <param name="shortcutId">快捷方式 ID</param>
+        private void ScrollToSelectedItem(string shortcutId)
+        {
+            bool success = NavView.ScrollToItemByTag(shortcutId, animated: true);
+            
+            if (success)
+            {
+                System.Diagnostics.Debug.WriteLine($"[NavigationBar] ✅ 成功滚动到项: {shortcutId}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[NavigationBar] ⚠️ 滚动到项失败或项已在可见区域: {shortcutId}");
+            }
+        }
+
+        /// <summary>
+        /// 滚动到指定的 NavigationViewItem
+        /// 使用平滑动画确保用户能看到选中项（符合 UX 最佳实践）
+        /// 
+        /// 【使用场景】
+        /// 用于首页、设置页、AI页等没有 shortcutId 的固定导航项
+        /// </summary>
+        /// <param name="item">目标 NavigationViewItem</param>
+        private void ScrollToSelectedItem(NavigationViewItem item)
+        {
+            bool success = NavView.ScrollIntoView(item, animated: true);
+            
+            if (success)
+            {
+                System.Diagnostics.Debug.WriteLine($"[NavigationBar] ✅ 成功滚动到项: {item.Content}");
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[NavigationBar] ⚠️ 滚动到项失败或项已在可见区域: {item.Content}");
             }
         }
 

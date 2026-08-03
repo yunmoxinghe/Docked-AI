@@ -322,5 +322,24 @@ namespace DockedTools.Features.MainWindowContent.Linker
         {
             await ContentHost.RestartCurrentTabAsync();
         }
+
+        // ==================== 快捷键支持方法 ====================
+
+        /// <summary>
+        /// 根据索引切换到对应的网页应用标签（Ctrl+1~9）
+        /// </summary>
+        /// <param name="index">标签索引（0-based）</param>
+        public void SwitchToWebAppByIndex(int index)
+        {
+            NavBar.SwitchToWebAppByIndex(index);
+        }
+
+        /// <summary>
+        /// 切换到下一个网页应用标签（Ctrl+Tab）
+        /// </summary>
+        public void SwitchToNextWebApp()
+        {
+            NavBar.SwitchToNextWebApp();
+        }
     }
 }

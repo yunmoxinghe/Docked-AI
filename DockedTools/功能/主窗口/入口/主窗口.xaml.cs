@@ -1,3 +1,4 @@
+using DockedTools.Features.MainWindow.KeyboardManagement;
 using DockedTools.Features.MainWindow.State;
 using DockedTools.Features.MainWindow.Visibility;
 using DockedTools.Features.MainWindowContent.Linker;
@@ -5,6 +6,7 @@ using DockedTools.Features.Tray;
 using DockedTools.Features.UnifiedCalls.AsyncSafety;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 using System;
 using System.ComponentModel;
@@ -98,10 +100,11 @@ namespace DockedTools
         
         // ==================== 字段定义 ====================
         
-        // 核心依赖：状态容器、控制器、UI 桥接器
+        // 核心依赖：状态容器、控制器、UI 桥接器、快捷键管理器
         private readonly MainWindowViewModel _viewModel;
         private readonly WindowHostController _windowController;
         private readonly Linker? _linker;
+        private readonly KeyboardShortcutManager _keyboardManager;
         private bool _isContentInitialized = false;
 
         /// <summary>
@@ -124,7 +127,7 @@ namespace DockedTools
         /// 窗口激活事件处理器 - 检测焦点状态
         /// 仅在内容初始化完成后才响应失焦事件
         /// </summary>
-        private void OnWindowActivated(object sender, WindowActivatedEventArgs args)
+        private void OnWindowActivated(object sender, Microsoft.UI.Xaml.WindowActivatedEventArgs args)
         {
             // 只在内容初始化完成后检测焦点
             if (!_isContentInitialized)
@@ -188,6 +191,13 @@ namespace DockedTools
             _linker = MainLinker;
             _windowController = new WindowHostController(this, _viewModel);
 
+            // 创建快捷键管理器
+            _keyboardManager = new KeyboardShortcutManager(
+                switchToTab: (index) => _linker?.SwitchToWebAppByIndex(index),
+                switchToNextTab: () => _linker?.SwitchToNextWebApp(),
+                togglePinnedDock: () => TogglePinnedDock()
+            );
+
             // 订阅事件：用户交互、状态变化、窗口事件
             SubscribeToLinkerEvents();
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
@@ -200,6 +210,9 @@ namespace DockedTools
             
             // ⭐ 订阅窗口最大化状态变化事件，转发到实验室页面
             DockedTools.Features.Pages.Lab.LabPage.WindowMaximizedStateChanged += OnLabPageWindowMaximizedStateChanged;
+
+            // ⭐ 订阅 RootGrid.Loaded 事件（使用具名方法，AOT 友好）
+            RootGrid.Loaded += OnRootGridLoaded;
 
             // 初始化 UI 状态（图标、圆角、边距）
             RefreshViewModelDrivenState();
@@ -705,6 +718,79 @@ namespace DockedTools
         }
 
         /// <summary>
+        /// RootGrid.Loaded 事件处理器 - 确保 RootGrid 可以接收键盘输入
+        /// 
+        /// 【设计原因】
+        /// 给 RootGrid 设置焦点，使 KeyboardAccelerator 可以正常工作
+        /// 使用具名方法而非 Lambda，符合 .NET 10 AOT 最佳实践
+        /// 
+        /// 【AOT 兼容性】
+        /// - 具名方法：AOT 编译器可以静态分析，不会被 trimmer 移除
+        /// - Lambda 表达式：会生成匿名类，可能导致内存泄漏且 AOT 不友好
+        /// </summary>
+        private void OnRootGridLoaded(object sender, RoutedEventArgs e)
+        {
+            // 给 RootGrid 设置焦点，使 KeyboardAccelerator 可以工作
+            RootGrid.Focus(FocusState.Programmatic);
+            LogDebug("RootGrid 已获取焦点，快捷键已启用");
+        }
+
+        // ==================== 快捷键处理方法 ====================
+        // 所有快捷键逻辑由 KeyboardShortcutManager 管理
+
+        /// <summary>
+        /// PreviewKeyDown 事件处理 - 委托给快捷键管理器
+        /// </summary>
+        private void RootGrid_PreviewKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            _keyboardManager.HandlePreviewKeyDown(e);
+        }
+
+        /// <summary>
+        /// Ctrl + 1~9: 切换到对应的网页应用标签
+        /// </summary>
+        private void OnSwitchToTab1(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+            => _keyboardManager.HandleSwitchToTab(0, args);
+
+        private void OnSwitchToTab2(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+            => _keyboardManager.HandleSwitchToTab(1, args);
+
+        private void OnSwitchToTab3(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+            => _keyboardManager.HandleSwitchToTab(2, args);
+
+        private void OnSwitchToTab4(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+            => _keyboardManager.HandleSwitchToTab(3, args);
+
+        private void OnSwitchToTab5(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+            => _keyboardManager.HandleSwitchToTab(4, args);
+
+        private void OnSwitchToTab6(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+            => _keyboardManager.HandleSwitchToTab(5, args);
+
+        private void OnSwitchToTab7(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+            => _keyboardManager.HandleSwitchToTab(6, args);
+
+        private void OnSwitchToTab8(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+            => _keyboardManager.HandleSwitchToTab(7, args);
+
+        private void OnSwitchToTab9(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+            => _keyboardManager.HandleSwitchToTab(-1, args); // -1 表示最后一个标签
+
+        /// <summary>
+        /// Ctrl + Tab: 切换到下一个网页应用标签（循环）
+        /// </summary>
+        private void OnSwitchToNextTab(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+            => _keyboardManager.HandleSwitchToNextTab(args);
+
+        /// <summary>
+        /// Ctrl + D: 固定/取消固定侧边栏 (Dock)
+        /// </summary>
+        private void OnTogglePinnedDock(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+        {
+            _keyboardManager.HandleTogglePinnedDock(args);
+        }
+
+        /// <summary>
         /// 窗口关闭事件处理器 - 清理资源和取消事件订阅
         /// 
         /// 【重要性】
@@ -713,9 +799,13 @@ namespace DockedTools
         /// - AppWindow.Changed
         /// - Closed
         /// - Activated
+        /// - RootGrid.Loaded
         /// - Linker 事件
         /// - LabPage.RefreshMonitorStateRequested
         /// - LabPage.WindowMaximizedStateChanged
+        /// 
+        /// 【AOT 兼容性】
+        /// 所有事件订阅使用具名方法，确保可以正确取消订阅
         /// 
         /// 【重构风险】
         /// 如果添加新的事件订阅，必须在此处取消订阅
@@ -726,6 +816,7 @@ namespace DockedTools
             AppWindow.Changed -= OnAppWindowChanged;
             Closed -= OnWindowClosed;
             Activated -= OnWindowActivated;
+            RootGrid.Loaded -= OnRootGridLoaded;
             DockedTools.Features.Pages.Lab.LabPage.RefreshMonitorStateRequested -= OnRefreshMonitorStateRequested;
             DockedTools.Features.Pages.Lab.LabPage.WindowMaximizedStateChanged -= OnLabPageWindowMaximizedStateChanged;
             UnsubscribeFromLinkerEvents();
