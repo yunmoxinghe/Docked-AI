@@ -105,5 +105,7 @@ namespace DockedTools.Features.MainWindow.Visibility
         internal const uint WM_NCPAINT = 0x0085;
         // 系统准备更新非客户区激活状态时发来的消息。
         internal const uint WM_NCACTIVATE = 0x0086;
+        // 异步更新窗口位置，减少 UI 线程阻塞（性能优化）
+        internal const uint SWP_ASYNCWINDOWPOS = 0x4000;
     }
 }
