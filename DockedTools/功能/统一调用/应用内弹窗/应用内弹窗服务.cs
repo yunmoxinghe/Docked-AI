@@ -31,7 +31,9 @@ public static class InAppDialogService
             {
                 dialog.RequestedTheme = rootElement.ActualTheme;
             }
+#pragma warning disable REACTOR_DIALOG_001 // 这是对话框服务的核心实现，必须调用 ShowAsync()
             return await dialog.ShowAsync();
+#pragma warning restore REACTOR_DIALOG_001
         }
         finally
         {

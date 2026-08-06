@@ -17,27 +17,7 @@
           IsTabStop="True"
           UseSystemFocusVisuals="False"
           PreviewKeyDown="RootGrid_PreviewKeyDown">
-        <!-- ==================== 快捷键定义 ==================== -->
-        <Grid.KeyboardAccelerators>
-            <!-- Ctrl + 1~8: 快速切换到对应的网页应用标签 -->
-            <KeyboardAccelerator Key="Number1" Modifiers="Control" Invoked="OnSwitchToTab1"/>
-            <KeyboardAccelerator Key="Number2" Modifiers="Control" Invoked="OnSwitchToTab2"/>
-            <KeyboardAccelerator Key="Number3" Modifiers="Control" Invoked="OnSwitchToTab3"/>
-            <KeyboardAccelerator Key="Number4" Modifiers="Control" Invoked="OnSwitchToTab4"/>
-            <KeyboardAccelerator Key="Number5" Modifiers="Control" Invoked="OnSwitchToTab5"/>
-            <KeyboardAccelerator Key="Number6" Modifiers="Control" Invoked="OnSwitchToTab6"/>
-            <KeyboardAccelerator Key="Number7" Modifiers="Control" Invoked="OnSwitchToTab7"/>
-            <KeyboardAccelerator Key="Number8" Modifiers="Control" Invoked="OnSwitchToTab8"/>
-            
-            <!-- Ctrl + 9: 快速切换到最后一个网页应用标签（符合浏览器习惯） -->
-            <KeyboardAccelerator Key="Number9" Modifiers="Control" Invoked="OnSwitchToTab9"/>
-            
-            <!-- Ctrl + Tab: 切换到下一个网页应用标签（循环） -->
-            <KeyboardAccelerator Key="Tab" Modifiers="Control" Invoked="OnSwitchToNextTab"/>
-            
-            <!-- ⚠️ Ctrl + D 不使用 KeyboardAccelerator，因为会被 WinUI 吞掉 -->
-            <!-- 改用 PreviewKeyDown 处理（见快捷键管理器） -->
-        </Grid.KeyboardAccelerators>
+
         
         <linker:Linker x:Name="MainLinker" />
         

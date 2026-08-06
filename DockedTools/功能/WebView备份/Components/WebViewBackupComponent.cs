@@ -40,9 +40,9 @@ public class WebViewBackupComponent : Component
         var backupService = new WebViewBackupServiceV2();
 
         // 组件加载时刷新备份列表
-        UseEffect(async () =>
+        UseEffect(() =>
         {
-            await RefreshBackupsAsync();
+            _ = Task.Run(async () => await RefreshBackupsAsync());
         }, Array.Empty<object>());
 
         async Task RefreshBackupsAsync()

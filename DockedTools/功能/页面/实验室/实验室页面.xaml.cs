@@ -270,10 +270,10 @@ namespace DockedTools.Features.Pages.Lab
 
             if (dataPath == null || !System.IO.Directory.Exists(dataPath))
             {
-                var errorDialog = new ContentDialog
-                {
-                    Title = "💡 未找到 WebView2 数据",
-                    Content = new TextBlock
+                var errorDialog = new UnifiedInAppDialog();
+                errorDialog.Configure(
+                    "💡 未找到 WebView2 数据",
+                    new TextBlock
                     {
                         Text = "还没有 WebView2 数据可以备份哦！\n\n" +
                                "📋 快速开始：\n" +
@@ -284,8 +284,8 @@ namespace DockedTools.Features.Pages.Lab
                                $"💡 提示：如果确实已使用过，可能需要重启应用后再试。",
                         TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap
                     },
-                    CloseButtonText = "知道了"
-                };
+                    closeButtonText: "知道了"
+                );
                 await InAppDialogService.ShowAsync(errorDialog, this);
                 return;
             }
@@ -300,12 +300,13 @@ namespace DockedTools.Features.Pages.Lab
             
             if (hwnd == IntPtr.Zero)
             {
-                await InAppDialogService.ShowAsync(new ContentDialog
-                {
-                    Title = "❌ 无法打开文件选择器",
-                    Content = "无法获取窗口句柄，请重启应用后重试。",
-                    CloseButtonText = "确定"
-                }, this);
+                var errorDialog = new UnifiedInAppDialog();
+                errorDialog.Configure(
+                    "❌ 无法打开文件选择器",
+                    "无法获取窗口句柄，请重启应用后重试。",
+                    closeButtonText: "确定"
+                );
+                await InAppDialogService.ShowAsync(errorDialog, this);
                 return;
             }
             
@@ -314,11 +315,11 @@ namespace DockedTools.Features.Pages.Lab
             var folder = await picker.PickSingleFolderAsync();
             if (folder == null) return;
 
-            var loadingDialog = new ContentDialog
-            {
-                Title = "正在备份...",
-                Content = new ProgressRing { IsActive = true, Width = 48, Height = 48 }
-            };
+            var loadingDialog = new UnifiedInAppDialog();
+            loadingDialog.Configure(
+                "正在备份...",
+                new ProgressRing { IsActive = true, Width = 48, Height = 48 }
+            );
 
             var dialogTask = InAppDialogService.ShowAsync(loadingDialog, this);
 
@@ -330,10 +331,10 @@ namespace DockedTools.Features.Pages.Lab
                 loadingDialog.Hide();
 
                 var fileInfo = new System.IO.FileInfo(zipPath);
-                await InAppDialogService.ShowAsync(new ContentDialog
-                {
-                    Title = "✅ 备份成功",
-                    Content = new StackPanel
+                var successDialog = new UnifiedInAppDialog();
+                successDialog.Configure(
+                    "✅ 备份成功",
+                    new StackPanel
                     {
                         Spacing = 12,
                         Children =
@@ -356,8 +357,9 @@ namespace DockedTools.Features.Pages.Lab
                             })
                         }
                     },
-                    CloseButtonText = "完成"
-                }, this);
+                    closeButtonText: "完成"
+                );
+                await InAppDialogService.ShowAsync(successDialog, this);
             }
             catch (System.Exception ex)
             {
@@ -384,16 +386,17 @@ namespace DockedTools.Features.Pages.Lab
                                "• 检查系统权限设置";
                 }
 
-                await InAppDialogService.ShowAsync(new ContentDialog
-                {
-                    Title = "❌ 备份失败",
-                    Content = new TextBlock
+                var errorDialog = new UnifiedInAppDialog();
+                errorDialog.Configure(
+                    "❌ 备份失败",
+                    new TextBlock
                     {
                         Text = $"错误详情：{errorMessage}\n\n{helpText}",
                         TextWrapping = Microsoft.UI.Xaml.TextWrapping.Wrap
                     },
-                    CloseButtonText = "确定"
-                }, this);
+                    closeButtonText: "确定"
+                );
+                await InAppDialogService.ShowAsync(errorDialog, this);
             }
         }
 
@@ -412,12 +415,13 @@ namespace DockedTools.Features.Pages.Lab
             
             if (hwnd == IntPtr.Zero)
             {
-                await InAppDialogService.ShowAsync(new ContentDialog
-                {
-                    Title = "❌ 无法打开文件选择器",
-                    Content = "无法获取窗口句柄，请重启应用后重试。",
-                    CloseButtonText = "确定"
-                }, this);
+                var errorDialog = new UnifiedInAppDialog();
+                errorDialog.Configure(
+                    "❌ 无法打开文件选择器",
+                    "无法获取窗口句柄，请重启应用后重试。",
+                    closeButtonText: "确定"
+                );
+                await InAppDialogService.ShowAsync(errorDialog, this);
                 return;
             }
             

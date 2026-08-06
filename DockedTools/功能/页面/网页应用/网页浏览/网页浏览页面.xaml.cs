@@ -1125,15 +1125,14 @@ namespace DockedTools.Features.Pages.WebApp.Browser
 
                 await DispatcherQueue.EnqueueAsync(async () =>
                 {
-                    var dialog = new ContentDialog
-                    {
-                        Title = LocalizationHelper.GetString("WebView2_NotInstalled_Title"),
-                        Content = LocalizationHelper.GetString("WebView2_NotInstalled_Content"),
-                        CloseButtonText = LocalizationHelper.GetString("WebView2_NotInstalled_CloseButton"),
-                        XamlRoot = XamlRoot
-                    };
+                    var dialog = new DockedTools.Features.UnifiedCalls.InAppDialog.UnifiedInAppDialog();
+                    dialog.Configure(
+                        LocalizationHelper.GetString("WebView2_NotInstalled_Title"),
+                        LocalizationHelper.GetString("WebView2_NotInstalled_Content"),
+                        closeButtonText: LocalizationHelper.GetString("WebView2_NotInstalled_CloseButton")
+                    );
 
-                    await dialog.ShowAsync();
+                    await DockedTools.Features.UnifiedCalls.InAppDialog.InAppDialogService.ShowAsync(dialog, this);
                 });
             }
             catch (Exception ex)
@@ -1153,15 +1152,14 @@ namespace DockedTools.Features.Pages.WebApp.Browser
 
                 await DispatcherQueue.EnqueueAsync(async () =>
                 {
-                    var dialog = new ContentDialog
-                    {
-                        Title = LocalizationHelper.GetString("WebView2_InitFailed_Title"),
-                        Content = string.Format(LocalizationHelper.GetString("WebView2_InitFailed_Content"), ex.GetType().Name, ex.Message),
-                        CloseButtonText = LocalizationHelper.GetString("WebView2_InitFailed_CloseButton"),
-                        XamlRoot = XamlRoot
-                    };
+                    var dialog = new DockedTools.Features.UnifiedCalls.InAppDialog.UnifiedInAppDialog();
+                    dialog.Configure(
+                        LocalizationHelper.GetString("WebView2_InitFailed_Title"),
+                        string.Format(LocalizationHelper.GetString("WebView2_InitFailed_Content"), ex.GetType().Name, ex.Message),
+                        closeButtonText: LocalizationHelper.GetString("WebView2_InitFailed_CloseButton")
+                    );
 
-                    await dialog.ShowAsync();
+                    await DockedTools.Features.UnifiedCalls.InAppDialog.InAppDialogService.ShowAsync(dialog, this);
                 });
             }
             catch (Exception dialogEx)
