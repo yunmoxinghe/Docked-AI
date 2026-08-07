@@ -98,26 +98,21 @@ namespace DockedTools.Features.Pages.WebApp.Browser
         /// </summary>
 
 
- // ⚠️ HideLoadingProgressBarSmoothlyAsync已移至 网页浏览页面.ProgressBar.cs
- // ⚠️ CoreWebView2_DocumentTitleChanged、CoreWebView2_WebMessageReceived、CoreWebView2WebMessageReceivedAsync已移至 网页浏览页面.MessageHandling.cs
-        }
+        // ⚠️ CoreWebView2Environment_BrowserProcessExited、CoreWebView2_ProcessFailed已移至 网页浏览页面.ProcessManagement.cs
 
- // ⚠️ ApplyBarTint、RestoreSharedTopAppBarBackground已移至 网页浏览页面.TintApplication.cs
+        // ⚠️ HideLoadingProgressBarSmoothlyAsync已移至 网页浏览页面.ProgressBar.cs
+        
+        // ⚠️ CoreWebView2_DocumentTitleChanged、CoreWebView2_WebMessageReceived、CoreWebView2WebMessageReceivedAsync已移至 网页浏览页面.MessageHandling.cs
 
-        /// <summary>
-        /// 创建状态叠加层颜色（Material Design 最佳实践）
-        /// </summary>
+        // ⚠️ ApplyBarTint、RestoreSharedTopAppBarBackground已移至 网页浏览页面.TintApplication.cs
 
- // ⚠️ CreateStateOverlayColor、CalculateLuminance、AdjustColorBrightness、AnimateColorChange、GetContrastingForeground、TryParseCssColor、TryParseByte已移至 网页浏览页面.ColorUtils.cs
+        // ⚠️ CreateStateOverlayColor、CalculateLuminance、AdjustColorBrightness、AnimateColorChange、GetContrastingForeground、TryParseCssColor、TryParseByte已移至 网页浏览页面.ColorUtils.cs
 
- // ⚠️ CopyLinkMenuItem_Click、CopyUrlMenuItem_Click、OpenExternalMenuItem_Click已移至 网页浏览页面.ContextMenu.cs
-
-        // ==================== 右键菜单相关方法结束 ====================
+        // ⚠️ CopyLinkMenuItem_Click、CopyUrlMenuItem_Click、OpenExternalMenuItem_Click已移至 网页浏览页面.ContextMenu.cs
 
         // ⚠️ HandleDoubleClick、GetMainWindowInstance已移至 网页浏览页面.Helpers.cs
 
-
- // ⚠️ SetupRightContent(重复)、SetupLeftMappingButton、SetupRightMappingButton、CreateAnimatedIcon、OnLeftMappingButtonClick、OnRightMappingButtonClick、SendHotkeyToWebViewAsync、GetKeyString、GetKeyCode已移至 网页浏览页面.KeyMappingButtons.cs
+        // ⚠️ SetupRightContent(重复)、SetupLeftMappingButton、SetupRightMappingButton、CreateAnimatedIcon、OnLeftMappingButtonClick、OnRightMappingButtonClick、SendHotkeyToWebViewAsync、GetKeyString、GetKeyCode已移至 网页浏览页面.KeyMappingButtons.cs
 
         // ⚠️ 取色采样策略方法已移至 网页浏览页面.Sampling.cs
     }
