@@ -96,31 +96,7 @@ namespace DockedTools.Features.Pages.WebApp.Browser
             }
         }
 
-        private void CoreWebView2_DocumentTitleChanged(object? sender, object e)
-        {
-            if (WebView?.CoreWebView2 is null)
-            {
-                return;
-            }
-
-            string title = WebView.CoreWebView2.DocumentTitle ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(title))
-            {
-                if (_currentShortcut is not null && !string.IsNullOrWhiteSpace(_currentShortcut.Name))
-                {
-                    if (_topBarTitle != null)
-                    {
-                        _topBarTitle.Text = _currentShortcut.Name;
-                    }
-                }
-
-                return;
-            }
-
-            if (_topBarTitle != null)
-            {
-                _topBarTitle.Text = title;
-            }
-        }
+        // ⚠️ CoreWebView2_DocumentTitleChanged已移至 网页浏览页面.Events.cs
     }
 }
+

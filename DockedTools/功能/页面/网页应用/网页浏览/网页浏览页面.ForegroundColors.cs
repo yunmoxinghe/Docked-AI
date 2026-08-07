@@ -3,6 +3,7 @@ using DockedTools.Features.UnifiedCalls.TopAppBar;
 using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
+using System;
 using System.Threading.Tasks;
 
 namespace DockedTools.Features.Pages.WebApp.Browser
@@ -115,13 +116,13 @@ namespace DockedTools.Features.Pages.WebApp.Browser
                         System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 取色前背景色: Top={_topBarBackgroundBrush.Color}, Bottom={_bottomBarBackgroundBrush.Color}");
                         
                         // ✅ 步骤1：尝试 meta theme-color
-                        await TryApplyThemeColorMetaTagAsync();
+                        await TryApplyThemeColorAsync();
                         
                         // ✅ 步骤2：尝试 JavaScript 取色（如果步骤1失败）
                         if (!_hasAppliedThemeColor)
                         {
                             System.Diagnostics.Debug.WriteLine("[WebBrowserPage] theme-color meta 未找到，使用脚本取色");
-                            await TrySampleTopBarColorAsync();
+                            await TriggerTintSamplingAsync();
                         }
                         
                         // ✅ 步骤3：如果都失败，回退到系统主题色
@@ -133,7 +134,8 @@ namespace DockedTools.Features.Pages.WebApp.Browser
                         
                         System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 取色后背景色: Top={_topBarBackgroundBrush.Color}, Bottom={_bottomBarBackgroundBrush.Color}");
                     },
-                    "[OnSystemThemeChanged]"
+                    "WebBrowserPage",
+                    "ThemeChanged"
                 );
             }
             else

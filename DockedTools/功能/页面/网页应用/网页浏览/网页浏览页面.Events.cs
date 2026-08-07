@@ -68,81 +68,11 @@ namespace DockedTools.Features.Pages.WebApp.Browser
             });
         }
 
-        /// <summary>
-        /// 系统主题切换时的回调
-        /// </summary>
-        private void OnSystemThemeChanged(FrameworkElement sender, object args)
-        {
-            System.Diagnostics.Debug.WriteLine("═══════════════════════════════════════════════════════");
-            System.Diagnostics.Debug.WriteLine("[WebBrowserPage] ✅✅✅ ActualThemeChanged 事件触发！");
-            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 当前 ActualTheme: {ActualTheme}");
-            System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] WebView 状态: CoreWebView2={(WebView?.CoreWebView2 != null ? "✓" : "✗")}, IsReady={_isWebViewReady}");
-            System.Diagnostics.Debug.WriteLine("═══════════════════════════════════════════════════════");
-            
-            // 重新从主题资源获取颜色
-            UpdateForegroundColorsFromTheme();
-            
-            // ✅ 立即更新 TopAppBar 的前景色（包括关闭按钮等）
-            TopAppBarService.SetForeground(_topBarForegroundBrush);
-            System.Diagnostics.Debug.WriteLine("[WebBrowserPage] TopAppBar 前景色已更新");
-            
-            // ✅ 核心修复：系统主题切换后，WebView2 内部的网页会自动响应（CSS prefers-color-scheme），
-            // 但不会触发 NavigationCompleted 事件，所以我们需要手动触发完整的取色逻辑
-            
-            if (WebView?.CoreWebView2 != null && _isWebViewReady)
-            {
-                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] WebView 已就绪，强制重新提取网页主题色");
-                
-                // ✅ 重置取色状态，让取色逻辑重新执行
-                _hasReceivedFirstTint = false;
-                _hasAppliedThemeColor = false;
-                
-                // ⭐ 任务 6.4：使用 AsyncSafety 包装 DispatcherQueue.TryEnqueue 中的 async lambda
-                AsyncSafety.TryEnqueue(
-                    DispatcherQueue,
-                    async () =>
-                    {
-                        System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 等待 500ms 让 WebView2 完成主题切换...");
-                        
-                        // 等待网页重新渲染（prefers-color-scheme CSS 生效）
-                        await Task.Delay(500);
-                        
-                        System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 开始执行主题切换后的取色");
-                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 取色前背景色: Top={_topBarBackgroundBrush.Color}, Bottom={_bottomBarBackgroundBrush.Color}");
-                        
-                        // ✅ 步骤1：尝试 meta theme-color
-                        await TryApplyThemeColorAsync();
-                        
-                        // ✅ 步骤2：如果没有 theme-color，使用脚本采样
-                        if (!_hasAppliedThemeColor)
-                        {
-                            System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 没有 theme-color，触发脚本采样取色");
-                            await Task.Delay(100);
-                            await TriggerTintSamplingAsync();
-                        }
-                        
-                        System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 取色完成后背景色: Top={_topBarBackgroundBrush.Color}, Bottom={_bottomBarBackgroundBrush.Color}");
-                    },
-                    "WebBrowserPage",
-                    "ThemeChanged");
-            }
-            else
-            {
-                // WebView 还没准备好，只更新前景色
-                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] ⚠️ WebView 未就绪，仅更新前景色");
-            }
-        }
+        // ⚠️ OnSystemThemeChanged已移至 网页浏览页面.ForegroundColors.cs
 
-        // ⚠️ OnWinUIContextMenuSettingsChanged已移至 网页浏览页面.WebViewConfig.cs
+        // ⚠️ OnSystemThemeChanged已移至 网页浏览页面.ForegroundColors.cs
 
-        private void OnWebViewPerformanceSettingsChanged(object? sender, EventArgs e)
-        {
-            // 性能设置改变时，应用新设置
-            // 注意：某些设置需要重启 WebView 才能生效（如浏览器参数）
-            ApplyMemoryModeSettings();
-            
-            System.Diagnostics.Debug.WriteLine("[OnWebViewPerformanceSettingsChanged] 性能设置已更新，某些设置需要重新加载页面才能生效");
-        }
+        // ⚠️ OnWinUIContextMenuSettingsChanged、OnWebViewPerformanceSettingsChanged已移至 网页浏览页面.WebViewConfig.cs
 
         /// <summary>
         /// 处理网页应用配置更新事件
@@ -346,20 +276,7 @@ namespace DockedTools.Features.Pages.WebApp.Browser
             }
         }
 
-        private void CopyUrlButton_Click(object sender, RoutedEventArgs e)
-        {
-            Uri? uri = WebView?.Source;
-            if (uri is null)
-            {
-                return;
-            }
-
-            var dataPackage = new DataPackage();
-            dataPackage.SetText(uri.AbsoluteUri);
-            Clipboard.SetContent(dataPackage);
-            Clipboard.Flush();
-        }
-
-        // ⚠️ OpenExternalButton_Click已移至 网页浏览页面.ContextMenu.cs
+        // ⚠️ CopyUrlButton_Click、OpenExternalButton_Click已移至 网页浏览页面.ContextMenu.cs
     }
 }
+
