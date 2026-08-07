@@ -33,47 +33,7 @@ namespace DockedTools.Features.Pages.WebApp.Browser
             System.Diagnostics.Debug.WriteLine("[OnWebViewPerformanceSettingsChanged] 性能设置已更新，某些设置需要重新加载页面才能生效");
         }
 
-        private void UpdateContextMenuConfiguration(bool useWinUIContextMenu)
-        {
-            // 配置 WebView
-            UpdateContextMenuForWebView(WebView, useWinUIContextMenu);
-        }
-
-        private void UpdateContextMenuForWebView(Microsoft.UI.Xaml.Controls.WebView2 webView, bool useWinUIContextMenu)
-        {
-            if (webView == null)
-            {
-                return;
-            }
-
-            // 如果 CoreWebView2 已初始化，配置事件订阅
-            if (webView.CoreWebView2 != null)
-            {
-                // 先移除事件订阅（避免重复订阅）
-                webView.CoreWebView2.ContextMenuRequested -= CoreWebView2_ContextMenuRequested;
-                
-                if (useWinUIContextMenu)
-                {
-                    // 启用 WinUI 右键菜单：订阅事件
-                    webView.CoreWebView2.ContextMenuRequested += CoreWebView2_ContextMenuRequested;
-                }
-            }
-            
-            // 配置 ContextFlyout
-            if (useWinUIContextMenu)
-            {
-                // 恢复 ContextFlyout（如果之前被移除）
-                if (webView.ContextFlyout == null && webView == WebView)
-                {
-                    webView.ContextFlyout = WebViewContextMenu;
-                }
-            }
-            else
-            {
-                // 禁用 WinUI 右键菜单：移除 ContextFlyout
-                webView.ContextFlyout = null;
-            }
-        }
+        // ⚠️ UpdateContextMenuConfiguration、UpdateContextMenuForWebView已移至 网页浏览页面.ContextMenu.cs
 
         private async Task EnsureTintScriptInstalledAsync()
         {

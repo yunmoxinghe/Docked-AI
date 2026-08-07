@@ -110,96 +110,8 @@ namespace DockedTools.Features.Pages.WebApp.Browser
             await WebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(script);
         }
 
-        private async Task CoreWebView2WebMessageReceivedAsync(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
-        {
-            string json = e.TryGetWebMessageAsString();
-            if (string.IsNullOrWhiteSpace(json)) return;
-
-            try
-            {
-                using JsonDocument doc = JsonDocument.Parse(json);
-                JsonElement root = doc.RootElement;
-                if (!root.TryGetProperty("type", out JsonElement typeEl)) return;
-
-                string messageType = typeEl.GetString() ?? string.Empty;
-
-                if (string.Equals(messageType, ThemeColorMessageType, StringComparison.Ordinal))
-                {
-                    if (root.TryGetProperty("color", out JsonElement colorEl) &&
-                        TryParseCssColor(colorEl.GetString(), out var themeColor))
-                    {
-                        _hasAppliedThemeColor = true;
-                        ApplyBarTint(isTop: true, themeColor);
-                        ApplyBarTint(isTop: false, themeColor);
-                    }
-                    return;
-                }
-
-                if (string.Equals(messageType, TintMessageType, StringComparison.Ordinal))
-                {
-                    if (_hasAppliedThemeColor) return;
-
-                    bool isTransparent = root.TryGetProperty("isTransparent", out JsonElement transparentEl) && transparentEl.GetBoolean();
-                    if (isTransparent)
-                    {
-                        await TryScreenshotSamplingAsync();
-                        return;
-                    }
-
-                    if (root.TryGetProperty("top", out JsonElement topEl) && TryParseCssColor(topEl.GetString(), out var topColor))
-                        ApplyBarTint(isTop: true, topColor);
-
-                    if (root.TryGetProperty("bottom", out JsonElement bottomEl) && TryParseCssColor(bottomEl.GetString(), out var bottomColor))
-                        ApplyBarTint(isTop: false, bottomColor);
-                }
-            }
-            catch { }
-        }
-
-        private void ApplyBarTint(bool isTop, Windows.UI.Color sampledColor)
-        {
-            var tinted = Windows.UI.Color.FromArgb(byte.MaxValue, sampledColor.R, sampledColor.G, sampledColor.B);
-            var background = isTop ? _topBarBackgroundBrush : _bottomBarBackgroundBrush;
-            var foreground = isTop ? _topBarForegroundBrush : _bottomBarForegroundBrush;
-
-            if (!_hasReceivedFirstTint)
-            {
-                bool isInitial = background.Color.A <= 1 && background.Color.R == 0 && background.Color.G == 0 && background.Color.B == 0;
-                bool isPureWhite = sampledColor.R == 255 && sampledColor.G == 255 && sampledColor.B == 255;
-                if (isInitial && isPureWhite) return;
-                _hasReceivedFirstTint = true;
-            }
-
-            AnimateColorChange(background, tinted);
-            var contrastColor = GetContrastingForeground(sampledColor);
-            AnimateColorChange(foreground, contrastColor);
-
-            if (isTop)
-            {
-                var secondaryColor = Windows.UI.Color.FromArgb((byte)(contrastColor.A * 0.7), contrastColor.R, contrastColor.G, contrastColor.B);
-                AnimateColorChange(_topBarSecondaryForegroundBrush, secondaryColor);
-                if (_topBarTitle != null) _topBarTitle.Foreground = _topBarForegroundBrush;
-                if (_topBarIconFallback != null) _topBarIconFallback.Foreground = _topBarSecondaryForegroundBrush;
-                if (_unpinButton?.Content is FontIcon unpinIcon) unpinIcon.Foreground = _topBarForegroundBrush;
-                Features.UnifiedCalls.TopAppBar.TopAppBarService.SetForeground(_topBarForegroundBrush);
-            }
-            else
-            {
-                double luminance = CalculateLuminance(sampledColor);
-                bool isDark = luminance < LuminanceThreshold;
-                var hoverColor = CreateStateOverlayColor(contrastColor, isDark ? ButtonHoverOverlayStrength : -ButtonHoverOverlayStrength);
-                AnimateColorChange(_bottomBarHoverForegroundBrush, hoverColor);
-                var disabledColor = Windows.UI.Color.FromArgb((byte)(contrastColor.A * ButtonDisabledOpacity), contrastColor.R, contrastColor.G, contrastColor.B);
-                AnimateColorChange(_bottomBarDisabledForegroundBrush, disabledColor);
-            }
-        }
-
-        private static void RestoreSharedTopAppBarBackground()
-        {
-            Features.UnifiedCalls.TopAppBar.TopAppBarService.ResetBackground();
-            Features.UnifiedCalls.TopAppBar.TopAppBarService.ResetForeground();
-            Features.UnifiedCalls.TopAppBar.TopAppBarService.ResetChromeVisibility();
-        }
+        // ⚠️ CoreWebView2WebMessageReceivedAsync已移至 网页浏览页面.MessageHandling.cs
+        // ⚠️ ApplyBarTint、RestoreSharedTopAppBarBackground已移至 网页浏览页面.TintApplication.cs
 
         private async Task TryApplyThemeColorAsync()
         {
@@ -321,49 +233,6 @@ namespace DockedTools.Features.Pages.WebApp.Browser
             }
         }
 
-        private static bool TryParseCssColor(string? cssColor, out Windows.UI.Color color)
-        {
-            color = Microsoft.UI.Colors.Transparent;
-            if (string.IsNullOrWhiteSpace(cssColor)) return false;
-
-            string s = cssColor.Trim();
-            if (s.StartsWith("rgb(", StringComparison.OrdinalIgnoreCase) || s.StartsWith("rgba(", StringComparison.OrdinalIgnoreCase))
-            {
-                int start = s.IndexOf('('), end = s.IndexOf(')');
-                if (start < 0 || end <= start) return false;
-                string[] parts = s.Substring(start + 1, end - start - 1).Split(',');
-                if (parts.Length < 3) return false;
-                if (!TryParseByte(parts[0], out byte r) || !TryParseByte(parts[1], out byte g) || !TryParseByte(parts[2], out byte b)) return false;
-                color = Windows.UI.Color.FromArgb(byte.MaxValue, r, g, b);
-                return true;
-            }
-
-            if (s.StartsWith('#') && s.Length == 7 &&
-                byte.TryParse(s.Substring(1, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte r2) &&
-                byte.TryParse(s.Substring(3, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte g2) &&
-                byte.TryParse(s.Substring(5, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out byte b2))
-            {
-                color = Windows.UI.Color.FromArgb(byte.MaxValue, r2, g2, b2);
-                return true;
-            }
-            return false;
-        }
-
-        private static bool TryParseByte(string part, out byte value)
-        {
-            value = 0;
-            string trimmed = part.Trim();
-            if (trimmed.EndsWith("%", StringComparison.Ordinal))
-            {
-                if (!double.TryParse(trimmed.TrimEnd('%'), NumberStyles.Float, CultureInfo.InvariantCulture, out double percent)) return false;
-                percent = Math.Max(0, Math.Min(PercentageMax, percent));
-                value = (byte)Math.Round(percent / PercentageMax * ColorChannelMax);
-                return true;
-            }
-            if (!double.TryParse(trimmed, NumberStyles.Float, CultureInfo.InvariantCulture, out double raw)) return false;
-            raw = Math.Max(0, Math.Min(ColorChannelMax, raw));
-            value = (byte)Math.Round(raw);
-            return true;
-        }
+        // ⚠️ TryParseCssColor、TryParseByte已移至 网页浏览页面.ColorUtils.cs
     }
 }

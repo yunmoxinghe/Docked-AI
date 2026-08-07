@@ -212,36 +212,6 @@ namespace DockedTools.Features.Pages.WebApp.Browser
             return null;
         }
 
-        private static UnifiedInAppDialog CreateExternalOpenDialog(Uri uri)
-        {
-            var dialog = new UnifiedInAppDialog();
-            dialog.Configure(
-                DockedTools.Features.Localization.LocalizationHelper.GetString("InAppDialog_OpenExternal_Title"),
-                new StackPanel
-                {
-                    Spacing = 12,
-                    Children =
-                    {
-                        new TextBlock
-                        {
-                            Text = DockedTools.Features.Localization.LocalizationHelper.GetString("InAppDialog_OpenExternal_Content"),
-                            TextWrapping = TextWrapping.Wrap,
-                            FontSize = 14
-                        },
-                        new TextBlock
-                        {
-                            Text = uri.AbsoluteUri,
-                            TextWrapping = TextWrapping.WrapWholeWords,
-                            IsTextSelectionEnabled = true,
-                            Opacity = 0.72,
-                            FontSize = 12
-                        }
-                    }
-                },
-                DockedTools.Features.Localization.LocalizationHelper.GetString("InAppDialog_OpenExternal_OpenButton"),
-                DockedTools.Features.Localization.LocalizationHelper.GetString("InAppDialog_OpenExternal_CancelButton"),
-                defaultButton: ContentDialogButton.Primary);
-            return dialog;
-        }
+        // ⚠️ CreateExternalOpenDialog已移至 网页浏览页面.ContextMenu.cs
     }
 }

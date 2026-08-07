@@ -133,18 +133,7 @@ namespace DockedTools.Features.Pages.WebApp.Browser
             }
         }
 
-        private void OnWinUIContextMenuSettingsChanged(object? sender, EventArgs e)
-        {
-            // 设置改变时，更新右键菜单配置
-            bool useWinUIContextMenu = ExperimentalSettings.EnableWinUIContextMenu;
-            
-            // 更新 WebView 的配置
-            if (WebView?.CoreWebView2 != null)
-            {
-                WebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = !useWinUIContextMenu;
-                UpdateContextMenuForWebView(WebView, useWinUIContextMenu);
-            }
-        }
+        // ⚠️ OnWinUIContextMenuSettingsChanged已移至 网页浏览页面.WebViewConfig.cs
 
         private void OnWebViewPerformanceSettingsChanged(object? sender, EventArgs e)
         {
@@ -371,20 +360,6 @@ namespace DockedTools.Features.Pages.WebApp.Browser
             Clipboard.Flush();
         }
 
-        private async void OpenExternalButton_Click(object sender, RoutedEventArgs e)
-        {
-            Uri? uri = WebView?.Source;
-            if (uri is null)
-            {
-                return;
-            }
-
-            var dialog = CreateExternalOpenDialog(uri);
-            var result = await InAppDialogService.ShowAsync(dialog, this);
-            if (result == ContentDialogResult.Primary)
-            {
-                await Windows.System.Launcher.LaunchUriAsync(uri);
-            }
-        }
+        // ⚠️ OpenExternalButton_Click已移至 网页浏览页面.ContextMenu.cs
     }
 }
