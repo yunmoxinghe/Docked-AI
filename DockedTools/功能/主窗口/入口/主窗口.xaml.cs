@@ -191,6 +191,10 @@ namespace DockedTools
             _linker = MainLinker;
             _windowController = new WindowHostController(this, _viewModel);
 
+            // ⭐ 注册主窗口服务（统一调用）
+            Features.UnifiedCalls.MainWindow.MainWindowService.Register(_windowController, _viewModel);
+            System.Diagnostics.Debug.WriteLine("[MainWindow] MainWindowService 已注册");
+
             // 创建快捷键管理器
             _keyboardManager = new KeyboardShortcutManager(
                 switchToTab: (index) => _linker?.SwitchToWebAppByIndex(index),
@@ -820,6 +824,10 @@ namespace DockedTools
             DockedTools.Features.Pages.Lab.LabPage.RefreshMonitorStateRequested -= OnRefreshMonitorStateRequested;
             DockedTools.Features.Pages.Lab.LabPage.WindowMaximizedStateChanged -= OnLabPageWindowMaximizedStateChanged;
             UnsubscribeFromLinkerEvents();
+            
+            // ⭐ 取消注册主窗口服务
+            Features.UnifiedCalls.MainWindow.MainWindowService.Unregister();
+            System.Diagnostics.Debug.WriteLine("[MainWindow] MainWindowService 已取消注册");
         }
     }
 }

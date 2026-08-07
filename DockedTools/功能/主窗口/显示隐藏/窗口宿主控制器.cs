@@ -132,7 +132,7 @@ namespace DockedTools.Features.MainWindow.Visibility
     ///    - 如果动画超时，必须回滚状态
     ///    - 否则 StateManager 认为转换成功，但 UI 未更新
     /// </summary>
-    internal sealed class WindowHostController
+    internal sealed class WindowHostController : DockedTools.Features.UnifiedCalls.MainWindow.IWindowController
     {
         // 核心依赖
         private readonly Window _window;
@@ -168,6 +168,56 @@ namespace DockedTools.Features.MainWindow.Visibility
         private static readonly TimeSpan PinnedModeDelay = TimeSpan.FromMilliseconds(100);
         private static readonly TimeSpan MaximizedModeDelay = TimeSpan.FromMilliseconds(200);
         private static readonly TimeSpan InitialShowProtectionPeriod = TimeSpan.FromMilliseconds(500);  // 首次显示后的保护期
+
+        #region IWindowController 接口实现
+
+        /// <summary>
+        /// 窗口状态变化事件（IWindowController 接口）
+        /// 转发 StateManager 的状态变化事件供外部订阅
+        /// ⭐ 注意：此事件在动画开始时触发，不是完成时
+        /// </summary>
+        public event EventHandler<StateChangedEventArgs>? StateChanged
+        {
+            add
+            {
+                if (_stateManager != null)
+                {
+                    _stateManager.StateChanged += value;
+                }
+            }
+            remove
+            {
+                if (_stateManager != null)
+                {
+                    _stateManager.StateChanged -= value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 窗口状态变化完成事件（IWindowController 接口）
+        /// 转发 StateManager 的状态完成事件供外部订阅
+        /// ⭐ 注意：此事件在动画播放完成后触发
+        /// </summary>
+        public event EventHandler<StateCompletedEventArgs>? StateCompleted
+        {
+            add
+            {
+                if (_stateManager != null)
+                {
+                    _stateManager.StateCompleted += value;
+                }
+            }
+            remove
+            {
+                if (_stateManager != null)
+                {
+                    _stateManager.StateCompleted -= value;
+                }
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// 构造函数 - 初始化所有服务和状态管理器

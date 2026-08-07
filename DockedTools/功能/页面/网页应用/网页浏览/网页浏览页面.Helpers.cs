@@ -214,5 +214,88 @@ namespace DockedTools.Features.Pages.WebApp.Browser
         }
 
         // ⚠️ CreateExternalOpenDialog已移至 网页浏览页面.ContextMenu.cs
+
+        /// <summary>
+        /// 给 WebView2 控件设置焦点
+        /// 
+        /// 【解决方案】
+        /// WinUI3 WebView2 的 Focus() 方法只能触发焦点事件，但不会真正将焦点传递给页面内容
+        /// 需要组合使用：
+        /// 1. Focus(FocusState.Programmatic) - 给 WebView 控件设置焦点
+        /// 2. ExecuteScriptAsync("window.focus()") - 用 JavaScript 激活页面焦点
+        /// 3. ExecuteScriptAsync("document.body.focus()") - 聚焦 body 元素
+        /// 
+        /// 参考：https://github.com/MicrosoftEdge/WebView2Feedback/issues/4465
+        /// </summary>
+        public async void SetWebViewFocus()
+        {
+            try
+            {
+                if (WebView == null || !_isWebViewReady || WebView.CoreWebView2 == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] Cannot set focus - WebView: {WebView != null}, Ready: {_isWebViewReady}, CoreWebView2: {WebView?.CoreWebView2 != null}");
+                    return;
+                }
+
+                // 步骤1: 给 WebView 控件本身设置焦点
+                WebView.Focus(FocusState.Programmatic);
+                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] ✅ WebView2 控件焦点已设置");
+
+                // 短暂延迟确保控件焦点生效
+                await Task.Delay(10);
+
+                // 步骤2: 用 JavaScript 激活页面窗口焦点
+                try
+                {
+                    await WebView.CoreWebView2.ExecuteScriptAsync("window.focus();");
+                    System.Diagnostics.Debug.WriteLine("[WebBrowserPage] ✅ window.focus() 已执行");
+                }
+                catch (Exception jsEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] ⚠️ window.focus() 失败: {jsEx.Message}");
+                }
+
+                // 步骤3: 聚焦 body 元素（备选方案）
+                try
+                {
+                    await WebView.CoreWebView2.ExecuteScriptAsync("document.body.focus();");
+                    System.Diagnostics.Debug.WriteLine("[WebBrowserPage] ✅ document.body.focus() 已执行");
+                }
+                catch (Exception bodyEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] ⚠️ document.body.focus() 失败: {bodyEx.Message}");
+                }
+
+                System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 🎯 焦点设置流程完成");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] ❌ 设置 WebView 焦点失败: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 主窗口状态变化完成事件处理器
+        /// 当窗口从隐藏状态恢复显示动画完成后，给 WebView 设置焦点
+        /// 
+        /// 【注意】
+        /// StateCompleted 事件在动画播放完成后触发，无需延迟等待
+        /// </summary>
+        private void OnMainWindowStateCompleted(object? sender, DockedTools.Features.MainWindow.State.StateCompletedEventArgs args)
+        {
+            // 只在窗口从隐藏状态恢复显示时处理
+            if (args.PreviousState == DockedTools.Features.MainWindow.State.WindowState.Hidden &&
+                args.CurrentState != DockedTools.Features.MainWindow.State.WindowState.Hidden &&
+                args.CurrentState != DockedTools.Features.MainWindow.State.WindowState.NotCreated)
+            {
+                System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 窗口显示动画完成：{args.PreviousState} -> {args.CurrentState}");
+                
+                // ⭐ 动画已完成，直接设置焦点，无需延迟
+                _ = DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Normal, () =>
+                {
+                    SetWebViewFocus();
+                });
+            }
+        }
     }
 }

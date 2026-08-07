@@ -139,8 +139,11 @@ public sealed class WindowStateManager : IDisposable
         get { lock (_lock) { return _isTransitioning; } }
     }
     
-    // 状态变化事件（在 UI 线程触发）
+    // 状态变化事件（动画开始时触发）
     public event EventHandler<StateChangedEventArgs>? StateChanged;
+    
+    // 状态变化完成事件（动画播放完成后触发）
+    public event EventHandler<StateCompletedEventArgs>? StateCompleted;
     
     // 默认状态转换矩阵（支持直接转换：Pinned/Maximized -> Hidden）
     // 为什么支持直接转换？
@@ -349,14 +352,49 @@ public sealed class WindowStateManager : IDisposable
                 return;
             }
             
+            WindowState previousState = CommittedState;
+            WindowState newState = CommittedState;
+            
             if (PendingState.HasValue)
             {
+                previousState = CommittedState;
+                newState = PendingState.Value;
                 CommittedState = PendingState.Value;
                 PendingState = null;
-                System.Diagnostics.Debug.WriteLine($"Transition committed: {CommittedState}");
+                System.Diagnostics.Debug.WriteLine($"Transition committed: {newState}");
             }
             
             _isTransitioning = false;
+            
+            // ⭐ 触发 StateCompleted 事件（动画播放完成后）
+            var completedHandler = StateCompleted;
+            if (completedHandler != null && previousState != newState)
+            {
+                System.Diagnostics.Debug.WriteLine($"[StateManager] Triggering StateCompleted event: {previousState} -> {newState}");
+                
+                var eventArgs = new StateCompletedEventArgs(previousState, newState, DateTime.Now, null);
+                
+                bool enqueued = _dispatcher.TryEnqueue(() =>
+                {
+                    lock (_lock)
+                    {
+                        if (_disposed) return;
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine($"[StateManager] ⭐ Invoking StateCompleted handlers: {previousState} -> {newState}");
+                    completedHandler.Invoke(this, eventArgs);
+                    System.Diagnostics.Debug.WriteLine($"[StateManager] StateCompleted handlers invoked");
+                });
+                
+                if (!enqueued)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ERROR: Failed to enqueue state completed event for {previousState} -> {newState}");
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"[StateManager] StateCompleted not triggered - handler={completedHandler != null}, stateChanged={previousState != newState}");
+            }
             
             // 处理延迟的 OS 同步事件
             ProcessPendingSyncEvent();
@@ -530,6 +568,7 @@ public sealed class WindowStateManager : IDisposable
             
             _disposed = true;
             StateChanged = null;
+            StateCompleted = null;
             _transitionHistory.Clear();
             _compositeTransitions.Clear();
             _isTransitioning = false;

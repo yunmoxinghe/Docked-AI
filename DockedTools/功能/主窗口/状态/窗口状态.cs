@@ -72,6 +72,29 @@ public class StateChangedEventArgs : EventArgs
 }
 
 /// <summary>
+/// 状态变化完成事件参数（动画播放完成后触发）
+/// </summary>
+public class StateCompletedEventArgs : EventArgs
+{
+    public WindowState PreviousState { get; }
+    public WindowState CurrentState { get; }
+    public DateTime Timestamp { get; }
+    public string? Reason { get; }
+
+    public StateCompletedEventArgs(
+        WindowState previousState,
+        WindowState currentState,
+        DateTime timestamp,
+        string? reason = null)
+    {
+        PreviousState = previousState;
+        CurrentState = currentState;
+        Timestamp = timestamp;
+        Reason = reason;
+    }
+}
+
+/// <summary>
 /// 状态转换执行计划（命令模式）
 /// StateManager 返回计划，Controller 执行计划
 /// 

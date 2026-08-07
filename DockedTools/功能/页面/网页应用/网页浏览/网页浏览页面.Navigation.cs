@@ -18,6 +18,10 @@ namespace DockedTools.Features.Pages.WebApp.Browser
         {
             base.OnNavigatedTo(e);
 
+            // ⭐ 订阅窗口状态完成事件
+            DockedTools.Features.UnifiedCalls.MainWindow.MainWindowService.StateCompleted += OnMainWindowStateCompleted;
+            System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 已订阅主窗口状态完成事件 (OnNavigatedTo)");
+
             if (e.Parameter is not WebAppShortcut shortcut)
             {
                 return;
@@ -74,6 +78,11 @@ namespace DockedTools.Features.Pages.WebApp.Browser
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             base.OnNavigatedFrom(e);
+            
+            // ⭐ 取消订阅主窗口状态完成事件
+            DockedTools.Features.UnifiedCalls.MainWindow.MainWindowService.StateCompleted -= OnMainWindowStateCompleted;
+            System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 已取消订阅主窗口状态完成事件 (OnNavigatedFrom)");
+            
             RestoreSharedTopAppBarBackground();
         }
 
@@ -81,6 +90,10 @@ namespace DockedTools.Features.Pages.WebApp.Browser
         void INavigationAware.OnNavigatedTo(object? parameter)
         {
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] INavigationAware.OnNavigatedTo called");
+            
+            // ⭐ 订阅窗口状态完成事件，当窗口恢复显示动画完成后给 WebView 焦点
+            DockedTools.Features.UnifiedCalls.MainWindow.MainWindowService.StateCompleted += OnMainWindowStateCompleted;
+            System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 已订阅主窗口状态完成事件");
             
             // ⭐ 如果页面被 LRU 清理过，需要重置 _isDisposed 标志以允许重新初始化
             if (_isDisposed)
@@ -230,6 +243,10 @@ namespace DockedTools.Features.Pages.WebApp.Browser
         void INavigationAware.OnNavigatedFrom()
         {
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] INavigationAware.OnNavigatedFrom called");
+            
+            // ⭐ 取消订阅主窗口状态完成事件
+            DockedTools.Features.UnifiedCalls.MainWindow.MainWindowService.StateCompleted -= OnMainWindowStateCompleted;
+            System.Diagnostics.Debug.WriteLine("[WebBrowserPage] 已取消订阅主窗口状态完成事件");
             
             RestoreSharedTopAppBarBackground();
             System.Diagnostics.Debug.WriteLine($"[WebBrowserPage] 已恢复统一顶部栏背景");

@@ -391,8 +391,9 @@ namespace DockedTools.Features.MainWindowContent.NavigationBar
                 originalSource = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(originalSource);
             }
             
-            // 双击侧边栏空白区域时触发固定按钮功能
-            DockToggleRequested?.Invoke(this, EventArgs.Empty);
+            // ⭐ 双击侧边栏空白区域时使用 MainWindowService 切换固定状态
+            DockedTools.Features.UnifiedCalls.MainWindow.MainWindowService.RequestTogglePinned();
+            System.Diagnostics.Debug.WriteLine("[NavigationBar] 双击空白区域，通过 MainWindowService 切换固定状态");
         }
 
         public void UpdateWindowStateIcon(bool isMaximized)
@@ -705,9 +706,9 @@ namespace DockedTools.Features.MainWindowContent.NavigationBar
 
             if (tagText == "windowstate")
             {
-                // ⭐ 窗口状态按钮不应该改变当前页面的选中状态
-                // 触发事件即可，不需要操作选中项
-                WindowStateToggleRequested?.Invoke(this, EventArgs.Empty);
+                // ⭐ 使用 MainWindowService 切换窗口状态
+                DockedTools.Features.UnifiedCalls.MainWindow.MainWindowService.RequestToggleMaximize();
+                System.Diagnostics.Debug.WriteLine("[NavigationBar] 通过 MainWindowService 切换窗口状态");
                 return;
             }
         }
@@ -725,8 +726,11 @@ namespace DockedTools.Features.MainWindowContent.NavigationBar
             // 处理停靠切换（不改变选中状态）
             if (tagText == "dock")
             {
-                DockToggleRequested?.Invoke(this, EventArgs.Empty);
-                // ⭐ 修复 Bug 3: 恢复上次选中的导航项
+                // ⭐ 使用 MainWindowService 切换固定状态
+                DockedTools.Features.UnifiedCalls.MainWindow.MainWindowService.RequestTogglePinned();
+                System.Diagnostics.Debug.WriteLine("[NavigationBar] 通过 MainWindowService 切换固定状态");
+                
+                // ⭐ 恢复上次选中的导航项
                 _suppressSelectionChanged = true;
                 NavView.SelectedItem = _lastSelectedNavigationItem;
                 _suppressSelectionChanged = false;
