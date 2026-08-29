@@ -225,7 +225,7 @@
     <value>重启应用</value>
   </data>
   <data name="TrayMenu_RateApp" xml:space="preserve">
-    <value>评价应用</value>
+    <value>给个好评</value>
   </data>
   <data name="TrayMenu_Exit" xml:space="preserve">
     <value>退出</value>
@@ -453,7 +453,7 @@
     <value>关于</value>
   </data>
   <data name="SettingsPage_RateAppCard.Header" xml:space="preserve">
-    <value>评价应用</value>
+    <value>给个好评</value>
   </data>
   <data name="SettingsPage_RateAppCard.Description" xml:space="preserve">
     <value>喜欢这个应用吗？给我们评分和评论吧！</value>
@@ -607,7 +607,7 @@
     <value>隐藏托盘评价按钮</value>
   </data>
   <data name="LabPage_HideTrayRateButtonHeader.Description" xml:space="preserve">
-    <value>在托盘右键菜单中隐藏评价应用选项</value>
+    <value>在托盘右键菜单中隐藏给个好评选项</value>
   </data>
   <data name="LabPage_TopBarVisibilityHeader.Header" xml:space="preserve">
     <value>显示顶部应用栏</value>
@@ -737,7 +737,7 @@ https://developer.microsoft.com/microsoft-edge/webview2/</value>
     <value>重启应用</value>
   </data>
   <data name="TrayMenu_RateAppText.Text" xml:space="preserve">
-    <value>评价应用</value>
+    <value>给个好评</value>
   </data>
   <data name="TrayMenu_ExitText.Text" xml:space="preserve">
     <value>退出</value>
