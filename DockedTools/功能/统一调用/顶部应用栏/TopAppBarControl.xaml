@@ -8,6 +8,14 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="TopAppBarThemeResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
     <Grid
         x:Name="Root"
         HorizontalAlignment="Stretch"
@@ -20,8 +28,11 @@
             VerticalAlignment="Top"
             Height="48"
             Visibility="Collapsed"
-            Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+            Background="{ThemeResource TopAppBarAcrylicBrush}"
             IsHitTestVisible="False">
+            <Grid.BackgroundTransition>
+                <BrushTransition />
+            </Grid.BackgroundTransition>
 
             <Border
                 HorizontalAlignment="Stretch"

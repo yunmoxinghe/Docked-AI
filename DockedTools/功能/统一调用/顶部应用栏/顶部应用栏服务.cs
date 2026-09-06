@@ -242,4 +242,46 @@ public static class TopAppBarService
     }
 
     #endregion
+
+    #region 局部主题控制
+
+    /// <summary>
+    /// 设置顶部应用栏的局部主题
+    /// </summary>
+    /// <param name="theme">Light, Dark 或 Default（跟随系统）</param>
+    public static void SetTheme(ElementTheme theme)
+    {
+        if (_contentArea?.TopAppBar is not UserControl control) return;
+        control.RequestedTheme = theme;
+    }
+
+    /// <summary>
+    /// 切换顶部应用栏的局部主题（Light ↔ Dark）
+    /// </summary>
+    public static void ToggleTheme()
+    {
+        if (_contentArea?.TopAppBar is not UserControl control) return;
+        control.RequestedTheme = 
+            control.ActualTheme == ElementTheme.Dark 
+                ? ElementTheme.Light 
+                : ElementTheme.Dark;
+    }
+
+    /// <summary>
+    /// 获取顶部应用栏当前实际生效的主题
+    /// </summary>
+    public static ElementTheme GetActualTheme()
+    {
+        return (_contentArea?.TopAppBar as UserControl)?.ActualTheme ?? ElementTheme.Default;
+    }
+
+    /// <summary>
+    /// 获取顶部应用栏请求的主题
+    /// </summary>
+    public static ElementTheme GetRequestedTheme()
+    {
+        return (_contentArea?.TopAppBar as UserControl)?.RequestedTheme ?? ElementTheme.Default;
+    }
+
+    #endregion
 }

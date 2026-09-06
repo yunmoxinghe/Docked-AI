@@ -83,6 +83,9 @@ namespace DockedTools.Features.Pages.Lab
             // 请求刷新监听器状态
             RequestRefreshMonitorState();
 
+            // 更新局部主题状态显示
+            UpdateThemeStatus();
+
             UpdateMargin();
         }
 
@@ -183,6 +186,35 @@ namespace DockedTools.Features.Pages.Lab
         private void OnClearCenterClick(object sender, RoutedEventArgs e)
         {
             TopAppBarService.SetCenterContent(null);
+        }
+
+        private void OnToggleTopBarThemeClick(object sender, RoutedEventArgs e)
+        {
+            TopAppBarService.ToggleTheme();
+            UpdateThemeStatus();
+        }
+
+        private void OnResetTopBarThemeClick(object sender, RoutedEventArgs e)
+        {
+            TopAppBarService.SetTheme(ElementTheme.Default);
+            UpdateThemeStatus();
+        }
+
+        private void UpdateThemeStatus()
+        {
+            var actualTheme = TopAppBarService.GetActualTheme();
+            var requestedTheme = TopAppBarService.GetRequestedTheme();
+            
+            string themeText = requestedTheme switch
+            {
+                ElementTheme.Light => "🌞 亮色模式",
+                ElementTheme.Dark => "🌙 深色模式",
+                _ => "🔄 跟随系统"
+            };
+            
+            string actualText = actualTheme == ElementTheme.Dark ? "深色" : "亮色";
+            
+            ThemeStatusText.Text = $"{themeText} (实际: {actualText})";
         }
 
         private void OnTopBarMenuButtonToggled(object sender, RoutedEventArgs e)
