@@ -203,14 +203,13 @@ namespace DockedTools.Features.Pages.Settings.WebSettings
             {
                 if (this.XamlRoot == null) return;
                 
-                var dialog = new ContentDialog
-                {
-                    Title = $"🔍 {title}",
-                    Content = message,
-                    CloseButtonText = "确定",
-                    XamlRoot = this.XamlRoot
-                };
-                await dialog.ShowAsync();
+                var dialog = new DockedTools.Features.UnifiedCalls.InAppDialog.UnifiedInAppDialog();
+                dialog.Configure(
+                    $"🔍 {title}",
+                    message,
+                    closeButtonText: "确定"
+                );
+                await DockedTools.Features.UnifiedCalls.InAppDialog.InAppDialogService.ShowAsync(dialog, this);
             }
             catch
             {

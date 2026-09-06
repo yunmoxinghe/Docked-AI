@@ -47,6 +47,9 @@ namespace DockedTools.Features.Pages.Settings
         private const string WebViewEnableHardwareVideoDecoderKey = "WebSettings_EnableHardwareVideoDecoder";
         private const string WebViewDisableSoftwareRasterizerKey = "WebSettings_DisableSoftwareRasterizer";
         
+        // 链接打开方式设置
+        private const string LinkOpenBehaviorKey = "WebSettings_LinkOpenBehavior";
+        
         private static readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
 
         /// <summary>
@@ -330,6 +333,19 @@ namespace DockedTools.Features.Pages.Settings
             get => AotSafeSettingsHelper.GetBool(_localSettings, WebViewDisableSoftwareRasterizerKey, defaultValue: true);
             set => AotSafeSettingsHelper.SetBool(_localSettings, WebViewDisableSoftwareRasterizerKey, value);
         }
+
+        /// <summary>
+        /// 获取或设置链接打开方式(target="_blank"等)
+        /// </summary>
+        public static LinkOpenBehavior LinkOpenBehavior
+        {
+            get => AotSafeSettingsHelper.GetEnum(
+                _localSettings,
+                LinkOpenBehaviorKey,
+                LinkOpenBehavior.Ask
+            );
+            set => AotSafeSettingsHelper.SetEnum(_localSettings, LinkOpenBehaviorKey, value);
+        }
     }
 
     /// <summary>
@@ -450,5 +466,26 @@ namespace DockedTools.Features.Pages.Settings
         /// 重启到仅托盘（完全重启应用，不显示窗口）
         /// </summary>
         RestartToTrayOnly = 1
+    }
+
+    /// <summary>
+    /// 链接打开方式(target="_blank"等新窗口请求)
+    /// </summary>
+    public enum LinkOpenBehavior
+    {
+        /// <summary>
+        /// 每次询问(默认)
+        /// </summary>
+        Ask = 0,
+
+        /// <summary>
+        /// 在系统默认浏览器打开
+        /// </summary>
+        SystemBrowser = 1,
+
+        /// <summary>
+        /// 在 WebView 窗口内打开
+        /// </summary>
+        WebViewWindow = 2
     }
 }

@@ -807,6 +807,18 @@ namespace DockedTools.Features.Pages.Settings
                 {
                     System.Diagnostics.Debug.WriteLine("[SettingsPage] WARNING: HideWebViewCloseButtonToggle is null");
                 }
+
+                if (LinkOpenBehaviorComboBox != null)
+                {
+                    LinkOpenBehaviorComboBox.SelectionChanged -= OnLinkOpenBehaviorChanged;
+                    LinkOpenBehaviorComboBox.SelectedIndex = (int)ExperimentalSettings.LinkOpenBehavior;
+                    LinkOpenBehaviorComboBox.SelectionChanged += OnLinkOpenBehaviorChanged;
+                    System.Diagnostics.Debug.WriteLine($"[SettingsPage] Link open behavior loaded: {ExperimentalSettings.LinkOpenBehavior}");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("[SettingsPage] WARNING: LinkOpenBehaviorComboBox is null");
+                }
                 
                 System.Diagnostics.Debug.WriteLine("[SettingsPage] Web settings loaded successfully");
             }
@@ -853,6 +865,23 @@ namespace DockedTools.Features.Pages.Settings
         {
             // 点击卡片时切换开关状态
             HideWebViewCloseButtonToggle.IsOn = !HideWebViewCloseButtonToggle.IsOn;
+        }
+
+        private void OnLinkOpenBehaviorCardClick(object sender, RoutedEventArgs e)
+        {
+            // 点击卡片时打开 ComboBox 的下拉菜单
+            LinkOpenBehaviorComboBox.IsDropDownOpen = true;
+        }
+
+        private void OnLinkOpenBehaviorChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (LinkOpenBehaviorComboBox.SelectedItem is ComboBoxItem selectedItem &&
+                int.TryParse(selectedItem.Tag?.ToString(), out int value))
+            {
+                var behavior = (LinkOpenBehavior)value;
+                ExperimentalSettings.LinkOpenBehavior = behavior;
+                System.Diagnostics.Debug.WriteLine($"[SettingsPage] Link open behavior changed to: {behavior}");
+            }
         }
 
         // Event to notify when max webview count settings change

@@ -1417,4 +1417,41 @@ https://developer.microsoft.com/microsoft-edge/webview2/</value>
   <data name="WebAppDetailPage_DefaultTooltip" xml:space="preserve">
     <value>执行快捷键</value>
   </data>
+  <!-- 链接打开行为设置 -->
+  <data name="SettingsPage_LinkOpenBehaviorHeader.Header" xml:space="preserve">
+    <value>链接默认打开方式</value>
+  </data>
+  <data name="SettingsPage_LinkOpenBehaviorHeader.Description" xml:space="preserve">
+    <value>选择点击网页中 target="_blank" 链接时的行为</value>
+  </data>
+  <data name="SettingsPage_LinkOpenBehaviorAsk.Content" xml:space="preserve">
+    <value>每次询问</value>
+  </data>
+  <data name="SettingsPage_LinkOpenBehaviorSystemBrowser.Content" xml:space="preserve">
+    <value>默认浏览器</value>
+  </data>
+  <data name="SettingsPage_LinkOpenBehaviorWebViewWindow.Content" xml:space="preserve">
+    <value>WebView窗口</value>
+  </data>
+  <!-- 链接打开询问对话框 -->
+  <data name="LinkOpen_AskDialog_Title" xml:space="preserve">
+    <value>选择打开方式</value>
+  </data>
+  <data name="LinkOpen_AskDialog_Content" xml:space="preserve">
+    <value>该网页想要在新窗口中打开链接：
+
+{0}</value>
+  </data>
+  <data name="LinkOpen_RememberChoice" xml:space="preserve">
+    <value>始终使用此打开方式</value>
+  </data>
+  <data name="LinkOpen_SystemBrowser" xml:space="preserve">
+    <value>系统浏览器</value>
+  </data>
+  <data name="LinkOpen_WebViewWindow" xml:space="preserve">
+    <value>当前窗口</value>
+  </data>
+  <data name="LinkOpen_Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
 </root>

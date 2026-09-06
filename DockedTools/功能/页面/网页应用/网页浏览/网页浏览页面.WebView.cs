@@ -58,6 +58,9 @@ namespace DockedTools.Features.Pages.WebApp.Browser
                 WebView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
                 WebView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
                 
+                // ⭐ 订阅新窗口请求事件
+                WebView.CoreWebView2.NewWindowRequested += CoreWebView2_NewWindowRequested;
+                
                 // ⭐ 任务 3.2：订阅 ProcessFailed 事件（防止重复订阅）
                 WebView.CoreWebView2.ProcessFailed -= CoreWebView2_ProcessFailed;
                 WebView.CoreWebView2.ProcessFailed += CoreWebView2_ProcessFailed;
@@ -160,6 +163,9 @@ namespace DockedTools.Features.Pages.WebApp.Browser
                     WebView.CoreWebView2.HistoryChanged += CoreWebView2_HistoryChanged;
                     WebView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
                     WebView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
+                    
+                    // ⭐ 订阅新窗口请求事件
+                    WebView.CoreWebView2.NewWindowRequested += CoreWebView2_NewWindowRequested;
                     
                     // ⭐ 任务 3.2：订阅 ProcessFailed 事件
                     WebView.CoreWebView2.ProcessFailed += CoreWebView2_ProcessFailed;
@@ -478,6 +484,9 @@ namespace DockedTools.Features.Pages.WebApp.Browser
                     webView.CoreWebView2.NavigationStarting -= CoreWebView2_NavigationStarting;
                     webView.CoreWebView2.NavigationCompleted -= CoreWebView2_NavigationCompleted;
                     webView.CoreWebView2.ContextMenuRequested -= CoreWebView2_ContextMenuRequested;
+                    
+                    // ⭐ 取消订阅新窗口请求事件
+                    webView.CoreWebView2.NewWindowRequested -= CoreWebView2_NewWindowRequested;
                     
                     // ⭐ 任务 3.2：取消订阅 ProcessFailed 事件
                     webView.CoreWebView2.ProcessFailed -= CoreWebView2_ProcessFailed;

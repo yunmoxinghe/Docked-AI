@@ -285,6 +285,27 @@
                         </controls:SettingsCard.ActionIcon>
                     </controls:SettingsCard>
                     
+                    <!-- 链接打开方式 -->
+                    <controls:SettingsCard
+                        x:Uid="SettingsPage_LinkOpenBehaviorHeader"
+                        Header="链接打开方式"
+                        Description="设置点击 target=&quot;_blank&quot; 等新窗口链接时的行为"
+                        IsClickEnabled="True"
+                        IsActionIconVisible="False"
+                        Click="OnLinkOpenBehaviorCardClick">
+                        <controls:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE8A7;"/>
+                        </controls:SettingsCard.HeaderIcon>
+                        <ComboBox
+                            x:Name="LinkOpenBehaviorComboBox"
+                            HorizontalAlignment="Left"
+                            SelectionChanged="OnLinkOpenBehaviorChanged">
+                            <ComboBoxItem x:Uid="SettingsPage_LinkOpenBehaviorAsk" Tag="0" Content="每次询问"/>
+                            <ComboBoxItem x:Uid="SettingsPage_LinkOpenBehaviorSystemBrowser" Tag="1" Content="默认浏览器"/>
+                            <ComboBoxItem x:Uid="SettingsPage_LinkOpenBehaviorWebViewWindow" Tag="2" Content="WebView 窗口"/>
+                        </ComboBox>
+                    </controls:SettingsCard>
+                    
                     <controls:SettingsCard 
                         x:Uid="SettingsPage_MaxWebViewHeader"
                         IsClickEnabled="True"

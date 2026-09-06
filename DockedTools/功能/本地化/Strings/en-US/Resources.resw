@@ -1411,4 +1411,41 @@ Error Message: {1}</value>
   <data name="WebAppDetailPage_DefaultTooltip" xml:space="preserve">
     <value>Execute hotkey</value>
   </data>
+  <!-- Link Open Behavior Settings -->
+  <data name="SettingsPage_LinkOpenBehaviorHeader.Header" xml:space="preserve">
+    <value>Link Default Open Behavior</value>
+  </data>
+  <data name="SettingsPage_LinkOpenBehaviorHeader.Description" xml:space="preserve">
+    <value>Choose behavior when clicking target="_blank" links in web pages</value>
+  </data>
+  <data name="SettingsPage_LinkOpenBehaviorAsk.Content" xml:space="preserve">
+    <value>Ask Every Time</value>
+  </data>
+  <data name="SettingsPage_LinkOpenBehaviorSystemBrowser.Content" xml:space="preserve">
+    <value>System Browser</value>
+  </data>
+  <data name="SettingsPage_LinkOpenBehaviorWebViewWindow.Content" xml:space="preserve">
+    <value>WebView Window</value>
+  </data>
+  <!-- Link Open Ask Dialog -->
+  <data name="LinkOpen_AskDialog_Title" xml:space="preserve">
+    <value>Choose How to Open</value>
+  </data>
+  <data name="LinkOpen_AskDialog_Content" xml:space="preserve">
+    <value>The webpage wants to open a link in a new window:
+
+{0}</value>
+  </data>
+  <data name="LinkOpen_RememberChoice" xml:space="preserve">
+    <value>Always use this method</value>
+  </data>
+  <data name="LinkOpen_SystemBrowser" xml:space="preserve">
+    <value>System Browser</value>
+  </data>
+  <data name="LinkOpen_WebViewWindow" xml:space="preserve">
+    <value>Current Window</value>
+  </data>
+  <data name="LinkOpen_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
 </root>
