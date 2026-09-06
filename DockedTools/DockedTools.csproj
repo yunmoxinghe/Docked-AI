@@ -71,13 +71,13 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.3.1" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.10" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.11" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Microsoft.UI.Reactor" Version="0.1.0-preview.12" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
-    <PackageReference Include="WinUIEx" Version="2.9.2" />
+    <PackageReference Include="WinUIEx" Version="2.9.3" />
   </ItemGroup>
 
   <!--
@@ -101,7 +101,7 @@
   <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
   <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
   <GenerateTestArtifacts>False</GenerateTestArtifacts>
-  <AppxBundle>Auto</AppxBundle>
+  <AppxBundle>Always</AppxBundle>
   <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
   <AppxBundlePlatforms>x64|arm64</AppxBundlePlatforms>
   

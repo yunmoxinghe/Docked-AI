@@ -31,8 +31,6 @@ namespace DockedTools.Features.MainWindowContent.NavigationBar
         private readonly NavigationDebouncer _navigationDebouncer = new(300);
 
         public event EventHandler<NavigationRequest>? NavigationRequested;
-        public event EventHandler? DockToggleRequested;
-        public event EventHandler? WindowStateToggleRequested;
         public event EventHandler<string>? ShortcutRemoved; // 快捷方式被移除事件
         public event EventHandler<string>? WebAppRestartRequested; // 网页应用重启请求事件
         public event EventHandler? BackRequested; // 返回请求事件

@@ -18,9 +18,6 @@ namespace DockedTools.Features.MainWindowContent.Linker
 {
     public sealed partial class Linker : UserControl
     {
-        public event EventHandler? DockToggleRequested;
-        public event EventHandler? WindowStateToggleRequested;
-
         public NavBarControl NavBarInstance => NavBar;
 
         // 导航历史由 ContentHost 的 Frame.BackStack 内置管理，无需自定义栈
@@ -50,8 +47,6 @@ namespace DockedTools.Features.MainWindowContent.Linker
             ContentHost.CachedPageNavigated += ContentHost_CachedPageNavigated;
             ContentHost.PageCloseRequested += OnPageCloseRequested;
             NavBar.NavigationRequested += OnNavigationRequested;
-            NavBar.DockToggleRequested += OnDockToggleRequested;
-            NavBar.WindowStateToggleRequested += OnWindowStateToggleRequested;
             NavBar.ShortcutRemoved += OnShortcutRemoved;
             NavBar.WebAppRestartRequested += OnWebAppRestartRequested;
             NavBar.BackRequested += OnBackRequested;
@@ -238,19 +233,10 @@ namespace DockedTools.Features.MainWindowContent.Linker
 
         private void PushCurrentPageToHistory() { } // 已废弃，由 Frame.BackStack 内置管理
 
-        private void OnDockToggleRequested(object? sender, EventArgs e)
-        {
-            DockToggleRequested?.Invoke(this, EventArgs.Empty);
-        }
-
-        private void OnWindowStateToggleRequested(object? sender, EventArgs e)
-        {
-            WindowStateToggleRequested?.Invoke(this, EventArgs.Empty);
-        }
-
         private void OnTopBarDoubleTapped(object? sender, EventArgs e)
         {
-            WindowStateToggleRequested?.Invoke(this, EventArgs.Empty);
+            // 双击顶部栏切换最大化状态
+            DockedTools.Features.UnifiedCalls.MainWindow.MainWindowService.RequestToggleMaximize();
         }
 
         public void NavigateToNewPage(string url)

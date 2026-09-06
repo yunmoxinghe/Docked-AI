@@ -242,25 +242,20 @@ namespace DockedTools
                 return;
             }
 
-            _linker.DockToggleRequested += OnDockToggleRequested;
-            _linker.WindowStateToggleRequested += OnWindowStateToggleRequested;
+            // Linker 的 DockToggleRequested 和 WindowStateToggleRequested 事件已废弃
+            // 现在统一使用 MainWindowService 处理固定和最大化切换
         }
 
         /// <summary>
         /// 取消订阅 Linker 事件 - 防止内存泄漏
         /// 
         /// 【重要性】
-        /// 必须在窗口关闭时调用，否则 Linker 持有 MainWindow 引用，导致内存泄漏
+        /// 必须在窗口关闭时调用,否则 Linker 持有 MainWindow 引用,导致内存泄漏
         /// </summary>
         private void UnsubscribeFromLinkerEvents()
         {
-            if (_linker is null)
-            {
-                return;
-            }
-
-            _linker.DockToggleRequested -= OnDockToggleRequested;
-            _linker.WindowStateToggleRequested -= OnWindowStateToggleRequested;
+            // Linker 的 DockToggleRequested 和 WindowStateToggleRequested 事件已废弃
+            // 无需取消订阅
         }
 
         /// <summary>
@@ -392,14 +387,6 @@ namespace DockedTools
         }
 
         /// <summary>
-        /// Linker 事件处理器 - 用户点击最大化/还原按钮
-        /// </summary>
-        private void OnWindowStateToggleRequested(object? sender, System.EventArgs e)
-        {
-            _windowController.ToggleMaximize();
-        }
-
-        /// <summary>
         /// ViewModel.PropertyChanged 事件处理器 - 同步状态到 UI
         /// 
         /// 【触发时机】
@@ -482,14 +469,6 @@ namespace DockedTools
         public void RequestSlideIn()
         {
             _windowController.RequestSlideIn();
-        }
-
-        /// <summary>
-        /// Linker 事件处理器 - 用户点击固定/取消固定按钮
-        /// </summary>
-        private void OnDockToggleRequested(object? sender, System.EventArgs e)
-        {
-            TogglePinnedDock();
         }
 
         /// <summary>
