@@ -2,6 +2,7 @@ using DockedTools.Features.Pages.Home;
 using DockedTools.Features.Pages.New;
 using DockedTools.Features.Pages.AI;
 using DockedTools.Features.Pages.Settings;
+using DockedTools.Features.Pages.Lab;
 using DockedTools.Features.Pages.WebApp.Browser;
 using DockedTools.Features.Pages.WebApp.Shared;
 using DockedTools.Features.Localization;
@@ -117,6 +118,20 @@ namespace DockedTools.Features.MainWindowContent.NavigationBar
             
             // ⭐ 滚动到选中的项（如果不可见）
             ScrollToSelectedItem(AINavigationItem);
+        }
+
+        public void SelectLabItem()
+        {
+            System.Diagnostics.Debug.WriteLine("[NavigationBar] 🔥 SelectLabItem 被调用");
+            _suppressSelectionChanged = true;
+            NavView.SelectedItem = LabNavigationItem;
+            TopNavView.SelectedItem = null;
+            _lastSelectedNavigationItem = LabNavigationItem;
+            _suppressSelectionChanged = false;
+            System.Diagnostics.Debug.WriteLine($"[NavigationBar] ✅ 已选中实验室页，SelectedItem={NavView.SelectedItem?.GetType().Name}");
+            
+            // ⭐ 滚动到选中的项（如果不可见）
+            ScrollToSelectedItem(LabNavigationItem);
         }
 
         /// <summary>
@@ -332,6 +347,8 @@ namespace DockedTools.Features.MainWindowContent.NavigationBar
             
             // 根据设置显示或隐藏 AI 导航项
             UpdateAINavigationItemVisibility();
+            // 根据 Debug 模式显示或隐藏实验室导航项
+            UpdateLabNavigationItemVisibility();
             // 初始化返回按钮（默认隐藏）
             BackNavigationItem.Visibility = Visibility.Collapsed;
             
@@ -353,6 +370,15 @@ namespace DockedTools.Features.MainWindowContent.NavigationBar
             AINavigationItem.Visibility = ExperimentalSettings.EnableAILab 
                 ? Visibility.Visible 
                 : Visibility.Collapsed;
+        }
+
+        public void UpdateLabNavigationItemVisibility()
+        {
+#if DEBUG
+            LabNavigationItem.Visibility = Visibility.Visible;
+#else
+            LabNavigationItem.Visibility = Visibility.Collapsed;
+#endif
         }
 
         public void UpdateBackButtonVisibility(bool canGoBack)
@@ -822,6 +848,25 @@ namespace DockedTools.Features.MainWindowContent.NavigationBar
                 
                 _lastSelectedNavigationItem = args.SelectedItemContainer;
                 NavigationRequested?.Invoke(this, new NavigationRequest(typeof(SettingsPage), null));
+                return;
+            }
+
+            // 处理实验室页面导航
+            if (tagText == "lab")
+            {
+                string navigationKey = "lab";
+                
+                if (_navigationDebouncer.ShouldDebounce(navigationKey))
+                {
+                    // 防抖触发，恢复之前的选中状态
+                    _suppressSelectionChanged = true;
+                    NavView.SelectedItem = _lastSelectedNavigationItem;
+                    _suppressSelectionChanged = false;
+                    return;
+                }
+                
+                _lastSelectedNavigationItem = args.SelectedItemContainer;
+                NavigationRequested?.Invoke(this, new NavigationRequest(typeof(LabPage), null));
                 return;
             }
 

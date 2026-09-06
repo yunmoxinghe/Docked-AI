@@ -136,6 +136,16 @@
                     </controls:NavigationViewItem.Icon>
                 </controls:NavigationViewItem>
                 <controls:NavigationViewItem
+                    x:Name="LabNavigationItem"
+                    x:Uid="Nav_Lab"
+                    Content="实验室"
+                    Tag="lab"
+                    Visibility="Collapsed">
+                    <controls:NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xF196;" />
+                    </controls:NavigationViewItem.Icon>
+                </controls:NavigationViewItem>
+                <controls:NavigationViewItem
                     x:Name="SettingsNavigationItem"
                     x:Uid="Nav_Settings"
                     Tag="settings"
